@@ -1,0 +1,446 @@
+class WeaponKit : SelacoItem {
+    class<SelacoWeapon> weaponKit; // Used so we can find the currently equiped alt fire for a specific weapon.
+    PlayerPawn dawn;
+    string weaponKitInventory;
+    int aliveTicks;
+    
+    // Checked by MULTIFUNCTIONMETER_B, because it can find this item before PostBeginPlay()
+    bool dontCountAsUpgrade() {
+        return args[0] == 9 || args[0] == 47;
+    }
+
+    override void BeginPlay() {
+        Super.BeginPlay();
+        
+        if(dontCountAsUpgrade())        
+        {
+            bUpgradeItem = false;
+        }
+        sleepTimeout = max(sleepTimeout, 5);    // Required since we need a tick or two to setup our inventory type
+    }
+
+    override void tick()
+    {
+        super.tick();
+
+        if(aliveTicks == 2)
+        {
+            dawn = players[0].mo;
+            // Check the first argument given in UDB to find the correct alt fire actor.
+            // - Roaring Cricket -
+            if(args[0] >= 0 && args[4] <= 4)
+            {
+                if(args[0] == 0) {weaponKitInventory = "AltFireCricketDoubleTap"; SetTag("$PICKUP_UPGRADEKIT_CRICKET_DOUBLETAP");}
+                if(args[0] == 1) {weaponKitInventory = "AltFireCricketTripleTap"; SetTag("$PICKUP_UPGRADEKIT_CRICKET_TRIPLETAP");}
+                if(args[0] == 2) {weaponKitInventory = "reserved"; }
+                if(args[0] == 3) {weaponKitInventory = "reserved"; }
+                if(args[0] == 4) {weaponKitInventory = "reserved"; }
+                pickupType = 'PistolReserve';
+                pickupCount = 12;
+            }
+
+            // - UC36 -
+            if(args[0] >= 5 && args[4] <= 9)
+            {
+                if(args[0] == 5) {weaponKitInventory = "AltFireRifleBurst";     SetTag("$PICKUP_UPGRADEKIT_RIFLE_BURSTFIRE");}
+                if(args[0] == 7) {weaponKitInventory = "AltFireRifleBurstZoom"; SetTag("$PICKUP_UPGRADEKIT_RIFLE_BURSTFIRE_ZOOM"); }
+                if(args[0] == 8) {weaponKitInventory = "reserved"; }
+                if(args[0] == 9) {weaponKitInventory = "AltFireScarabMode";     SetTag("$PICKUP_UPGRADEKIT_RIFLE_SCARAB");}
+                pickupType = 'RifleReserve';
+                pickupCount = 30;
+
+                if(args[0] == 6) {
+                    weaponKitInventory = "AltFireRifleLauncher";
+                    SetTag("$PICKUP_UPGRADEKIT_RIFLE_LAUNCHER");
+                    pickupType = 'HandGrenadeAmmo';
+                    pickupCount = 2;
+                }
+            }
+            
+            // - SHOTGUN -
+            if(args[0] >= 10 && args[4] <= 14)
+            {
+                if(args[0] == 10) {weaponKitInventory = "altfireShotgunDoubleBarrel"; SetTag("$PICKUP_UPGRADEKIT_SHOTGUN_DOUBLEBARREL");}
+                if(args[0] == 11) {weaponKitInventory = "altfireShotgunFlak"; SetTag("$PICKUP_UPGRADEKIT_SHOTGUN_FLAKSHOT");}
+                if(args[0] == 12) {weaponKitInventory = "AltfireShotgunRecoil"; SetTag("$PICKUP_UPGRADEKIT_SHOTGUN_BACKBLAST");}
+                if(args[0] == 13) {weaponKitInventory = "AltFireShotgunSlugShell"; SetTag("$PICKUP_UPGRADEKIT_SHOTGUN_SLUGROUND");}
+                if(args[0] == 14) {weaponKitInventory = "reserved"; }
+                pickupType = 'ShotgunReserve';
+                pickupCount = 4;
+            }
+
+            // - SMG - 
+            if(args[0] >= 15 && args[4] <= 19)
+            {
+                if(args[0] == 15) {weaponKitInventory = "AltFireSMGDualWield";          SetTag("$PICKUP_UPGRADEKIT_SMG_DUALWIELD");}
+                if(args[0] == 16) {weaponKitInventory = "AltFireSMGControlledShots";    SetTag("$PICKUP_UPGRADEKIT_SMG_PRECISIONSHOT");}
+                if(args[0] == 17) {weaponKitInventory = "AltFireSMGShockDart";          SetTag("$PICKUP_UPGRADEKIT_SMG_SHOCKDART");}
+                if(args[0] == 18) {weaponKitInventory = "reserved"; }
+                if(args[0] == 19) {weaponKitInventory = "reserved"; }
+                pickupType = 'RifleReserve';
+                pickupCount = 30;
+            }
+
+            // Grenade Launcher
+            if(args[0] >= 20 && args[4] <= 24)
+            {
+                if(args[0] == 20) {weaponKitInventory = "AltfireGrenadeLauncherTraditional"; }
+                if(args[0] == 21) {weaponKitInventory = "AltfireGrenadeLauncherRocket";     SetTag("$PICKUP_UPGRADEKIT_GRENADELAUNCHER_ROCKET");}
+                if(args[0] == 22) {weaponKitInventory = "AltfireGrenadeLauncherProximity";   SetTag("$PICKUP_UPGRADEKIT_GRENADELAUNCHER_PROXIMITY");}
+                if(args[0] == 23) {weaponKitInventory = "AltfireGrenadeLauncherTeddy11";                  SetTag("$PICKUP_UPGRADEKIT_GRENADELAUNCHER_TEDDY11");}
+                if(args[0] == 24) {weaponKitInventory = "reserved"; }
+                pickupType = 'GLFragReserve';
+                pickupCount = 2;
+            }
+
+            // Nailgun
+            if(args[0] >= 25 && args[4] <= 29)
+            {
+                if(args[0] == 25) {weaponKitInventory = "AltfireNailBomb";      SetTag("$PICKUP_UPGRADEKIT_NAILGUN_BOMB");}
+                if(args[0] == 26) {weaponKitInventory = "AltfireNailTurret";    SetTag("$PICKUP_UPGRADEKIT_NAILGUN_TURRET");}
+                if(args[0] == 27) {weaponKitInventory = "AltFireNailShotgun";   SetTag("$PICKUP_UPGRADEKIT_NAILGUN_SHOTGUN");}
+                if(args[0] == 28) {weaponKitInventory = "reserved"; }
+                if(args[0] == 29) {weaponKitInventory = "AltFireNailZoom"; }
+                pickupType = 'NailgunReserve';
+                pickupCount = 40;
+            }
+
+            // - Plasma Rifle -
+            if(args[0] >= 30 && args[4] <= 34)
+            {
+                if(args[0] == 30) {weaponKitInventory = "AltFirePlasmaRifleGravityManipulatorTraditional"; SetTag("$PICKUP_UPGRADEKIT_PLASMAFIRE_GRAVITYMANIPULATOR_TRANDITION");}
+                if(args[0] == 31) {weaponKitInventory = "reserved"; }
+                if(args[0] == 32) {weaponKitInventory = "reserved"; }
+                if(args[0] == 33) {weaponKitInventory = "reserved"; }
+                if(args[0] == 34) {weaponKitInventory = "reserved"; }
+                pickupType = 'PlasmaReserve';
+                pickupCount = 20;
+            }
+
+            // - DMR - 
+            if(args[0] >= 35 && args[4] <= 39)
+            {
+                if(args[0] == 35) {weaponKitInventory = "AltfireDMRZoomCharger"; SetTag("$ALTFIRE_ZOOM_CHARGESHOT");}
+                if(args[0] == 36) {weaponKitInventory = "AltfireDMRZoomConcussive"; SetTag("$ALTFIRE_ZOOM_CONCUSSIVESHOT");}
+                if(args[0] == 37) {weaponKitInventory = "reserved"; }
+                if(args[0] == 38) {weaponKitInventory = "reserved"; }
+                if(args[0] == 39) {weaponKitInventory = "reserved"; }
+                pickupType = 'MarksmanRifleReserve';
+                pickupCount = 5;
+            }
+            // - RAILGUN - 
+            if(args[0] >= 40 && args[4] <= 44)
+            {
+                if(args[0] == 40) {weaponKitInventory = "reserved"; }
+                if(args[0] == 41) {weaponKitInventory = "reserved"; }
+                if(args[0] == 42) {weaponKitInventory = "reserved"; }
+                if(args[0] == 43) {weaponKitInventory = "reserved"; }
+                if(args[0] == 44) {weaponKitInventory = "reserved"; }
+                pickupType = 'RailgunAmmo';
+                pickupCount = 5;
+            }
+            // - HAND GRENADE - 
+            if(args[0] >= 45 && args[4] <= 49)
+            {
+                if(args[0] == 45) {weaponKitInventory = "AltFireGrenadeImpact";     SetTag("$ALTFIRE_WEAPONKIT_GRENADE_IMPACT");}
+                if(args[0] == 46) {weaponKitInventory = "AltFireGrenadeSticky";     SetTag("$ALTFIRE_WEAPONKIT_GRENADE_STICKY");}
+                if(args[0] == 47) {weaponKitInventory = "AltFireGrenadeBalloon";    SetTag("$ALTFIRE_WEAPONKIT_GRENADE_BALLOON");} 
+                if(args[0] == 48) {weaponKitInventory = "reserved"; }
+                if(args[0] == 49) {weaponKitInventory = "reserved"; }
+                pickupType = 'HandGrenadeAmmo';
+                pickupCount = 1;
+            }
+
+            // - Mine - 
+            if(args[0] >= 50 && args[4] <= 54)
+            {
+                if(args[0] == 50) {weaponKitInventory = "AltFireMineSecondCharge";      SetTag("$ALTFIRE_WEAPONKIT_MINE_SECONDCHARGE");}
+                if(args[0] == 51) {weaponKitInventory = "AltFireMineShock";             SetTag("$ALTFIRE_WEAPONKIT_MINE_SHOCKMINE");}
+                if(args[0] == 52) {weaponKitInventory = "AltFireMineAnnihilation";      SetTag("$ALTFIRE_WEAPONKIT_MINE_ANNIHILATION");} 
+                if(args[0] == 53) {weaponKitInventory = "reserved"; }
+                if(args[0] == 54) {weaponKitInventory = "reserved"; }
+                pickupType = 'MineAmmo';
+                pickupCount = 1;
+            }
+
+            // Special case for the saferoom extension
+            // Remove ourselves if we are back in the safe room and player already has this inventory
+            if(SafeRoomExtension.BackInSafeRoomExtension()) {
+                let inv = players[consolePlayer].mo.findInventory(weaponKitInventory);
+                let saferoomInv = SafeRoomItem(players[consolePlayer].mo.findInventory("SafeRoomItem"));
+                if(inv && inv.Amount > 0 && saferoomInv) {
+                    // Delete duplicates inside the saferoom, but only if we actually picked it up in the saferoom
+                    for(int x = 0; x < saferoomInv.pickedUpKitIDs.size(); x++) {
+                        int type = saferoomInv.pickedUpKitIDs[x];
+                        if(args[0] == type) {
+                            destroy();
+                            return;
+                        }
+                    }
+
+                    // GIANT HACK ALERT!!!! =======================================================
+                    // For save backwards compatibility, remove if this item exists in pickedUpKits
+                    // Moving forwards pickedUpKits will not be filled in
+                    if(saferoomInv.pickedUpKits.size() > 0) {
+                        // If we stored 'WeaponKit' Cockatrice is an idiot. Try to check if the player has already picked up this kit
+                        if(saferoomInv.pickedUpKits[0] == 'WeaponKit' && (saferoomInv.pickedUpKits.size() == 1 || saferoomInv.pickedUpKits[1] == 'WeaponKit')) {
+                            // If this is the sticky grenade kit and we only picked up ONE WeaponKit, then the most likely picked up one is this
+                            // If there is more than one weaponkit stored we must have picked up both
+                            if(saferoomInv.pickedUpKits.size() > 1 || args[0] == 45) {
+                                destroy();
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if(checkForDuplicates()) {
+                SetTag(String.Format("%s \c[GOLD]%s\c-", GetTag(), Stringtable.Localize("$DUPLICATE_UPGRADE")));
+            }
+        }
+
+        aliveTicks++;
+    }
+
+
+    // Replace ourself with credits if the player already has this weapon kit
+    virtual bool checkForDuplicates() {
+        let d = Dawn(players[0].mo);
+        if(!d) return false;
+
+        if(weaponKitInventory == "reserved" || d.countInv(weaponKitInventory) > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    override bool CanPickup(Actor toucher) {
+	    if(!pickupType) {
+            if(developer) {
+                Console.Printf("\c[YELLOW]Tried to pick up a non-inited Weaponkit");
+            }
+            return false;       // Don't allow pickup until we have established a pickup type	
+        }
+
+        return Super.CanPickup(toucher);
+    }
+
+
+    override bool TryPickup (in out Actor other) {
+        if(!pickupType) return false;       // Don't allow pickup until we have established a pickup type
+
+		if (other) {
+            // Check alt fire ranges
+            if(args[0] >= 0 && args[4] <= 4)
+            {
+                weaponKit = "RoaringCricket";
+            }
+
+            if(args[0] >= 5 && args[4] <= 9)
+            {
+                weaponKit = "Rifle";
+            }
+
+            if(args[0] >= 10 && args[4] <= 14)
+            {
+                weaponKit = "Shot_gun";
+            }
+
+            if(args[0] >= 15 && args[4] <= 19)
+            {
+                weaponKit  = "SMG";
+            }
+
+            if(args[0] >= 20 && args[4] <= 24)
+            {
+                weaponKit = "GrenadeLauncher";
+            }
+
+            if(args[0] >= 25 && args[4] <= 29)
+            {
+                weaponKit = "Nailgun";
+            }
+
+            if(args[0] >= 30 && args[4] <= 34)
+            {
+                weaponKit  = "PlasmaRifle";
+            }
+
+            if(args[0] >= 35 && args[4] <= 39)
+            {
+                weaponKit = "Rail_gun";
+            }
+
+            if(!checkForDuplicates()) {
+                other.A_PLAYSOUND("ITEM/WPNFIND", CHAN_AUTO);
+
+                // Give the item. This will mark is as ''new''. If the player chooses to equip it, `EquipAltFire` will turn it to 3.
+                other.A_Giveinventory(weaponKitInventory, 1);
+                if(pickupType && pickupCount > 0) {
+                    other.A_GiveInventory(pickupType, pickupCount);
+                }
+
+                // Save global picked up status
+                if(sv_cheats == 0) {
+                    string mf = weaponKitInventory.MakeLower();
+                    int numPickups = Globals.GetInt(mf);
+                    Globals.SetInt(weaponKitInventory.MakeLower(), numPickups + 1);
+                    if(developer) Console.Printf("\c[BLUE]Saving alt fire to global: %s (%d)", mf, numPickups + 1);
+                } else {
+                    if(developer) Console.Printf("\c[RED]NOT Saving alt fire to globals because SV_CHEATS is on!");
+                }
+                
+
+                // -- PROMPT HERE -- //
+                // Prompt will equip the alt-fire if EQUIP is selected, otherwise it will do nothing
+                PromptHandler.ShowWeaponKitPrompt(weaponKitInventory);
+                // is Teddy11
+                if(args[0] == 23)
+                {
+                    A_SPAWNITEMEX("teddy11WarningDelay");
+                }
+                
+                if(!TutorialHandler.GetHandler().hasSeenTutorial("TUT_WEAPONKITS")) {
+                    Spawn('WeaponKitTutorialSpawner', pos);
+                }
+                
+            } else {
+                // Duplicate found, give credits instead
+                other.A_PLAYSOUND("item/creditsb", CHAN_AUTO);
+                other.A_GiveInventory("creditsCount", 100);
+            }
+
+            if(mapIcon)
+            {
+                mapIcon.destroy();
+            }
+
+            Stats.AddStat(STAT_WEAPONKITS, 1, 0);
+
+            // If we are in the saferoom, log this kit as being picked up there
+            if(level.MapName ~== "SE_SAFE") {
+                let saferoomInv = SafeRoomItem(players[consolePlayer].mo.findInventory("SafeRoomItem"));
+                if(saferoomInv) {
+                    saferoomInv.pickedUpKitIDs.push(args[0]);
+                }
+            }
+
+            A_SPAWNITEMEX("map_Weaponkitclear");
+
+            GoAwayAndDie();
+            return true;
+		}
+        
+		return false;
+	}
+
+    // If player chooses the weapon right away, we must see which alt fire is currently active and disable it.
+    // TODO: If a Zoom Alt Fire gets replaced, make sure the zoom gets reset! 
+    /*void equipAltFire(class<SelacoWeapon> targetWeapon)
+    {
+        // Get all available alt fires for the weapon this kit belongs to.
+        if(weaponKit && dawn)
+        {
+            array< class<WeaponAltFire> > weaponAltFires;
+            GetDefaultByType(targetWeapon).findAltFires(weaponAltFires);
+            for(int x=0;x<weaponAltFires.size();x++)
+            {
+                // Check to see if the player *uses* the alt fire and isn't the one we just acquired
+                if(dawn.countInv(weaponAltFires[x]) == 3 && weaponAltFires[x].getClassName() != weaponKitInventory)
+                {   
+                    // Set the currently equiped alt fire to '2' (Owned, Seen, but not equiped)
+                    dawn.TakeInventory(weaponAltFires[x], 3);
+                    dawn.GiveInventory(weaponAltFires[x], 2);
+                }
+            }
+            // In case the player is zooming, cancel the zoom. 
+            SelacoWeapon(dawn.player.ReadyWeapon).isZooming = false;
+
+            // Equip the recently acquired alt fire
+            dawn.GiveInventory(weaponKitInventory, 3);
+        }
+
+    }*/
+
+    actor mapIcon;
+    bool succ;
+
+    default {
+        radius 20;
+        height 26;
+        tag "$PICKUP_UPGRADEKIT";
+        +inventory.alwayspickup;
+        -SelacoItem.AllowRandomizerSwapping
+        +SelacoItem.UpgradeItem;
+        SelacoItem.sleepDistance 1000;
+    }
+    states {
+        Spawn:
+            VOXE L 2 A_LOOKEX(LOF_NOSOUNDCHECK, 0, 1000, 1000, 360, "Seen");
+            loop;
+        Seen:
+            TNT1 A 0
+            {
+                [invoker.succ, invoker.mapIcon] = A_SPAWNITEMEX("map_Weaponkit");
+                Notification.QueueNew('MapNotification', "Automap Updated", StringTable.localize("$AUTOMAP_WEAPONKIT"), "ICO2C0", 0);
+            }
+            VOXE L -1;
+            loop;
+        Pickup:
+            TNT1 A 0;
+            goto pickupSuccess;
+    }
+}
+
+class WeaponKit_SHOTGUN : weaponKit
+{
+    override void BeginPlay()
+    {
+        super.beginPlay();
+        args[0] = 10;
+    }
+}
+
+// Beta secret
+class gravityManipulatorWeaponKit : weaponKit
+{
+    override void BeginPlay()
+    {
+        super.beginPlay();
+        args[0] = 30;
+    }
+}
+
+class teddy11WarningDelay : selacoActor
+{
+    default
+    {
+        +NOINTERACTION;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 220;
+            TNT1 A 0
+            {
+                TutorialHandler.TutorialMessage("TUT_TEDDY11", 1);
+            }
+            stop;
+    }
+}
+
+class weaponKitTutorialSpawner : SelacoActor {
+    default { +NOINTERACTION; }
+    states
+    {
+        Spawn:
+            TNT1 A 55;
+            TNT1 A 0 {
+                TutorialHandler.TutorialMessage("TUT_WEAPONKITS", 1);
+            }
+            stop;
+    }
+}

@@ -1,0 +1,152 @@
+class Paperdispenser : Interactable {
+	int amountDispensed;
+	actor toiletPaper;
+	bool success;
+	int ticks;
+	int moveRollDown;
+	int dispsenseCooldown; // How long until you can dispense again
+	bool dispensed;
+
+	const DISPENSE_AMOUNT = 2;
+
+	default {
+		mass 350;
+		+USESPECIAL;
+		+DONTTHRUST ;
+		+SelacoActor.DecorativeActor;
+		+SelacoActor.ThruDecorations;
+		activation THINGSPEC_SWITCH;
+		+NOGRAVITY;
+		SelacoActor.SleepDistance 0;
+		+SHOOTABLE;
+		health 10;
+		Tag "$OBJECT_Paperdispenser";
+	    BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/hardmetal";
+		+SelacoActor.DisallowGravityManipulation;
+		-SelacoActor.AllowGravityManipulation;
+	}
+
+	override void PostBeginPlay() {
+		super.postbeginPlay();
+		spawnNewPaper();
+	}
+
+	override void tick() {
+		super.tick();
+
+		if(ticks == 1 && toiletPaper) {
+			toiletPaper.pitch = 90;
+			toiletPaper.angle +=90;
+			toiletPaper.bSolid = true;
+			toiletPaper.bnogravity = true;
+			sleepDist = 1024;
+			toiletPaper.A_SetRenderStyle(1, STYLE_Normal);
+		}
+
+		if((toiletPaper) && dispensed && toiletPaper.pitch>0) {
+			toiletPaper.pitch-=5;
+			if(toiletPaper.pitch == 0) {
+				toiletPaper.activationtype = THINGSPEC_SWITCH;
+				toiletPaper.bShootable = true;
+				dispensed = false;
+				toiletPaper = null;
+			}
+		}
+
+		if(moveRollDown > 0) {
+			if(moveRollDown == 1) {
+				toiletPaper.vel.z = 0;
+			}
+			moveRollDown--;
+		}
+
+		if(dispsenseCooldown >= 0 && health > 0) {
+			dispsenseCooldown--;
+			if(dispsenseCooldown == 1 && amountDispensed < DISPENSE_AMOUNT) {
+				activationtype = THINGSPEC_SWITCH;
+				dispensed = false;
+				ticks = 0;
+				spawnNewPaper();
+			}
+		}
+
+		ticks++;
+	}
+
+	void spawnNewPaper() {
+		wake();
+		amountDispensed++;
+		toiletPaper = null;
+		[success, toiletPaper] = A_SPawnItemEx("ToiletPaper", 0, 4.5, 8, 0, 0, -0.3);
+		toiletPaper.scale = (scale.x+0.1, scale.y+0.1);
+		toiletPaper.bNoGravity = true;
+		toiletPaper.bShootable = false;
+		toiletPaper.bStandStill = true;
+		toiletPaper.A_SetRenderStyle(0, STYLE_Translucent);
+		toiletPaper.activationtype = THINGSPEC_Default;
+		SelacoActor(toiletPaper).bAllowRandomizerReplacement = false;
+		moveRollDown = 15;
+
+		// Make sure we don't sleep before done
+		idleTimeout = max(idleTimeout, 16);
+		sleepTimeout = max(sleepTimeout, 16);
+	}
+
+	void dispensePaper() {
+		dispensed = true;
+		moveRollDown = 0;
+		dispsenseCooldown = 25;
+		if(toiletPaper) {
+			toiletPaper.wake();
+			toiletPaper.scale = (scale.x-0.1, scale.y-0.1);
+			toiletPaper.bNoGravity = false;
+			ToiletPaper(toiletPaper).idleTimeout = 25;
+			ToiletPaper(toiletPaper).sleepTimeout = 25;
+			ToiletPaper(toiletPaper).bUseSpecial = true;
+			ToiletPaper(toiletPaper).activationType = THINGSPEC_Switch;
+			// Make sure we don't sleep before done
+			idleTimeout = max(idleTimeout, 26);
+			sleepTimeout = max(sleepTimeout, 26);
+		}
+	}
+
+	override void deactivate(actor deactivator) {
+		activate(deactivator);
+	}
+
+	override void activate(actor activator) {
+		super.activate(activator);
+		activationtype = THINGSPEC_Default;
+		A_PLAYSOUND("script/DISPPUSH");
+		dispensePaper();
+	}
+
+	states {
+		Inactive:
+		Active:
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1 {
+				// Turn the light off.
+				if(amountDispensed == DISPENSE_AMOUNT) {
+					frame = 1;
+				}
+			}
+			stop;
+		Death:
+		xDeath:
+			TNT1 A 0 {
+            	for(int i=0;i<12;i++) {
+                    A_SPAWNITEMEX("LargeGlassParticle1", random(-3, 3), random(-9, 9), random(3, 40), random(-4, 4), random(-4, 4), random(3, 6));
+                }
+				dispensePaper();
+				activationType = THINGSPEC_DEFAULT;
+				bSpecial = false;
+				bNoGravity = true;
+				roll = random(-4,4);
+			}
+			VOXE D -1;
+			stop;
+	}
+}

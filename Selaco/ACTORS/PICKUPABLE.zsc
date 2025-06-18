@@ -1,0 +1,870 @@
+enum FALLDAMAGE_THRESHOLDS
+{
+    FALLTHRESHOLD_WEAK = -6,
+    FALLTHRESHOLD_MEDIUM = -8,
+    FALLTHRESHOLD_CRATE = -9,
+}
+
+class PickupableDecoration : DecorationObject {
+    const pullTics = 7;
+    const pullTMF = 1.0 / Double(pullTics);
+    const MAX_WARPS = 5;    // Total amount of warps is actually (MAX_WARPS * 2) + 1
+    const MAX_HOLD_STUCK_TICS = 10;
+    const MAX_THROW_TICKS = 35;
+
+    int frameNum;
+    uint throwTime, magicBulletRepellent, glassHitTime;
+
+    bool holdActionStarted;
+    double ThrowVel, MaxThrowVel, HoldDistance, HoldHeight, projectileSpeed;
+    float fallDamageThreshold;
+    int holdStuckTics;                  // Count how many ticks our hold has been stuck, drop after threshhold
+    int previousZVelocity;
+    Vector3 holdVel;                    // Velocity in player hands, used for special collision code
+    float holdOffset;
+    float pickupAlpha;
+
+    protected Vector3 pullStartPos;
+    protected double pullStartAngle, pullDestAngle;
+    protected double pullTM;
+
+    string grabSound, landingSound, dumpsterSound, throwSound;
+    property GrabSound      : grabSound;
+    property LandingSound   : landingSound;
+    property ThrowSound     : throwSound;
+    property ThrowVel       : ThrowVel;
+    property MaxThrowVel    : maxThrowVel;
+    property HoldDistance   : HoldDistance;
+    property HoldHeight     : HoldHeight;
+    property FallDamageThreshold : FallDamageThreshold;
+    property dumpsterSound  : dumpsterSound;
+    property frameNum       : frameNum;
+    property ProjectileSpeed    : projectileSpeed;      // Velocity at which we convert to a projectile when thrown. -1 = never 0 = always
+    property HoldOffset     : holdOffset;
+
+    private int pickupFlags;
+    flagdef HoldFromFront       : pickupFlags, 0;
+    flagdef HoldFromBack        : pickupFlags, 1;
+    flagdef HoldFromAnyAngle    : pickupFlags, 2;
+    flagdef LightweightHoldPhysics : pickupFlags, 3;    // Turning this on means skipping extra WARP() commands NOTE: Currently does nothing, we don't use WARP anymore
+    flagdef CanPickUp           : pickupFlags, 4;       // If you need to activate an item, turn off CanPickUp
+    flagdef TranslucentPickup   : pickupFlags, 5;       // Go transparent when being picked up
+    flagdef dumpsterCompatible  : pickupFlags, 6;       // Can we drop this in the dumpster?
+    flagdef NoPull              : pickupFlags, 7;       // Skip the pull animation as you pick this item up
+    //flagdef TravelAllowed       : pickupFlags, 8;       // Allow travel between maps. Use caution with this!
+    flagdef RaiseAllowed        : pickupFlags, 9;       // Allows player to raise the object above mid-level. Turn off for heavy objects.
+    flagdef NoThrowDamage       : pickupFlags, 10;      // Do not apply damage to self or others when throwing
+    flagdef ConvertsBackFromMissile : pickupFlags, 11;  // Converts back from missile or SKULLFLY if not colliding with something or idle
+    flagdef CanDamageGlass      : pickupFlags, 12;      // Can damage glass when thrown, or being held?
+    flagdef SlowDownPlayer      : pickupFlags, 13;      // Slows player movement down when held
+    flagdef CanMountVACBOT      : pickupFlags, 14;      // Actors can be mounted on top of a VAC_BOT
+    flagdef IsDropping          : pickupFlags, 15;      // Used by internal logic to prevent a throw action during drop
+    flagdef ChargedThrow        : pickupFlags, 16;      // Allows you to charge a harder throw
+    flagdef NoLadders           : pickupFlags, 17;      // Prevent player from climbing while holding this object\
+    flagdef AutoHoldDistance    : pickupFlags, 19;      // Set hold distance when picking up to whatever distance it was picked up from
+    flagdef LandingEffect       : pickupFlags, 20;
+    flagdef AllowPitchAdjust    : pickupFlags, 21;      // Adjust held object back to level when picking up
+    flagdef TravelWithPlayer    : pickupFlags, 31;      // Internal flag set when travelling in the hands of the player
+
+    default {
+        // FLAGS
+        +NOBLOCKMONST;
+        +PickupableDecoration.HoldFromFront;
+        +PickupableDecoration.HoldFromBack;
+        +PickupableDecoration.ConvertsBackFromMissile;
+        +INTERPOLATEANGLES;
+
+        // PROPERTIES
+        +PickupableDecoration.CanPickUp;
+        +PickupableDecoration.TranslucentPickup;
+        +SelacoActor.TravelAllowed;            // By default we are allowed to carry these objects between levels
+        -PickupableDecoration.NoPull;
+        -PickupableDecoration.dumpsterCompatible;
+        +PickupableDecoration.RaiseAllowed;
+        +PickupableDecoration.CanDamageGlass;
+        +PickupableDecoration.ChargedThrow;
+        -PickupableDecoration.NoLadders;
+        +PickupableDecoration.LandingEffect;
+        +PickupableDecoration.AllowPitchAdjust;
+
+        BounceCount -1;
+
+        PickupableDecoration.ProjectileSpeed 15;
+        PickupableDecoration.frameNum -1;
+        PickupableDecoration.ThrowVel 10;
+        PickupableDecoration.MaxThrowVel 27;
+        PickupableDecoration.HoldDistance 60;
+        PickupableDecoration.HoldHeight -11;            // Offset from center of view
+        PickupableDecoration.FallDamageThreshold -9999;    // Speed Requirement before falling kills
+        PickupableDecoration.grabSound "item/defgrab";
+        PickupableDecoration.dumpsterSound "trashbin/glass";
+        PickupableDecoration.throwSound "PICKUP/THROW";
+
+        PickupableDecoration.HoldOffset 0;
+        Activation THINGSPEC_Activate;                  // Can't use switch for default behaviour
+        SelacoActor.UseTag "$ACT_GRAB";
+        
+        +SLIDESONWALLS;
+        +SHOOTABLE;
+        +CANPUSHWALLS;
+        +DROPOFF;
+        +THRUGHOST;
+
+        friction 0.65;
+
+        // Can't use this method yet because stacking objects don't wake properly
+        -SELACOACTOR.WakeNearPlayer;
+        +SELACOACTOR.SleepWhenIdle;
+        +SELACOACTOR.Crushable;
+
+        LineBlockBits (LINEBITS_PICKUPABLES);
+    }
+
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        if(developer) reportStuckPickupable();
+    }
+
+    void reportStuckPickupable()
+    {
+        bool oldThruActors = bThruActors;
+        bThruActors = true;
+        if(!CheckPosition((pos.x,pos.y), false, null))
+        {
+            console.printf("\c[red]Pickupable Object \c[white]%s\c[red] is stuck at coordinates %d %d %d", getTag(), pos.x, pos.y, pos.z);
+        }
+        bThruActors = oldThruActors;        
+    }
+
+    // If you want to use custom effects for a certain actor, override this.
+    virtual void spawnLandingEffects() {
+        A_SpawnItemEx("PropImpactEffect", 0, 8, 0, 0, frandom(0.3, 0.6), 0.3);
+        A_SpawnItemEx("PropImpactEffect", 0, -8, 0, 0, frandom(-0.3, -0.6));
+        A_SpawnItemEx("PropImpactEffect", 0, 0, 5, 0, 0, frandom(0.3, 0.6), 0.3);
+    }
+    
+    // Return an empty string to default action name (Usually "Throw")
+    virtual string getActionString() {
+        return "";
+    }
+
+    override string GetUsePrompt(string highCol) {
+        let d = Dawn(players[consolePlayer].mo);
+        string ut = UseTag == "" ? "$ACT_USE" : UseTag;
+        string res = String.Format("\c%s%s\c- %s", d && d.canPickupObject(self) ? highCol : "[DARKGRAY]", StringTable.Localize(ut), GetCharacterName());
+
+        // Append health prompt on label
+        if (bShowHealthOnPrompt) 
+        {
+            int defaultHealth = GetDefaultByType(self.getClass()).health;
+            int healthInPercentage = (health * 100) / defaultHealth;
+            res = String.Format("%s \n\c[darkgrey]HP: %d%%%", res, healthInPercentage);
+        }
+
+        return res;
+    }
+
+    // Find a VAC_BOT to mount on
+    void findVACBOT()
+    {
+        actor oldTarget;
+        if(target)
+        {
+            oldTarget = target;
+        }
+        if(checkProximity("VAC_BOT", 20, 0, CPXF_SETTARGET) && target && target is "VAC_BOT")
+        {
+            isFalling = false;
+            ridingVACBOT = target;
+            VAC_BOT(target).mountedObject = self;
+        }
+        target = oldTarget;
+    }
+
+    // return TRUE if we did a custom action
+    // return FALSE for default action (Usually Throw)
+    virtual bool doHoldActionStart() {
+        // Record time for throw force
+        holdActionStarted = true;
+        throwTime = level.totalTime;
+        if(!bChargedThrow) {
+            // Throw right now
+            return false;
+        }
+        return true;    // Return TRUE to indicate that action is handled, returning FALSE will use default action (throw)
+    }
+
+    virtual bool doHoldActionEnd() {
+        holdActionStarted = false;
+        let deltaTime = throwTime == 0 ? 1 : level.totalTime - throwTime;
+        
+        if(!bIsDropping) {
+            double throwForce = double(clamp(deltaTime, 1, MAX_THROW_TICKS)) / double(MAX_THROW_TICKS);
+            throw(throwForce);
+        }
+        
+        throwTime = 0;
+        return true;    // Makes player let go of object, returning FALSE prevents this
+    }
+
+    virtual void interruptHoldForce() {
+        pullTM = 0.0;
+        pullStartPos = pos;
+        pullStartAngle = angle;
+    }
+
+    virtual void restoreAlpha() {
+        if(bTranslucentPickup) {
+            if(pickupAlpha ~== 0.0) pickupAlpha = Default.alpha;    // In case pickupAlpha was not yet initialized (old save game)
+            A_SetRenderStyle(pickupAlpha, pickupAlpha < 0.99 ? STYLE_Translucent : STYLE_Normal);
+        }
+    }
+
+    virtual void pickUp(Actor source) {
+        wake();
+        bIsDropping = false;
+        bPreventSleep = true;   // Don't sleep while being held
+        
+        // Normalize angle to 0-360 for lerpa to work
+        angle = normA(angle);
+
+        A_PLAYSOUND(grabSound, CHAN_AUTO, 0.8, 0, 0, 0, frandom(0.9,1.1));
+        pickedUpOwner = source;
+        
+        if(bTranslucentPickup) {
+            pickupAlpha = GetRenderStyle() == STYLE_Translucent && alpha < 0.99 ? alpha : 1.0;
+            A_SetRenderStyle(bNoPull ? 0.5 : 1.0, STYLE_Translucent);
+        }
+
+        pullStartAngle = angle;
+        pullStartPos = pos;
+        pullTM = 0.0;
+        holdStuckTics = 0;
+        
+        if(bAutoHoldDistance) {
+            if(source.player) {
+                Vector3 viewPos = (pickedUpOwner.pos.x, pickedUpOwner.pos.y, source.player.viewz);
+                HoldDistance = (viewPos - pos).length();
+            } else {
+                HoldDistance = Distance2D(source);
+            }
+        }
+
+        // Determine destination angle based on flags
+        // pullDestAngle is actually more of an offset than an absolute angle
+        if(bHoldFromAnyAngle) {
+            pullDestAngle = angle - source.angle;
+        } else {
+            let diff = normA(angle - source.angle);
+            if(bHoldFromBack && (!bHoldFromFront || (diff >= 90 && diff < 270))) {
+                pullDestAngle = 180;
+            } else {
+                pullDestAngle = 0;
+            }
+        }
+
+        bCannotPush = false;
+    
+        SetStateLabel("PickUp");
+    }
+
+    virtual void drop() {
+        wake();
+
+        bIsDropping = true;
+
+        if(holdActionStarted) doHoldActionEnd();
+
+        bCannotPush = Default.bCannotPush;
+
+        holdVel = (0,0,0);
+        vel = (0,0,0);
+        if(!Default.bPreventSleep) bPreventSleep = false;      // Allow Sleep after being dropped
+
+        restoreAlpha();
+
+        if(pickedUpOwner) {
+            vel = pickedUpOwner.vel;    // Inherit player velocity
+        }
+
+        pickedUpOwner = null;
+
+        // Reset activate flag
+        activationtype |= THINGSPEC_Activate;
+        SetStateLabel("PutDown");
+
+        bIsDropping = false;
+    }
+
+    virtual void throw(double force = 1.0) {
+        wake();
+
+        bIsDropping = false;
+
+        if(holdActionStarted) doHoldActionEnd();
+
+        bCannotPush = Default.bCannotPush;
+
+        if(!Default.bPreventSleep) bPreventSleep = false;      // Allow Sleep after being dropped
+        holdVel = (0,0,0);
+        A_PLAYSOUND(throwSound, CHAN_AUTO, 1.0, 0, 1.0, 0, frandom(0.9,1.1));
+        restoreAlpha();
+
+        if(pickedUpOwner) {
+            let newVel = ThrowVel + ((MaxThrowVel - ThrowVel) * force);
+            vel = pickedUpOwner.vel + vecFromAngle(pickedUpOwner.angle, pickedUpOwner.pitch, newVel);    // Inherit player velocity, plus look direction throw
+
+            if(pickedUpOwner.countInv("ConfidenceBooster") > 0) {
+                vel *= 1.5;
+            }
+            if(pickedUpOwner.countInv("MegaPowderAmount") > 0)
+            {
+                pickedUpOwner.A_TakeInventory("MegapowderAmount", 1);
+                vel *= 1.5;
+            }
+
+            if(newVel >= projectileSpeed && !bNoThrowDamage) {
+                convertToProjectile(true);
+
+                if(newVel >= MaxThrowVel * 0.8 && mass >= 200) {
+                    if(getCvar("g_screenshake") > 0) pickedUpOwner.A_QuakeEx(0, 0, 1, 3, 0, 40, 0, 0, 0, 0, 0, 0, 1, 0.3, 1);
+                    
+                    InputHandler.Instance().AddWorldFeedback2(
+                        (1, 1),
+                        (0.5, 1),
+                        (0.3, 1),
+                        (0, 1)
+                    );
+
+                    let d = Dawn(pickedUpOwner);
+                    if(d && !d.isDangerState && random(1,99) > 70) {
+                        pickedUpOwner.A_PLAYSOUND("dawn/throw", CHAN_VOICE, 1.0, 0, 0);
+                    }
+                }
+            }
+
+            // Reduce vertical velocity
+            if(vel.z > 0) vel.z = clamp(vel.z * 0.65, 0, 20);
+        }
+
+        // Reset activate flag
+        activationtype |= THINGSPEC_Activate;
+        pickedUpOwner = null;
+
+        let t = FindState("Throw");
+        if(t) {
+            SetState(t);
+        } else {
+            SetStateLabel("PutDown");
+        }
+    }
+
+    virtual void punt(Actor source, double forceScale = 1.0) {
+        let pu = source;
+        double puntForce = ThrowVel * 1.5;
+        double puntUpForce = ThrowVel * 0.7;
+
+        drop();
+        
+        Vel3DFromAngle(puntForce, pu.angle, clamp(pu.pitch, -50, 0));
+        vel += pu.vel + (0,0,puntUpForce);
+
+        if(vel.length() >= projectileSpeed) {
+            convertToProjectile(true);
+        }
+
+        // Track successful punt
+        if(pu is "Dawn") {
+            Stats.AddStat(STAT_PROPS_PUNTED, 1, 0, pu.PlayerNumber());
+        }
+    }
+
+    // Prepare object to be moved to the next map
+    override void prepareForTravel(DawnLevelTransitioner trans) {
+        holdVel = (0,0,0);
+
+        Super.prepareForTravel(trans);
+        
+        // If not picked up, use standard travel offsetting
+        if(pickedUpOwner && !trans) {
+            travelOffset = pos - pickedUpOwner.pos;
+        }
+
+        bTravelWithPlayer = !!pickedUpOwner;
+    }
+
+    // We are on the new map, let's get into position for the player
+    override void finishedTravel(PlayerPawn newPP, DawnLevelTransitioner transitioner) {
+        if(bTravelWithPlayer) {
+            pickedUpOwner = newPP;
+        }
+
+        Super.finishedTravel(newPP, transitioner);
+    }
+
+    override void finishTravelSetPosition(DawnLevelTransitioner transitioner) {
+        // Only applies if we were picked up during travel
+        if(bTravelWithPlayer) {
+            // Warp into the previous offset position in front of the holder object
+            pullTM = 1.0;
+            
+            //vel = (0,0,0);
+            holdVel = (0,0,0);
+            bTravelWithPlayer = false;
+            Console.Printf("Travelled with player: %s", getClassName());
+
+            if(!transitioner) {
+                forceToHoldPos(pickedUpOwner.pos + travelOffset, getHoldAngle());
+                prev = pos;
+            }
+            else Super.finishTravelSetPosition(transitioner); 
+        } else {
+            Super.finishTravelSetPosition(transitioner); 
+        }
+    }
+
+    override void Activate (Actor activator) {
+        if(bCanPickUp) {
+            if(!isPickedUp()) {
+                if(activator is "Dawn") {
+                    // Start the pickup process through Dawn, which if successful will call pickup()
+                    if(!(Dawn(activator).canPickupObject(self) && Dawn(activator).pickupObject(self))) {
+                        // Reset use stuff
+                        activationtype |= THINGSPEC_Activate;
+                    }    
+                } else {
+                    PickUp(activator);
+                }
+            }
+        } else {
+            Super.Activate(activator);
+        }
+	}
+
+	override void Deactivate (Actor activator) {
+        if(isPickedUp()) {
+            Throw();
+        } else {
+            Super.Deactivate(activator);
+        }
+	}
+
+
+    void handleFallDamage()
+    {        
+        if(!pickedUpOwner && vel.z < -3.5 && level.time >= 10)
+        {
+            isFalling = true;
+        }
+        if(isTouchingSurface() && waterlevel == 0 && bLandingEffect && isFalling)
+        {
+            isFalling = false;
+            A_PLAYSOUND(landingSound, CHAN_AUTO, 1.0, 0, 0.95, 0, frandom(0.9,1.2));
+            spawnLandingEffects();
+            if(bSlopeAlignment)
+            {
+                AlignToPlane(self);
+            }
+
+            // Threshold reached, kill it.
+            if(fallDamageThreshold < 9999 && previousZVelocity < fallDamageThreshold)
+            {
+                setStateLabel("death.falldamage");
+            }
+            spawnLandingEffects(); 
+        }
+    }
+
+    override void tick() {    
+
+        previousZVelocity = vel.z;
+
+        if(pickedUpOwner) {
+            // If there is a player, get viewheight and project forward
+            // Otherwise do a basic approach
+            if(pickedUpOwner.player) {
+                Vector3 off, viewPos;
+                [off, viewPos] = getHoldPos();
+
+                if(bNoPull || pullTM ~== 1.0) {
+                    if(bTranslucentPickup) A_FadeTo(0.5, pullTMF);
+
+                    moveToHoldPos(viewPos, off, getHoldAngle());
+
+                    if((pos - viewPos).Length() > (HoldDistance * 1.7) || pickedUpOwner.health <= 0) {
+                        if(holdStuckTics++ > MAX_HOLD_STUCK_TICS) {
+                            // We have to drop the item
+                            let d = Dawn(pickedUpOwner);
+                            if(d) {
+                                d.dropObject();
+                            } else {
+                                drop();
+                            }
+                        }
+                    } else {
+                        holdStuckTics = 0;
+                    }
+                } else {
+                    // Determine pull pos
+                    pullTM = MIN(1.0, pullTM + pullTMF);
+                    Vector3 pullEndPos = off;
+                    Vector3 pullPos = pullStartPos + (pullTM * (pullEndPos - pullStartPos));
+                    double ang = lerpA(pullStartAngle, normA(getHoldAngle()), pullTM);
+                    
+                    if(bTranslucentPickup) A_FadeTo(0.5, pullTMF);
+
+                    moveToHoldPos(viewPos, pullPos, ang);
+                }
+            } else {
+                Warp(pickedUpOwner, xofs: HoldDistance, yofs: 0, zofs: (47 + HoldHeight) - CLAMP(pickedUpOwner.pitch, -50, 50), angle: 0, flags: WARPF_INTERPOLATE | WARPF_COPYPITCH);
+                vel = (0,0,0);
+            }
+        }
+
+        if(isFalling)
+        {
+            findVACBOT();
+        }
+
+        if(bSKULLFLY && (pos.z <= (floorZ + 0.001) || bOnMObj)) {
+            // Manually reapply floor friction since it gets lost with SKULLFLY
+            vel *= friction * floorsector.friction;
+        }
+
+        Super.Tick();
+        handleFallDamage();
+        if(pickedUpOwner) vel = (0,0,0);    // Ensure move vel does not continue if let go
+
+        if((bSKULLFLY || bMissile) && bConvertsBackFromMissile && vel.length() < ThrowVel * 0.5) {
+            convertBackFromProjectile();
+        }
+    }
+
+    virtual Vector3, Vector3 getHoldPos() {
+        PlayerInfo pp = pickedUpOwner.player;
+        let pPitch = pickedUpOwner.pitch;
+        let vPitch = bRaiseAllowed ? pPitch : (pPitch <= 30 ? 30 - ((30 - pPitch) / 1.25) : pPitch);
+        let holdPitch = CLAMP(vPitch, bRaiseAllowed ? -70 : 0, 50);
+        Vector3 vProj = vecFromAngle(pickedUpOwner.angle, holdPitch, HoldDistance);
+        Vector3 viewPos = (pickedUpOwner.pos.x, pickedUpOwner.pos.y, pp.viewz + HoldHeight);
+
+        // Adjust viewpos by hold offset
+        if(holdOffset != 0) {
+            let dir = vProj.xy / HoldDistance;
+            dir = (-dir.y, dir.x);
+            viewPos += dir * (-holdOffset);
+        }
+
+        Vector3 off = vProj + viewPos;
+
+        FLineTraceData data;
+        pickedUpOwner.LineTrace(angle, HoldDistance, holdPitch, TRF_THRUACTORS | TRF_THRUHITSCAN | TRF_THRUBLOCK | TRF_NOSKY, pp.viewZ - pickedUpOwner.pos.z, data: data);
+        let hpos = data.HitLocation;
+
+        return off, viewPos;
+    }
+
+    double getHoldAngle() {
+        return pickedUpOwner.angle + pullDestAngle;
+    }
+
+    virtual void moveToHoldPos(Vector3 viewPos, Vector3 newPos, double ang, bool copyInterp = false) {
+        Vector3 originalPos = pos;
+
+        // Check if there is a portal between the holder and the desired position
+        Vector3 hOffset = newPos - viewPos;
+        Vector3 hPos = Level.Vec3Offset(viewPos, hOffset, false);
+
+        if(!(hPos ~== newPos)) {
+            // If there is a portal we have to determine what side of the portal we are on, then move towards the correct position
+            if((pos - newPos).length() > (pos - hPos).length()) {
+                newPos = hPos;
+            }
+        }
+
+        let pvel = pickedUpOwner.vel.length();
+        let maxVel = max(pvel, 20);
+        let dir = newPos - pos;
+        let dvel = !(dir ~== (0,0,0)) ? dir.length() : 0;
+        
+        vel = !(dir ~== (0,0,0)) ? dir.unit() * min(dvel, maxVel) : (0,0,0);
+        A_SetAngle(ang, SPF_INTERPOLATE);
+
+        // Move Roll and Pitch towards zero if not on the ground
+        if(!(pos.z ~== floorZ) && bAllowPitchAdjust) {
+            roll = Normalize180(roll);
+            pitch = Normalize180(pitch);
+            roll *= 0.75;
+            pitch *= 0.75;
+        }
+
+        // Set velocity to how much we moved
+        // TODO: Limit velocity to reasonable values so people can't flick objects into space
+        holdVel = (pos - originalPos);
+        //vel = (0,0,0);
+    }
+
+    void forceToHoldPos(Vector3 newPos, double ang) {
+        SetOrigin(newpos, false);
+        angle = ang;
+    }
+
+    virtual void convertBackFromProjectile() {
+        let orig = Default;
+        bSKULLFLY = orig.bSKULLFLY;
+        bTHRUACTORS = orig.bTHRUACTORS;
+        bDecorativeActor = orig.bDecorativeActor;
+        bDONTTHRUST = orig.bDONTTHRUST;
+        bMissile = false;
+        bBOUNCEONWALLS = orig.bBOUNCEONWALLS;
+        bBounceOnActors = orig.bBounceOnActors;
+        bBounceOnCeilings = orig.bBounceOnCeilings;
+        bBounceOnFloors = orig.bBounceOnFloors;
+        bEXPLODEONWATER = orig.bEXPLODEONWATER;
+        bSKYEXPLODE = orig.bSKYEXPLODE;
+        bDecorativeActor = orig.bDecorativeActor;
+        //BounceType = orig.BounceType;
+        //BounceCount = orig.BounceCount;
+        BounceCount = -1;
+        DamageType = orig.DamageType;
+    }
+
+    override void convertToProjectile(bool thrown) {
+        if(!thrown) {
+            Super.convertToProjectile(thrown);
+            return;
+        }
+
+        // Convert the object to a missile, make sure it explodes on collision
+        bSKULLFLY = true;
+        bTHRUACTORS = false;
+        bDecorativeActor = false;
+        bDONTTHRUST = true;
+        BounceCount = -1;
+        if(!DamageType) DamageType = "DecorationImpact";
+    }
+
+    // Basic Lerp Angle (Thanks itsmrpeck) (same as UIMath but I don't want to rely on the UI library here)
+    static clearscope double lerpA(double a, double b, double t) {
+        float result;
+        float diff = b - a;
+        if (diff < -180.0) {
+            b += 360;
+            result = a + t * (b - a);
+            if (result >= 360.0) {
+                result -= 360.0;
+            }
+        } else if (diff > 180.0) {
+            // lerp downwards past 0
+            b -= 360.0;
+            result = a + t * (b - a);
+            if (result < 0.0) {
+                result += 360.0;
+            }
+        } else {
+            // straight lerp
+            return a + t * (b - a);
+        }
+
+        return result;
+    }
+
+    double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+    virtual void itemThrownInDumpster(actor dumpster)
+    {
+        thrownAway = true;
+        isFalling = false;
+        target = dumpster;
+
+        int offsetDistance = 5.0;  
+        
+        float newX = dumpster.pos.x + offsetDistance * cos(dumpster.angle);
+        float newY = dumpster.pos.y + offsetDistance * sin(dumpster.angle);
+        float newZ = dumpster.pos.z + 30;
+    
+        angle = dumpster.angle+90;
+
+        // Set the new origin with the calculated position
+        SetOrigin((newX, newY, newZ), false);
+        setStateLabel("ThrownInDumpster");
+    }
+
+    bool thrownAway;
+
+    override bool CanCollideWith(Actor other, bool passive) {
+
+        // Stop collisions with the object that's picking us up (Avoid verticality cheating and getting stuck)        
+        if(other == pickedUpOwner) return false;
+        bool canCollide = Super.CanCollideWith(other, passive);
+        
+        if(!thrownAway && other && bdumpsterCompatible && other is "Trashbin_open")
+        {
+            itemThrownInDumpster(other);
+        }
+
+        // This code has moved to SelacoActor to include TelekOwner
+        /*SelacoActor sa = SelacoActor(other);
+        if(sa && pickedUpOwner && canCollide && !bCannotPush && (sa.bPushable || sa.bSpecialPushable)) {
+            // If we are currently picked up and we are colliding with a pushable, limit our active velocity to reduce the crazy amount of pushing
+            let pvel = pickedUpOwner.vel.xy.length() * sa.pushfactor;
+            if(vel.length() > pvel) {
+                vel = vel.unit() * pvel;
+            }
+        }*/
+
+        return canCollide;
+	}
+
+    // No kickback if we are a projectile
+    /*override void ApplyKickback(Actor inflictor, Actor source, int damage, double angle, Name mod, int flags) {
+        
+        //if(bDONTTHRUST && (source.bMissile || inflictor.bMissile)) return;
+        A_PrintBold(String.Format("Kickback %d %d %d :%s: :%s: %f", bSKULLFLY, bDONTTHRUST, inflictor.bMissile, inflictor ? inflictor.getClassName() : 'none', getClassName(), vel.length()));
+        Super.ApplyKickback(inflictor, source, damage, angle, mod, flags);
+    }*/
+
+    // Called after everything is resolved and we are converted back from being a projectile
+    virtual void onThrowImpact(Actor victim, int dmg) {
+        // Thrown objects often are destroyed when being thrown, so if the victim is still alive after the throw, use the victim as the sound source instead
+        if(victim && victim.health > 0) victim.A_PLAYSOUND(landingSound, CHAN_AUTO, 1.0, 0, ATTN_NORM, 0, frandom(0.9,1.2));
+        else A_PLAYSOUND(landingSound, CHAN_AUTO, 1.0, 0, ATTN_NORM, 0, frandom(0.9,1.2));
+    }
+
+    override bool Slam(Actor victim) {
+        int dmg = 0;
+
+        if(victim.bShootable && !(victim is 'DeathceptionMaster') && !(victim is 'Dawn')) {
+            // Make sure we can collide first
+            if(!victim.bIsMonster && !victim.canCollideWith(self, true)) return true;
+
+            // Do damage to victim and to this object
+            if(!bNoThrowDamage) {
+                // Special case for destroying shutters with big objects
+                if(radius >= 10 && victim is "ShutterWindow1") {
+                    let shutter = ShutterWindow1(victim);
+                    shutter.breakByImpact(self);
+                    return true;
+                }
+
+                // Pass through plants but damage them at velocity
+                if(victim is 'MasterPlant') {
+                    // 0.5 vel or faster damages plant
+                    if(vel.length() > ThrowVel + ((MaxThrowVel - ThrowVel) * 0.5)) {
+                        victim.DamageMobj(self, players[consolePlayer].mo, 5, 'ThrowThru');
+                    }
+                    return true;
+                }
+
+                double veld = clamp(vel.length(), ThrowVel, MaxThrowVel);
+                veld = maxThrowVel == ThrowVel ? 1.0 : (veld - ThrowVel) / (MaxThrowVel - ThrowVel);
+                dmg = mass * 0.25 * (radius / 20.0) * veld;
+                victim.DamageMobj(self, players[consolePlayer].mo, victim.bIsMonster ? 0 : dmg, DamageType);
+                
+                bSKULLFLY = false;  // Required to be able to take self damage
+                DamageMobj(self, players[consolePlayer].mo, dmg * 0.5, DamageType);
+
+                // TODO: Maybe add some bounce here
+                vel.xy = (0,0);
+            }
+
+            if(victim.bIsMonster && mass >= 250) {
+                A_SpawnItemEx("MeleeImpactEffect");
+            }
+
+            onThrowImpact(victim, dmg);
+            convertBackFromProjectile();
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+
+        if((pickedUpOwner || telekOwner) && mass > 200 && damageType != 'ExplosiveImpact' && magicBulletRepellent++ < 5) {
+            // TODO: Shake the object to show that it's still getting hit
+            return 1;
+        }
+
+        return res;
+    }
+
+
+    override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
+        if(bSKULLFLY && mass > 200) {
+            return -100;
+        }
+
+        return Super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+    }
+
+    
+    states {
+        Spawn:
+            VOXE L -1 {
+                A_SETPITCH(0);
+            }
+            loop;
+        PickUp:
+            TNT1 A 0
+            {
+                ridingVACBOT = null;
+            }
+            VOXE L 0 { SetStateLabel("Spawn"); }
+        Inactive:
+        PutDown:
+        Throw:
+            VOXE L 1
+            {
+                if(invoker.frameNum >= 0)
+                {
+                   frame = invoker.frameNum; 
+                }
+            }
+			VOXE L 1 {
+                if(frameNum >= 0)
+                {
+                   frame = invoker.frameNum; 
+                }
+                isFalling = true;
+                bBounceOnActors = false;
+			}
+        Active:
+        Inactive:
+            goto PickUp;
+		ThrownIndumpster:
+			TNT1 A 0 {
+                Wake();
+                bPreventSleep = true;
+                bNoInteraction = true;
+                vel.x = 0;
+                vel.y = 0;
+                vel.z = 0;
+				A_SetRenderStyle(STYLE_Translucent, 1.0);
+				A_PlaySound(dumpsterSound, CHAN_AUTO, 1.0, 0, 1.0, 0, frandom(0.9,1.1));
+				A_SpawnItemEx("ItemGotThrownIndumpster");
+				bThruActors = true;
+			}
+			VOXE LLLLLLLLLL 1 {
+                vel.z = -1;
+                if(invoker.frameNum >= 0)
+                {
+                   frame = frameNum; 
+                }
+                A_FADEOUT(0.1);
+                bThruActors = true;
+            }
+			stop;
+
+    }
+}

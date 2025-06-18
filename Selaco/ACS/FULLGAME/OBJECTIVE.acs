@@ -1,0 +1,190 @@
+#library "OBJECTIV"
+#include "zcommon.acs"
+
+
+// This document contains a list of all the objective in Selaco. The naming convention works as follows:
+// Every 100th number -> Level (For Chapter 2 and above, an additional 0 will be added.
+// Every 10th number -> Objective
+// Every 1st number->  Sub Objective
+
+// Level 1, Objective 1
+int objTag100 = 100;				// Objective Header 	(Preperations)
+int objTag101 = 101;				// Objective Step 	(Find a way past the soldiers and locate a weapon)
+int objTag102 = 102;				// Objective Step 	(Locate your combat suit from Personal Belongings)
+int objTag103 = 103;				// Objective Step 	(Prepare to fight)
+
+// Level 1, Objective 2
+int objTag110 = 110;				// Objective Header 	(The Lockdown)
+int objTag111 = 111;				// Objective Step 	(Find a way to disengage the lockdown)
+int objTag113 = 113;				// Objective Step 	(Find the exit)
+int objTag114 = 114;				// Objective Step 	(Defeat the Juggernaut)
+
+
+// LEVEL 2, OBJECTIVE 1
+// Trigger: After entering 02A
+int objTag200 = 200; 			// Objective Header		(A Way Out)
+int objTag201 = 201; 			// Objective Step 		(Reach the Rooftops)
+int objTag202 = 202; 			// Objective Step 		(Find a way into the Orange Wing of Pathfinder Memorial)
+int objTag203 = 203; 			// Objective Step		(Decend to the Sky Lounge)
+// OBJECTIVE 200 is now complete.
+
+// LEVEL 2, OBJECTIVE 2
+// Trigger: After reaching the Sky Lounge in 02B
+int objTag210 = 210; // Objective Header[x]	(Detour)
+int objTag211 = 211; // Objective Step[x] 		(Decend to Street Level)
+int objTag212 = 212; // Objective Step[x] 		(Push through the Utility Area)
+int objTag213 = 213; // Objective Step[x] 		(Reach Water Treatment Plant)
+int objTag214 = 214; // Objective Step[x]		(Return to the Utility Area) 				// Potentially too hand-holdy.
+int objTag215 = 215; // Objective Step[x] 		(Find a way inside 'The Broken Seal' bar)	
+int objTag216 = 216; // Objective Step[x] 		(Decend using the elevator)
+int objTag217 = 217;  // Objective Step[x]		(Push through the Parking Garage) 			// Given in 03A.
+
+// LEVEL 2, OBJECTIVE 4
+// Trigger: Entering a Saferoom without an Upgrade Module
+int objTag230 = 230; // Objective Header[x]		(An upper hand)
+int objTag231 = 231; // Objective Step[x] 		(Locate the Upgrade Module in the Water Treatment Saferoom)
+
+// LEVEL 2, OBJECTIVE 3
+// Trigger: After reaching the Water Treatment in 02C and seeing the electrified water
+int objTag220 = 220; // Objective Header[x]	(Safety Hazard)
+int objTag221 = 221; // Objective Step[x]		(Find a way to de-electrify the water)
+
+// LEVEL 3, OBJECTIVE 1
+// Trigger: Shortly after setting foot outside.
+int objTag300 = 300; // Objective Header[x]		(Underground Operations)
+int objTag301 = 301; // Objective Step[x] 		(Reach Sal's Bar)
+int objTag301a = 306; // Objective Step[x] 		(Expose hidden elevator behind the Bookshelf)
+int objTag302 = 302; // Objective Step[x] 		(Acquire Demolition Charges)		-> Triggers objTag310 upon completion
+int objTag303 = 303; // Objective Step 			((Optional) Look for other items you may need) [A new name for this area is needed]
+int objTag304 = 304; // Objective Step			(Head back to ground level)
+int objTag305 = 305; // Objective Step			(Find a way inside Liancria Offices)
+
+// Trigger: After acquiring explosives in 03C.
+int objTag310 = 310;	// Objective Header 	(Preventive Measures)
+int objTag311 = 311; 	// Objective Step		(Reach the Plant factory)
+int objTag312 = 312; 	// Objective Step		(Gain access to the hidden elevator)
+int objTag318 = 318;	// Objective Step		(Reach the Cloning Facility)
+int objTag313 = 313; 	// Objective Step		(Plant Demolition Charges on marked areas (4 charges left))
+int objTag314 = 314; 	// Objective Step		(Plant Demolition Charges on marked areas (3 charges left))
+int objTag315 = 315; 	// Objective Step		(Plant Demolition Charges on marked areas (2 charges left))
+int objTag316 = 316; 	// Objective Step		(Plant Demolition Charges on marked areas (1 charge left))
+int objTag317 = 317; 	// Objective Step		(Evacuate!)
+
+// LEVEL 5, OBJECTIVE 1
+// TRIGGER: Entering the Mall
+int objTag500 = 500;        // Objective Header   (Mall Security)
+int objTag501 = 501;        // Objective Step     (Reach the other side of the building)
+int objTag502 = 502;        // Objective Step     (Unlock the exit)
+int objTag503 = 503;		// Objective Step     (Leave the mall)
+
+// LEVEL 5, OBJECTIVE 2
+// TRIGGER: Opening the door towards the other wings
+int objTag510 = 510;        // Objective Header   (Mall Security (BLUE))
+int objTag511 = 511;        // Objective Step     (Enter the North Wing)
+int objTag512 = 512;        // Objective Step     (Explore North Wing stores and locate the Blue key.)
+int objTag513 = 513;        // Objective Step     (Insert Blue Key in the Control Room)
+
+// LEVEL 5, OBJECTIVE 3
+// TRIGGER: Opening the door towards the other wings
+int objTag520 = 520;        // Objective Header   (Mall Security (PURPLE))
+int objTag521 = 521;        // Objective Step     (Enter the South Wing)
+int objTag522 = 522;        // Objective Step     (Explore South Wing stores and locate the Purple key)
+int objTag523 = 523;        // Objective Step     (Insert Purple Key in the Control Room)
+
+// LEVEL 6, OBJECTIVE 1
+int objTag600 = 600;        // Objective Header   (Safety First!)
+int objTag601 = 601;        // Objective Step     (Acquire safety equipment)
+
+// LEVEL 7, OBJECTIVE 1
+// Trigger: Right after getting outside after blowing up the Plant Factory
+int objTag700 = 700; 	// Objective Header 	(A Fighting Chance)
+int objTag701 = 701; 	// Objective Step		(Reach Starlight)
+int objTag702 = 702;	// Objective Step		(Locate Protoype Weapon) // Avoid calling it a Railgun in LANGUAGE prior to acquiring.
+
+// LEVEL 7, OBJECTIVE 2
+// Trigger: After entering the Starlight Lobby
+int objTag710 = 710;	// Objective Header		(The Starlight Elevator)
+int objTag711 = 711; 	// Objective Step		(Locate the Red Elevator Key)
+int objTag712 = 712; 	// Objective Step		(Locate the Green Elevator Key)
+int objTag713 = 713; 	// Objective Step		(Locate the Blue Elevator Key)
+int objTag714 = 714; 	// Objective Step		(Locate the Purple Elevator Key)
+int objTag715 = 715; 	// Objective Step		(Reach the top-secret lab)
+
+// LEVEL 7, OBJECTIVE 3
+int objTag720 = 720; 	// Objective Header		(Endgame) - Name will be changed when Chapter 2 exists. This is for dramatic effect!
+int objTag721 = 721;	// Objective Step		(Enter the [Whatever it is])
+int objTag722 = 722; 	// Objective Step		(Push through and reach ACE Headquarters)
+
+// LEVEL 7, OBJECTIVE 4
+int objTag730 = 730; 	// Objective Header		(Starlight Red)
+int objTag731 = 731;	// Objective Step		(Activate genny)
+int objTag732 = 732;	// Objective Step		(Access office)
+int objTag733 = 733;	// Objective Step		(Search assembly area)
+int objTag734 = 734;	// Objective Step		(return to lobby)
+
+// LEVEL 7, OBJECTIVE 5
+int objTag740 = 740; 	// Objective Header		(Starlight Green)
+int objTag741 = 741;	// Objective Step		(Find power switch)
+int objTag742 = 742;	// Objective Step		(Search offices)
+int objTag743 = 743;	// Objective Step		(Retrieve the blue card)
+int objTag744 = 744;	// Objective Step		(Find an employee pass)
+int objTag745 = 745;	// Objective Step		(Wait for robot lady to fix the lift)
+int objTag746 = 746;	// Objective Step		(return to lobby)
+
+// LEVEL 7, OBJECTIVE 6
+int objTag750 = 750; 	// Objective Header		(Starlight Blue)
+int objTag751 = 751;	// Objective Step		(Access labs)
+int objTag752 = 752;	// Objective Step		(Move thru labs)
+int objTag753 = 753;	// Objective Step		(Retrieve key)
+int objTag754 = 754;	// Objective Step		(Return to lobby)
+
+
+// LEVEL 7, OBJECTIVE 7
+int objTag760 = 760; 	// Objective Header		(Starlight Purple)
+int objTag761 = 761;	// Objective Step		(Unlock the elevator)
+int objTag762 = 762;	// Objective Step		(Search Warehouse)
+int objTag763 = 763;	// Objective Step		(Open Blue Door)
+int objTag764 = 764;	// Objective Step		(Back 2 Lobby)
+
+
+
+// Adds a Main Objective. Always call this first before adding a Sub Objective.
+function void addMainObjective(int mainObjID, str ObjectiveName, str objectiveDescription, bool onlyOnMap)
+{
+	ScriptCall("Objectives", "AddObjective", "", ObjectiveName, objectiveDescription, mainObjID, -1, -1, false, 2);
+}
+
+// Add sub objectives.
+function void addSubObjective(int objID, int mainObjID, str objectiveName, int order)
+{
+	 objID = ScriptCall("Objectives", "AddObjective", "", objectiveName, "", objID, mainObjID, 2, 0, 2, order);
+}
+
+// Complete the objective.
+// Completing all subobjectives does not mean the objective is considered finished.
+// Complete the main objective in other 'complete' the whole list.
+function void completeObjective(int objID)
+{
+	ScriptCall("Objectives", "CompleteObjective", objID, 2);
+}
+
+// Debug to give yourself an objective. The name will just say 'Debug', but functionality should be identical.
+// If a debug objective works, it's safe to assume the real thing will too.
+script "DEBUG_AddObjective" (int objTag, int objTag2)
+{
+	if(objTag2 == 0)
+	{
+		ScriptCall("Objectives", "AddObjective", "", "DEBUG", "DEBUG TITLE", objTag, -1, -1, false, 2);
+	}
+	else
+	{
+		objTag2 = ScriptCall("Objectives", "AddObjective", "", "DEBUG SUBOBJECTIVE", "", objTag2, objTag, -1, 0, 0, 0);
+	}
+}
+
+script "GiveWorkshopObjective" (void)
+{
+	addMainObjective(230, "$OBJECTIVE_MAIN_230", "$OBJECTIVE_DESCRIPTION_230", 0);
+	delay(15);
+	addSubObjective(231, 230, "$OBJECTIVE_SUB_231", 1);
+}

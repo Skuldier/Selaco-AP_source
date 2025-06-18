@@ -1,0 +1,515 @@
+class PaintBucket: PickupableDecoration {
+	mixin MEDIUM_METAL_PROP;
+    int frameID;
+    string paintColor;
+    string decalSprite;
+    string paintWallDecal;
+    actor paintSplatter;
+
+    actor paintDecalActor;
+    bool paintDecalSuccess;
+
+
+    override void postbeginPlay() {
+        super.postbeginPlay();
+        if(args[0] == 0)
+        {
+            frameID = random(0,5);
+        } else {
+            frameID = args[0]-1;
+        }
+
+        switch(frameID)
+        {
+            case 0:
+            paintWallDecal = "RedPaintGroup";
+                decalSprite = "PADR";
+                paintColor = "RedPaintDefinition";
+                break;
+            case 1:
+                paintWallDecal = "BluePaintGroup";
+                decalSprite = "PADB";
+                paintColor = "BluePaintDefinition";
+                break;
+            case 2:
+                paintWallDecal = "GreenPaintGroup";
+                decalSprite = "PADG";
+                paintColor = "GreenPaintDefinition";
+                break;
+            case 3:
+                paintWallDecal = "YellowPaintGroup";
+                decalSprite = "PADY";
+                paintColor = "YellowPaintDefinition";
+                break;
+            case 4:
+                paintWallDecal = "WhitePaintGroup";
+                decalSprite = "PADW";
+                paintColor = "WhitePaintDefinition";
+                break;
+            case 5:
+                paintWallDecal = "PurplePaintGroup";
+                decalSprite = "PADP";
+                paintColor = "PurplePaintDefinition";
+                break;
+        }
+    }
+
+	default {
+        +SELACOACTOR.decorativeActor;
+        +SELACOACTOR.decorativeActor;
+        +SELACOACTOR.thruplayers;
+		tag "$OBJECT_PAINTBUCKET";
+        SelacoActor.CollisionSound "PUSH/SMALLPROP";
+		radius 8;
+        health 5;
+		height 11;
+        mass 200;
+	}
+	states {
+        precache:
+            VOXE AL 0;
+            PADB ABCDEF 0;
+            PADG ABCDEF 0;
+            PADP ABCDEF 0;
+            PADR ABCDEF 0;
+            PADW ABCDEF 0;
+            PADY ABCDEF 0;
+            stop;
+        Pickup:
+        Putdown:
+        Throw:
+        Pain:
+		Spawn:
+            TNT1 A 0;
+			VOXE A -1
+            {
+                frame = frameID;
+            }
+        Pain.Grind:
+        Death.grind:
+        DelayedDeath:
+            TNT1 A 1;
+        Death:
+            // Spray a slimey sound.
+            TNT1 A 0 A_PLAYSOUND("IMPACT/PAINTBUCKET", CHAN_AUTO, 0.7, pitch:Frandom(1.1,1.2));
+
+            // Spray a decal
+            TNT1 A 0
+            {
+                for(int x=0;x<24;x++)
+                {
+                    angle = random(0,360);
+                    vector3 sprayDirection = vecFromAngle(angle, pitch);
+                    A_SprayDecal(paintWallDecal, 140, offset:(0,frandom(-50,50),frandom(0,80)), direction:sprayDirection);
+                }
+            }
+
+            // Splatter effect, color translated accordingly.
+            TNT1 AAAAAAAAAAAAAAAAAAAAA 0 A_SpawnDefinedParticle(paintColor, frandom(-12,12), frandom(13,-13), frandom(5,height), frandom(-3,3), frandom(-3,3), frandom(0.1,4));
+           
+            // Spawn a few paint decals under the bucket with the correct color
+            TNT1 AAAAAAAAAAA 0 
+            {
+                [paintDecalSuccess, paintDecalActor] = A_SPAWNITEMEX("PaintDecal", frandom(-75,75), frandom(-75,75), 0);
+                if(paintDecalActor)
+                {
+                    paintDecal(paintDecalActor).paintSprite = decalSprite;
+                }
+            }
+
+            // Launch a damaged bucket!
+            TNT1 A 0 
+            {
+                paintSplatter = A_SPAWNPROJECTILE("PaintBucketProjectile", 12, 0, angle:-180, CMF_OFFSETPITCH, pitch:frandom(-30,-60));
+                // Apparently we cannot transfer translations with SPAWNPROJECTILE. Quick fix
+                if(paintSplatter)
+                {
+                    PaintBucketProjectile(paintSplatter).splatterColor = paintColor;
+                    PaintBucketProjectile(paintSplatter).decalSprite = decalSprite;
+                    PaintBucketProjectile(paintSplatter).frameID = frameID;
+                }
+            }
+            stop;
+	}
+}
+
+class PaintBucketProjectile : SelacoActorDecorationMissile {
+
+	override void bounceEffects() {
+		A_SCALEVELOCITY(0.85);
+		EmitDefinition('DebrisChunkParticleUpwardShortDefinition', chance: 1.0, numTries: 6, speed:frandom(0.5,2.5), flags:PE_ABSOLUTE_PITCH, scaleBoost:0.6);
+		EmitDefinition('ShortSparkShrinkDefinition', chance:1.0, numTries: 15, pitch:-frandom(-70,-110), speed:4, flags:PE_ABSOLUTE_PITCH);
+		A_SPAWNITEMEX("BodyImpactSmokeUltraTiny", 0, 0, 0, frandom(-0.3,0.3), frandom(-0.3,0.3), frandom(0.1,0.25));
+	}
+
+    int frameID;
+    string decalSprite;
+    string splatterColor;
+    actor paintDecalActor;
+    bool paintDecalSuccess;
+    default
+    {
+        speed 10;
+        BounceFactor 0.6;
+    }
+    states
+    {
+        Spawn:
+            VOXE A 0;
+        Looper:
+            VOXE A 2
+            {
+                frame = frameID;
+                string actorToSpawn = string.format("%sTrail", splatterColor);
+                A_SpawnDefinedParticle(actorToSpawn);
+                A_SETPITCH(pitch+35);
+                limitLifetime();    // Don't fly forever, sometimes we get stuck on things
+            }
+            loop;
+		Bounce:
+            TNT1 A 0 
+            {
+                bounceEffects();
+                [paintDecalSuccess, paintDecalActor] = A_SPAWNITEMEX("PaintDecal", frandom(-3,3), frandom(-3,3), 0);
+                if(paintDecalActor)
+                {
+                    paintDecal(paintDecalActor).paintSprite = decalSprite;
+                }
+            }
+            TNT1 A 0 {
+                A_SpawnDefinedParticle(splatterColor, frandom(-12,12), frandom(13,-13), frandom(5,height), frandom(-2,2), frandom(-2,2), frandom(0.1,1));
+                for(int x=0;x<=3;x++) {
+                    A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+                }
+            }
+			TNT1 A 0 A_PlaySound("impact/metal",CHAN_AUTO, 0.65, 0, 1.0, false, 1.75);
+			goto Looper;
+        Death:
+            TNT1 A 0 
+            {
+                bounceEffects();
+                // Final decal should expand
+                [paintDecalSuccess, paintDecalActor] = A_SPAWNITEMEX("PaintDecal", frandom(-3,3), frandom(-3,3), 0);
+                if(paintDecalActor)
+                {
+                    paintDecal(paintDecalActor).paintSprite = decalSprite;
+                    paintDecalActor.setStateLabel("ExpandMode");
+                }
+            }
+            VOXE A 30
+            {
+                frame = frameID;
+                A_SETPITCH(0);
+            }
+            VOXE A -1
+            {
+                frame = frameID;
+                SleepIndefinite();
+                A_SETPITCH(0);
+            }
+            stop;
+    }
+}
+
+class PaintBucketSide : PaintBucket {
+	default {
+
+	}
+	states {
+		Spawn:
+			VOXE L -1;
+	}
+}
+
+class PaintSplatterBase : SelacoActor {
+
+    int aliveTicks;
+    bool decalSpawned;
+/*     override void tick()
+    {
+        super.tick();
+        // If the floor is touched, turn into a decal
+        if(pos.z <= floorz && aliveTicks > 4 && !decalSpawned && random(0,10) == 0)
+        {
+            decalSpawned = true;
+            A_SPAWNITEMEX("PaintDecal", frandom(-30,30), frandom(-30,30), 0);
+        }
+        aliveTicks++;
+    } */
+
+    string PaintColor;
+    property PaintColor : paintColor;
+	default {
+		+MISSILE 
+		+NOTELEPORT 
+		+NOBLOCKMAP 
+		+ROLLSPRITE
+		+NOBLOODDECALS
+		scale 0.24;
+		radius 5;
+		height 5;
+		speed 2;
+        PaintSplatterBase.PaintColor "YellowPaint";
+        +SelacoActor.EffectActor;
+		Gravity 0.1;
+		RenderStyle "Translucent";
+		alpha 1.0;
+	}
+    states
+    {
+			Spawn:
+                TNT1 A 0;
+                //TNT1 A 0 A_SETTRANSLATION(paintColor);
+                TNT1 A 0 A_SetRoll(random(0, 360));
+                PSBL ABCDEFGHIJKLMN 3;
+                PSBL NNNNNNNNNNNNNNNN 1  A_FadeOut(0.05, FTF_REMOVE);
+                Stop;
+    }
+}
+
+class PaintSplatterBaseSmall : PaintSplatterBase
+{
+    default
+    {
+        scale 0.17;
+    }
+    states
+    {
+			Spawn:
+                TNT1 A 0;
+                //TNT1 A 0 A_SETTRANSLATION(paintColor);
+                TNT1 A 0 A_SetRoll(random(0, 360));
+                PSBL ABCDEFGHIJKLMN 2;
+                PSBL NNNNNNNNNNNNNNN 1  A_FadeOut(0.05, FTF_REMOVE);
+                Stop;
+    }
+}
+
+class PaintDecal : DecalLeader {
+    string paintSprite;
+    int frameID;
+
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        if(bDestroyed) return;	// Do not continue, we could destroy the blockmap!
+
+        frameID = random(0,5);
+        SetOrigin((pos.x, pos.y, floorz), false);
+        checkEvenSurface(90, 15, true);
+    }
+
+    default {
+        +FLATSPRITE;
+        +STANDSTILL;
+        scale 0.18;
+    }
+
+	States {
+        precache:
+            PADB ABCDEF 0;
+            PADG ABCDEF 0;
+            PADP ABCDEF 0;
+            PADR ABCDEF 0;
+            PADW ABCDEF 0;
+            PADY ABCDEF 0;
+            stop;
+		Spawn:
+            PADB ABCDEF 0;
+            PADG ABCDEF 0;
+            PADP ABCDEF 0;
+            PADR ABCDEF 0;
+            PADW ABCDEF 0;
+            PADY ABCDEF 0;
+            TNT1 A 0;
+            TNT1 A 5 {
+                sprite = getSpriteIndex(paintSprite);
+                frame = frameID;
+
+            }
+            TNT1 A 1 {
+                sprite = getSpriteIndex(paintSprite);
+                frame = frameID;
+                SleepIndefinite();
+            }
+            stop;
+        ExpandMode: 
+            TNT1 A 0
+            {
+                A_SETSCALE(scale.x - 0.1);
+            }
+            TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1
+            {
+                 A_SETSCALE(scale.x+0.0003);
+                 sprite = getSpriteIndex(paintSprite);
+                 frame = frameID;               
+            }
+            TNT1 A 1 {
+                sprite = getSpriteIndex(paintSprite);
+                frame = frameID;
+                SleepIndefinite();
+            }
+	}
+}
+
+class PaintDecalWhite : SelacoActor {
+    default {
+        +FLATSPRITE;
+        +STANDSTILL;
+        +NOINTERACTION;
+        +NOGRAVITY;
+        +NOPAIN;
+        scale 0.2;
+    }
+	States {
+		Spawn:
+            TNT1 A 0;
+            WHPI A 1 {
+                frame = random(0,5);
+                SleepIndefinite();
+            }
+            stop;
+	}
+}
+
+class PaintBrush : PickupableDecoration
+{
+    vector3 oldPos;
+    bool isPainting;
+    int frameID;
+    string paintColor;
+
+    override void PostBeginPlay()
+    {
+        frameID = random(0,4);
+        switch(frameID)
+        {
+            case 0:
+                paintColor = "BrushBluePaintGroup";
+                break;
+            case 1:
+                paintColor = "BrushGreenPaintGroup";
+                break;
+            case 2:
+                paintColor = "BrushPurplePaintGroup";
+                break;
+            case 3:
+                paintColor = "BrushRedPaintGroup";
+                break;
+            case 4:
+                paintColor = "BrushYellowPaintGroup";
+                break;
+        }
+    }
+
+    default
+    {
+        +SHOOTABLE
+        +SelacoActor.decorativeActor;
+        +SelacoActor.thruplayers;
+        -PickupableDecoration.HoldFromBack;
+        health 10;
+        radius 5;
+        height 2;
+        mass 150;
+        tag "$OBJECT_PAINTBRUSH";
+        PainSound "impact/crate";
+        DeathSound "impact/woodbreak";
+        BloodType "BrownCloudParticles", "BrownCloudParticles", "BrownCloudParticles";
+    }
+    states
+    {
+        Putdown:
+        Throw:
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1 {
+                frame = frameID;
+            }
+        Pickup:
+            VOXE L 1 
+            {
+                frame = frameID;
+                checkPaint();
+            }
+            loop;
+        Death:
+            TNT1 A 0 A_PLAYSOUND("impact/woodbreak", CHAN_AUTO, 1.0, 0, 0.6);
+            stop;
+    }
+
+    override bool doHoldActionStart() {
+        isPainting = true;
+
+        Vector3 brushDirection = vecFromAngle(angle, pitch);
+        doPaint(brushDirection);
+
+        return true;
+    }
+
+    override bool doHoldActionEnd() {
+        holdActionStarted = false;
+        isPainting = false;
+        return false;
+    }
+
+    void checkPaint() {
+        if(isPainting) {
+            Vector3 brushDirection = vecFromAngle(angle, pitch);
+
+            // If the position is new, apply a paint decal on the wall
+            if(oldPos != brushDirection) doPaint(brushDirection);
+        }
+    }
+
+    void doPaint(Vector3 brushDirection) {
+        A_SprayDecal(paintColor, 80, offset:(0,0,0), direction:brushDirection);
+        oldPos = brushDirection;
+    }
+
+    override string getActionString() {
+        return String.Format("\c[PAINT]%s", StringTable.Localize("$ACTION_PAINT"));
+    }
+    
+
+    override void moveToHoldPos(Vector3 viewPos, Vector3 newPos, double ang, bool copyInterp) {
+        Super.moveToHoldPos(viewPos, newPos, ang, copyInterp);
+        A_SETPITCH(pickedUpOwner.pitch, SPF_INTERPOLATE);
+        A_SETANGLE(ang, SPF_INTERPOLATE);
+    }
+
+    override Vector3, Vector3 getHoldPos() {
+        PlayerInfo pp = pickedUpOwner.player;
+        let pPitch = pickedUpOwner.pitch;
+        let vPitch = bRaiseAllowed ? pPitch : (pPitch <= 30 ? 30 - ((30 - pPitch) / 1.25) : pPitch);
+        Vector3 vProj = vecFromAngle(pickedUpOwner.angle, vPitch, HoldDistance);
+        Vector3 viewPos = (pickedUpOwner.pos.x, pickedUpOwner.pos.y, pp.viewz + HoldHeight);
+        Vector3 off = vProj + viewPos;
+
+        // Try a linetrace, if we hit something, modify hold pos
+        FLinetraceData data;
+
+        if(pickedUpOwner.LineTrace(pickedUpOwner.angle, HoldDistance, pickedUpOwner.pitch, TRF_THRUACTORS | TRF_THRUHITSCAN, offsetz: (pp.viewz - pickedUpOwner.pos.z) + HoldHeight, data: data)) {
+            off = data.HitLocation;
+        }
+
+        return off, viewPos;
+    }
+
+    override void pickUp(Actor source) {
+        Super.pickUp(source);
+        bSlopeAlignment = false;
+    }
+
+    override void drop() {
+        Super.drop();
+        A_SETPITCH(0, SPF_INTERPOLATE);
+        bSlopeAlignment = Default.bSlopeAlignment;
+    }
+
+    override void throw() {
+        Super.throw();
+        A_SETPITCH(0, SPF_INTERPOLATE);
+        bSlopeAlignment = Default.bSlopeAlignment;
+    }
+}

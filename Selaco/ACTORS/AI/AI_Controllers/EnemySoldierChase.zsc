@@ -1,0 +1,79 @@
+// Extension for chase/think
+extend class EnemySoldier {
+    int attackFrustrationCount;
+
+    virtual bool findAttackTarget() {
+        attackFrustrationCount = 0;
+		return LookForPlayers(true, NULL);
+	}
+
+	bool isFast() {
+		if(bAlwaysFast) return true;
+		if(bNeverFast) return false;
+		return G_SkillPropertyInt(SKILLP_FastMonsters);
+	}
+
+	// Basic target/attack handling. A_CHASE() is used to move, 
+	// targets and attacking is handled manually
+	override void MoveAndAttack(int flags) {
+        Super.MoveAndAttack(flags);
+
+        // Code has been removed for now because it was hella buggy
+        // Goals: 
+        // - Use pathnodes to make better informed decisions about where to move
+        // - Avoid other MONSTERs in our squad by stepping to the sides in a firing line
+        // - Don't be content to attack at infinite range, use a best-range to move the enemy towards the desired combat range
+
+		// Find a target
+		/*if(!target || target is 'PathNode') {
+			findAttackTarget();
+		}
+
+        if(bJUSTATTACKED) {
+            // Reset if we just attacked
+            bJUSTATTACKED = false;
+            if(!isFast() && !(flags & CHF_NOPOSTATTACKTURN) && !(flags & CHF_STOPIFBLOCKED)) NewChaseDir();
+            Console.Printf("Just attacked!");
+            //Because P_TryWalk would never be reached if the actor is stopped by a blocking object,
+            //need to make sure the movecount is reset, otherwise they will just keep attacking
+            //over and over again.
+            if (flags & CHF_STOPIFBLOCKED) movecount = random[TryWalk](0, 15);
+            return;
+        } else if(target && !(target is 'PathNode') && (target == goal || (bCHASEGOAL && goal != NULL))) {
+            // Check for attacks if we aren't following a path
+			// Random attempt at attacking, as long as there is a firing solution
+			// TODO: Replace hardcoded number with desired attack range
+			if(meleestate && CheckMeleeRange()) {
+				if(AttackSound) A_StartSound(AttackSound, CHAN_WEAPON, 0, 1, ATTN_NORM);
+				SetState(meleestate);
+				return;
+			}
+			
+			// Check for ranged attack
+			// Requires a firing solution, which is basically just a straight line to the target from the firing position of the enemy
+			// If LOF blocked by certain actors or the environment, it will fail
+			// Set maxTargetRange to require enemies to be closer before firing
+			// TODO: Replace checkMissileRange. It basically includes a CheckSight() but it also does some special handling of state vars to prevent attacking when we shouldn't. 
+			if(missilestate && !bJUSTATTACKED) {
+				if(reactiontime <= 0 && !(!isFast() && movecount) && checkMissileRange()) {
+                    if(!hasFiringSolution(maxTargetRange > 0 ? maxTargetRange : 2048)) {
+                        if(++attackFrustrationCount > 10) {
+                            // If we are blocked for too long by other actors, potentially find something else to shoot
+                            // TODO: This could be used to give up on the target and try flanking using the node system too
+                            Console.Printf("%s is frustrated, finding a new target.", getClassName());
+                            findAttackTarget();
+                        }
+                    } else {
+                        SetState(missilestate);
+                        bJUSTATTACKED = true;
+                        bINCOMBAT = true;
+                        return;
+                    }
+				}
+			}
+		}
+
+		// Let A_CHASE do the rest
+		A_CHASE(null, null, flags);*/
+	}
+}

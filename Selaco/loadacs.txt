@@ -1,0 +1,10 @@
+// Global ACS
+cvars
+QCKDIS
+CMPGN
+enemyvo
+//FLASH
+MAIN
+ACHIEV
+QCKDIS
+WPNSWIT

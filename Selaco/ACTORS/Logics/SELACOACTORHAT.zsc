@@ -1,0 +1,77 @@
+extend class SelacoActor {
+    Array<SelacoActor> hats;                    // Actors that think they are sitting on us, we wear them as hats and notify when waking or moving
+    SelacoActor hatHead;                        // The actor we slept on
+
+    flagdef CanWearHats  : selacoActorFlags, 25;
+    flagdef CanBeHat     : selacoActorFlags, 26;
+
+    default {
+        +SelacoActor.CanWearHats;
+        +SelacoActor.CanBeHat;
+    }
+
+    bool wearHat(SelacoActor hat) {
+        let pos = hats.find(hat);
+        if(pos >= hats.size()) {
+            hats.push(hat);
+            return true;
+        }
+        return false;
+    }
+
+    bool removeHat(SelacoActor hat) {
+        let pos = hats.find(hat);
+        if(pos < hats.size()) {
+            hats.delete(pos);
+            return true;
+        }
+        return false;
+    }
+
+    bool wakeHats() {
+        if(hats.size() == 0) return false;
+
+        // Duplicate hat array, because waking hats will cause them to remove from head
+        Array<SelacoActor> allHats;
+        allHats.append(hats);
+        hats.clear();
+
+        for(int x = allHats.size() - 1; x >= 0; x--) {
+            if(allHats[x]) allHats[x].wake();
+        }
+
+        return true;
+    }
+
+    bool removeFromHead() {
+        if(hatHead) {
+            hatHead.removeHat(self);
+            hatHead = null;
+            return true;
+        }
+        
+        hatHead = null;
+        return false;
+    }
+
+    bool checkForHead() {
+        if(hatHead) hatHead.removeHat(self);
+        hatHead = null;
+
+        if(!bOnMobj) return false;
+
+        Actor head;
+        bool notfound;
+        [notfound, head] = TestMobjZ(false);
+        if(notfound) return false;
+
+        SelacoActor sHead = SelacoActor(head);
+        if(sHead && sHead.bCanBeHat) {
+            hatHead = sHead;
+            sHead.wearHat(self);
+            return true;
+        }
+
+        return false;
+    }
+}

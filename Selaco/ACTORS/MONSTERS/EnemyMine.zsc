@@ -1,0 +1,209 @@
+class EnemyMine : Interactable
+{
+	
+	const DETONATION_RANGE = 85;
+	int explosionRadius;
+	bool hasTriggered;
+	bool isDefused;
+	bool playerTrigger;
+
+	actor explosionActor;
+	bool explosionActorSuccess;
+
+	override void PostBeginPlay() {
+		super.postbeginPlay();
+		explosionRadius = 220;
+		if(skill == SKILL_SMF)
+		{
+			SelfLighting = "0000000";
+		}
+	}
+
+	override void tick() {
+		super.tick();
+
+		// Alien tech sucks, so detonate if water comes close.
+		/*if(level.time % 3 == 0 && !isDefused && CheckProximity("Waterparticlex", 40.0, 1)) {
+			setStateLabel("Defused");
+			isDefused = true;
+		}*/
+
+		// Detonate when certain objects get near this actor
+		BlockThingsIterator it = BlockThingsIterator.Create(self, 9);
+		Actor currentActor;
+		if(!isDefused && level.time % 3 == 0) {
+			while (it.Next() && !hasTriggered) {
+				currentActor = it.thing; // Get the Actor it's currently on
+				if(currentActor && ((currentActor is "Dawn") || (currentActor.bPushable || currentActor is "PickupableDecoration"))  && currentActor.radius >= 13 && distance3DSquared(currentActor) < DETONATION_RANGE*DETONATION_RANGE && checkSight(currentActor)) {
+					if(currentActor is "Dawn") {
+						playerTrigger = true;
+					}
+					hasTriggered = true;
+					SetStateLabel("Detonate");
+				}
+			}
+		}
+	}
+
+	// Callback from when a water particle hits the mine
+	override void onParticleSplash(ParticleData particle) {
+        // Assume this is a water particle, and defuse the mine
+		if(!isDefused) {
+			setStateLabel("Defused");
+			isDefused = true;
+		}
+    }
+
+	void beepMine() {
+		bUseSpecial = true;
+		ActivationType = THINGSPEC_SWITCH;
+		if(skill != SKILL_SMF)
+		{
+			A_SpawnItemEx("RedFlareLargeNoLight",0,0,6);
+			A_PlaySound ("ENENYMINE", CHAN_AUTO, 0.35, attenuation: 2.5, pitch:0.95);
+		}
+		int lightRadius = 90;
+		if(skill == SKILL_SMF)
+		{
+			lightRadius = 30;
+		}
+		spawnLight(rColor:455, gColor:100, bColor:100, lightRadius, 0, shadowRequirement:2, overbright: 0, divisionSpeed:1.55, alwaysShow:1,weaponFlash:0, ignoreLightLimit: 1, zOffset:33);
+	}
+
+	void defuseMineThroughButton() {
+        // Spawn a Sawdrone
+        if(skill == SKILL_SMF)
+        {
+            A_SPAWNITEMEX("Sawdrone");
+        }
+		Stats.AddStat(STAT_MINES_DISARMED, 1, 0);
+		A_PLAYSOUND("Enemymine/DefuseUse", CHAN_AUTO, 1.0, 0, 0.7);
+		bUseSpecial = false;
+		isDefused = true;
+		ActivationType = THINGSPEC_DEFAULT;
+		setStateLabel("DoNothing");
+	}
+
+	void shortCirtcuitEffect() {
+		A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+		A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+		A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition");
+		A_SpawnProjectile ("SparkEmberUpward", 0, -5, random (0, 70), 2, random (0, 190));		
+	}
+
+	void deactivateMine() {
+		A_PLAYSOUND("Enemymine/Defuse", CHAN_AUTO, 1.0, 0, 0.7);
+		Stats.AddStat(STAT_MINES_DISARMED, 1, 0);
+		bUseSpecial = false;
+		isDefused = true;
+		ActivationType = THINGSPEC_DEFAULT;
+	}
+
+    default {
+        +FLOORCLIP
+        +SHOOTABLE
+        +MOVEWITHSECTOR
+        +THRUACTORS
+        +INTERPOLATEANGLES
+        +USESPECIAL;
+		+BUDDHA
+		+SelacoActor.trap;
+		+SelacoActor.Splashable;
+		SelacoActor.SleepDistance 3092;
+        Radius 26;
+        Height 12;
+		SelacoActor.UseTag "$INTERACT_DISARM";
+		SelfLighting "383838";
+        tag "$WEAPON_MINE";
+        Activation THINGSPEC_Activate;
+        Mass 10000;
+        Health 10;
+		BloodType "BulletImpactEffectMetalSmall", "BulletImpactEffectMetalSmall", "BulletImpactEffectMetalSmall";
+        Damagetype "ExplosiveImpact";
+    }
+	States    {
+        Spawn:
+			VOXE L 4; // Mercy timer
+			VOXE L 35 {
+				bUseSpecial = false;
+				ActivationType = THINGSPEC_DEFAULT;
+			}
+			VOXE L 4 {
+				beepMine();
+			}
+			loop;
+		
+		// Mine is being defused
+		Active:	
+			TNT1 A 0 {
+				defuseMineThroughButton();
+			}
+			goto doNothing;
+		Defused:
+			TNT1 A 0 {
+				deactivateMine();
+			}
+			VOXE B 10;
+			TNT1 A 0 shortCirtcuitEffect();
+			VOXE BBBBBB random(60,90) shortCirtcuitEffect();
+		DoNothing:
+			VOXE B -1;
+			stop;
+
+		Death:
+		Detonate:
+			TNT1 A 0 {
+				bUseSpecial = false;
+				ActivationType = THINGSPEC_DEFAULT;
+			}
+			VOXE LLL 3 {
+				A_PlaySound ("ENENYMINE", CHAN_5, 0.35, pitch:1.0);
+				A_SpawnItem ("RedFlare3",0,6);
+			}
+			EXPL A 0 {
+				if(players[0].mo && playerTrigger && checkSight(players[0].mo))
+				{
+					players[0].mo.A_DAMAGESELF(400, "ExplosiveImpact");
+				}
+				Stats.AddStat(STAT_MINES_DESTROYED, 1, 0);
+                Radius_Quake (2, 54, 0, 15, 0);
+                bFLOORCLIP = 0;
+                A_AlertMonsters();
+                A_SpawnItem("PrettyExplosionParticleRain");
+                A_PlaySound("Explosion",3);
+                [explosionActorSuccess, explosionActor] = A_SPAWNITEMEX("LandmineExplosion", 0, 0, 32);
+
+				// Give radius to explosion.
+				let explosionActorInstance = LandmineExplosion(explosionActor);
+				explosionActorInstance.explosionRadius = explosionRadius;
+
+                destroy();
+            }
+			VOXE L 1;
+			Stop;
+	}
+}
+
+class LandmineExplosion : SelacoActor {
+	int explosionRadius;
+	Default {
+		damageType "ExplosiveImpact";
+		+NOINTERACTION;
+	}
+	States {
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 S_EXPLODE(550,explosionRadius);
+			TNT1 A 0 
+			{
+				if(skill == SKILL_SMF)
+				{
+					for(int x=0;x<=2;x++)
+					{
+						A_SPAWNITEMEX("CrawlerMine", frandom(-20,20), frandom(-20,20), frandom(0,16), frandom(3,5), 0, 2, angle:random(0,360));
+					}
+				}
+			}
+			stop;
+	}
+}

@@ -1,0 +1,233 @@
+class MUG_BASEv2 : MUG_BASE {
+	const MUG_TYPES = 7;
+
+	enum MUG_STYLES {
+		MUG_ACE = 0,
+		MUG_GREEN = 1,
+		MUG_BLUE = 2,
+		MUG_YELLOW = 3,
+		MUG_ORANGE = 4,
+		MUG_PURPLE = 5,
+		MUG_GREY = 6,
+	}
+
+	override void punt(Actor source, double forceScale) {
+		Super.punt(source, forceScale);
+
+		SetStateLabel("Death");
+	}
+
+    override void postBeginPlay() {
+		super.postBeginPlay();
+		frameNum = random(0,MUG_TYPES-1);
+        if(args[0]) {
+			frameNum = args[0]-1;
+		}
+		switch(frameNum) {
+			case MUG_ACE:
+				porcelainParticle = "PorcelainWhiteDefinition";
+				break;
+			case MUG_GREEN:
+				porcelainParticle = "PorcelaiGreenDefinition";
+				break;
+			case MUG_BLUE:
+				porcelainParticle = "PorcelainBlueDefinition";
+				break;
+			case MUG_YELLOW:
+				porcelainParticle = "PorcelaiYellowDefinition";
+				break;
+			case MUG_ORANGE:
+				porcelainParticle = "PorcelaiBrownDefinition";
+				break;
+			case MUG_PURPLE:
+				porcelainParticle = "PorcelaiPurpleDefinition";
+				break;
+			case MUG_GREY:
+				porcelainParticle = "PorcelaiBlackDefinition";
+				break;
+		}
+    }
+
+	default {
+        +SelacoActor.SpecialPushable
+        +PUSHABLE
+        +SelacoActor.SpecialPushable2
+        -NOBLOOD;
+		SelacoActor.collisionSound "PUSH/MUG";
+		+PickupableDecoration.dumpsterCompatible;
+		PickupableDecoration.HoldDistance 40;
+		PickupableDecoration.FallDamageThreshold FALLTHRESHOLD_WEAK;
+		PickupableDecoration.grabSound "PICKUP/MUG";
+		PickupableDecoration.landingSound "OBJECT/DROP/PLATE";
+		+SelacoActor.AllowRandomizerReplacement;
+		bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+		tag "$OBJECT_MUG";
+        mass 150;
+        Health 10;
+        radius 6;
+        height 10;
+        scale 1.0;
+    }
+	states {
+		Idle:
+			TNT1 A 0;
+			VOXE L -1 {
+				frame = frameNum;
+			}
+			loop;
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1 {
+				frame = frameNum;
+			}
+			goto Idle;
+	}
+}
+
+class MUG_BASE : PickupableDecoration   {
+	string PorcelainParticle;
+	property PorcelainParticle : PorcelainParticle;
+
+	override void punt(Actor source, double forceScale) {
+		Super.punt(source, forceScale);
+
+		SetStateLabel("Death");
+	}
+
+	default {
+        +SelacoActor.SpecialPushable
+        +PUSHABLE
+        +SelacoActor.SpecialPushable2
+        -NOBLOOD;
+		SelacoActor.collisionSound "PUSH/MUG";
+		+PickupableDecoration.dumpsterCompatible;
+		PickupableDecoration.HoldDistance 40;
+		PickupableDecoration.FallDamageThreshold FALLTHRESHOLD_WEAK;
+		PickupableDecoration.grabSound "PICKUP/MUG";
+		PickupableDecoration.landingSound "OBJECT/DROP/PLATE";
+		+SelacoActor.AllowRandomizerReplacement;
+		bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+		
+		tag "$OBJECT_MUG";
+        mass 150;
+        Health 10;
+        radius 6;
+        height 10;
+        scale 0.65;
+    }
+	states {
+		Idle:
+			VOXE L -1;
+			loop;
+		Spawn:
+            VOXE L -1;
+			goto Idle;
+		Destroy:
+			TNT1 A 0;
+			stop;
+		Death.FallDamage:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Shotgun:
+		Death.ExplosiveImpact:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 5);
+			goto Death.Finish;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Finish:
+			TNT1 A 0 {
+				for(int x=0;x<9;x++) {
+					A_SpawnDefinedParticle("WaterSplatterEffectDefinition", frandom(-1, 1), frandom(-1,1), random(1,15), frandom(-1,1), frandom(-1,1), frandom(1,3), angle:random(0,359));
+				}
+				A_SPAWNITEMEX("WaterSplashEffect", 0, 0, 1);
+				vel *= 0.5;
+				EmitDefinition(PorcelainParticle, chance:0.75, numTries:40);
+			}
+			TNT1 A 0 A_playSound("destruction/ceramic", CHAN_5, 0.7);
+			stop;
+	}
+}
+
+class CupMTea : MUG_ACE  {
+    default {
+	    -UseSpecial
+    }
+
+	states {
+		Spawn:
+            VOXE L -1;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+
+// DEPRICATED
+class MugSpawner : actor {
+	static const String MugList[] =
+	{
+		"MUG_ACE",
+		"MUG_GREEN",
+		"MUG_BLUE",
+		"MUG_ADMIN",
+		"MUG_YELLOW",
+		"MUG_PURPLE",
+		"MUG_BLACK"
+	};	
+
+	string mugToSpawn;
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		mugToSpawn = MugList[random(0, MugList.size()-1)];
+		A_SpawnItemEx(mugToSpawn);
+	}
+
+	default {
+    	scale 0.65;
+	}
+}
+
+class MUG_ACE : MUG_BASE  {
+	default {
+		MUG_BASE.PorcelainParticle "PorcelainWhiteDefinition";
+	}
+}
+
+class MUG_GREEN : MUG_BASE  {
+	default {
+		MUG_BASE.PorcelainParticle "PorcelainGreenDefinition";
+	}
+}
+
+class MUG_BLUE : MUG_BASE  {
+	default {
+		MUG_BASE.PorcelainParticle "PorcelainBlueDefinition";
+	}
+}
+
+class MUG_YELLOW : MUG_BASE  {
+	default {
+		MUG_BASE.PorcelainParticle "PorcelainYellowDefinition";
+	}
+}
+
+class MUG_ADMIN : MUG_BASE  {
+	default {
+		MUG_BASE.PorcelainParticle "PorcelainBrownDefinition";
+	}
+}
+
+class MUG_PURPLE : MUG_BASE  {
+	default {
+		MUG_BASE.PorcelainParticle "PorcelainPurpleDefinition";
+	}
+}
+
+class MUG_BLACK : MUG_BASE  {
+	default {
+		MUG_BASE.PorcelainParticle "PorcelainBlackDefinition";
+	}
+}

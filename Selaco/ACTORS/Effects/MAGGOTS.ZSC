@@ -1,0 +1,108 @@
+class MaggotSpawn : GoreSystem {
+	
+	int frameID;
+	string spriteToUse;
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		spriteToUse = "MAGG";
+		frameID = random(0,18);
+		A_SETSCALE(frandom(0.17, 0.22));
+	}
+
+	default {
+		+MISSILE;
+		gravity 0.4;
+		speed 7;
+		BounceFactor 0.2;
+		bounceCount 2;
+	}
+
+	states {
+		Spawn: 
+			MAGG A 0;
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETANGLE(random(0,360));
+			}
+			MAGG A 1;
+		Looper:
+			MAGG A 2 {
+				frame = frameID;
+				A_SETROLL(roll + 25);
+			}
+			loop;
+		Death:
+			TNT1 A 0 {
+				if(random(0,100) <= 6) {
+					A_SPAWNITEMEX("MaggotMoving");
+				}
+			}
+			MAGG A 10 {
+				A_SETROLL(0);
+				bFlatSprite = true;
+				frame = frameID;
+			}
+			MAGG A 1
+			{
+				frame = frameID;
+				handleGoreSleep();
+			}
+			MAGG AAAAAAAAAA 1 
+			{
+				frame = frameID;
+				A_FADEOUT(0.1);
+			}
+			stop;
+	}
+}
+
+class MaggotParticle : PurpleBloodParticle {
+	default {
+		gravity 0.5;
+        SelacoParticle.RandomScaleX 5,5;
+        SelacoParticle.RandomScaleY 5, 5;
+        SelacoParticle.RandomAngle -80,80;
+		SelacoParticle.RandomSpeed  1 , 7;
+		SelacoParticle.RandomLife   30  ,60;
+	}	
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			MAGG A -1
+			{
+				frame = random(0,17);
+			}
+			stop;
+	}
+}
+
+class MaggotMoving : Cockroach {
+    int angleIncrement;
+	default {
+		+FLATSPRITE;
+		+INTERPOLATEANGLES
+		scale 0.3;
+		friction 0.8; 
+        SelacoActor.SleepDistance 512;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			VOXE L 0 A_SETANGLE(random(0,360));
+		Moving:
+            TNT1 A 0 {
+                angleIncrement = frandom(-5,5);
+            }
+			MAGG QQQQQQQQQQ 1 A_SETANGLE(angle+angleIncrement*0.1);
+			TNT1 A 0 A_SETANGLE(angle+angleIncrement, SPF_INTERPOLATE);
+			TNT1 A 0 A_CHANGEVELOCITY(0.5,-0.5,0, CVF_RELATIVE);
+			MAGG QQQQQQQQQQ 1 A_SETANGLE(angle+angleIncrement*0.1);
+			loop;
+		Death:
+			TNT1 A 0 A_PLAYSOUND("COACKROACH/KILL", CHAN_AUTO, 0.2, pitch:1.1);
+			MAGG M -1;
+			stop;
+	}
+}

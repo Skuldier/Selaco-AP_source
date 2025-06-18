@@ -1,0 +1,1406 @@
+///////////////////////////////////////////////
+// +++ THIS FILE HAS BEEN STRIPPED DOWN FOR DEMO PURPOSES. ALL CONTENTS NOT REQUIRED FOR THE DEMO IS NOT IN HERE. +++
+///////////////////////////////////////////////
+
+class FoodItem : Interactable {
+    int maxHealHealth;      // Health must be below this number to consume, and we won't heal more than this number (or -1 for max health)
+    int foodstat;           // The ID of the stat to increase
+    double CalorieCount;    // Amount of calories are added when the food item is consumed by Dawn
+    bool fadeOutAnimation;
+    int healAmount;         // How much does this food item heal?
+    int frameID;
+    private int foodFlags;
+
+    actor foodPlate;
+
+    flagdef SpawnPlate          : foodFlags, 0;     // Do not sleep automatically, can be used on and off to prevent sleep during animations
+
+    property HealAmount         :   healAmount;
+    property Foodstat           :   foodstat;
+    property CalorieCount       :   calorieCount;
+    property MaxHealHealth      :   maxHealHealth;
+    property fadeOutAnimation   :   fadeOutAnimation;
+
+    override void PostBeginPlay()
+    {
+        super.postbeginPlay();
+        frameID = -999;
+        if(bSpawnPlate)
+        {
+            bool succ;
+            [succ, foodPlate] = A_SPAWNITEMEX("Foodplate_Future", frandom(-0.1,0.1),frandom(-0.1,0.1), angle:random(0,360));
+            if(foodPlate)
+            {
+                foodPlate.bUseSpecial = false;
+                foodPlate.activationType = THINGSPEC_DEFAULT;
+            }
+            if(random(0,2) == 2)
+            {
+                A_SPAWNITEMEX("napkinWhite", frandom(-0.2,0.2),frandom(-0.2,0.2), angle:random(0,360));
+            }
+        }
+        if(healAmount)
+        {
+            setTag(string.format("%s (+%d HP)",getTag(), healAmount));
+        }
+    }
+
+    virtual void consumeFood()
+    {
+        makePlateActivatable();
+    }
+
+    void makePlateActivatable()
+    {
+        if(foodPlate)
+        {
+            foodPlate.bUseSpecial = true;
+            foodPlate.activationType = THINGSPEC_ACTIVATE;
+        }
+    }
+
+    virtual void playEatingSound() {
+        let d = Dawn(players[consolePlayer].mo);
+        if(d) {
+            d.A_PLAYSOUND("dawn/eating", CHAN_AUTO, 0.6);
+        }
+    }
+
+    default {
+
+        // FLAGS
+        +UseSpecial;
+        -SOLID;
+        
+        // PROPERTIES
+        scale 0.75;
+        height 4;
+        Activation THINGSPEC_Switch;
+        SelacoActor.UseTag "Eat";
+        FoodItem.CalorieCount 50; // Default
+        FoodItem.MaxHealHealth -1;
+        FoodItem.fadeOutAnimation true;
+        FoodItem.HealAmount 2;
+        -SELACOACTOR.WakeNearPlayer;
+        +SELACOACTOR.SleepWhenIdle;
+    }
+
+    states {
+        DeathReal:
+            TNT1 A 0 {
+                A_CHANGELINKFLAGS(1);
+                bUseSpecial = false;
+                activationType = THINGSPEC_DEFAULT;
+                if(foodstat > 0) {
+                    stats.AddStat(foodstat, 1, 0);
+                }
+                stats.AddStat(STAT_FOOD_EATEN, 1, 0);
+                stats.AddStat(STAT_CALORIE_INTAKE, CalorieCount, 0);
+                if(!fadeOutAnimation)
+                {
+                    setStateLabel("DeathRealStartNoThisTimeItIsForRealThough");
+                }
+            }
+            VOXE LLLL 1 
+            {
+                if(frameID != -999)
+                {
+                    frame = frameID;
+                }
+                A_FADEOUT(0.25);
+            }
+        DeathRealStartNoThisTimeItIsForRealThough:
+			TNT1 A 1 Die(self, self);
+			stop;
+        Inactive:
+        Active:
+            TNT1 A 1 {
+                let h = players[consolePlayer].health;
+                // Notify Dawn of food eaten
+                let d = Dawn(players[consolePlayer].mo);
+                h = max(0, players[consolePlayer].health - h);
+                consumeFood();
+                // Note: Only checks consoleplayer, not the activator
+                if(isConsumable()) {
+                    playEatingSound();
+                    ACS_NamedExecuteWithResult("EatingJunkFood", healAmount, getHealHealth());
+                }
+                if(d && h > 0) {
+                    d.onFoodEaten(self, h);
+                }
+            }
+            TNT1 A 0 {
+                SetStateLabel("Looper");
+            }
+            stop;
+    }
+
+    override string GetUsePrompt(string highCol) {
+        wake();
+        if(isConsumable()) {
+            return Super.GetUsePrompt(highCol);
+        } else {
+            string ut = UseTag == "" ? "$ACT_USE" : UseTag;
+            return String.Format("\c[DARKGRAY]%s\c- %s", StringTable.Localize(ut), GetCharacterName());
+        }
+    }
+
+    int getHealHealth(int player = -1) {
+        if(player == -1) player = consolePlayer;
+
+        return maxHealHealth >= 0 ? maxHealHealth : players[consolePlayer].mo.GetMaxHealth(true);
+    }
+
+    virtual bool isConsumable(int player = -1) {
+        if(player == -1) player = consolePlayer;
+
+        return players[player].mo.health < getHealHealth(player);
+    }
+}
+
+Class FoodPlate : PickupableDecoration {
+    int throwingTime;
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        if(pickedupOwner)
+        {
+            return 0;
+        }
+        return Super.TakeSpecialDamage(inflictor, source, damage, damageType);;
+    }
+
+    default {
+		PickupableDecoration.FallDamageThreshold FALLTHRESHOLD_WEAK;
+        tag "$OBJECT_PLATE";
+        DistanceCheck "r_ThingLOD";
+        SelacoActor.collisionSound "PUSH/MUG";
+        PickupableDecoration.GrabSound "pickup/plate";
+        PickupableDecoration.landingSound "OBJECT/DROP/PLATE";
+        PickupableDecoration.HoldDistance 35;
+        scale 1;
+        Health 5;
+        height 13;
+        radius 8;
+        +SHOOTABLE
+        -SOLID
+        +FLATSPRITE
+        +BLOODSPLATTER
+        +NOBLOODDECALS
+        +INTERPOLATEANGLES;
+        BloodType "", "", "";
+    }
+
+    States {
+        spawn: 
+            PLAT A -1;
+            stop;
+        throw:
+            TNT1 A 0
+            {
+                if(vel.length() > 15)
+                {
+                    ConvertToProjectile();
+                    SetStateLabel("Frisbee");
+                    return;
+                }
+                setStateLabeL("Spawn");
+            }
+        Frisbee:
+            VOXE L 1
+            {
+                throwingTime++;
+                //ConvertToProjectile();
+                gravity = 0.1;
+                mass = 500;
+                if(throwingTime > 5 && level.time % 6 == 0)
+                {
+                    A_PLAYSOUND("knife/throw", CHAN_5, 0.8, 0, 1.1, 0, pitch:frandom(0.8,1.1));
+                }
+                A_SETROLL(frandom(-3,3));
+                A_SETANGLE(angle+55, SPF_INTERPOLATE);
+                if(vel.x == 0 && vel.y == 0)
+                {
+                    setStateLabeL("Death");
+                    return;
+                }
+            }
+            loop;
+        Death:
+            TNT1 A 0 A_PlaySound("dest/plate",CHAN_AUTO, 0.95, 0, 0.9, false, frandom(0.86, 1.1));
+            TNT1 A 0 A_SpawnDefinedParticle("BulletImpactEffectConcreteDefinition", 0, 0, 0, 0, 0, 1);
+            TNT1 A 0 {
+                EmitDefinition("PorcelainDefinition", chance:1.0, numtries:32, offset:(0,0,2));
+                EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 25);
+            }
+            stop; 
+        Destroy:
+            stop;
+    }
+}
+
+Class FoodPlate_ketchup : FoodPlate{
+    States {
+        spawn: 
+            TNT1 A 0 ;
+            TNT1 A 0 A_SetAngle(random(0, 360));
+            PLAT B -1;
+            stop;
+    }
+}
+Class FoodPlate_mustard : FoodPlate{
+    States {
+        spawn: 
+            TNT1 A 0 ;
+            TNT1 A 0 A_SetAngle(random(0, 360));
+            PLAT C -1;
+            stop;
+    }
+}
+
+Class Foodplate_Future : FoodPlate{
+    default {
+        scale 1;
+    }
+    States {
+        spawn: 
+            TNT1 A 0;
+            TNT1 A 0 A_SetAngle(random(0,360));
+            VOXE L -1;
+            stop;
+    }
+}
+
+Class Foodplate_Future_PLUTO : FoodPlate_Future
+{
+
+}
+
+Class Sandwich_Bitten : FoodItem {
+    default { 
+        Tag "$FOOD_SANDWICH"; 
+        +FoodItem.SpawnPlate;
+        FoodItem.Foodstat 34;
+        FoodItem.CalorieCount 152;
+    }
+
+    states {
+        Spawn:
+            VOXE L 0;
+        looper:
+            VOXE L -1;
+            loop;
+    }
+}
+
+Class Hotdog_Mostard : FoodItem {
+    default { 
+        Tag "$FOOD_HOTDOG"; 
+        +FoodItem.SpawnPlate;
+        FoodItem.Foodstat 35;
+        FoodItem.CalorieCount 198;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SetAngle(random(0, 360));
+        looper:
+            VOXE L -1;
+            loop;
+    }
+}
+Class Hotdog_Ketchup : FoodItem {
+    default { 
+        Tag "$FOOD_HOTDOG"; 
+        +FoodItem.SpawnPlate;
+        FoodItem.CalorieCount 198;
+        FoodItem.Foodstat 35;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SetAngle(random(0, 360));
+        looper:
+            VOXE L -1;
+            loop;
+    }
+}
+
+Class chococake : Hotdog_Ketchup {
+    default { 
+        Tag "$FOOD_CHOCOLATECAKE";
+        FoodItem.CalorieCount 295;
+        FoodItem.Foodstat 50;
+    }
+}
+
+
+Class Burger1 : Hotdog_Ketchup {
+
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+        
+        if(random(0, 100) <= 33 && args[0] == 0) {
+            A_SPAWNITEMEX("burger1_bitten");
+		    //A_SpawnItemEx("Foodplate_Future");
+            destroy();
+        }
+    }
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        A_SPAWNITEMEX("Burger1_bitten", 0, 0, 0, 0, 0, 0, angle:0);
+        A_SPAWNITEMEX("BurgerFlag", 0, 0, 10, 1, 0, 3, angle:random(0,259));
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    default { 
+        Tag "$FOOD_BURGER";
+        -FoodItem.SpawnPlate
+        FoodItem.CalorieCount 135;
+        FoodItem.Foodstat -999;
+        FoodItem.fadeOutAnimation false;
+    }
+}
+
+Class Burger1_bitten : Hotdog_Ketchup {
+
+    default { 
+        -FoodItem.SpawnPlate
+        Tag "$FOOD_BURGER";
+        FoodItem.CalorieCount 135;
+        FoodItem.Foodstat 36;
+        FoodItem.fadeOutAnimation true;
+    }
+
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            goto looper;
+    }
+}
+
+Class Banana : FoodItem {
+    default {
+        tag "$FOOD_BANANA";
+        scale 1.0;
+        FoodItem.Foodstat 37;
+        FoodItem.CalorieCount 89;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        looper:
+            VOXE L -1;
+            loop;
+        Active:
+            VOXE L 1 ACS_NamedExecuteWithResult("EatBanana", 0);
+            TNT1 A 0 {
+                consumeFood();
+                SetStateLabel("DeathReal");
+            }
+    }
+
+    // Since bananas can always be eaten, skip the greyed out text
+    override string GetUsePrompt(string highCol) {
+        return Interactable.GetUsePrompt(highCol);
+    }
+
+}
+
+Class Banana_peel : PickupableDecoration {
+    int slipCount;
+
+    default {
+        height 10;
+        radius 8;
+        friction 0.9; // Bananas be slippery
+        -SOLID;
+        -PUSHABLE;
+        +SelacoActor.DecorativeActor;
+        +SelacoActor.thruplayers;
+        +usespecial;
+        +SPECIAL;
+        +PickupableDecoration.dumpsterCompatible;
+    	Activation THINGSPEC_Switch;
+        SelacoActor.UseTag "$ACT_GRAB";
+        Tag "$FOOD_BANANAPEEL";
+    }
+
+    states {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+
+    override void Touch(Actor toucher) {
+        if(pos.z == floorz && toucher is 'SelacoEnemy' && toucher.vel.length() > 0.35) {
+            double ang = toucher.angle;
+            if(SelacoEnemy(toucher).doBananaSlide()) {   // Should be responsible for preventing this from happening repeatedly
+                slipCount++;
+                if(slipCount >= 3) {
+                    destroy();
+                } else {
+                    // Fire away banana
+                    wake();
+                    vel = (angleToVector(ang + frandom(-15, 15), frandom(15,25)), vel.z);
+                }
+            }
+        }
+    }
+
+    override void convertToProjectile(bool thrown) {
+        if(!thrown) {
+            Super.convertToProjectile(thrown);
+            return;
+        }
+
+        // Don't fully convert, we don't want to hurt enemies with the peel, just make them slip
+        bSKULLFLY = false;
+        //bDecorativeActor = false;
+        bDONTTHRUST = true;
+    }
+}
+
+Class Fries : FoodItem {
+    default {
+        tag "$FOOD_FRIES";
+        FoodItem.CalorieCount 170;
+        FoodItem.foodstat 71;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        looper:
+            VOXE L -1;
+            loop;
+    }
+}
+
+Class APPLE_ORANGE_FULL : FoodItem {
+    default {
+        tag "$FOOD_APPLE";
+        FoodItem.CalorieCount 52;
+        FoodItem.foodstat 38;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        looper:
+            VOXE L -1;
+            loop;
+    }
+}
+
+Class APPLE_ORANGE_BIT : APPLE_ORANGE_FULL { 
+
+}
+Class APPLE_RED_BIT : APPLE_ORANGE_FULL { 
+
+}
+Class APPLE_RED_FULL : APPLE_ORANGE_FULL { 
+
+}
+Class APPLE_GREEN_FULL : APPLE_ORANGE_FULL { 
+
+}
+
+Class PLUTO_FRIES : FoodItem {
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        A_SPAWNITEMEX("PLUTO_FRIES_EATEN", 0, 0, 0, 0, 0, 0, angle:0);
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+    
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+        angle+=frandom(-15,15);
+        if(random(0,2) == 2) {
+		    A_SpawnItemEx("PLUTO_FRIES_EATEN");
+            destroy();
+        }
+    }
+    default {
+        scale 1.0;
+        tag "$FOOD_FRIES";
+        FoodItem.CalorieCount 170;
+        FoodItem.foodstat 71;
+        FoodItem.fadeOutAnimation false;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        looper:
+            VOXE L -1;
+            loop;
+    }
+}
+
+Class PLUTO_FRIES_EATEN : SELACOACTORSTATIC {
+    default {
+        scale 1.0;
+    }
+
+    states {
+        Spawn:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class SodaCan : FoodItem {
+    const BUNNY_HOPPER_CHANCE = 2;
+    override void BeginPlay()
+    {
+        super.BeginPlay();
+        if(getClassName() == "SodaCan" && level.levelgroup >= 3 && random(0,100) <= BUNNY_HOPPER_CHANCE)
+        {
+            A_SPAWNITEMEX("BunnyHopper");
+            destroy();
+        }
+    }
+
+
+    // Always openable, no matter what
+    override bool isConsumable(int player) {
+        if(getClassName() == "Sodacan")
+        {
+            return true;
+        }
+        return super.isConsumable(player);
+    }
+
+	//category SelacoDecorations
+    default {
+        // FLAGS
+        +USESPECIAL;
+        +SHOOTABLE;
+        +NOBLOODDECALS;
+        -BLOODSPLATTER;
+        +SelacoActor.EnemyProjectilePassThru;
+        +hitscanthru;
+        // PROPERTIES
+        height 12;
+        radius 9;
+        health 10;
+
+
+        PainChance 255;
+        DamageFactor "Kick", 0.0;
+        PainChance "ExplosiveImpact", 255;
+        tag "$FOOD_ARACHNOCOLA";
+        FoodItem.foodstat 25;
+        SelacoActor.UseTag "$ACT_OPEN";
+        bloodtype "BulletImpactEffectPlasticStationarySmall", "BulletImpactEffectPlasticStationarySmall", "BulletImpactEffectPlasticStationarySmall";
+        Activation THINGSPEC_Activate;
+        Pushfactor 0.2;
+        FoodItem.CalorieCount 43;
+    }
+	States {
+		Spawn:
+			VOXE L -1;
+			loop;
+		Inactive:
+		Active:
+            TNT1 A 0 {
+                for(int x=0;x<=7;x++)
+                {
+                    A_SPAWNITEMEX("ArachnoJuiceParticleSmall", 0, 0, 10, frandom(0.2,1), 0, frandom(0.2,3.5), angle:random(0,360));
+                }
+                actor plate;
+                bool succ;
+                A_PLAYSOUND("ITEMS/SODACAN/OPEN", CHAN_AUTO, 0.6);
+                [succ, plate] = A_SPAWNITEMEX("Sodacan_opened");
+                if(plate)
+                {
+                    FoodItem(plate).foodPlate = foodPlate;
+                }
+            }
+			stop;
+		Pain:
+		Death:
+		Death.shotgun:
+		Death.explosiveimpact:
+            TNT1 A 0
+            {
+                A_PLAYSOUND("IMPACT/BULLET/WATER", CHAN_AUTO, 0.5, pitch:frandom(1.2,1.4));
+                A_PLAYSOUND("DESTRUCTION/CAN", CHAN_AUTO, 0.7, pitch:frandom(1.1,1.5));
+                A_SPAWNITEMEX("SodaCanClip", 0, 0, 11, frandom(1.3,3.2), 0, frandom(1,5), angle:random(0,360));
+            }
+			TNT1 AAAAAAAAAAAAAAAA 0 A_SpawnItemEx("ArachnoJuiceParticle", frandom(-3,3), frandom(-3,3), frandom(4,6), frandom(-2.6,2.6), frandom(-2.6,2.6), frandom(1,8));
+		FinishDying:
+			VOXE L 1 A_FaceTarget;
+			TNT1 A 0 A_SpawnItemEx("SodaCanEmpty", 0, 0, 0, -10, 0, 9);
+            stop;
+        DeathReal:
+            TNT1 A 0 {
+                if(foodstat > 0) {
+                    stats.AddStat(foodstat, 1, 0);
+                }
+                stats.AddStat(STAT_FOOD_EATEN, 1, 0);
+                stats.AddStat(STAT_CALORIE_INTAKE, CalorieCount, 0);
+            }
+            VOXE LLLLL 1 
+            {
+                A_FADEOUT(0.19);
+            }
+			stop;
+	}
+}
+
+class SodaCan_opened : SodaCan {
+    bool sizzled;
+    bool spilled;
+    int aliveTime;
+    const SPILL_TIMER = 100; // IN SECONDS, NOT TICKS!
+
+    default
+    {
+        Activation THINGSPEC_Switch;
+    }
+
+    override void postBeginPlay()
+    {
+        super.postbeginPlay();
+        aliveTime = level.time/35;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        int levelTimeSeconds = level.time/35;
+
+        // Drink has expired, ew.
+        if(!spilled && levelTimeSeconds - aliveTime > SPILL_TIMER)
+        {
+            spilled = true;
+            SetTag(string.format("%s \c[darkgrey](%s)", getTag(), stringTable.localize("$FLAT_DRINK")));
+        }
+    }
+
+    default
+    {
+        SelacoActor.UseTag "$ACT_DRINK";
+    }
+	States {    
+        Spawn:
+            VOXE L 0;
+            VOXE L 10
+            {
+                if(!sizzled)
+                {
+                    sizzled = true;
+                    bPreventSleep = true;
+                    A_PLAYSOUND("ITEMS/SODACAN/SIZZLE", CHAN_5, 0.3, pitch:frandom(1.1,1.2));
+                }
+            }
+            VOXE L -1;
+		Inactive:
+		Active:
+            TNT1 A 1 {
+                if(isConsumable()) {
+                    consumeFood();
+                    A_StopSound(CHAN_5);
+                    A_SPAWNITEMEX("SodaCanClip", 0, 0, 11, frandom(0.3,2.2), 0, frandom(1,4), angle:random(45,70));
+                    ACS_NamedExecuteWithResult("DrinkingArachno", healAmount);
+                    setStateLabel("DeathReal");
+                }
+            }
+			goto Spawn;
+	}
+}
+
+class SodaCanEmpty : PickupableDecoration  {
+    bool kickable;
+
+	override void Touch(actor toucher) {
+        if(kickable && toucher) {
+            target = toucher;
+            setStateLabel("kicked");
+        }
+
+        Super.touch(toucher);
+    }
+
+    override void DieByCrushing() {
+        A_PlaySound("impact/can", CHAN_AUTO);
+        destroy();
+    }
+
+
+	default {
+        +DONTSPLASH;
+        +BOUNCEONFLOORS;
+        +THRUSPECIES;
+        +USEBOUNCESTATE;
+        +SHOOTABLE;
+        -BLOODSPLATTER;
+        +SPECIAL
+        +FLOORCLIP;
+        +BOUNCEONFLOORS;
+        +BOUNCEONWALLS;
+        +BOUNCEONCEILINGS;
+        +MISSILE;
+        +THRUACTORS
+        +NOTELEPORT;
+        +CLIENTSIDEONLY;
+        +DOOMBOUNCE; 
+        -SOLID;
+        +PickupableDecoration.dumpsterCompatible;
+        PickupableDecoration.dumpsterSound "trashbin/metal";
+        PickupableDecoration.landingSound "impact/can";
+        tag "$OBJECT_EMPTYCAN";
+        height 15;
+        radius 4;
+        scale 0.75;
+        mass 10;
+        Speed 8;
+        alpha 1.0;
+        Pushfactor 0.2;
+        BounceFactor 0.65;
+        BounceCount 4;
+        Friction 0.1;
+        PainChance 255;;
+        DamageFactor "Kick", 0.0;
+        PainChance "ExplosiveImpact", 255;
+        BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        Activation THINGSPEC_Activate;
+        BounceSound "impact/can";
+        SeeSound "impact/can";
+    }
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SetAngle(angle + 90);
+			goto Spawned;
+		Spawned:
+            VOXE L 0 {
+                kickable = true;
+            }
+			VOXE L 1 A_JumpIf(vel.x == 0 && vel.y == 0 && vel.z == 0, "SpawnedAndSteady");
+            VOXE L 0 {
+                bThruActors = true;
+                ActivationType = THINGSPEC_Default;
+            }
+			loop;
+		SpawnedAndSteady:
+			VOXE L 1 {
+                bThruActors = false;
+                kickable = true;
+                ActivationType = THINGSPEC_Activate;
+            }
+			loop;
+		Bounce.Floor:
+			TNT1 A 0 A_SETANGLE(angle + random(5, 97), SPF_INTERPOLATE);
+			goto Spawn;
+		Death:
+			VOXE LLLL 1;
+			Goto SpawnedAndSteady;
+		Pain:
+		Kicked:
+            TNT1 A 0 {
+                bThruActors = true;
+                kickable = false;
+            }
+			TNT1 A 0 A_PlaySound("impact/headkick", CHAN_AUTO);
+			VOXE L 1 A_FACETARGET;
+			TNT1 A 0 A_SpawnItemEx("SodaCanEmpty", 0, 0, 0, -10, 0, 9);
+			stop;
+		KickedScripted:
+			TNT1 A 0 ThrustThingZ(angle, 8, 0, 0);
+			//TNT1 A 0 A_SpawnItemEx("SodaCanEmpty", 0, 0, 0, -10, 0, 9);
+			stop;
+        Vanish:
+            VOXE LLLLLLLLLLL 1 {
+                A_FADEOUT(0.1, FTF_REMOVE);
+            }
+            stop;
+	}
+}
+
+class PizzaboxClosed : Interactable {
+    
+    string sliceToSpawn;
+    bool isFullPizzaBox;
+    const FULL_PIZZA_CHANCE = 5.0;
+    const EMPTY_PIZZA_CHANCE = 15.0;
+    const EMPTY_PIZZA_CHANCE_SMF = 20.0;
+    const PIZZABOX_GRENADE_CHANCE = 75.0;
+    static const string pizzaSpawns[] = {"PIZZA2", "PIZZA2", "PIZZA3", "PIZZA3", "PIZZA4", "PIZZA5", "PIZZA6"};
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SetOrigin((pos.x, pos.y, floorz), false);
+        assignPizza();
+    }
+
+    void assignPizza()
+    {
+        int dice = random(0,100);
+
+        // You are blessed!
+        if(dice <= FULL_PIZZA_CHANCE)
+        {
+            isFullPizzaBox = true;
+            sliceToSpawn = "PIZZA1";
+            return;
+        }
+
+        if((skill == SKILL_SMF && dice <= EMPTY_PIZZA_CHANCE_SMF) || skill <= 4 && dice <= EMPTY_PIZZA_CHANCE)
+        {
+            sliceToSpawn = ""; // NO PIZZA FOR YOU!
+            return;
+        }
+        sliceToSpawn = pizzaSpawns[random(0, pizzaSpawns.size()-1)];
+    }
+
+    default {
+        tag "$FOOD_PIZZABOX";
+        SelacoActor.UseTag "Open";
+        +SelacoActor.AllowRandomizerReplacement;
+        +USESPECIAL
+        scale 0.9;
+        Activation THINGSPEC_Switch;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+        Active:
+            TNT1 A 0 
+            {
+                A_PLAYSOUND("script/CARDOPEN", CHAN_AUTO, 0.7, 0, pitch:frandom(0.8,1.1));
+                A_SPAWNITEMEX("PizzaboxOpen");
+                A_SPAWNITEMEX(sliceToSpawn);
+
+                if(skill == SKILL_SMF && random(0,100) <= PIZZABOX_GRENADE_CHANCE)
+                {
+                    A_SpawnItemEX("EnemyThrownGrenade", 0, 0, 16, 0, 0, 3);
+                }
+
+                // This individual got really lucky
+                if(isFullPizzaBox)
+                {
+                    LevelEventHandler leh = LevelEventHandler.instance();
+                    leh.SetAchievement("GAME_PIZZA");
+                    A_PLAYSOUND("item/tpitem", pitch:0.7);
+                    SpawnLight(255, 190, 32, 50, divisionSpeed:1.45);
+                    for(int i = 0; i <=45;i++) {
+                        A_SpawnParticle("#f5bf42", SPF_FULLBRIGHT, 45, 3, frandom(0,360), frandom(-15,15), frandom(-15,15), frandom(0,15), frandom(-2,2), frandom(-2,2), frandom(0,4));
+                    }
+                }
+            }
+            stop;
+    }
+}
+
+class PizzaboxOpen : Interactable {
+    default {
+        -USESPECIAL;
+        +NOINTERACTION;
+        scale 0.9;
+        Activation THINGSPEC_Default;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+    }
+}
+
+class PIZZA1 : FoodItem {
+    string SliceToSpawn;
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SliceToSpawn = "Pizza2";
+    }
+
+    default {
+        Tag "$FOOD_PIZZASLICE"; 
+        scale 0.9;
+        FoodItem.Foodstat 51; 
+        FoodItem.CalorieCount 314;
+    }
+    states {
+        Looper:
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+        Inactive:
+        Active:
+            TNT1 A 1 {
+                if(isConsumable()) {
+                    actor plate;
+                    bool succ;
+                    [succ, plate] = A_SPAWNITEMEX(SlicetoSpawn);
+                    if(plate)
+                    {
+                        FoodItem(plate).foodPlate = foodPlate;
+                    }
+                    playEatingSound();
+                    ACS_NamedExecuteWithResult("EatingJunkFood", 0, getHealHealth());
+                }
+            }
+            TNT1 A 0 {
+                SetStateLabel("Looper");
+            }
+    }
+}
+
+class PIZZA2 : PIZZA1 {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SlicetoSpawn = "Pizza3";
+    }
+}
+class PIZZA3 : PIZZA1 {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SlicetoSpawn = "Pizza4";
+    }
+}
+class PIZZA4 : PIZZA1 {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SlicetoSpawn = "Pizza5";
+    }
+}
+class PIZZA5 : PIZZA1 {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SlicetoSpawn = "Pizza6";
+    }
+}
+class PIZZA6 : PIZZA1 {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SlicetoSpawn = "Pizza7";
+    }
+}
+class PIZZA7 : PIZZA1 {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SlicetoSpawn = "Pizza8";
+    }
+    states
+    {
+        Active:
+            TNT1 A 1 {
+                if(isConsumable()) {
+                    consumeFood();
+                    A_SPAWNITEMEX(SlicetoSpawn);
+                    playEatingSound();
+                    ACS_NamedExecuteWithResult("EatingJunkFood", 0, getHealHealth());
+                }
+            }
+            TNT1 A 0 {
+                SetStateLabel("Looper");
+            }
+    }
+}
+class PIZZA8 : PIZZA1 {
+    default {
+        FoodItem.healAmount 0;
+        -USESPECIAL;
+        Activation THINGSPEC_Default;
+    }
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        SlicetoSpawn = "";
+    }
+}
+
+class BurgerFlag : SelacoActor {
+    override void PostBeginPlay() {
+        pitch = 90;
+    }
+    default {
+        +MISSILE;
+        +DOOMBOUNCE
+        speed 7;
+        radius 3;
+        gravity 0.7;
+        scale 1.3;
+        BounceFactor 0.6;
+        BounceCount 3;
+        SeeSound "bounce/stick";
+        deathsound "bounce/stick";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L 1 {
+                A_SETPITCH(pitch+20);
+                A_SETANGLE(angle+20);
+            }
+            loop;
+        Death:
+            VOXE L 1
+            {
+                if(pos.z == floorz)
+                {
+                    SleepIndefinite();
+                    A_SETPITCH(0);
+                }
+            }
+            loop;
+    }
+}
+
+class Donut : FoodItem
+{
+    const BIG_DONUT_CHANCE = 5;
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+        frameID = random(0,3);
+        if(random(0,100) <= BIG_DONUT_CHANCE)
+        {
+            SetTag("$FOOD_SUPER_DONUT");
+            foodstat = 103;
+            healAmount = 10;
+            frameID = 4;
+        }
+        A_SETANGLE(random(0,360));
+    }
+
+    default
+    {
+        tag "$FOOD_DONUT";
+        FoodItem.Foodstat 74; 
+        FoodItem.CalorieCount 114;
+    }
+
+    states {
+        Looper:
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1
+            {
+                frame = frameID;
+            }
+            stop;
+    }
+}
+
+class POPCORN_FULL : FoodItem
+{
+
+    actor popcornDetail;
+    bool popcornDetailSuccess;
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		setStateLabel("shot");
+        return res;
+    }
+
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        A_SETANGLE(angle+random(-4,4));
+        if(random(0,3) == 0)
+        {
+            [popcornDetailSuccess, popcornDetail] = A_SPAWNITEMEX("POPCORN_FULL_DETAILED");
+        }
+    }
+
+    override void consumeFood()
+    {
+        super.consumeFood();
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+        d.emitdefinition('PopcornParticleDefinition', chance: 1.0, numTries: 24, offset: (-20,0,40));    
+        setStateLabel("FadeAway");
+        A_SetRenderStyle(0.8, STYLE_Translucent);
+    }
+
+    default
+    {
+        tag "$FOOD_POPCORN";
+        Fooditem.Foodstat 77; 
+        fooditem.CalorieCount 280;
+        -FoodItem.SpawnPlate
+        Fooditem.fadeOutAnimation false;
+        +SHOOTABLE;
+        -SOLID;
+        health 5;
+        radius 16;
+        height 8;
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+        PainSound "impact/breakable";
+    }
+
+    states
+    {
+        Looper:
+        spawn:
+            VOXE L -1;
+            stop;
+        FadeAway:
+            TNT1 A 0 A_SPAWNITEMEX("POPCORN_EATEN", 0, 0, 0, 0, 0, 0, angle:0);
+            VOXE LLLL 1 A_FADEOUT(0.2);
+            stop;
+        Shot:
+            TNT1 A 0
+            {
+                EmitDefinition('PopcornParticle360Definition', chance: 1.0, numTries: 80, offset: (0,0,7));     // The name is Bond.
+                A_SPAWNITEMEX("POPCORN_SHOT", 0, 0, 7, frandom(4,6), 0, frandom(3,4), angle:random(0,360));
+                if(popcornDetail)
+                {
+                    popcornDetail.destroy();
+                }
+            }
+            stop;
+    }
+}
+
+
+
+class POPCORN_EATEN : SELACOACTORSTATIC
+{
+    default
+    {
+        scale 0.75;
+    }
+    states
+    {
+        spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class POPCORN_EMPTY : SELACOACTORSTATIC
+{
+    default
+    {
+        scale 0.75;
+    }
+    states
+    {
+        spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class POPCORN_SHOT	: SelacoActorDecorationMissile
+{
+
+    override void loopingEffects()
+    {
+        EmitDefinition('PopcornParticle360Definition', chance: 1.0, numTries:3, speed: -1, offset: (0,0,7));     // The name is Bond.
+    }
+
+	int frameID;
+	default
+	{
+        speed 8;
+		Seesound "bounce/plasticsmall";
+	}
+
+    states
+    {
+        death:
+            TNT1 A 0 A_SPAWNITEMEX("POPCORN_EMPTY");
+            stop;
+    }
+}
+class POPCORN_FULL_DETAILED : SELACOACTORSTATIC
+{
+    default
+    {
+        scale 0.75;
+    }
+    states
+    {
+        spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class Beer : FoodItem  {
+    
+    override string GetUsePrompt(string highCol) {
+        if(isConsumable() && canDrinkBeer()) {
+            return Super.GetUsePrompt(highCol);
+        } else {
+            string ut = UseTag == "" ? "$INTERACT_TOOMUCHHP" : UseTag;
+            return String.Format("%s %s\n\c[DARKGRAY][%s]",StringTable.localize("$ACT_DRINK"), getTag(), StringTable.Localize("$INTERACT_TOOMUCHHP"));
+        }
+    }
+
+    bool canDrinkBeer(int player = -1) {
+        if(player == -1) player = consolePlayer;
+        return players[player].mo.health < 35;
+    }
+
+    default
+    {
+        Fooditem.Foodstat 79; 
+        fooditem.CalorieCount 129;
+        Fooditem.healAmount 0;
+        SelacoActor.UseTag "$ACT_DRINK";
+        +SelacoActor.thruplayers
+        +SHOOTABLE
+        alpha 1.0;
+        tag "$OBJECT_BEER";
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+        radius 6;
+        Health 1;
+        height 15;
+    }
+    states
+    {
+        Spawn:
+			VOXE L -1;
+            loop;
+        Inactive:
+		Active:
+            TNT1 A 1 {
+                if(canDrinkBeer()) {
+                    PlayerPawn pawn=players[0].mo;
+			        let d = Dawn(pawn);
+                    d.A_SetHealth(35);
+                    A_SPAWNITEMEX("BottleCap", 0, 0, height-3, frandom(1,2), 0, 3, angle:random(0,360));
+                    A_SPAWNITEMEX("EmptyBeer", angle:random(0,360));
+                    A_PLAYSOUND("items/drink", CHAN_AUTO);
+                    setStateLabel("DeathReal");
+                }
+            }
+			goto Spawn;
+		Death.FallDamage:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 0, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2);
+		Death.Finish:
+			TNT1 A 0 A_SPAWNITEMEX("WaterSplashEffect", 0, 0, 0);
+            TNT1 A 0 A_SPAWNITEMEX("BottleCap", 0, 0, height-3, frandom(2,5), 0, 9, angle:random(0,360));
+			TNT1 A 0 A_playSound("dest/glassm", CHAN_AUTO, 0.83, 0, 0.9, 0, frandom(0.9,1.1));
+			TNT1 A 0 {
+                EmitDefinition('GlassParticleSmall360Definition', 1.0, 27, angle: 0, speed: 2);
+                EmitDefinition('GlassParticleSmall360BriefDefinition', 1.0, 42, angle: 0, speed: 2);
+            }
+			stop;
+    }
+}
+
+class BunnyHopperSpawner : SelacoItem
+{
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        A_SPAWNITEMEX("BunnyHopper");
+        destroy();
+    }
+    default
+    {
+        SelacoItem.randomizerSpawnChance 100;
+    }
+}
+
+class BunnyHopper : FoodItem
+{
+
+    // Always drinkable, no matter what.
+    override bool isConsumable(int player) {
+        return true;
+    }
+    
+    default
+    {
+        Fooditem.CalorieCount 35;
+        Fooditem.foodstat 81;
+        FoodItem.healAmount 0;
+        SelacoActor.UseTag "$ACT_DRINK";
+        tag "$OBJECT_ENERGYDRINK";
+        height 20;
+    }
+
+    override void consumeFood()
+    {
+        super.consumeFood();
+        PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+        d.A_GiveInventory("BunnyHopDuration", 9000); // Whatever the Inventory.Max is
+        d.A_Playsound("DRINK/BUNNYHOP", CHAN_AUTO);
+        stats.addstat(STAT_BUNNYHOPPERS_CONSUMED, 1, 0);
+        TutorialHandler.TutorialMessage("TUT_BUNNY", 1);
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+    }
+}
+
+Class WaterMelonChunk_1_eatable : FoodItem {
+    default {
+        tag "$OBJECT_WATERMELONCHUNK";
+        FoodItem.CalorieCount 52;
+        FoodItem.healAmount 1;
+        FoodItem.foodstat 104;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_SETANGLE(random(0,360));
+            }
+        looper:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class WaterMelonChunk_2_eatable : WaterMelonChunk_1_eatable { 
+
+}
+class WaterMelonChunk_3_eatable : WaterMelonChunk_1_eatable { 
+    default {
+        FoodItem.healAmount 2;
+    }
+}
+class WaterMelonChunk_4_eatable : WaterMelonChunk_1_eatable { }
+
+class WaterBottle : Fooditem {
+    default
+    {
+        scale 1.0;
+        height 20;
+        radius 10;
+        Fooditem.calorieCount 5;
+        tag "$OBJECT_WATERBOTTLE";
+        SelacoActor.UseTag "$ACT_DRINK";
+        FoodItem.Foodstat STAT_WATERBOTTLES_CONSUMED;
+    }
+
+    states
+    {
+        spawn: 
+            VOXE L -1;
+            loop;
+    	Inactive:
+		Active:
+            TNT1 A 1 {
+                if(isConsumable()) {
+                    ACS_NamedExecuteWithResult("EatingJunkFood", healAmount, getHealHealth());
+                    a_playSound("items/drink");
+                    A_FACETARGET();
+                    A_SPAWNITEMEX("WATERBOTTLE_CAP", 0, 0, height-3, frandom(1,2), 0, 3, angle:random(0,360));
+                    A_SPAWNITEMEX("WATERBOTTLE_DRANK", angle:angle+35);
+                }
+            }
+			goto Spawn;
+    }
+}

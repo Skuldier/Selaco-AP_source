@@ -1,0 +1,117 @@
+mixin class DangerIndicatorHandler
+{
+    array<actor> blinkers;
+
+    void createDangerIndicator(int blinkRadius)
+    {
+        for(int x=0;x<360;x+=4)
+        {
+            actor blinkerActor;
+            bool succ;
+            [succ, blinkerActor] = A_SPAWNITEMEX("BaseExplosionRadius", blinkRadius, 0, 2, angle:x, flags:SXF_SETMASTER);
+            if(blinkerActor)
+            {
+                BaseExplosionRadius(blinkeractor).angleOffset = x;
+                BaseExplosionRadius(blinkerActor).forwardOffset = blinkRadius;
+                BaseExplosionRadius(blinkerActor).master = self;
+                blinkers.push(blinkerActor);
+
+                blinkerActor.SetOrigin((blinkerActor.pos.xy, blinkerActor.floorz), false);
+            }
+        }
+    }
+
+    void blinkDangerIndicator(int blinkRadius = 250)
+    {
+        if(!getCvar("g_dangerindicators"))
+        {
+            return;
+        }
+        if(!blinkers.size())
+        {
+            createDangerIndicator(blinkRadius);
+        }
+        for(int x=0;x<blinkers.size();x++)
+        {
+            if(blinkers[x])
+            {
+                blinkers[x].setStateLabel("Blink");
+            }
+        }
+    }
+}
+
+class BaseExplosionRadius : actor {
+
+    int angleOffset;
+    int forwardOffset;
+    override void tick()
+    {
+        super.tick();
+
+        if(!master)
+        {
+            destroy();
+        }
+
+        let oldPrev = prev;
+        Warp(master, forwardOffset, 0, 0, angle:angleOffset, flags: WARPF_NOCHECKPOSITION | WARPF_TOFLOOR );
+        SetOrigin((pos.x, pos.y, floorz), false);
+        prev = oldPrev;
+    }
+
+    default {
+        +FLATSPRITE;
+        +NOGRAVITY;
+        +NOBLOCKMAP;
+        radius 5;
+        scale 0.2;
+        Alpha 0.25;
+    }
+
+    States {
+        Spawn: 
+            TNT1 A 0;
+            TNT1 A 0 {
+                if (getCVAR("g_dangerindicators") == 1) {
+                    SetStateLabel("ShowEffect");
+                } else {
+                    SetStateLabel("Death");
+                }
+            }
+        Blink:
+            TNT1 A 0
+            {
+                alpha = 1.0;
+                //SetOrigin((pos.x, pos.y, floorz), false);
+            }
+            EXPR B 4 BRIGHT;
+            EXPR BBBBBB 1 BRIGHT A_FADEOUT(0.15, 0);
+        DoNothing:
+            TNT1 A -1; // Wait for blink signal from master
+            loop;
+        Death:
+            stop;
+    }
+}
+
+class IncomingDanger : actor {
+    default {
+        +WALLSPRITE;
+        +NOGRAVITY;
+        yscale 0.62;
+        xscale 0.85;
+    }
+
+    States {
+        Spawn: 
+            TNT1 A 0;
+        ShowEffect:
+            DNGR AAA 1 BRIGHT A_FADEIN(0.15);
+            DNGR AAA 1 BRIGHT;
+            DNGR AAA 1 BRIGHT A_FADEOUT(0.15);
+            stop;
+        Death:
+            stop;
+    }
+}

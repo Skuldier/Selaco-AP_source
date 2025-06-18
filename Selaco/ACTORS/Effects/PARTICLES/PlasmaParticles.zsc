@@ -1,0 +1,69 @@
+
+class PlasmaMoltenSteelDefinition : MetalShrapnelParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.4);
+        self.SetBaseScale(0.08);
+        self.BounceFactor(0.5);
+        self.SetQualityChances(0.15, 0.5, 0.75, 1.0, 2.5);
+        self.SetLifespanMultipliers(0, 1, 1, 1, 5);
+        self.RandomLife(50,90);
+        self.RandomPitch(-45,45);
+        self.RandomAngle(-35,35);
+        self.RandomSpeed(1,8);
+    }
+}
+
+class PlasmaMoltenSteelFastDefinition: PlasmaMoltenSteelDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.4);
+        self.SetBaseScale(0.12);
+        self.RandomLife(50,90);
+        self.RandomPitch(250,360);
+        self.RandomSpeed(1,9);
+        self.RandomScaleX(0,1.2);
+    }
+}
+
+class PlasmaMoltenSteel360Definition : PlasmaMoltenSteelDefinition {
+    override void init() {
+        super.init();
+        self.randomAngle(0,360);
+        self.RandomPitch(160,190);
+    }
+}
+
+
+class PlasmaEmberParticleDefinition : ParticleDefinition {
+    override void init() {
+        super.init();
+        self.DefaultRenderStyle = STYLE_ADD;
+        self.SetGravity(0.5);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.setFlag(PDF_SLEEPSTOP);
+        self.setflag(PDF_KILLSTOP);
+        self.SetFlag(PDF_LIFESCALE);
+        self.clearFlag(PDF_LIFEFADE);
+        self.SetBaseScale(0.097);
+        self.SetLifespanMultipliers(0.75, 1, 1.25, 1.7, 2.0);
+        self.ScaleLifeRange(0,15);
+        self.StopSpeed = 2;
+        self.RandomRoll(-30,30);
+        self.RandomRollSpeed(-5,5);
+        self.RandomLife(15,20);
+
+        self.RandomAngle(-35,35);
+        self.RandomPitch(-35,-105);
+        self.RandomSpeed(2,6);
+
+        self.RandomScaleX(1,1.5);
+        self.RandomScaleY(1,1.5);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("EMBR", "B");
+    }
+
+}

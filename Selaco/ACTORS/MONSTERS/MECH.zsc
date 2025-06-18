@@ -1,0 +1,140 @@
+
+// There is actually no enemy type to datamine here, just an animation for now. Sorry nerds.
+class Mech : SelacoBoss
+{
+	PlayerPawn pawn;
+	Dawn d;
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		// Get the player
+ 		PlayerPawn pawn=players[0].mo;
+		d = Dawn(pawn);
+	}
+
+	default
+	{
+		-SelacoEnemy.AllowRandomizerTier
+		-CastSpriteShadow
+		+ThruActors;
+		radius 25;
+		height 25;
+		scale 1.07;
+		yscale 1.01;
+		gravity 1.4;
+		//SelfLighting "210b05";
+	}
+	states
+	{
+		Precache:
+			MEC1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 1;
+			stop;
+		Spawn:
+			TNT1 A 0;
+			// Launch Mech to the ceiling
+			TNT1 A 0
+			{
+				A_playSound("MECH/FALL", CHAN_5, 0.7, 0, 0.6);
+				setOrigin((pos.x, pos.y, ceilingz	), false);
+			}
+		WaitForDrop:
+			MEC1 ABCDEFGHIJKJIHGFEDCB 1
+			{
+				if(level.time % 1 == 0)
+				{
+					A_SPAWNITEMEX("MechLandingSmoke", 0, 5, 6, 0, 3, 3);
+					A_SPAWNITEMEX("MechLandingSmoke", 0, -5, 6, 0, -3, 3);
+				}
+				if(pos.z == floorz)
+				{
+					setStateLabel("Landing");
+				}
+			}
+			loop;
+		Landing:
+			TNT1 A 0
+			{
+				// Give a shadow
+				bCastSpriteShadow = true;
+			
+				// Scorch Mark
+				for(int x=0;x<6;x++)
+				{
+					int oldAngle = angle;
+					A_SPAWNITEMEX("ScorchMarkFloor", frandom(-220,220), frandom(-220,220));
+					angle = oldAngle;
+				}
+				A_SPAWNITEMEX("ScorchMarkFloor");
+
+				// Run a script within the level for effects.
+				ACS_NamedExecute("MechLanding", 0);
+
+				// Ground pound
+				A_PLAYSOUND("MECH/LANDING", CHAN_5, 1.0, 0, 0.6);
+
+				// Shockwave
+				A_SPAWNITEMEX("BaseShockwaveBigger", 0, 0, 16);
+
+				// Screen shake, no exceptions.
+				A_QuakeEx(5, 4, 4, 15, 0, 2000, 0, 0, 10, 10, 10, 6, 2, 2);
+
+				// Spawn smoke in a circle
+				for(int x=0;x<360;x+=3)
+				{
+					A_SPAWNITEMEX("LargeExplosionSmokeSlow", 15, 0, frandom(0,7), 5, 0, 0.4, angle:x);
+					A_SPAWNITEMEX("MechLandingSmoke", 15, 0, 0, 4, angle:x);
+				}
+
+				// Make the screen dirty
+				if(d)
+				{
+					d.A_GiveInventory("ShatteredWindow", 1);
+					d.AddDirt(10);
+				}
+
+				// Spawn cluster smoke around the crater
+				for(int x=50;x>0;x--)
+				{
+					A_SPAWNITEMEX("SpawnImpactSmokeBigCluster", frandom(-250,250), frandom(-250,250), frandom(-10,0));
+				}
+
+				// Fly some sparks around
+				for(int x=0;x<=3;x++)
+				{
+					A_SpawnItemEx("SparkMissile", frandom(-30,30), frandom(-30,30), 16, 0, 0, 1);
+				}
+
+				// Explosion
+				A_SPAWNITEMEX("PrettyExplosionParticleRainPerformance", -15);
+				A_SPAWNITEMEX("PrettyExplosionGrenadeLauncher");
+			}
+			MEC1 LMNOPQRSTUVWXYZ 3;
+			TNT1 A 0
+			{
+				A_PLAYSOUND("mech/prep", CHAN_AUTO, 1.0, 0, 0.6);
+			}
+			MEC2 ABCDEFG 3;
+			// Left foot hits floor
+			TNT1 A 0 
+			{
+				A_PLAYSOUND("mech/step1", CHAN_AUTO);
+			}
+			MEC2 HIJK 2;
+			TNT1 A 0
+			{
+				A_QuakeEx(2, 2, 2, 4, 0, 2000, 0, 0, 10, 10, 10, 1, 1, 1);
+				EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 1.0, numTries: 60, angle:random(0,360), speed:frandom(0.4,0.6), offset:(0, 80, 0), velocity:(frandom(0.1,0.3), frandom(0.1,4.3), frandom(1,8)));
+				for(int x=8;x>0;x--)
+				{
+					A_SPAWNITEMEX("MechLandingSmoke", 0, frandom(35,45), 0, frandom(-1,1), frandom(-1,1), 0.5);
+				}
+			}
+			MEC2 LMNOPQRSTUV 3;
+			MEC2 V -1;
+/* 		Idle:
+			MECB AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPRRSSTTUUVVWWXX 2;
+			loop; */
+			
+	}
+}

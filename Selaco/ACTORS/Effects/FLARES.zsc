@@ -1,0 +1,273 @@
+class FlareMaster : SelacoActor
+{
+	vector3 effectOffset;
+	bool hasMaster;
+    override void tick() {
+        super.tick();
+        // Have flare follow the master, is available.
+        if(master) {
+            A_Warp(AAPTR_MASTER, effectOffset.x, effectOffset.y, effectOffset.z, spawnAngle, WARPF_INTERPOLATE | WARPF_COPYPITCH | WARPF_NOCHECKPOSITION );
+        }
+		if(hasMaster && !master) {
+			destroy();
+		}
+    }
+
+	override void postBeginPlay() {
+		super.postBeginPlay();
+		if(master) {
+			hasMaster = true;
+			bPreventSleep = true;
+		}
+	}
+
+	default
+	{
+		+NOINTERACTION;
+		+ROLLSPRITE
+		-WALLSPRITE
+		-SHOOTABLE
+		+CLIENTSIDEONLY
+		Renderstyle "add";
+	}
+}
+
+class BlueFlareTrail : FlareMaster
+{
+	default
+	{
+		+SelacoActor.preventSleep
+		Alpha 0.4;
+		Scale 0.2;
+	}
+  	states 
+	{
+		Spawn:
+			PGEZ A 8 BRIGHT;
+		Looper:
+			PGEZ A 1 BRIGHT A_FADEOUT(0.02, FTF_REMOVE);
+			loop;
+  	}
+}
+
+class BlueFlarePermanent : FlareMaster {
+	default {
+		alpha 0;
+		scale 0.25;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+			}
+			PGEZ AAAAAA 1 bright {
+				A_FADEIN(0.12);
+			}
+			PGEZ A -1 bright;
+			loop;
+	}
+}
+
+class BlueFlareSecretTracker : FlareMaster
+{
+
+	override void tick()
+	{
+		super.tick();
+		if(master)
+		{
+			A_Warp(AAPTR_MASTER, -8, -4, 16, 0, WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+		}
+	}
+	default
+	{
+		+FORCEXYBILLBOARD
+		+NOINTERACTION
+		+SelacoActor.preventSleep
+		Alpha 0.4;
+		Scale 0.1;
+	}
+  	states 
+	{
+		Spawn:
+			PGEZ A 0 BRIGHT;
+		Looper:
+			PGEZ AAA 1 BRIGHT A_FADEOUT(0.08, FTF_REMOVE);
+			stop;
+  	}
+}
+
+
+class AcesGrenadeFlare : FlareMaster
+{
+	default
+	{
+		RenderStyle "Add";
+		Scale 1.1;
+		+NoBlockMap
+		-WALLSPRITE;
+		+NOINTERACTION
+	}
+
+    States
+    {
+        Spawn:
+			PGEX C 8 BRIGHT;
+			TNT1 A 1;
+			stop;
+    } 
+}
+
+class AlienGrenadeFlare : AcesGrenadeFlare
+{
+	States
+	{
+		Spawn:
+			PGEX D 7 BRIGHT;
+			TNT1 A 1;
+			stop;
+	}
+}
+
+class CrawlerGrenadebeep : AcesGrenadeFlare
+{
+	default
+	{
+		Scale 0.4;
+	}
+	States
+	{
+		Spawn:
+			PGEZ A 7 BRIGHT;
+			TNT1 A 1;
+			stop;
+	}
+}
+class CrawlerGrenadebeepLarge : AcesGrenadeFlare
+{
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			PGEZ A 7 BRIGHT
+			{
+				scale*=1.25;
+			}
+			TNT1 A 1;
+			stop;
+	}
+}
+class pulseMineFlare : FlareMaster
+{
+	default
+	{
+		scale 0.30;
+		Alpha 0.3;
+	}
+
+	states
+	{
+		Spawn:
+			PGEZ A 4 bright;
+			stop;
+	}
+}
+
+
+class RedFlareMaster: FlareMaster
+{
+	default
+	{
+		XScale 0.4;
+		YScale 0.2;
+		Alpha 0.6;
+		+WALLSPRITE
+	}
+	States
+	{
+	Spawn:
+		LENR B 4 BRIGHT;
+		Stop;
+	}
+}
+
+class LockOnFlare : FlareMaster
+{
+	override void tick()
+	{
+		super.tick();
+		if(level.time % 2 == 0)
+		{
+			A_SPAWNITEMEX("BodyImpactSmokeSmallDense");
+		}
+	}
+
+	default
+	{
+		-NOINTERACTION
+		-NOGRAVITY
+		gravity 0.3;
+		alpha 1.0;
+		RenderStyle "add";
+	}
+	states 
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				gravity = frandom(0.4,0.6);
+			}
+			PGEY A 45 BRIGHT;
+			stop;
+		Death:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class zRedFlareLarge : RedFlareMaster
+{
+	default
+	{
+		SelacoActor.SleepDistance 0;
+		scale 0.25;
+		
+	}
+}
+
+class RocketFlare : RedFlareMaster
+{
+	default
+	{
+		scale 1;
+	}
+	states
+	{
+		Spawn:
+			PGEX D 3 bright;
+			stop;
+	}
+}
+
+class flareRedMuzzleFlash : RedFlareMaster
+{
+	default
+	{
+		SelacoActor.SleepDistance 0;
+		alpha 0.8;
+		scale 0.6;
+	}
+	states
+	{
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				A_SETROLL(random(0,360));
+			}
+			PGEX D 4 bright;
+			stop;
+	}
+}

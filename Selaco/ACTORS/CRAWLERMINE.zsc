@@ -1,0 +1,1743 @@
+/* THEY BEHAVE LIKE STARCRAFT SPIDER MINES, SO FOR THE SAKE OF ORIGINALITY, WE ARE NOT CALLING THEM SPIDER MINES.
+TODO:
+    - Add Danger Indicators when in Primed Mode
+    - Gameplay Balance. We will have to wait for proper gameplay tests before improving upon this. I think they're in a decent place now, but there's always room for improvement.
+*/
+
+// Keeps the base stats, but not the AI. Useful for death states.
+mixin class CrawlerMineMaster {
+    bool floorhit;
+    int ticks;
+    bool success;
+    bool gotSpeedBuff;
+    bool startBurrowed;
+    bool isBurrowed;
+    Actor sparkEffectActor; 
+
+    void ShootLimbs() {
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-3,3), frandom(-3,3), frandom(1,8), flags:SXF_TRANSFERTRANSLATION);
+    }
+
+    int damageTick;
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		if(damage > 8 && damageTick != level.time)
+        {
+            damageTick = level.time;
+            A_PLAYSOUND("impact/crawlermine", CHAN_7, 0.7, 0, 0.6, pitch:frandom(0.8,1.3));
+        }
+        return res;
+    }
+
+
+    default {
+        tag "$CHARACTER_CRAWLERMINE";
+        +NOBLOODDECALS;
+        //+USEKILLSCRIPTS;
+
+        xscale 0.22;
+        yscale 0.19;
+        MeleeRange 50;
+        speed 5;
+        radius 20;
+        height 22;
+        MaxStepHeight 30;
+        PainChance 145;  
+        MaxDropOffHeight 600;
+		Selflighting "121212";
+        DamageFactor "plasma", 1.25;
+        PainChance "NailDamage", 256;
+        PainChance "Ice", 255;
+        monster;
+	    BloodType "SparkExplosionOil", "SparkExplosionOil", "SparkExplosionOil";
+    }
+}
+
+class CrawlerMine : SelacoEnemyRobot {
+    
+    mixin Pathfinding;
+    mixin CrawlerMineMaster;
+    mixin EnemySoldierFunctions;
+    
+    const PLASMA_EXPLOSION_CHANCE = 25;
+
+	override void shockEffects(int zHeight) {
+        for(int i = 0; i < 2; i++) {
+            EmitDefinition("SparkOrbSlowDefiniton", 1.0, random(1,2), pitch:-90, offset:(frandom(-25,25), frandom(-25,25), frandom(0,height)), particleSpawnOffsets:25);
+        }
+		shockticks++;
+		if (shockticks > random(0,3)) {
+			A_SpawnItemEx("PlasmaPuffTaser", frandom(-16, 16),frandom(-24, 24),frandom(0, height));
+			A_PLAYSOUND("Sparks/Spawn", CHAN_AUTO);
+			shockticks = 0;
+		}
+	}
+
+    virtual void explodeOnTarget()
+    {
+        S_EXPLODE(23, 100, damageType:"ExplosiveImpact");
+        spawnLight(900, 370, 90, 90, 0, -1,overbright:0, divisionSpeed:1.25);
+        A_Playsound("Destruction/explosionPunch", CHAN_AUTO, 0.25, 0, 0.4, pitch:frandom(1.25,1.35));
+        A_playsound("destruction/explosiontail", CHAN_AUTO, 0.25, 0, 0.9, pitch:frandom(1.25,1.45)); 
+        A_PLAYSOUND("crawler/explode", CHAN_AUTO, 0.86, 0, 0.9);
+        A_PLAYSOUND("explosion/small", CHAN_AUTO, 0.6, 0, 0.9, 0, frandom(0.6,0.8));
+        A_PLAYSOUND("explosion/small", CHAN_AUTO, 0.6, 0, 0.9, 0, frandom(0.6,0.8));
+        A_SPAWNITEMEX("CrawlerMineHead", 0, 0, 16, frandom(1,5), 0, frandom(1,3), angle:random(0,360), flags:SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+        for(int explosionAmount=4;explosionAmount>=0;explosionAmount--) {
+            A_SPAWNITEMEX("BigExplosion", 0, frandom(-20,20), frandom(10,30));
+            A_SPAWNITEMEX("SmallExplosionnosound", frandom(-8,8), frandom(-8,8), frandom(10,30));
+        }   
+        for(int x=0;x<8;x++) {
+            A_SPAWNDEFINEDPARTICLE("OilSplatterLargeDefinition", frandom(-15,15), frandom(-15,15), frandom(-5,15), frandom(-4,4), frandom(-4,4), frandom(1,4));
+        }
+    }
+
+    int alertTime;                  // We dont want Crawler Mines to prime right away. Players have the right to respond!
+    int lostTargetCounter;          // Counter until we track with pathfinding instead of A_CHASE
+    int storedRadius;
+    bool isAlerted;                 // Goes to True when the Crawler Mine is no longer idle; an enemy has been seen.
+    bool hasDetonated;              // Crawler Mine has succeeded with its goal to explode near its target. Used to prevent it from counting as a kill
+    bool JumpOnNextAttack;          // Crawler Mine will increased it's range, but will jump instead of detonate.
+    int NailgunStruggleCount;       // Decides how long the Crawler Mine is going to attempt to remove the nail from his feet before succeeding.
+    bool primed;                    // If the target was in range, Prime gets activated, indicating it's about to blow up.
+
+    static const String WalkCycles[] = {"CRW1", "CRW2", "CRW3"};
+	static const String DeathAnimations[] = {"CrawlerDeath1", "CrawlerDeath2", "CrawlerDeath3", "CrawlerDeath4", "CrawlerDeath5", "CrawlerDeath6"};
+    String WalkCycleSprite, DeathAnimation;
+
+    override void BeginPlay() {
+        Super.BeginPlay();
+        initPathing();
+        WalkCycleSprite = WalkCycles[random(0, WalkCycles.size()-1)];
+        DeathAnimation = DeathAnimations[random(0, DeathAnimations.size()-1)];
+        A_SETSCALE(frandom(0.21,0.26), frandom(0.18,0.235));
+        startBurrowed = args[3];
+    }
+
+	override bool canCollideWith(Actor other, bool passive) {
+		let stuff = Super.CanCollideWith(other, passive);
+        if((other) && (other is "CrawlerMine"))
+        {
+            return false;
+        }
+		return stuff;
+	}
+
+    int timer;
+    override void tick() {
+        super.tick();
+    
+        // Not water proof
+        if(level.time % 3 == 0 && waterlevel > 1)
+        {
+            die(self,self);
+        }
+
+        if(target)
+        {
+            alertTime++;
+        }
+
+        if(level.time % 35 == 0)
+        {
+            checkInvasionTier(INVTIER_CRAWLERMINESPEED);
+        }
+
+        // Crawler Mine got near the player, 'Primed' is activated
+        if(primed) {
+            // Primed Crawler Mines are *guaranteed* to chase the player. Slowing them down so the player stands a chance at evading.
+            speed = 5;
+
+            // Moves the Crawler Mine into the direction of it's current angle.
+            // Returns false when blocked.
+            int oldMoveDir = moveDir;
+
+            A_Face(target);
+             moveDir = (8 * angle / 360) % 8;
+            if (!TryWalk()) {
+                moveDir = oldMoveDir;
+                if (!TryWalk()) {
+                      NewChaseDir();
+                }
+            }
+
+            // Initiate beeping sequence...
+            if(timer == 0) {
+                A_PLAYSOUND("crawler/prime", CHAN_AUTO, 0.4, 0, 0.7);
+            }
+            if(timer == 15) {
+                A_PLAYSOUND("crawler/beeping", CHAN_AUTO, 0.4, 0, 0.7);
+            }
+
+            // Uncomment to have the Crawler Mine turn into a Koala instead.
+            // if(timer == 34) {
+            //    A_SPAWNITEMEX("Koala");
+            //    die(self, self);
+            //  }
+
+            // KABOOM! THE PLAYER IS FUCKED.
+            if(timer > 35) {
+                setStateLabel("SelfDetonate");
+            }
+
+            // Blink Crawler Mine sprite for increased visibility
+            Selflighting = "FFFFFF";
+            if(timer % 4 == 0) {
+                SpawnLight(555, 2, 2, 50, divisionSpeed:1.7);
+                Selflighting = "FF262A";
+            }
+            timer++;
+        }
+
+        // Crawler Mine is frozen :dawn_cold:
+         if(isfrozen) {
+            for(int x=0;x<=20;x++) {
+                 A_SpawnParticle("white", SPF_FULLBRIGHT, 6, frandom(3,5), frandom(0,360), frandom(-26,26), frandom(-26,26), frandom(10,25), frandom(-5,5), frandom(-3,3), frandom(-2,2));
+             }
+        }
+    }
+
+    // Decide if the Crawler Mine should prime
+    void jumpPrime()
+    {
+        if(alertTime > 15 && (target) && Distance3D(target) < meleeRange+100 && checkPrime())
+        {
+            SetStateLabel("Primebomb");
+        }
+    }
+
+    void setSpeedBuff()
+    {
+        if(!gotSpeedBuff && checkInvasionTier(INVTIER_CRAWLERMINESPEED))
+        {
+            gotSpeedBuff = true;
+            speed+=1;
+        }
+    }
+
+    // Detects if the Crawler Mine should prime
+    bool checkPrime()
+    {
+        PlayerPawn pawn=players[0].mo;
+        let d = Dawn(pawn);
+        let w = SelacoWeapon(d.player.ReadyWeapon);
+        // If target is Dawn, check if she's sliding and has a fair amount of velocity. If not, prime.
+        if((target) && (target.getClassName() == "Dawn" && w && w.activeSlideState && d.vel.Length() > 1))
+        {
+            return false;
+        } else {
+             return true;
+        }
+    }
+
+    // This barebones function is here in case I want to add additional behavior for when they are hit, which I have plans for.
+    void EnterPainMode() {
+        bNoPain = true;
+    }
+
+    override void grabbedTelek() 
+    {
+        Super.grabbedTelek();
+        setStateLabel("grabbed");
+    }
+
+    override void releaseTelek()
+    {
+        Super.releaseTelek();
+        setStateLabel("GrabbedRelease"); 
+    }
+
+    override void throwTelek()
+    {
+        Super.throwTelek();
+        bIsTelekProjectile = true;
+    }
+
+    // Only used while jumping
+    void explodeIfnearDawn() {
+        if(CheckProximity("Dawn", MeleeRange, 1, CPXF_CHECKSIGHT) && checkPrime()) {
+            JumpOnNextAttack = false;
+            setStateLabel("SelfDetonate");
+        }
+    }
+
+    // Resets the prime timer. Currently this is only used when freezing a Crawler Mine while they are primed
+    void unPrime() {
+        primed = false;
+        timer = 0;
+        ResetToDefault();
+    }
+
+    // Triggered after a state ends to ensure that everything returns to normal.
+    void ResetToDefault() {
+        A_SetTranslation("");
+        if(getClassName() == "ShockDroid")
+        {
+            A_SetTranslation("StunDroid");
+        }
+        bnoPain = false;
+        isFrozen = false;
+        JumpOnNextAttack = false;
+    }
+
+    default {
+	    PainSound "";
+        health 79;
+        SelacoEnemy.forcedHealth 79;
+        SelacoEnemy.EnemyType ENEMY_ROBOT;
+        -SelacoEnemy.AllowRandomizerTier
+        +SelacoActor.thruDecorations;
+        +SelacoActor.AllowGravityManipulation;
+        -SelacoEnemy.AllowHeadshots;
+        -SelacoEnemy.AllowStealthKill
+        -SelacoACtor.allowSlideCollision
+        SelacoEnemy.painChanceAdjustment 0;
+        SelacoEnemy.randomizerSpawnChance 50;
+        SelacoEnemy.conductivity 500;
+    }
+
+
+    const CRAWLERMINE_JUMP_CHANCE = 15;
+    const CRAWLERMINE_STRAFE_CHANCE = 5;
+
+    states {
+        // As usual, to prevent the engine from crashing when searching for an index :gzdoom:
+        Indexer:
+            CRW1 A 0;
+            CRW2 A 0;
+            CRW3 A 0;
+        
+        Precache:
+            CRBU ABCDEFGHIJK 0;
+            CRJU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+            stop;
+
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                ResetToDefault();
+                if(startBurrowed)
+                {
+                    setStateLabel("Burrowed");
+                }
+            }
+            CRID AAAABCDEFGHIJ 3 A_Look();
+            loop;
+
+        Burrowed:
+            CRBW A 3
+            {
+                startBurrowed = false;
+                isBurrowed = true;
+                Selflighting = "000000";
+                A_LOOKEX(0, 0, 280, 300, 360, "Unburrow");
+                if(random(0,100) <= 3)
+                {
+                    setStateLabel("BurrowPeek");
+                }
+            }
+            loop;
+
+        BurrowPeek:
+            CRBW BCDDDDDDDDDDDCBBAAAAAAAAAAAAAAAAAAAAAAAAA 3 A_LOOKEX(0, 0, 200, 9000, 360, "Unburrow");
+            goto burrowed;
+
+        Unburrow:
+            CRBU A random(2,7);
+        Unburrow.noDelay:
+            TNT1 A 0 
+            {
+                A_PLAYSOUND("crawler/pain", CHAN_AUTO, 0.7, 0, 0.7);
+                A_PLAYSOUND("CRAWLER/BURROW", CHAN_AUTO, 0.4);
+                isBurrowed = false;
+                A_AlertMonsters();
+                Selflighting = "272727";
+                if(target)
+                {
+                    A_FACE(target);
+                }
+                if(CheckProximity("Dawn", meleerange+125))
+                {
+                    primed = true;
+                }
+                A_CHANGEVELOCITY(0,0,7);
+            }
+            CRBU BCDEFGHI 3;
+            goto see;
+
+        AmbushJump:
+            TNT1 A 1 {
+                storedRadius = radius;
+                A_SETSIZE(2, -1);
+            }
+            CRW1 A 1 A_CHANGEVELOCITY(0,0,5, CVF_RELATIVE);
+            CRW1 A 5;
+            CRW1 A 1 A_CHANGEVELOCITY(frandom(5,8),frandom(2,3),0, CVF_RELATIVE);
+            TNT1 A 0 {
+                A_SETSIZE(storedRadius, -1);
+            }
+
+        See:
+            TNT1 A 0 {
+                if(isBurrowed)
+                {
+                    setStateLabel("unburrow");
+                }
+                if(!isAlerted) {
+                    A_PLAYSOUND("crawler/alert", CHAN_AUTO, 0.8, 0, 0.7);
+                    isAlerted = true;
+                }
+                A_AlertMonsters();
+                lostTargetCounter = 0;
+                setStateLabel("BeginChasing");
+                return;
+            }
+            goto BeginChasing;
+    
+        // Actively tries to get close to the tarrget 
+        BeginChasing:
+            TNT1 A 0 {
+                sprite = GetSpriteIndex(WalkCycleSprite);
+                ResetToDefault();
+            }
+            TNT1 AAABBBCCCDDDEEE 1 {
+                A_PLAYSOUND("CRAWLER/walk", CHAN_7, 0.75, 1, 0.75, 0, frandom(0.8,1.1));
+                if(skill == SKILL_SMF && random(0,100) <= 1)
+                {
+                    A_FireEnemyWeapon("PlasmaProjectileEnemy", 10, 0, 0, CMF_TRACKOWNER | CMF_OFFSETPITCH , frandom(1.1, -1.2));
+                }
+                
+                // Play an alert sound on occassion
+                if(random(0,150) == 1) {
+                    A_PLAYSOUND("crawler/sight", CHAN_AUTO, 0.5, 0, 1.0);
+                }
+                
+                // Occassionally strafe
+                if(random(0,100) <= CRAWLERMINE_STRAFE_CHANCE && !primed)
+                {
+                    A_CHANGEVELOCITY(0, random(-6,6), 0, CVF_Relative);
+                }
+
+                // Move towards target, prime when not primed yet
+                if(!primed) 
+                {
+                    // Maybe jump?
+                    if((target) && abs(pos.z - ceilingz) > 64 && random(0,100) <= CRAWLERMINE_JUMP_CHANCE && Distance2DSquared(target) < (meleeRange+175)*(meleeRange+175) && Distance2DSquared(target) > (meleeRange + 25)*(meleeRange + 25))
+                    {
+                        setStateLabel("Jump.Start");
+                    }
+
+                    //@nexxtic
+                    // -- Pathfinding should happen here! If Crawler Mine is within `meleeRange`, PrimeBomb should get executed. --
+                    if(!isTargetVisible()) {
+                        // Go to tracking mode once we've not seen the player for a bit
+                        if(++lostTargetCounter > 35) {
+                            lostTargetCounter = 0;
+                            SetStateLabel("TrackPlayer");
+                            return;
+                        }
+                    }
+
+                    A_CHASE("PrimeBomb", null);
+                } else 
+                
+                if(primed) 
+                {
+                    denyPlayerSaving();
+                    // Crawler Mine is primed. No need to do anything but try go tget close.
+                    A_CHASE(null, null);
+                }
+            }
+            loop;
+        
+        // Need to catch up to the player, more advanced pathfinding
+        TrackPlayer:
+            TNT1 A 0 {
+                sprite = GetSpriteIndex(WalkCycleSprite);
+            }
+        TrackPlayerLoop:
+            TNT1 A 0 {
+                ResetToDefault();
+            }
+            TNT1 AAABBBCCCDDDEEE 1 {
+                A_PLAYSOUND("CRAWLER/walk", CHAN_7, 1.0, 1, 0.75, 0, frandom(0.8,1.1));
+                
+                switch(A_TRACK()) {
+                    case TRACK_BuildingPath:
+                        SetStateLabel("BuildPathIdle");
+                        return;
+                    case TRACK_FoundTarget:
+                        lostTargetCounter = 0;
+                        SetStateLabel("BeginChasing");
+                        return;
+                    default:
+                        if(level.time % 15 == 0 || random(0, 100) > 90) {
+                            // Constantly rebuild checkseed
+                            // This has the nice effect of randomizing the walking pattern
+                            checkSeed = random(0,8);    
+                        }
+                        break;
+                }
+            }
+            loop;
+        
+        // When we lose track of the player we might need a half second to build the path
+        BuildPathIdle:
+			// This frame prevents an infinite loop if an enemy goes to idle and then builds a path in a single tick
+			// Remove it if you dare.
+			CRID A 1;
+			CRID AAAAAAAAAAAABBBCCCDDDEEEFFFGGGHHHIIIJJJ 1
+			{
+				if(A_TRACK() != TRACK_BuildingPath) {
+					SetStateLabel("TrackPlayer");
+					return;
+				}
+			}
+			Loop;
+
+        Grabbed:
+            CRGB ABCDEFGHI 2;
+        
+        GrabbedLoop:
+            CRGB JKLMNOPQRS 2;
+            loop;
+
+
+        GrabbedRelease:
+            CRGB IHGFEDCBA 2;
+            goto see;
+        Pain.MeleeImpactSplash:
+        Pain.MeleeImpact:
+            TNT1 A 0 A_FACETARGET();
+            TNT1 A 0 A_RECOIL(30);
+        Pain.landOnYourAss:
+        Pain:
+            TNT1 A 0 A_STOPSOUND(CHAN_7);
+            TNT1 A 0 A_PAIN();
+            TNT1 A 0 A_RECOIL(5);
+            TNT1 A 0 A_JUMP(256, "Pain1", "Pain2", "Pain3", "pain4");
+
+        Pain1:
+            TNT1 A 0 {
+                EnterPainMode();
+            }
+            CRP1 ABCDEFG 3;
+            goto see;
+        Pain2:
+            TNT1 A 0 {
+                EnterPainMode();
+            }
+            CRP2 ABCDEFG 3;
+            goto see;
+        Pain3:
+            TNT1 A 0 {
+                EnterPainMode();
+            }
+            CRP3 ABCDEFG 3;
+            goto see;
+        Pain4:
+            TNT1 A 0 {
+                EnterPainMode();
+            }
+            CRP4 ABCDEFGHIJKLM 2;
+            goto see;
+        Pain.Ice:
+            TNT1 A 0 {
+                if(primed) 
+                    unPrime();
+                A_SetTranslation("FrozenEnemy");
+                isFrozen = true;
+                bnoGravity = false;
+                bNoPain = true;
+            }
+            TNT1 A 1 {
+                A_Playsound("dest/icecrack", CHAN_AUTO);
+                A_SpawnItemEx("snowDecalSpawner", frandom(-90, 90),frandom(-90, 90));
+                A_SpawnItemEx("snowDecalSpawner", frandom(-90, 90),frandom(-90, 90));
+                A_SpawnItemEx("snowDecalSpawner", frandom(-90, 90),frandom(-90, 90));
+            }
+            CRID A 350;
+            TNT1 A 0 {
+                ResetToDefault();
+                bNoPain = false;
+                isFrozen = false;
+            }
+            goto See;
+
+        // Nailgun Pain State. Uses 9-angles, not entirely sure if we need that many angles.
+        Pain.NailDamage:
+            TNT1 A 0 {
+                if(random(0,5) == 3) {
+                    SetStateLabel("Pain");
+                }
+                EnterPainMode();
+                NailgunStruggleCount = 3;
+            }
+            CRN1 ABCDEFGHIJK 3 {
+                A_STOPSOUND(CHAN_7);
+            }
+
+        Pain.NailDamage.Loop:
+            CRN2 ABCDEFGHI 3;
+            TNT1 A 0 {
+                if(NailgunStruggleCount == 0) {
+                    SetStateLabel("Pain.NailDamage.Release");
+                }
+                NailgunStruggleCount--;
+            }
+            CRN2 IJKLMN 3;
+            loop;
+
+        Pain.NailDamage.Release:
+            TNT1 A 0 {
+                A_SPAWNITEMEX("NailGunTracerDrop", 0, 0, 14, 3, 2, 3);
+            }
+            CRN3 ABCDEFGHIJK 4;
+            goto see;
+    
+
+        // == DETONATION ==
+        // Triggers when Crawler Mine got in range of the player. Activates Prime Mode which makes them more aggressive before exploding.
+        PrimeBomb: 
+            TNT1 A 0 {
+                if(!checkPrime())
+                {   
+                    setStateLabel("BeginChasing");
+                } else 
+                {
+                    primed = true;
+                }
+            }
+            goto spawn;
+
+        SelfDetonate:
+            TNT1 A 0 {
+                if(JumpOnNextAttack) {
+                    SetStateLabel("Jump.Start");
+                    ResetToDefault();
+                }
+            }
+            TNT1 A 0 {
+                hasDetonated = true;
+            }
+            TNT1 A 0 A_DamageSelf(9001); // "ITS OVER..........!!!!"
+            TNT1 A 0 S_EXPLODE(25, 100, damageType:"ExplosiveImpact");
+            TNT1 A 0 
+            {
+                for(int x=0;x<8;x++) {
+                    A_SPAWNDEFINEDPARTICLE("OilSplatterLargeDefinition", frandom(-15,15), frandom(-15,15), frandom(-5,15), frandom(-4,4), frandom(-4,4), frandom(1,4));
+                }
+                A_SPAWNITEMEX("CrawlerMineHead", 0, 0, 16, frandom(1,5), 0, frandom(1,3), angle:random(0,360), flags:SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+            }
+            TNT1 AAAA 0 {
+                A_SPAWNITEMEX("SmallExplosionNoSound", 0, frandom(-3,3), frandom(10,30));
+            }
+            stop;
+
+        // == SHOCKED ==
+    Pain.MeleeImpactTaser:
+    Pain.StunningShock:
+    Pain.ShockedFloorSetup:
+		CRNS A 0 {
+            //applyShockDamage();
+            bNoPain = true;
+            unPrime();
+			shockRemainder = 15;
+		}
+	Pain.ShockedFloorActual:
+		 TNT1 A 0 {
+			int random = random(0,3);
+			if (random == 0) {shockFrame = 0;}
+			if (random == 1) {shockFrame = 2;}
+            if (random == 2) {shockFrame = 4;}
+            if (random == 3) {shockFrame = 6;}
+		}
+		CRNS AAAA 0 {
+			A_SetTics(random(1,2));
+			frame = shockFrame;
+			if(shockRemainder>0) { shockEffects();}
+		}
+		CRNS A 0 {
+			shockFrame++;			
+		}
+		CRNS AAAA 0 {
+			A_SetTics(random(1,2));
+			frame = shockFrame;
+			if(shockRemainder>0) { shockEffects();}
+		}
+		CRNS A 0 {
+			shockRemainder--;
+			if (shockRemainder == 0) {
+				SetStateLabel("See");
+			}
+		}
+		loop;
+    // == JUMPING ==
+        Jump.Start:
+            CRJU ABCDEFG 2 {
+                jumpPrime();
+                A_STOPSOUND(CHAN_7);
+                A_FACETARGET();
+                explodeIfnearDawn();
+                A_ChangeVelocity(1,0,0, CVF_RELATIVE);
+            }
+            TNT1 A 0 A_ChangeVelocity(8,0,11, CVF_RELATIVE);
+            CRJU H 2;
+
+        Jump.loop:
+            CRJU I 1 {
+                if(vel.z == 0) {
+                    SetStateLabel("jump.End");
+                }
+                jumpPrime();
+             }
+             loop;
+
+        jump.End:
+            CRJU JKLMNOPQ 2 {
+                jumpPrime();
+            }
+            goto see;
+
+    // == DEATH ==
+        Death.Plasma:
+            TNT1 A 0
+            {
+                // Chance for the fucker to explode
+                if(random(0,100) <= PLASMA_EXPLOSION_CHANCE)
+                {
+                    actor explosionEffectActor;
+                    bool successExplosionEffect;
+                    [successExplosionEffect, explosionEffectActor] =  A_SpawnItemEx ("PrettyExplosionSmaller",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+/*                     if(explosionEffectActor)
+                    {
+                        ExplosionEffect(explosionEffectActor).explosionAmountMin+=3;
+                        ExplosionEffect(explosionEffectActor).explosionAmountMax+=3;
+                        ExplosionEffect(explosionEffectActor).explosionSpreadHorizontal+=3;
+                        ExplosionEffect(explosionEffectActor).explosionSpreadVertical+= 5;
+                    } */
+                    setStateLabel("Death.Burn");
+                }
+            }
+        stomped:
+        Death.ExplosiveImpact:
+        Xdeath:
+        Death:
+    		TNT1 A 0 A_Scream;
+            TNT1 A 0 {
+                if(isFrozen) {
+                     SetStateLabel("Death.FrostExplosion");
+                     return;
+                }
+                for(int x=0;x<15;x++)
+                {
+                    A_SPAWNITEMEX("oilDecal", frandom(-60,60), frandom(-60,60));
+                }
+            }
+            TNT1 A 0 A_DamageSelf(9000);
+            TNT1 A 0;
+            TNT1 A 0 A_FACETARGET();
+            TNT1 A 0 {
+                for(int x=0;x<5;x++)
+                {
+                    A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-3,3), frandom(-3,3), frandom(-3,3), frandom(-5,5), frandom(-5,5), frandom(-1,5));
+                }
+                // Telekenises throw? Detonate instead of just dying!
+                if(bIsTelekProjectile)
+                {
+                    S_EXPLODE(100,100, damageType:"ExplosiveImpact");
+                    int particleQuality = GetCvar("r_particleintensity");
+                    for(int x=0;x<particleQuality*1;x++) {
+                        A_SpawnItemEx ("LargeExplosionSmokeSlow",frandom(-35,35), frandom(-35,35), frandom(0,32),frandom(0.1,0.7), 0, frandom(-0.6,0.6), angle:random(0,360));
+                    }
+                    for(int x=0;x<6;x++)
+                    {
+                        A_SPAWNITEMEX("ScatterSmoke",frandom(-25,25), frandom(-25,25), frandom(0,25),frandom(0.1,0.7), 0, frandom(-0.6,0.6), angle:random(0,360));
+                    }
+                    if(CheckProximity("Dawn", 700.0, 1)) {
+                        ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 6);
+                        ACS_NamedExecuteAlways("SpawnHudShake", 0, 10, 10, 35);
+                        Dawn.ShakeWeapon(10,10);
+                    }
+                    if(getCvar("g_Screenshake") >= 1) {
+                        A_QuakeEx(2, 2, 2, 14, 0, 700, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+                    }
+                    A_PLAYSOUND("crawler/explode", CHAN_AUTO, 0.9, 0, 0.7);
+                    A_PLAYSOUND("STICKYBOMB/EXPLODE", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.98,1.06));
+                }
+
+                // Two different behavior types. If 'HasDetonated' returns true, it means the Crawler Mine succeeded with its objective to explode near the player and will *NOT* count as a kill.
+                if(hasDetonated) {
+                    explodeOnTarget();    
+                } else {     
+                    A_SpawnDefinedParticle("CrawlerMineSparkDefinition", 0, 0, 5);
+                    EmitDefinition('SparkParticleTiny', chance: 1.0, numTries: 5, angle:random(0,360), pitch:frandom(-15, 15), speed:frandom(0.4,4.5), velocity:(0,0,5));
+                    bUseKillScripts = true;        
+                    if(getClassName() == "ShockDroid")
+                    {
+                        Stats.AddStat(STAT_KILLS_SHOCKDROID, 1, 0);  
+                    }
+                    else
+                    {
+                        Stats.AddStat(STAT_CRAWLER_KILL, 1, 0);  
+                    }
+                    SpawnLight(rColor:237, gColor:203, bColor:92, lightRadius:random(90,140), shadowRequirement:-1, xOffset:frandom(-45,45), divisionSpeed:1.4, zOffset: frandom(10,45), lightSettingRequirement:2);
+                    A_PLAYSOUND("crawler/death", CHAN_AUTO, 0.95, 0, 0.7, frandom(0.9,1.1));
+                    actor crawlerDeath;
+                    bool succ;
+                    [succ, crawlerDeath] = A_SPAWNITEMEX(DeathAnimation, 0, 0, 16, flags:SXF_TRANSFERTRANSLATION);
+                    if(crawlerDeath)
+                    {
+                        crawlerDeath.scale = scale;
+                    }
+                }
+            }
+            TNT1 A 1;
+            stop;
+
+        Death.fire:
+        Death.Burn:
+            TNT1 A 0 A_Scream;
+            TNT1 A 0 A_AlertMonsters();
+            TNT1 A 0 A_NoBlocking;
+            TNT1 A 0 A_SpawnItemEx("BurningCrawlerMine",0,0,0,0,0,0,0,288);
+            //TNT1 A 0 A_SpawnItem("BurningCivilianMan", 0, 10);
+            Stop;
+
+        Death.FrostExplosion:
+            TNT1 A 0;
+			TNT1 AAAAA 0 {
+				A_SPAWNITEMEX ("FrostSmokeTextureTiny", frandom(-10, 10),frandom(-10, 10), frandom(0,70));
+			}
+            TNT1 A 0 {
+                Stats.AddStat(STAT_CRAWLER_KILL, 1, 0);
+                Stats.AddStat(STAT_FROZEN_KILL, 1, 0);
+            }
+            NULL A 0  A_PlaySound("dest/glassm",9);
+            TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("LargeGlassParticle2", random(-3, 3), random(-3, 3), random(6, 24), random(-4, 4), random(-4, 4), random(3, 6));
+            TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("LargeGlassParticle3", random(-3, 3), random(-3, 3), random(-3, 24), random(-4, 4), random(-4, 4), random(3, 6));
+            TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("LargeGlassParticle4", random(-3, 3), random(-3, 3), random(-3, 24), random(-4, 4), random(-4, 4), random(3, 6));
+            TNT1 AA 0 A_SPAWNITEMEX("CrawlerLeg", frandom(-1,3), frandom(3,10), 0, frandom(1,3), frandom(1,3), frandom(1,2), flags:SXF_TRANSFERTRANSLATION);
+            TNT1 AA 0 A_SPAWNITEMEX("CrawlerLegMirrored", frandom(-1,3), frandom(-3,-10), 0, frandom(1,3), frandom(1,3), frandom(1,2), flags:SXF_TRANSFERTRANSLATION);
+            stop;
+    }
+}
+
+class CrawlerMineBurrowed : Crawlermine
+{
+    override void beginPlay()
+    {
+        super.beginPlay();
+        startBurrowed = true;
+    }
+    
+    default
+    {
+        SelacoEnemy.randomizerSpawnChance 0;
+        +SelacoActor.trap;
+    }
+}
+
+class CrawlerMineAmbusher : CrawlerMine {
+    int aliveTime;
+    override void tick() {
+        super.tick();
+        alivetime++;
+        if(alivetime == 10) {
+            A_SETSIZE(storedRadius, -1);
+        }
+    }
+    default {
+        Renderstyle "none";
+        MaxStepHeight 45;
+    }
+    states {
+        Spawn:  
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_CHANGEVELOCITY(0,0,-50, CVF_RELATIVE);
+                storedRadius = radius;
+                A_SETSIZE(2, -1);
+            }
+            TNT1 A 4;
+            TNT1 A 0 {
+                target = players[0].mo;
+                A_SetrenderStyle(1.0, STYLE_NORMAL);
+            }
+            CRW1 A 1 A_CHANGEVELOCITY(frandom(-1,1),frandom(-1,1),7, CVF_RELATIVE | CVF_REPLACE);
+            CRW1 A 4;
+            CRW1 A 1 A_CHANGEVELOCITY(frandom(5,8),frandom(2,3),0, CVF_RELATIVE);
+            goto see;
+    }
+}
+
+// Like regular crawler mines, but bigger! 
+class CrawlerMineQueen : CrawlerMine {
+
+    const QUEEN_SIZE_MULTI = 2.2;
+    const CRAWLERMINE_SPAWN_THRESHOLD = 35*3;
+    int crawlerTimer;
+    override void beginplay()
+    {
+        super.beginPlay();
+        A_SETSIZE(radius*QUEEN_SIZE_MULTI, height*(QUEEN_SIZE_MULTI/2));
+        A_SETSCALE(scale.x*QUEEN_SIZE_MULTI, scale.y*QUEEN_SIZE_MULTI);
+    }
+
+    void breedChild()
+    {
+        actor crawlerMineChild;
+        bool succ;
+        [succ, crawlerMineChild] = A_SPAWNITEMEX("CrawlerMine");
+        if(crawlerMineChild)
+        {
+            SelacoEnemy(crawlerMineChild).forcedHealth*=0.75;
+            SelacoEnemy(crawlerMineChild).bAllowRandomizerTier = false;
+        }
+    }
+
+      default 
+      {
+		+NOBLOODDECALS;
+		Selflighting "656565";
+        +NOPAIN;
+        xscale 0.42;
+        yscale 0.39;
+        MeleeRange 100;
+        speed 4;
+        radius 18;
+        height 59;
+        health 1000;
+        SelacoEnemy.forcedHealth 1000;
+        SelacoEnemy.randomizerSpawnChance 4;
+        PainChance 40;  
+        monster;
+        SelacoEnemy.PainChanceAdjustment 0;
+	    PainSound "impact/mechanical";
+        ActiveSound "crawler/alert";
+    } 
+    
+    states
+    {
+        // As usual, to prevent the engine from crashing when searching for an index :gzdoom:
+        Indexer:
+            CRW1 A 0;
+            CRW2 A 0;
+            CRW3 A 0;
+        
+        Precache:
+            CRBU ABCDEFGHIJK 0;
+            CRJU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+            stop;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                ResetToDefault();
+                if(startBurrowed)
+                {
+                    setStateLabel("Burrowed");
+                }
+            }
+            CRID AAAABCDEFGHIJ 3 A_Look();
+            loop;
+        // Actively tries to get close to the tarrget 
+        BeginChasing:
+            TNT1 A 0 {
+                ResetToDefault();
+            }
+            CRW1 AAAAABBBBBCCCCCDDDDDEEEEE 1 
+            {
+                A_PLAYSOUND("CRAWLER/walk", CHAN_7, 0.75, 1, 0.75, 0, frandom(0.8,1.1));
+                if(skill == SKILL_SMF && random(0,100) <= 1)
+                {
+                    A_FireEnemyWeapon("PlasmaProjectileEnemy", 10, 0, 0, CMF_TRACKOWNER | CMF_OFFSETPITCH , frandom(1.1, -1.2));
+                }
+                
+                // Play an alert sound on occassion
+                if(random(0,150) == 1) {
+                    A_PLAYSOUND("crawler/sight", CHAN_AUTO, 0.5, 0, 1.0);
+                }
+                
+                // Occassionally strafe
+                if(random(0,100) <= CRAWLERMINE_STRAFE_CHANCE && !primed)
+                {
+                    A_CHANGEVELOCITY(0, random(-6,6), 0, CVF_Relative);
+                }
+
+                // Move towards target, prime when not primed yet
+                if(!primed) {
+                    //@nexxtic
+                    // -- Pathfinding should happen here! If Crawler Mine is within `meleeRange`, PrimeBomb should get executed. --
+                    if(!isTargetVisible()) {
+                        // Go to tracking mode once we've not seen the player for a bit
+                        if(++lostTargetCounter > 35) {
+                            lostTargetCounter = 0;
+                            SetStateLabel("TrackPlayer");
+                            return;
+                        }
+                    }
+
+                    A_WANDER();
+                } 
+                crawlerTimer++;
+                if(crawlerTimer >= CRAWLERMINE_SPAWN_THRESHOLD)
+                {
+                    crawlerTimer = 0;
+                    breedChild();
+                }
+            }
+            loop;
+        Death:
+        Death.Shotgun:
+        Death.ExplosiveImpact:
+        xDeath:
+            TNT1 A 0
+            {
+                actor crawlerDeath;
+                bool succ;
+                [succ, crawlerDeath] = A_SPAWNITEMEX("CrawlerMineQueenDeath");
+                if(crawlerDeath)
+                {
+                    crawlerDeath.A_SETSCALE(scale.x, scale.y);
+                }
+            }
+            stop;
+    }
+
+}
+
+// These wont be as complex as the standard soldiers, no need for a seperate Deathception file I think.
+class CrawlerDeath1 : SelacoActor {
+    mixin CrawlerMineMaster;
+    
+    
+    default {
+		Selflighting "000000";
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        A_PLAYSOUND("crawler/death", CHAN_AUTO, 1.0, 0, 0.7, 0, frandom(0.8,1.1));
+    }
+
+    void BellyFlop() {
+        floorHit = true;
+        if(random(0,3) == 2) {
+            [success, sparkEffectActor] = A_SPAWNITEMEX("DestroyedEffectsCrawlerMine", 0, 0, 0, 0, 0, 0, 0, SXF_SETMASTER);
+        }
+        for(int x=0;x<12;x++)
+        {
+            A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-7,7), frandom(-7,7), frandom(0,8), frandom(-4,4), frandom(-4,4), frandom(1,7));
+        }
+        EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 55, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(1,3), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+        if(random(0,3) == 3) {
+            A_SPAWNITEMEX("SparkMissile", 0, 0, 4, 0, 0, 2);
+        }
+        for(int x=0;x<5;x++) {
+            A_SpawnItemEX("BulletImpactEffectMetalSmallReallyFuckingTinylol", frandom(-24,24), frandom(-24,24),frandom(2,7));
+        }
+        SpawnLight(rColor:237, gColor:203, bColor:92, lightRadius:random(35,45), shadowRequirement:-1, divisionSpeed:1.3, lightSettingRequirement:2);
+        A_SPAWNITEMEX("BodyImpactSmoke", frandom(-3,3), frandom(-3,3), 5);
+        A_SPAWNITEMEX("BodyImpactSmoke", frandom(-3,3), frandom(-3,3), 5);
+    }
+
+
+    void FloorImpact() {
+        S_EXPLODE(20, 100);
+        floorHit = true;
+        BellyFlop();
+		A_SPAWNITEMEX("MeleeWallSmashTiny", 0, 0, 6);
+		A_SPAWNITEMEX("wallSmashDecal", -2, frandom(-6,6), 10);
+		A_SPAWNITEMEX("wallSmashDecal", -2, frandom(-6,6), 25);
+		A_SPAWNITEMEX("wallSmashDecal", -2, frandom(-6,6), 37);
+    }
+
+
+    override void tick() {
+        super.tick();
+        if(random(0,6) == 2 && !floorHit) {
+            A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+		    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+		    //A_SpawnProjectile ("Spark_UpOnce_NoFlare", 3, -3, random (0, 70), 2, random (0, 190));
+            A_SpawnItemEX("BulletImpactEffectMetalSmallReallyFuckingTinylol");
+        }
+    }
+
+    default {
+        health 90;
+        SelacoActor.SleepDistance 0;
+        PainChance "MeleeImpact", 255;
+        damageType "MeleeImpactSplash";
+        gravity 0.8;
+        radius 4;
+        height 4;
+        -isMonster;
+        +Shootable
+        -solid;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                if(random(0,1) == 1) {
+                    bxflip = true;
+                }
+                A_CHANGEVELOCITY(-5, 0, frandom(4,10), CVF_RELATIVE);
+            }
+            CRD1 ABCDEF 3;
+            Looper:
+                CRD1 G 3 {
+                    if(Pos.Z <= FloorZ || (vel.z == 0 && vel.y == 0 && vel.x == 0)) {
+                        BellyFlop();
+                        A_PLAYSOUND("crawler/flop", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.7,1.1));
+                        setStateLabel("End");
+                    }
+                }
+            loop;
+        End:
+            CRD1 H 1
+            {
+                if(pos.z == floorz)
+                {
+                    sleepIndefinite();
+                }
+            }
+            loop;
+        Death:
+            TNT1 A 0 {
+                A_SPAWNITEMEX("CrawlerMineHead", flags:SXF_TRANSFERTRANSLATION);
+                if(sparkEffectActor) {
+                    sparkEffectActor.die(self, self);
+                }
+            }
+            stop;
+    }
+}
+
+// These wont be as complex as the standard soldiers, no need for a seperate Deathception file I think.
+class CrawlerDeath2 : CrawlerDeath1 {
+
+    void ShootLimbs() {
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-3,3), frandom(-3,3), frandom(4,12), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-3,3), frandom(-3,3), frandom(4,12), flags:SXF_TRANSFERTRANSLATION);
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_CHANGEVELOCITY(-6, 0, 12, CVF_RELATIVE);
+            }
+            CRD2 ABCDEFG 3;
+        Looper:
+            CRD2 G 1 {
+                if(Pos.Z <= FloorZ || (vel.z == 0 && vel.y == 0 && vel.x == 0)) {
+                    setStateLabel("Idle");
+                }
+            }
+            loop;
+        Idle:
+            TNT1 A 0 {
+                ShootLimbs();
+                A_PLAYSOUND("crawler/flop", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.7,1.1));
+                A_CHANGEVELOCITY(-4, 0, 5, CVF_RELATIVE);
+                FloorImpact();
+            }
+            CRD2 IJKLMNOPQRS 3;
+            CRD2 T -1;
+            stop;
+    }
+}
+
+class CrawlerDeath3 : CrawlerDeath2 {
+    void ShootLimbs() {
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLegMirrored", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLegMirrored", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+    }
+
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                ShootLimbs();
+                A_CHANGEVELOCITY(-6, 0, 12, CVF_RELATIVE);
+            }
+            CRD3 ABCDEFG 3;
+        Looper:
+            CRD3 G 1 {
+                if(Pos.Z <= FloorZ || (vel.z == 0 && vel.y == 0 && vel.x == 0)) {
+                    setStateLabel("Idle");
+                }
+            }
+            loop;
+        Idle:
+            TNT1 A 0 {
+                A_PLAYSOUND("crawler/flop", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.7,1.1));
+                A_CHANGEVELOCITY(-4, 0, 5, CVF_RELATIVE);
+                FloorImpact();
+            }
+            CRD3 IJKLMNOPQRS 3;
+            CRD3 T -1;
+            stop;
+    }
+}
+
+class CrawlerDeath4 : CrawlerDeath2 {
+
+    void ShootLimbs() {
+
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                ShootLimbs();
+                A_CHANGEVELOCITY(-4, 0, 5, CVF_RELATIVE);
+            }
+            CRD4 ABCDEFGHIJ 3;
+            TNT1 A 0 {
+                 BellyFlop();
+                A_PLAYSOUND("crawler/flop", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.7,1.1));
+            }
+            CRD4 KLMNO 3;
+        Idle:
+            CRD4 P -1;
+            stop;
+    }
+}
+
+class CrawlerMineQueenDeath : CrawlerDeath4
+{
+    default
+    {
+        -SHOOTABLE;
+    }
+}
+
+class CrawlerDeath5: CrawlerDeath4 {
+    void ShootLimbs() {
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                ShootLimbs();
+                A_CHANGEVELOCITY(-4, 0, 5, CVF_RELATIVE);
+            }
+            CRD5 ABCDEFGHIJ 3;
+            TNT1 A 0 {
+                BellyFlop();
+                A_PLAYSOUND("crawler/flop", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.7,1.1));
+            }
+            CRD5 KLMNO 3;
+        Idle:
+            CRD5 P -1;
+            stop;
+    }
+}
+
+class CrawlerDeath6 : crawlerDeath4
+{
+     void ShootLimbs() {
+        A_SPAWNITEMEX("CrawlerMineHead", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLegMirrored", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLegMirrored", frandom(-3,3), frandom(-10,10), 0, frandom(-1.5,1.5), frandom(-1.5,1.5), frandom(1,5), flags:SXF_TRANSFERTRANSLATION);
+    }
+   
+    default
+    {
+        damageType "ExplosiveImpact";
+    }
+
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                // Only if it doesn't hurt the player.
+                if(!CheckProximity("dawn", 100))
+                {
+                    S_EXPLODE(25, 100);
+                }
+                for(int x=0;x<35;x++)
+                {
+                    A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-20,20), frandom(-20,20), frandom(0,8), frandom(-8,8), frandom(-8,8), frandom(0,8));
+                }
+                EmitDefinition('ShortSparkParticleStraightDefintion', chance: 1.0, numTries: 125, angle:frandom(0, 360), pitch:-15, speed:2);
+                actor explosionEffectActor;
+                bool successExplosionEffect;
+                [successExplosionEffect, explosionEffectActor] =  A_SpawnItemEx ("PrettyExplosionSmaller",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+                if(explosionEffectActor)
+                {
+                    ExplosionEffect(explosionEffectActor).explosionAmountMin-=5;
+                    ExplosionEffect(explosionEffectActor).explosionAmountMax-=4;
+                    ExplosionEffect(explosionEffectActor).explosionSpreadHorizontal-=2;
+                    ExplosionEffect(explosionEffectActor).explosionSpreadVertical-=2;
+                }
+                if(random(0,1) == 1)
+                {
+                    ShootLimbs();
+                }
+                else
+                {
+                    A_SPAWNITEMEX("BurningCrawlerMine");
+                }
+            }
+            stop;
+    }
+}
+
+// Standalone leg piece. 
+class CrawlerLeg : SelacoActor {
+
+    string spriteTouse;
+    int frameNum;
+    static const String LegSprites[] = {"CLE1", "CLE2", "CLE3", "CLE4"};
+
+    override void tick()
+    {
+        super.tick();
+        if(level.time % 2 == 0 && vel.length() > 0)
+        {
+            A_SpawnDefinedParticle("OilSplatterTrailDefinition");
+        }
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        spriteTouse = LegSprites[random(0,LegSprites.size()-1)];
+        if(random(0,1) == 1) {
+            bXflip = true;
+        }
+    }
+
+    default {
+        -isMonster;
+        +missile
+        +USEBOUNCESTATE
+        -solid;
+        scale 0.5;
+        radius 4;
+        speed 5;
+        +DoomBounce
+        +SelacoActor.IsTrash
+        BounceFactor 0.5; 
+        BounceCount 4;
+    }
+    States {
+        Indexer:
+            CLE1 A 0;
+            CLE2 A 0;
+            CLE3 A 0;
+            CLE4 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                sprite = GetSpriteIndex(spriteTouse);
+            }
+            TNT1 A 0 A_CHANGEVELOCITY(frandom(-4,4),frandom(-4,4),random(3,6), CVF_RELATIVE);
+        Looper:
+            TNT1 ABCDEFGHIJK 3 {
+                if(frameNum == 11) {
+                    frameNum = 0;
+                }
+                A_SpawnProjectile ("SmokeTrailPieceSmallShort", 24, 0, random (0, 180), 2, random (0, 180));
+                if(random(0,6) == 2) {
+                    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+				    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+				    //A_SpawnProjectile ("Spark_UpOnce_NoFlare", 3, -3, random (0, 70), 2, random (0, 190));
+                    A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition");
+                }
+                EmitDefinition('ShortSparkParticleDefinition', chance: 0.75, numTries: 1, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));	
+                frame = frameNum;
+                frameNum++;
+                if(vel.x == 0 && vel.y == 0 && vel.z == 0 && pos.z == floorZ && getAge() > 5) {
+                    setStateLabel("Death");
+                }
+            }
+            loop;
+        Bounce:
+            TNT1 A 0
+            {
+                EmitDefinition('ShortSparkParticleDefinition', chance: 0.75, numTries: 15, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+            }
+            TNT1 A 0 A_PlaySound("impact/thinmetal",CHAN_AUTO, 0.2, 0, 1.0, false, frandom(1.05,1.15));
+            goto Looper;
+        Death:
+            //TNT1 A 0 A_PlaySound("impact/thinmetal",CHAN_AUTO, 0.2, 0, 1.0, false, frandom(1.05,1.15));
+            TNT1 L 10;
+            TNT1 L 1 {
+                if(vel.x == 0 && vel.y == 0 && vel.z == 0 && pos.z == floorZ && getAge() > 5) {
+                    sleepIndefinite();
+                }
+            }
+            loop;
+    }
+}
+
+class CrawlerLegMirrored : crawlerLeg {
+    default {
+        +xflip;
+    }
+}
+
+class DestroyedEffectsCrawlerMine : actor {
+    default {
+        +NOINTERACTION
+        +THRUACTORS
+    }
+    States{
+        Spawn:
+            TNT1 A 90;
+            TNT1 A 2 A_Warp(AAPTR_TARGET, 0, 0, 0, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); // Ensure effects spawn onc corpse.
+			TNT1 AAAAAA random(60,90) {
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+				A_SpawnProjectile ("SparkEmberUpward", 3, -3, random (0, 70), 2, random (0, 190));
+                A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition");
+			}
+        death:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+Class CrawlerMineHead : BaseHead
+{
+    int ticks;
+    override void tick() {
+        super.tick();
+        if(ticks % 4 == 0) {
+            A_SPAWNITEMEX("SmallExplosion", frandom(-3,5), frandom(-10,10), frandom(-10,10));
+            //A_SPAWNITEMEX("SmallExplosionNoSound", frandom(-3,5), frandom(-10,10), frandom(10,35));
+        }
+        if (ticks<18) {
+            ticks++;
+        }
+
+        bPreventSleep = ticks < 18;
+    }
+
+    override void PostBeginPlay() 
+    {
+        super.PostBeginPlay();
+        A_CHANGEVELOCITY(0,0,frandom(6,10));
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-4,4), frandom(-4,4), frandom(2,6));
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-4,4), frandom(-4,4), frandom(2,6));
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-4,4), frandom(-4,4), frandom(2,6));
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-3,3), frandom(-10,10), 0, frandom(-4,4), frandom(-4,4), frandom(2,6));
+    }
+
+	Default {
+		speed 13;
+        xscale 0.44;
+        yscale 0.36;
+		BounceCount 4;
+		seeSound "impact/helmet";
+		gravity 0.7;
+		PainChance 255;
+		Radius 10;
+		height 10;
+		+Shootable;
+        +USEBOUNCESTATE
+	}
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			CRNK ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			TNT1 A 0 {
+				if (random(0,1) == 0) {
+					A_setscale(-0.23, 0.23);
+				} else {
+					A_setscale(0.23, 0.23);
+				}
+			}
+		SpawnActual:
+		ThrownIndumpster:
+			CRNK A 3 {
+                frameID++;
+                if(frameID == 6)
+                {
+                    frameID = 0;
+                }
+				bMissile = true;
+				bBounceonfloors = true;
+				bBounceonWalls = true;
+				bBounceonCeilings = true;
+				if (CheckProximity("TrashBin_open", 30)) {
+					setStateLabel("ThrownIndumpster");
+				}
+
+                frame = frameID;
+			}
+		loop;
+
+        bounce:
+            TNT1 A 0
+            {
+                EmitDefinition('ShortSparkParticleDefinition', chance: 0.75, numTries: 35, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(-1,1));
+            }
+            goto SpawnActual;
+
+	ThrownIndumpster:
+		TNT1 A 0 A_PlaySound("trashbin/glass");
+		TNT1 A 0 A_SpawnItemEx("ItemGotThrownIndumpster");
+		CRNK AAAAAAAAAAAAAAAAAAAA 1 A_FADEOUT(0.08);
+		stop;
+	Death:
+		TNT1 A 0 A_SetRoll(0);
+	WaitForKick:
+		CRNK A 1;
+		TNT1 A 0 {
+			BounceCount = 3;
+			BounceFactor = 0.6;
+            // Check for floor before making the hitbox larger, otherwise we sometimes get stuck in walls mid-flight
+			if(pos.z == FloorZ)
+                A_SETSIZE(25, 25);
+			isFlying = false;
+			bThruActors = false;
+			BounceCount = 3;
+			BounceFactor = 0.6;
+			A_ChangeLinkFlags(0);
+		}
+		loop;
+	Pain:
+	KickInitiated:
+		TNT1 A 0 A_FaceTarget;
+		TNT1 A 0 A_PlaySound("impact/headkick");
+		goto SpawnActual;
+	}
+}
+
+// THESE HERE ARE FOR SCRIPTED SEQUENCES
+class CrawlerWalkForward : actor {
+    mixin CrawlerMineMaster;
+    String WalkCycleSprite, DeathAnimation;
+
+    int runSpeed;
+    int aliveTicks;
+    static const String WalkCycles[] = {"CRW1", "CRW2", "CRW3"};
+	static const String DeathAnimations[] = {"CrawlerDeath1", "CrawlerDeath2", "CrawlerDeath3", "CrawlerDeath4", "CrawlerDeath5"};
+
+    vector3 oldPos;
+
+    override void tick()
+    {
+        super.tick();
+        aliveTicks++;
+        // Die when the last position was identical to the last
+        if(aliveTicks > 5 && abs(pos.length() - oldpos.length()) == 0)
+        {
+            destroy();
+        }   
+        oldPos = pos;
+    }
+
+    override void BeginPlay() {
+        super.BeginPlay();
+        runSpeed = frandom(8.0, 11.5);
+        WalkCycleSprite = WalkCycles[random(0, WalkCycles.size()-1)];
+        DeathAnimation = DeathAnimations[random(0, DeathAnimations.size()-1)];
+    }
+    
+    default {
+        radius 5;
+        height 5;
+    }
+
+    states {
+        Indexer:
+            CRW1 A 0;
+            CRW2 A 0;
+            CRW3 A 0;
+
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                sprite = GetSpriteIndex(WalkCycleSprite);
+            }
+        BeginChasing:
+            TNT1 AAABBBCCCDDDEEE 1 {
+                A_CHANGEVELOCITY(runSpeed, 0, -8, CVF_RELATIVE | CVF_REPLACE);
+                A_PLAYSOUND("CRAWLER/walk", CHAN_7, 0.4, 1, 0.95, 0, frandom(0.9,1.1));
+            }
+            loop;
+    }
+}
+
+class CrawlerWalkForwardFast : CrawlerWalkForward {
+
+    override void BeginPlay() {
+        super.BeginPlay();
+        runSpeed = frandom(10.0, 13.5);
+        WalkCycleSprite = WalkCycles[random(0, WalkCycles.size()-1)];
+        DeathAnimation = DeathAnimations[random(0, DeathAnimations.size()-1)];
+    }
+}
+
+class CrawlerWalkForwardSlow : CrawlerWalkForward {
+    override void BeginPlay() {
+        super.BeginPlay();
+        runSpeed = frandom(5.0, 7.5);
+        WalkCycleSprite = WalkCycles[random(0, WalkCycles.size()-1)];
+        DeathAnimation = DeathAnimations[random(0, DeathAnimations.size()-1)];
+    }
+    
+    override void tick() {
+        super.tick();
+        runSpeed = frandom(5.0, 5.8);
+    }
+}
+
+// This fucker is burning!
+class BurningCrawlerMine : CrawlerDeath1
+{
+    mixin BurningActor;
+
+    int burningLoops;
+    override void PostBeginPlay()
+    {
+        super.postbeginPlay();
+        A_PLAYSOUND("CRAWLERMINE/BURNING", CHAN_AUTO, 1.0, 0, 1.0, pitch:frandom(0.9,1.2));
+        A_PlaySound("fire/loop", CHAN_5, 0.7, 1);
+    }
+
+    void spawnSparks()
+    {
+        A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-5,5), frandom(-5,5), frandom(0,8), frandom(-2,-3), frandom(-2,2), frandom(0,3));
+        EmitDefinition('ShortSparkParticleStraightDefintion', chance: 1.0, numTries: 15, angle:frandom(0, 360), pitch:-15, speed:2);
+    }
+
+    default {
+        -isMonster
+        radius 24;
+        height 12;
+        xscale 0.22;
+        yscale 0.19;
+    }
+
+    States
+    {
+    Spawn:
+        CRBR AA 2 Bright {
+            S_EXPLODE(2, 70, 0, 0, 0, 0, 0);
+			A_Wander();
+            spawnSparks();
+		}
+		CRBR B 2 Bright A_Wander();
+		TNT1 A 0 A_Recoil(-2);
+
+        CRBR B 2 Bright {
+            spawnSparks();
+             S_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		TNT1 A 0 A_Recoil(-2);
+        CRBR C 2 Bright {
+             S_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		CRBR C 2 Bright A_Wander();
+		TNT1 A 0 A_Recoil(-2);
+        CRBR D 2 Bright {
+            spawnSparks();
+             S_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		CRBR D 2 Bright {
+            A_Wander();
+        }
+        CRBR E 2 Bright {
+            spawnSparks();
+             S_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		CRBR E 2 Bright {
+            spawnSparks();
+            A_Wander();
+        }
+		TNT1 A 0 A_Recoil(-2);
+		TNT1 A 0
+        {
+            burningLoops++;
+            if(burningLoops >= 3)
+            {
+                setStateLabel("Death");
+            }
+        }
+		Loop;
+
+	Death.ExplosiveImpact:
+	TNT1 A 0;
+	TNT1 A 0 ThrustThingZ(0,60,0,1);
+	TNT1 A 0;
+
+    Death:
+	    TNT1 A 0 A_Fall;
+        CRBR FGHI 4 Bright A_SpawnProjectile("SmokeScatteredCloudFast", frandom(5,10), 0, random (0, 360), 2, random (50, 130));
+        TNT1 A 0 
+        {
+            A_STOPSOUND(CHAN_5);
+            isDead = true;
+            A_PLAYSOUND("crawler/flop", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.7,1.1));
+            BellyFlop();
+        }
+        CRBR JKLM 4 Bright A_SpawnProjectile("SmokeScatteredCloudFast", frandom(5,10), 0, random (0, 360), 2, random (50, 130));
+        TNT1 A 0 A_SpawnItemex("BurnMark", frandom(-15, 15), frandom(-15, 15));
+        TNT1 A 0 {
+            bShootable = false;
+            bSolid = false;
+        }
+        TNT1 A 0;
+        CRBR M -1;
+	xdeath:
+        TNT1 A 0 A_PlaySound("misc/xdeath");
+        Stop;
+    }
+}
+
+// PROTOTYPE!
+// Like a Crawler Mine, but he stuns!
+class ShockDroid : CrawlerMine
+{
+
+    const STUN_DURATION = 105;
+    override void explodeOnTarget()
+    {
+        A_SPAWNITEMEX("ShockExplosion");
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-1,3), frandom(3,10), 0, frandom(1,3), frandom(1,3), frandom(1,4), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLeg", frandom(-1,3), frandom(3,10), 0, frandom(1,3), frandom(1,3), frandom(1,4), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLegMirrored", frandom(-1,3), frandom(-3,-10), 0, frandom(1,3), frandom(1,3), frandom(1,4), flags:SXF_TRANSFERTRANSLATION);
+        A_SPAWNITEMEX("CrawlerLegMirrored", frandom(-1,3), frandom(-3,-10), 0, frandom(1,3), frandom(1,3), frandom(1,4), flags:SXF_TRANSFERTRANSLATION);
+
+        // Stun player
+        if(CheckProximity("dawn", 350, 1, flags:CPXF_CHECKSIGHT | CPXF_SETTARGET))
+        {
+            Dawn(target).A_EXPLODE(5,300);
+            Dawn(target).applyStun(STUN_DURATION);
+        }
+    }
+
+    default
+    {
+        tag "$CHARACTER_SHOCKDROID";
+        -QUICKTORETALIATE
+        speed 9;
+        xscale 0.17;
+        yscale 0.13;
+        radius 15;
+        height 24;
+        translation "StunDroid";
+    }
+}
+

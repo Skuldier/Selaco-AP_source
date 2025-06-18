@@ -1,0 +1,272 @@
+struct SelacoWeaponBaseStats {
+    int weaponPelletAmount;
+	int weaponDamage, weaponProjectileSize, weaponAreaOfEffect, weaponProjectileSpeed;
+	int magazineSize, weaponKickback;
+	float weaponHeadshotMultiplier;
+	float weaponRecoil, weaponSpread, weaponStabilizationSpeed;
+}
+
+
+// Helper to manage and combine stats added by upgrades
+extend class SelacoWeapon {
+    Array<WeaponUpgrade> activeUpgrades;
+    bool isInited;
+
+
+    virtual clearscope int getBaseStats(out SelacoWeaponBaseStats stats) {
+        readonly< SelacoWeapon > def = Default;
+
+        stats.magazineSize = AmmoType2 ? GetDefaultByType(AmmoType2).maxAmount : 0;
+        stats.weaponDamage = def.weaponDamage;
+        stats.weaponSpread = def.weaponSpread;
+        stats.weaponRecoil = def.weaponRecoil;
+        stats.weaponKickback = def.weaponKickback;
+        stats.weaponPelletAmount = def.weaponPelletAmount;
+        stats.weaponProjectileSpeed = def.weaponProjectileSpeed;
+        stats.weaponStabilizationSpeed = def.weaponStabilizationSpeed;
+        stats.weaponAreaOfEffect =    def.weaponAreaOfEffect;
+        stats.weaponHeadshotMultiplier = def.weaponHeadshotMultiplier;
+
+        // get stats from stat-upgrade
+        // Use this as the baseline if exists
+        for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x] is 'WeaponStats') {
+                WeaponStats ws = WeaponStats(activeUpgrades[x]);
+                stats.weaponDamage = ws.damageAbs;
+                stats.weaponSpread = ws.spreadAbs;
+                stats.weaponRecoil = ws.recoilAbs;
+                stats.weaponKickback = ws.kickbackAbs;
+                stats.weaponPelletAmount = ws.pelletsAbs;
+                stats.weaponProjectileSpeed = ws.projectileSpeedAbs;
+                stats.weaponStabilizationSpeed = ws.stabilizationAbs;
+                stats.weaponAreaOfEffect = ws.areaOfEffectAbs;
+                stats.weaponHeadshotMultiplier = ws.headshotMultiplierAbs;
+
+                // Do not allow zero magazine size. This can happen when generating stats for weapons that have no reserve or no magazine
+                if(ws.magazineSizeAbs > 0) {
+                    stats.magazineSize = ws.magazineSizeAbs;
+                }
+                
+                return 2;
+            }
+        }
+
+        return 1;
+    }
+
+
+    virtual void calculateStats() {
+        readonly< SelacoWeapon > def = Default;
+        SelacoWeaponBaseStats stats;
+
+        getBaseStats(stats);
+
+        // Set baseline
+        weaponDamage = stats.weaponDamage;
+        weaponSpread = stats.weaponSpread;
+        weaponRecoil = stats.weaponRecoil;
+        weaponKickback = stats.weaponKickback;
+        weaponFireRate = def.weaponFireRate;
+        weaponPelletAmount = stats.weaponPelletAmount;
+        weaponProjectileSpeed = stats.weaponProjectileSpeed;
+        weaponStabilizationSpeed = stats.weaponStabilizationSpeed;
+        weaponAreaOfEffect =    stats.weaponAreaOfEffect;
+        weaponHeadshotMultiplier = stats.weaponHeadshotMultiplier;
+        magazineSize = stats.magazineSize;
+        
+        int baseMagazineSize = stats.magazineSize;
+
+        // Add stats from upgrades
+        for(int x = 0; x < activeUpgrades.size(); x++) {
+            WeaponUpgrade u = activeUpgrades[x];
+
+            if(!u) {
+                Console.Printf("\c[RED]BAD UPGRADE EXISTS IN PLAYER INVENTORY");
+                continue;
+            }
+            weaponDamage += u.damageMod;
+            weaponSpread += u.spreadMod;
+            magazineSize += u.magazineSizeMod;
+            weaponRecoil += u.recoilMod;
+            weaponKickback += u.kickbackMod;
+            weaponPelletAmount += u.pelletsMod;
+            weaponFireRate += u.fireRateMod;
+            weaponProjectileSpeed += u.projectileSpeedMod;
+            weaponStabilizationSpeed += u.stabilizationMod;
+            weaponAreaOfEffect       += u.areaOfEffectMod;
+            weaponHeadshotMultiplier += u.headshotMultiplierMod;
+        }
+        
+
+        // Modify magazine size as necessary
+        if(ammo2) {    
+            ammo2.maxamount = magazineSize;
+        }
+
+        if(developer) {
+            // Output the full set of info
+            Console.Printf("\n\c[GREEN]%s\c- Stats After Calculation:\n===========================", getClassName());
+            Console.Printf("Base magazine: %d  Add: %d (%s)", baseMagazineSize, magazineSize - baseMagazineSize, AmmoType2 ? AmmoType2.getClassName() : 'none');
+            Console.Printf("ammo2.max %d", ammo2 ? ammo2.maxamount : 0);
+            Console.Printf("weaponDamage %d", weaponDamage);
+            Console.Printf("weaponSpread %f", weaponSpread);
+            Console.Printf("weaponRecoil %f", weaponRecoil);
+            Console.Printf("weaponKickback %d", weaponKickback);
+            Console.Printf("weaponFireRate %d", weaponFireRate);
+            Console.Printf("weaponPelletAmount %d", weaponPelletAmount);
+            Console.Printf("weaponProjectileSpeed %d", weaponProjectileSpeed);
+            Console.Printf("weaponStabilizationSpeed %f", weaponStabilizationSpeed);
+            Console.Printf("weaponAreaOfEffect %d", weaponAreaOfEffect);
+            Console.Printf("weaponHeadshotMultiplier %d", weaponHeadshotMultiplier);
+            
+            // Metas
+            Console.Printf("weaponRecoilMax %f", weaponRecoilMax);
+            Console.Printf("weaponSpreadReductionSpeed %f", weaponSpreadReductionSpeed);
+            Console.Printf("weaponRecoilReductionSpeed %f", weaponRecoilReductionSpeed);
+            Console.Printf("weaponSpreadIncreasePerShot %f", weaponSpreadIncreasePerShot);
+            Console.Printf("weaponRecoilIncreasePerShot %f", weaponRecoilIncreasePerShot);
+            Console.Printf("weaponSpreadMinimum %f", weaponSpreadMinimum);
+            Console.Printf("weaponSpreadMaximum %f", weaponSpreadMaximum);
+            Console.Printf("\n");
+        }
+    }
+
+
+    bool addUpgrade(WeaponUpgrade upgrade) {
+        if(hasUpgrade(upgrade) || !upgrade) return false;
+        
+        // If this is an alt-fire, we can only have one enabled
+        // So find other alt-fires and disable them
+        if(upgrade is 'WeaponAltFire') {
+            for(int x = activeUpgrades.size() - 1; x >= 0; x--) {
+                if(activeUpgrades[x] is 'WeaponAltFire') {
+                    WeaponAltFire af = WeaponAltFire(activeUpgrades[x]);
+                    af.setEnabled(false);
+                    removeUpgrade(af);  // If setEnabled did not remove the upgrade, remove it ourselves
+                    break;
+                }
+            }
+        }
+        
+        activeUpgrades.push(upgrade);
+        calculateStats();
+        return true;
+    }
+
+    bool removeUpgrade(WeaponUpgrade upgrade) {
+        for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x] == upgrade) {
+                activeUpgrades.delete(x);
+                calculateStats();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Remove all active upgrades that are traits
+    void destroyTraits() {
+        for(int x = activeUpgrades.size() - 1; x >= 0; x--) {
+            if(activeUpgrades[x] is 'WeaponTrait') {
+                activeUpgrades[x].destroy();
+                activeUpgrades.delete(x);
+            }
+        }
+
+        calculateStats();
+    }
+
+    void moveTraits(WeaponPickup other) {
+        for(int x = activeUpgrades.size() - 1; x >= 0; x--) {
+            if(activeUpgrades[x] is 'WeaponTrait') {
+                activeUpgrades[x].DetachFromOwner();
+                other.AddInventory(activeUpgrades[x]);
+                other.traits.push(WeaponTrait(activeUpgrades[x]));
+                activeUpgrades.delete(x);
+            }
+        }
+
+        calculateStats();
+    }
+
+    // Remove all active upgrades that are base-stats
+    void destroyStats() {
+        for(int x = activeUpgrades.size() - 1; x >= 0; x--) {
+            if(activeUpgrades[x] is 'WeaponStats') {
+                activeUpgrades[x].destroy();
+                activeUpgrades.delete(x);
+            }
+        }
+
+        calculateStats();
+    }
+
+    void moveStats(WeaponPickup other) {
+        for(int x = activeUpgrades.size() - 1; x >= 0; x--) {
+            if(activeUpgrades[x] is 'WeaponStats') {
+                activeUpgrades[x].DetachFromOwner();
+                other.AddInventory(activeUpgrades[x]);
+                other.baseStats = WeaponStats(activeUpgrades[x]);
+                activeUpgrades.delete(x);
+            }
+        }
+
+        calculateStats();
+    }
+
+
+    clearscope bool hasUpgradeClass(class<WeaponUpgrade> upgradeClass) {
+        for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x] is upgradeClass) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    clearscope bool hasUpgrade(WeaponUpgrade upgrade) {
+        for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x] == upgrade) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Return the first active alt fire that matches the specific weapon class
+    clearscope WeaponAltFire getActiveAltFire() {
+        for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x] is 'WeaponAltFire') {
+                return WeaponAltFire(activeUpgrades[x]);
+            }
+        }
+
+        return null;
+    }
+}
+
+// Add the upgrade check functionality to Dawn directly
+extend class Dawn {
+    // Does Dawn have this upgrade, and is it enabled?
+    clearscope bool hasWeaponUpgrade(class<WeaponUpgrade> upgradeClass) {
+        let upg = WeaponUpgrade(FindInventory(upgradeClass));
+        if(upg && upg.enabled) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Does Dawn have this upgrade at all? Even if it's disabled?
+    clearscope bool ownsWeaponUpgrade(class<WeaponUpgrade> upgradeClass) {
+        let upg = WeaponUpgrade(FindInventory(upgradeClass));
+        if(upg) {
+            return true;
+        }
+        
+        return false;
+    }
+}

@@ -1,0 +1,155 @@
+extend class SelacoActor {
+    const PULL_COOLDOWN = 10; // Amount of ticks before we pull again
+    const PULL_EXERTION_CHANCE = 15;
+
+    bool user_nouseprompt;
+    int interactFlags;
+
+    string useTag;
+    TextureID useIcon;
+
+    property UseTag  : useTag;
+    property UseIcon : useIcon;
+    
+    flagdef  UsableFromFront : interactFlags, 1;
+    flagdef  UsableFromBack  : interactFlags, 2;
+    flagdef  Usable          : interactFlags, 3;        // If not Usable, no interaction between player can occur and no prompts will appear
+    //flagdef  UsableDisabled  : interactFlags, 4;        // Is currently disabled, will change how prompts appear but use actions will still be sent so test for this manually
+    flagdef  ShowInteraction : interactFlags, 5;        // When turned off, no button prompt will show before the use tag
+
+    default {
+        SelacoActor.UseTag "$ACT_USE";
+        +SelacoActor.UsableFromFront;
+        +SelacoActor.UsableFromBack;
+        +SelacoActor.ShowInteraction;
+        -SelacoActor.Usable;                // Actors are not usable by default
+    }
+
+
+    // Notification from LookAt (every few ticks) that the player is looking at this actor 
+    virtual void playerLooked(int playerIndex, Vector3 hitPos) {
+        // Do nothing by default
+    }
+
+    virtual string GetUsePrompt(string highCol = "[HI]") {
+        string ut = UseTag == "" ? "$ACT_USE" : UseTag;
+
+        string res = String.Format("\c%s%s\c- %s", highCol, StringTable.Localize(ut), GetCharacterName());
+
+        // Append health prompt on label
+        if (bShowHealthOnPrompt) 
+        {
+            int defaultHealth = GetDefaultByType(self.getClass()).health;
+            int healthInPercentage = (health * 100) / defaultHealth;
+            res = String.Format("%s \n\c[darkgrey]HP: %d%%%", res, healthInPercentage);
+        }
+        return res;
+    }
+
+
+
+    // Called by LookAtTracer for verification
+    virtual clearscope bool CanInteractFrom(Actor activator, Vector3 usePos) {
+        if(!bUsableFromFront && !bUsableFromBack) return false;
+        if(!bUsableFromBack) {
+            if(abs(deltaAngle(activator.angleTo(self), angle)) < 100) return false;
+        } else if(!bUsableFromFront) {
+            if(abs(deltaAngle(activator.angleTo(self), angle)) > 80) return false;
+        }
+        
+        return true;
+    }
+}
+
+
+class Interactable : SelacoActor {
+    float pullFactor;
+    int pullTime;
+
+    property PullFactor : pullFactor;
+
+    default {
+        +NOBLOODDECALS
+        SelacoActor.UseTag "$ACT_USE";
+        +SelacoActor.UsableFromFront;
+        +SelacoActor.UsableFromBack;
+        +SelacoActor.Usable;
+    }
+
+    override void postbeginPlay() {
+        super.postbeginPlay();
+
+        if(pullFactor > 0.0) {
+            useTag = StringTable.localize("$INTERACT_PULL");
+            useIcon = TexMan.CheckForTexture("XH_PULL");
+        }
+    }
+
+    override void tick() {
+        super.tick();
+        doPullTime();
+    }
+
+    void shoveActor(actor activator) {
+        if(activator && pullTime == 0 && pullFactor)
+        {   
+            bUseSpecial = false;
+            activationType = THINGSPEC_DEFAULT;
+            activator.A_PlaySound("impact/firstpersonMelee",CHAN_AUTO, 0.6, 0, 1.0, false, frandom(0.85, 1.0));
+            pullTime = PULL_COOLDOWN;
+            handleShove(activator, pullFactor*0.5, -180, 0);
+        }
+    }
+
+
+    void doPullTime() {
+        if(pullTime)
+        {
+            pulltime--;
+            if(pullTime == 0)
+            {
+                bUseSpecial = true;
+                activationType = THINGSPEC_SWITCH;
+            }
+        }
+    }
+
+    override void Activate (Actor activator) {
+        wake();
+        shoveActor(activator);
+        sleepTimeout = 70;
+        idleTimeout = 70;
+        SetStateLabel("Active");
+	}
+
+	override void Deactivate (Actor deactivator) {
+        if(!deactivator)
+        {
+            return;
+        }
+        wake();
+        shoveActor(deactivator);
+        sleepTimeout = 70;
+        idleTimeout = 70;
+		SetStateLabel("Inactive");
+	}
+
+    states {
+        Moving:
+        Spawn:
+            VOXE L -1;
+            loop;
+        DisableInteraction:
+            TNT1 A 0 {
+                ActivationType = THINGSPEC_DEFAULT;
+                bUseSpecial = false;
+                setStateLabel("Spawn");
+            }
+        EnableInteraction:
+            TNT1 A 0 {
+                ActivationType = THINGSPEC_SWITCH;
+                bUseSpecial = true;
+                setStateLabel("Spawn");
+            }
+    }
+}

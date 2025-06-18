@@ -1,0 +1,155 @@
+#include "actors/effects/particles/SparkParticles.zsc"
+#include "actors/effects/particles/BloodParticles.zsc"
+#include "actors/effects/particles/OilParticles.zsc"
+#include "actors/effects/particles/PuffParticles.zsc"
+#include "actors/effects/particles/WoodParticles.zsc"
+#include "actors/effects/particles/PorcelainParticles.zsc"
+#include "actors/effects/particles/WaterParticles.zsc"
+#include "actors/effects/particles/DebrisParticles.zsc"
+#include "actors/effects/particles/PaintParticles.zsc"
+#include "actors/effects/particles/GrassParticles.zsc"
+#include "actors/effects/particles/PlasmaParticles.zsc"
+#include "actors/effects/particles/MetalParticles.zsc"
+#include "actors/effects/particles/GlassParticles.zsc"
+#include "actors/effects/particles/BoneParticles.zsc"
+#include "actors/effects/particles/PopcornParticles.zsc"
+#include "actors/effects/particles/ClothParticles.zsc"
+#include "actors/effects/particles/SteamParticles.zsc"
+#include "actors/effects/particles/PaperParticles.zsc"
+#include "actors/effects/particles/WatermelonParticles.zsc"
+#include "actors/effects/particles/FireParticles.zsc"
+
+mixin class ParticleDefinitionEmitter
+{
+    double particleDefinitionLifetimeModifier;
+
+    void EmitDefinition(class<ParticleDefinition> cls, float chance = 1.0, int numTries = 1, float angle = 0, float pitch = 0, float speed = 0, Vector3 offset = (0,0,0), Vector3 velocity = (0,0,0), int flags = 0, float scaleBoost = 0, int particleSpawnOffsets = 0, float additionalAngleScale = 0, float additionalAngleChance = 0)
+    {
+        ParticleDefinition.EmitNative(cls, self, chance, numTries, angle, pitch, speed, offset.x, offset.y, offset.z, velocity.x, velocity.y, velocity.z, flags, scaleBoost, particleSpawnOffsets, particleDefinitionLifetimeModifier, additionalAngleScale, additionalAngleChance);
+    }
+}
+
+
+class TestParticleDefinition : ParticleDefinition
+{
+    override void Init()
+    {
+        super.Init();
+
+        self.SetLife(128);
+        self.SetBaseScale(0.25);
+        //self.RandomRoll(90, 90);
+        self.DefaultRenderStyle = STYLE_NORMAL;
+        self.DefaultTexture = Texman.CheckForTexture("PAPEC0", TexMan.TYPE_ANY);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+
+    }
+}
+
+class TestParticleOld : SelacoActor
+{
+	override void PostBeginPlay() 
+    {
+        super.PostBeginPlay();
+
+        A_SPAWNITEMEX ("BulletImpactPuffSmoke", zofs: 48);
+
+        EmitDefinition('DebrisChunkParticleDefinition', 
+            chance: 0.75, 
+            numTries: 20,
+            pitch: -45,
+            offset: (0, 0, 48));
+    }
+
+    default
+    {
+        gravity 0;
+        +NOINTERACTION
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 1;
+            //PAPE C 128;
+            stop;
+    }
+}
+
+class ParticleTest : SelacoActor
+{
+    override void beginPlay()
+    {
+        super.BeginPlay();
+
+        A_SpawnDefinedParticle("BulletImpactPuffSmokeDefinition", zoff: 48);
+
+        EmitDefinition('DebrisChunkParticleDefinition', 
+            //chance: 0.75, 
+            numTries: 10000,
+            pitch: -45,
+            offset: (0, 0, 48));
+    }
+
+    default
+    {
+        gravity 0;
+        +NOINTERACTION
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 1;
+            stop;
+    }
+}
+
+class YellowFlareDefinition : ParticleDefinition {
+    override void Init() {
+        super.Init();
+        self.DefaultRenderStyle = STYLE_ADD;
+        self.SetDefaultParticleFlag(DPF_FULLBRIGHT);
+    }
+    
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.SetScale(0.1 + frandom(-0.03,0.06));
+        particle.InitLife(5);
+        particle.Texture = SelectRandomFrame("PGEX", "BC");
+    }
+}
+
+class YellowFlareSmallDefinition : ParticleDefinition {
+    override void Init() {
+        super.Init();
+        self.DefaultRenderStyle = STYLE_ADD;
+        self.SetDefaultParticleFlag(DPF_FULLBRIGHT);
+    }
+    
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.SetScale(0.04);
+        particle.InitLife(5);
+        particle.alpha = 0.6;
+        particle.Texture = SelectRandomFrame("PGEX", "BC");
+    }
+}
+
+
+class MaggotParticleDefinition : PurpleBloodParticleDefinition {
+	override void init() {
+        super.init();
+		self.SetGravity(0.25);
+        self.RandomScaleX(2,4);
+        self.RandomScaleY(2, 4);
+        self.RandomAngle(-80,80);
+		self.RandomSpeed(1 , 7);
+		self.RandomLife(8  ,14);
+	}	
+    
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.Texture = SelectRandomFrame("MAGG", "ABCDEFGHIJKLMNOPQR");
+    }
+}

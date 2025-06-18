@@ -1,0 +1,185 @@
+class ZOMBIE_TANK : Zombie_grunt
+{
+    const GROUND_STOMP_CHANCE = 5;
+	static const string regularDeathAnimations[] = {"ZOMBIE_TANK_DEATH_1"};
+    static const string shotgunDeathAnimations[] = {"ZOMBIE_TANK_DEATH_1"};
+    static const string headshotDeathAnimations[] = {"ZOMBIE_TANK_DEATH_1"};
+
+	override string GetDeadAnimation() {
+		return regularDeathAnimations[random(0,regularDeathAnimations.size()-1)];
+	}
+
+	override string GetShotgunDeathAnimation() {
+		return shotgunDeathAnimations[random(0,shotgunDeathAnimations.size()-1)];
+	}
+
+	override string GetHeadshotDeadAnimation() {
+		return headshotDeathAnimations[random(0,headshotDeathAnimations.size()-1)];
+	}
+
+    // Execute attack when within melee distance
+    void A_HeavyClawAttack(int damageAmount = 0)
+        {   
+            if(!damageAmount)
+            {
+                damageAmount = damage;
+            }
+            FTranslatedLineTarget t;
+            bool allowHit = true;
+            if (target)
+            {
+                int targetHealth = target.health;
+                A_FaceTarget(max_pitch:0);
+                double ang = angle;
+                double slope = AimLineAttack(ang, 25);
+                ang  += Random2[PosAttack]() * (22.5/256);
+                LineAttack(ang, 90, slope, damageAmount, "Treeclaw", null, 0, t);
+
+                // Play hurt sound if health decreases
+                if(t.lineTarget && targetHealth > t.lineTarget.health)
+                {
+                    t.lineTarget.VelFromAngle(35, angle);
+                    t.lineTarget.A_ChangeVelocity(0,0,4);
+                    t.lineTarget.A_playsound("zombie/meleehit", CHAN_AUTO, pitch:0.6);
+                }
+            }
+        }
+
+    default
+    {
+        tag "$CHARACTER_ZOMBIE";
+        SelacoEnemy.role "$ROLE_TANK";
+        +NOPAIN;
+        Zombie_Grunt.shockSprite "BTSH";
+        SelacoEnemy.randomizerSpawnChance 15;
+        painchance 0;
+        damage 35;
+        health 650;
+        height 75;
+        radius 28;
+        speed 5;
+        scale 0.44;
+		yscale 0.34;
+    }
+
+    states
+    {
+        indexer:
+        Spawn:
+            TNT1 A 0;
+            BTSH A 0;
+            BTID ABCDEFGGFEDCBA 4 A_LOOK();
+            loop;
+        See:    
+            TNT1 A 0
+            {
+                bxFlip = false;
+                hasSpawned = true;
+                lostTargetCounter = 0;
+            }
+        Pain:
+        BeginChasing:
+        See_Continue:
+            BTRU AAAAAABBBBBBCCCCCCDDDDDD 1 {
+                if(!isTargetVisible()) {
+                    // Go to tracking mode once we've not seen the player for a bit
+                    if(++lostTargetCounter > 35) {
+                        lostTargetCounter = 0;
+                        SetStateLabel("TrackPlayer");
+                        return;
+                    }
+                }
+                A_CHASE("Melee", null);
+            }
+            TNT1 A 0
+            {
+                doFootstep(FSF_ZOMBIESTEP | FSF_SCRIPTEDFOOTSTEP);
+            }
+            BTRU AAAAAABBBBBBCCCCCCDDDDDD 1 {
+                if(!isTargetVisible()) {
+                    // Go to tracking mode once we've not seen the player for a bit
+                    if(++lostTargetCounter > 35) {
+                        lostTargetCounter = 0;
+                        SetStateLabel("TrackPlayer");
+                        return;
+                    }
+                }
+                A_CHASE("Melee", null);
+            }
+            TNT1 A 0
+            {
+                if(!targetWithinPathfindingThreshold())
+                {
+                    lostTargetCounter = 0;
+                    SetStateLabel("TrackPlayer");
+                    return;
+                }
+                doFootstep(FSF_ZOMBIESTEP | FSF_SCRIPTEDFOOTSTEP);
+                if(target && random(0,100) <= GROUND_STOMP_CHANCE)
+                {
+                    int distance = distance2D(target);
+                    if(target && distance <= 350 &&  distance >= 100)
+                    {
+                        setStateLabel("GroundStomp");
+                    }
+                }
+            }
+            loop;
+
+        Melee2:
+        Melee1:
+            TNT1 A 0
+            {
+                A_PLAYSOUND("ZOMBIE/EVADE", CHAN_VOICE, 0.75);
+            }
+            BTME ABCD 2;
+            BTME E 3 A_PLAYSOUND("zombie/swing", CHAN_6, 0.4);
+            BTME FG 2;
+            BTME A 0 A_HeavyClawAttack();
+            BTME HIJKLMNOP 3;
+            goto See_Continue;
+
+        GroundStomp:
+            BTPO ABCDEFGHIJ 3;
+            TNT1 A 0 A_SPAWNITEMEX("ExplosionWithLotsOfSparks");
+            TNT1 A 0 A_EXPLODE(10,400, damageType:"ExplosiveImpact");
+            BTPO LMMNOPQRSTUVWXY 3;
+            goto see_Continue;
+
+        TrackPlayer:
+            BTRU A 1;
+        TrackPlayerLoop:
+            BTRU AAAAAABBBBBBCCCCCCDDDDDD 1 {
+                pathFind();
+            }
+            TNT1 A 0
+            {
+                doFootstep(FSF_ZOMBIESTEP | FSF_SCRIPTEDFOOTSTEP);
+            }
+            BTRU AAAAAABBBBBBCCCCCCDDDDDD 1 {
+                pathFind();
+
+            }
+            TNT1 A 0
+            {
+                doFootstep(FSF_ZOMBIESTEP | FSF_SCRIPTEDFOOTSTEP);
+            }
+            loop;
+
+        // When we lose track of the player we might need a half second to build the path
+        BuildPathIdle:
+			// This frame prevents an infinite loop if an enemy goes to idle and then builds a path in a single tick
+			// Remove it if you dare.
+			BTID A 1;
+			BTID AAABBBCCEEEDDCCCBBB 1
+			{
+				if(A_TRACK() != TRACK_BuildingPath) {
+					SetStateLabel("TrackPlayer");
+					return;
+				}
+			}
+			Loop;
+
+
+    }
+}

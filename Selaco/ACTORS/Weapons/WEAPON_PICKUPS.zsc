@@ -1,0 +1,598 @@
+extend class SelacoWeapon {
+	int pickupRarity;	// Store the rarity of the last version of weapon you picked up
+}
+
+
+class WeaponPickup : FlaredPickup {
+	int weaponID;	
+	const particleEffects = 250; // Cute little particles after picking up a weapon.
+
+	string weaponName, weaponGraphic;
+	int minAmmoAmount, maxAmmoAmount;
+	int pdaEntry, pdaSection;
+	bool randomized;
+	int weaponDespawnTimer;
+	int tossTime;
+
+	// Contains initialized weapon traits, that will be attached to the newly picked up weapon
+	// on pickup
+	Array<WeaponTrait> traits;	
+	WeaponStats baseStats;
+
+	string cleanTag;
+	bool noSpinning;
+	property weaponAmmoAmount   : minAmmoAmount, maxAmmoAmount;
+	property weaponID 			: weaponid;
+	property WeaponName 		: weaponName;
+	property WeaponGraphic 		: weaponGraphic;
+	property PDAItem			: pdaSection, pdaEntry;
+
+	flagdef RandomizerWasDropped  : sItemFlags, 30;		// Was picked up once and dropped by player in Randomizer mode
+
+	void applyRandomizerWeaponStats()
+	{
+		if(baseStats && !scarcityWipe) return;
+
+		// Create a stats object and attach it to ourselves
+		baseStats = WeaponStats(GiveInventoryType('WeaponStats'));
+		if(baseStats) baseStats.rollStats(rarityID, weaponName);
+	}
+
+	void addRandomTraits() {
+		if(rarityID < RARITY_RARE) return;	// Don't add traits to lame items
+		if(traits.size()) return;	// If we already have traits, fuggit
+		
+		Array< class<WeaponTrait> > traitClasses;
+		
+		// Find all possible trait classes
+		for(int x = 0; x < AllClasses.Size(); x++) {
+			if( AllClasses[x] is 'WeaponTrait' && AllClasses[x] != 'WeaponTrait' && (rarityID > RARITY_RARE || GetDefaultByType((class<WeaponTrait>)(AllClasses[x])).bAllowInRareTable) && !(randomizer_immersiveMode && GetDefaultByType((class<WeaponTrait>)(AllClasses[x])).bDumbTrait)) {
+				traitClasses.push((class<WeaponTrait>)(AllClasses[x]));
+			}
+		}
+
+		console.printf("\c[green]Randomizer...\c- Added %d Weapon Traits", traitClasses.size());
+
+		int numTraits = MIN( rarityID > RARITY_RARE ? random(1, rarityID > RARITY_EPIC ? 4 : 2) : 1, 
+							 traitClasses.size()
+						);
+		
+		// Generate some traits
+		for(int x = 0; x < numTraits; x++) {
+			int traitIDX = random(0, traitClasses.size() - 1);
+			class<WeaponTrait> traitClass = traitClasses[traitIDX];
+			traitClasses.delete(traitIDX);	// Don't pick the same trait twice
+
+			let trait = WeaponTrait(GiveInventoryType(traitClass));
+			trait.rollStats(rarityID, weaponName);
+			traits.push(trait);
+		}
+	}
+
+	override void tick()
+	{
+		super.tick();
+		doRandomizerStuff();
+	}
+
+	void doRandomizerStuff()
+	{
+		if(randomized)
+		{
+			if(!noSpinning) {
+				A_SETANGLE(angle+3);
+			}
+			if(weaponDespawnTimer > 0)
+			{
+				//handleTimedDespawn();
+			}
+		}
+	}
+
+	void handleTimedDespawn() {
+		weaponDespawnTimer--;
+		if(weaponDespawnTimer == 1)
+		{
+			destroy();
+		}
+	}
+
+	override void postbeginPlay()
+	{
+		if(scarcityWipe) {
+			destroy();
+			return;
+		}
+
+		if(randomizer_immersiveMode) {
+			noSpinning = true;
+			WorldOffset = (0,0, 4);
+		}
+
+		super.postBeginPlay();
+		cleanTag = getTag();
+		pickupCount = random(minAmmoAmount, maxAmmoAmount);
+
+        if(randomizer && randomizer.hasRandomizer && randomizer.allowTieredWeapons && !bRandomizerWasDropped)
+        {
+			bPreventSleep = true;
+			randomizeWeapon();
+		}
+	}
+
+	// Since we don't pickup weapons by walking over them in Randomizer, run the associated special when
+	// you look at the weapon
+	override void playerLooked(int playerIndex, Vector3 hitPos) {
+        Super.playerLooked(playerIndex, hitPos);
+
+		// Run the script if it exists
+		if(randomizer && randomizer.hasRandomizer && randomizer.allowTieredWeapons) {
+			// Force special to run here if it hasn't already
+			if (special && players[playerIndex].mo) {
+				players[playerIndex].mo.A_CallSpecial(special, args[0], args[1], args[2], args[3], args[4]);
+				special = 0;
+			}
+		}
+    }
+
+	void randomizeWeapon()
+	{
+		// Get a Rarity;
+		if(!rarityID) {
+			rarityID = randomizer.assignActorRarity(1.2);
+		}
+
+		// Apply Rarity Stats
+		applyRandomizerWeaponStats();
+
+		// Add random traits
+		addRandomTraits();
+
+		// Update the tag to show new tags
+		createStatTag();
+
+		// Make the weapon float and spin!
+		bInterpolateAngles = true;
+
+		if(randomizer_immersiveMode) {
+			bNoGravity = false;
+			A_CHANGEVELOCITY(frandom(-1,1), frandom(-1,1), 0, CVF_RELATIVE);
+		} else {
+			A_SPAWNITEMEX("RarityEmblemFloor", flags:SXF_SETMASTER);
+		}
+
+		positionWeaponRandomizer();
+		randomized = true;
+	}
+
+	// Positions the weapon accordingly. E.g floating in circles or being stationary in immersive mode
+	void positionWeaponRandomizer() {
+		roll = 0;
+		pitch = 0;
+		setOrigin((pos.x,pos.y,floorz+32),false);
+
+		if(randomizer_immersiveMode){
+			A_SETSIZE(10,height);
+			WorldOffset = (0,0, 4);
+			pitch = 90;
+			// Because I badly fucked up. This is fixed in Chp2.
+			if(getClassName() == "NAILGUN_PICKUP") {
+				pitch = 0;
+				roll = 90;
+			}
+			angle = random(0,359);
+		}
+	}
+
+	void createStatTag()
+	{
+		string statLabel;
+		cleanTag = getTag();
+
+		SetTag(string.format("%s \c-%s", string.format("%s %s", getTag(), randomizer.getRarityLabel(rarityID)), statLabel));
+	}
+
+
+	virtual void createLookInfo() {
+		lookInfo = "";
+		Array<WeaponTrait> sorted;
+		for (int i = 0; i < traits.size(); ++i) {
+			bool added = false;
+			for(int x = 0; x < sorted.size(); x++) {
+				if(traits[i].effectChance < sorted[x].effectChance) {
+					added = true;
+					sorted.insert(x, traits[i]);
+					break;
+				}
+			}
+			if(!added) sorted.push(traits[i]);
+		}
+
+		traits.copy(sorted);
+
+		if(lookInfo == "") {
+			lookInfo = " ";	// Prevent building again
+		}
+	}
+
+
+	string lookInfo;
+	virtual string getExtraLookAtInfo() {
+		if(lookInfo == "") {
+			createLookInfo();
+		}
+
+		return lookInfo;
+	}
+
+
+	default {
+		+NOGRAVITY;
+		Inventory.PickupSound "ITEM/WPNFINDOLD";
+		WeaponPickup.weaponID 0;
+		WeaponPickup.WeaponGraphic "WPNICONE";
+		WeaponPickup.PDAItem -1, -1;
+		SelacoItem.RandomizerSpawnChance 100;
+		-SelacoItem.FlyAnimation;
+		-SelacoItem.DisplayAmountInTag;
+		friction 0.6;
+	}
+	
+	states {
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1;
+			loop;
+	}
+
+	// Allow to be picked up when the player doesn't have the weapon but may have full ammo
+	override bool CheckPickupLimit(Actor toucher) {
+        return Super.CheckPickupLimit(toucher) || toucher.countinv(weaponName) == 0 || (randomizer && randomizer.hasRandomizer);
+    }
+
+	bool shouldSwap(actor toucher)
+	{
+		if(toucher && toucher.countinv(weaponName) == 1 && randomizer && randomizer.allowTieredWeapons && randomizer.hasRandomizer) {
+			return true;
+		}
+		return false;
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		// Don't give ammo if this weapon has been tossed away by the player
+		if(bRandomizerWasDropped && (randomizer && randomizer.hasRandomizer && randomizer.allowTieredWeapons)) {
+			pickupCount = 0;
+		}
+
+		Super.DoPickupSpecial(toucher);
+	}
+
+
+	static void DebugSpawnPickup(Actor source, string args) {
+		Array<String> traits;
+		args.Split(traits, ":");
+		int rarityID = 0;
+
+		if(traits.size() < 1) {
+			Console.Printf("No class type! Cannot spawn.");
+			return;
+		}
+
+		class<WeaponPickup> pickupType = (class<WeaponPickup>)(traits[0]);
+
+		if(!pickupType) {
+			Console.Printf("Invalid Pickup Type! Cannot spawn.");
+			return;
+		}
+
+		if(traits.size() > 0) rarityID = traits[1].toInt(10);
+
+		let newPickup = WeaponPickup(Spawn(pickupType, source.pos + (0, 0, source.height / 2)));
+		if (newPickup != NULL) {
+			newPickup.bDropped = true;
+			newPickup.bNoGravity = false;
+			newPickup.vel = source.vel + SelacoActor.vecFromAngle(source.angle, source.pitch - 15, 10);
+			newPickup.bTossed = true;
+			newPickup.tossTime = level.totalTime;
+			newPickup.randomized = true;
+			newPickup.rarityID = rarityID;
+			newPickup.pickupCount = 0;
+			newPickup.bRandomizerWasDropped = true;
+
+			newPickup.A_SPAWNITEMEX("RarityEmblemFloor", flags:SXF_SETMASTER);
+			newPickup.A_SetSize(-1, GetDefaultByType(pickupType).height + 24);
+			newPickup.positionWeaponRandomizer();
+			newPickup.applyRandomizerWeaponStats();
+
+			for(int x = 2; x < traits.size(); x++) {
+				let traitClass = (class<WeaponTrait>)(traits[x]);
+
+				if(!traitClass) {
+					Console.Printf("Invalid Trait Type: %s", traits[x]);
+				} else {
+					Console.Printf("Adding Trait: %s", traitClass.getClassName());
+				}
+
+				let trait = WeaponTrait(newPickup.GiveInventoryType(traitClass));
+				trait.rollStats(rarityID, newPickup.weaponName);
+				newPickup.traits.push(trait);
+			}
+		}
+
+
+	}
+
+	override bool TryPickup (in out Actor toucher) {
+		if(level.totalTime - tossTime < 5) return false;	// Prevent some weird one-tick pickups
+
+		bool hadWeapon = toucher.countinv(weaponName) > 0;
+		bool tieredWeapons = randomizer && randomizer.hasRandomizer && randomizer.allowTieredWeapons;
+
+		if(!hadWeapon) pickupTag = "";	// Cancel ammo pickup notification if we are picking up the weapon for the first time
+
+		if (!hadWeapon || tieredWeapons) {
+			pickupSound = "ITEM/WPNFIND";
+			bALWAYSPICKUP = true;
+			
+			WeaponPickup newPickup;
+			
+			SelacoWeapon winv;
+
+			// If we already have one of these weapons, create a drop and move the traits and stats back to the new drop
+			if(hadWeapon && tieredWeapons) {
+				winv = SelacoWeapon(toucher.FindInventory(weaponName));
+				if(winv) {
+					double spawnz = toucher.height / 2;
+
+					newPickup = WeaponPickup(Spawn(getClass(), toucher.pos + (0, 0, spawnz)));
+					if (newPickup != NULL) {
+						newPickup.bDropped = true;
+						newPickup.bNoGravity = false;
+						newPickup.vel = toucher.vel + SelacoActor.vecFromAngle(toucher.angle, toucher.pitch - 15, 10);
+						newPickup.bTossed = true;
+						newPickup.tossTime = level.totalTime;
+						newPickup.randomized = true;
+						newPickup.rarityID = winv.pickupRarity;
+						newPickup.pickupCount = 0;
+						newPickup.bRandomizerWasDropped = true;
+
+						// The current clip goes back to reserve
+						if(winv.ammo2 && winv.ammo1) {
+							winv.ammo1.amount += winv.ammo2.amount;
+							winv.ammo2.amount = 0;
+							
+							// Try to force player to reload
+							// Don't force a reload if this weapon has the bottomless trait, or if the player has bottomless mutator
+							Dawn d = Dawn(toucher);
+							if((!d || !d.hasBottomLessMags) && countInv('BottomLessTrait') == 0)
+								toucher.GiveInventoryType('Reloading');
+						}
+
+						newPickup.A_SPAWNITEMEX("RarityEmblemFloor", flags:SXF_SETMASTER);
+						newPickup.A_SetSize(-1, GetDefaultByType(getClass()).height + 24);
+						newPickup.positionWeaponRandomizer();
+						if (newPickup.SpecialDropAction(toucher)) {
+							// The special action indicates that the item should not spawn
+							newPickup.Destroy();
+							newPickup = null;
+						}
+					}
+				}
+			} else {
+				toucher.A_GiveInventory(weaponName);
+				winv = SelacoWeapon(toucher.FindInventory(weaponName));			
+			}
+			
+			if(winv) {
+				winv.pickupRarity = rarityID;	// Store rarity for when this item is dropped again
+
+				// Strip traits
+				if(newPickup) {
+					winv.moveTraits(newPickup);
+					winv.moveStats(newPickup);
+				} else {
+					winv.destroyTraits();
+					winv.destroyStats();
+				}
+
+				// Now move traits over and activate them
+				for(int x = 0; x < traits.size(); x++) {
+					traits[x].DetachFromOwner();
+					toucher.AddInventory(traits[x]);
+					winv.addUpgrade(traits[x]);
+				}
+				
+				traits.clear();
+
+				// Reset base stats
+				if(baseStats) {
+					baseStats.DetachFromOwner();
+					toucher.AddInventory(baseStats);
+					winv.addUpgrade(baseStats);
+					baseStats = null;
+				}
+			}
+
+			if(self is "MarksmanRifle_pickup")
+			{
+				TutorialHandler.TutorialMessage("TUT_BIPOD", 1);
+			}
+			for(int i = 0; i <=particleEffects;i++) 
+			{
+				toucher.A_SpawnParticle("#3399ff", SPF_FULLBRIGHT, 20, 3, frandom(0,360), frandom(-90,90), frandom(-90,90), frandom(20,40), frandom(-5,5), frandom(-5,5), frandom(-2,4));
+			}
+
+			//ACS_NamedExecute("CheckNewWeapon", 0, weaponID);
+			// Send weapon notification to show new pickup
+			Notification.QueueNew('WeaponNotification', "$WEAPON_NEW", getTag(), weaponGraphic,  slot: NotificationItem.SLOT_TOP_MID);
+
+			// Switch to weapon
+			// Don't switch if set in config, but always switch if the player has no weapon
+			let cv = CVar.GetCVar("neverswitchonpickup", toucher.player);
+			if((toucher.player && !toucher.player.readyWeapon) || ( !cv || cv.GetInt() <= 0 )) {
+				ScriptUtil.SetWeapon(toucher, weaponName);
+			}
+
+			// Give PDA entry for this weapon
+			let pp = PlayerPawn(toucher);
+			if(pp && pdaSection >= 0 && pdaEntry >= 0) {
+				PDAManager.AddEntry(pp, pdaSection, pdaEntry);
+			}
+		}
+       
+	   	return Super.TryPickup(toucher);
+	}
+}
+
+class ROARINGCRICKET_PICKUP : WeaponPickup {
+	default {
+		SelacoItem.pickupType "PistolReserve";
+		WeaponPickup.weaponAmmoAmount 1, 9;
+		WeaponPickup.WeaponName "RoaringCricket";
+		WeaponPickup.weaponID 2;
+		WeaponPickup.WeaponGraphic "WPNICON2";
+		WeaponPickup.PDAItem 31, 3;
+		tag "$WEAPON_ROARINGCRICKET";
+		SelacoItem.pickupIcon "P_ROAR";
+		SelacoItem.pickupTag "$PICKUPTAG_MAGNUM";
+	}
+}
+
+class GRENADELAUNCHER_PICKUP : WeaponPickup {
+	default {
+		SelacoItem.RandomizerSpawnChance 35;
+		WeaponPickup.weaponAmmoAmount 1, 5;
+		Selacoitem.pickupType "GLFragReserve";
+		SelacoItem.pickupIcon "P_GRENA4";
+		SelacoItem.pickupTag "$PICKUPTAG_FRAGSHELL";
+		WeaponPickup.WeaponGraphic "WPNICON9";
+		WeaponPickup.WeaponName "GrenadeLauncher";
+		WeaponPickup.PDAItem 31, 9;
+		tag "$WEAPON_GRENADELAUNCHER";
+		WeaponPickup.weaponID 6;
+	}
+}
+
+
+class SHOTGUN_PICKUP : WeaponPickup {
+	default {
+		WeaponPickup.weaponAmmoAmount 1, 6;
+		Selacoitem.pickupType "ShotgunReserve";
+		WeaponPickup.WeaponName "Shot_gun";
+		WeaponPickup.WeaponGraphic "WPNICON3";
+		WeaponPickup.PDAItem 31, 4;
+		SelacoItem.pickupIcon "P_SHOT";
+		SelacoItem.pickupTag "$PICKUPTAG_SHELLS";
+		tag "$WEAPON_SHOTGUN";
+		WeaponPickup.weaponID 3;
+	}
+}
+
+class RIFLE_PICKUP : WeaponPickup {
+	default {
+		SelacoItem.RandomizerSpawnChance 0;
+		WeaponPickup.weaponAmmoAmount 10, 30;
+		Selacoitem.pickupType "RifleReserve";
+		SelacoItem.pickupIcon "P_SROUND";
+		SelacoItem.pickupTag "$PICKUPTAG_ROUNDS";
+		WeaponPickup.WeaponName "Rifle";
+		WeaponPickup.weaponID 4;
+		WeaponPickup.WeaponGraphic "WPNICON4";
+		WeaponPickup.PDAItem 31, 2;
+		tag "$WEAPON_ASSAULTRIFLE";
+	}
+}
+
+// Fixes the offset problem. Always use this one from now on :facepalm:
+class RIFLE_PICKUPv2 : RIFLE_PICKUP
+{
+	default
+	{
+		SelacoItem.RandomizerSpawnChance 100;
+	}
+}
+
+class RIFLE_PICKUP_STATIONARY : RIFLE_PICKUP {
+	default {
+		SelacoItem.randomizerSpawnChance 0;
+		WeaponPickup.WeaponName "Rifle";
+		+NOGRAVITY
+		Scale 0.6;
+	}
+}
+
+class SMG_PICKUP : WeaponPickup {
+	default {
+		WeaponPickup.weaponAmmoAmount 10,30;
+		Selacoitem.pickupType "RifleReserve";
+		WeaponPickup.WeaponName "smg";
+		WeaponPickup.WeaponGraphic "WPNICON8";
+		WeaponPickup.PDAItem 31, 6;
+		inventory.maxamount 2;
+		SelacoItem.pickupIcon "P_SROUND";
+		SelacoItem.pickupTag "$PICKUPTAG_ROUNDS";
+		tag "$WEAPON_SMG";
+		WeaponPickup.weaponID 5;
+	}
+}
+
+class PLASMARIFLE_PICKUP : WeaponPickup {
+	default {
+		SelacoItem.RandomizerSpawnChance 20;
+		WeaponPickup.weaponAmmoAmount 15,20;
+		Selacoitem.pickupType "PlasmaReserve";
+		SelacoItem.pickupIcon "P_PLASMA";
+		SelacoItem.pickupTag "$PICKUPTAG_PLASMAAMMO";
+		WeaponPickup.WeaponName "PlasmaRifle";
+		WeaponPickup.WeaponGraphic "WPNICON5";
+		WeaponPickup.PDAItem 31, 8;
+		tag "$WEAPON_PLASMARIFLE";
+		WeaponPickup.weaponID 9;
+	}
+}
+
+class NAILGUN_PICKUP : WeaponPickup {
+	default {
+		SelacoItem.RandomizerSpawnChance 25;
+		WeaponPickup.weaponAmmoAmount 10,50;
+		Selacoitem.pickupType "NailgunReserve";
+		SelacoItem.pickupIcon "p_nails";
+		SelacoItem.pickupTag "$PICKUP_NAILGUN";
+		WeaponPickup.WeaponName "Nailgun";
+		WeaponPickup.WeaponGraphic "WPNICON6";
+		WeaponPickup.PDAItem 31, 10;
+		tag "$WEAPON_NAILGUN";
+		WeaponPickup.weaponID 7;
+	}
+}
+
+class RAILGUN_PICKUP : WeaponPickup {
+	default {
+		SelacoItem.RandomizerSpawnChance 2;
+		WeaponPickup.weaponAmmoAmount 2, 8;
+		Selacoitem.pickupType "RailgunAmmo";
+		SelacoItem.pickupIcon "P_RAIL";
+		SelacoItem.pickupTag "$PICKUPTAG_SLUGS";
+		WeaponPickup.WeaponName "rail_gun";
+		WeaponPickup.WeaponGraphic "WPNICON7";
+		WeaponPickup.PDAItem 31, 14;
+		tag "$WEAPON_RAILGUN";
+		WeaponPickup.weaponID 8;
+	}
+}
+
+class MARKSMANRIFLE_PICKUP : WeaponPickup {
+	default {
+		SelacoItem.RandomizerSpawnChance 25;
+		WeaponPickup.weaponAmmoAmount 2,8;
+		SelacoItem.pickupIcon "P_DMR";
+		SelacoItem.pickupTag "$PICKUPTAG_DMRAMMO";
+		SelacoItem.pickupType "MarksmanRifleReserve";
+		Selacoitem.pickupType "MarksmanRifleReserve";
+		WeaponPickup.WeaponName "DMR";
+		WeaponPickup.WeaponGraphic "WPNICO10";
+		WeaponPickup.PDAItem 31, 11;
+		tag "$WEAPON_MARKSMANRIFLE";
+		WeaponPickup.weaponID 10;
+	}
+}

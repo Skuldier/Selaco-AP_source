@@ -1,0 +1,1217 @@
+
+class VACBOT_PART : actor
+{
+	default
+	{
+		+NOINTERACTION;
+		+NOGRAVITY
+		+DONTTHRUST
+		scale 0.4;
+	}
+}
+
+class VAC_BOT : Interactable {
+	int recentlySeenDawn;
+	Array<Actor> junkList;
+
+	mixin Pathfinding;
+	private int vacBotFlags;
+	flagdef DoesCleaning : vacBotFlags, 1;
+	flagdef ChaseMonsters : vacBotFlags, 2;
+	int stateLoops;
+	int currentEmotionID;
+
+	VACBOTEmotionSystem emotionControls;
+	actor mountedObject;
+	actor previousTarget;
+
+	bool hasGoreTask; // Show a sad face when gore is on the menu :S
+	bool isFrightened;
+	int painFrightenCooldown;
+	int oldSpeed;
+	int timeSpendAlone; // Keep track of how long the VAC-BOT has not seen the player.
+    
+
+	const particleEffects = 70;
+
+    default {
+		+USESPECIAL;
+		-SOLID;
+		+InterpolateAngles
+		+NOBLOODDECALS;
+		+friendly;
+		//+Pathfinding.DistanceBasedPathfinding;
+		+SelacoActor.DebugMode
+		+SelacoActor.AllowGravitymanipulation
+		+SelacoActor.TravelAllowed;
+		-VAC_BOT.ChaseMonsters;
+		+VAC_BOT.DoesCleaning;
+		+Shootable;
+		tag "$OBJECT_VACBOT";
+		SelacoActor.UseTag "$INTERACT_PET";
+        Health 45;
+        scale 1.0;
+        radius 13;
+        height 10;
+		PainChance 255;
+		Activation THINGSPEC_Switch;
+		damageFactor "shock", 0;
+		mass 400;
+        speed 2;
+        MaxStepHeight 23;
+        Gravity 0.8;
+        MaxDropOffHeight 12;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+		PainSound "impact/hardmetal";
+		SELACOACTOR.SleepDistance 0;	// Don't sleep the VACBOT!
+		+SELACOACTOR.PreventSleep;
+		-SelacoActor.SleepWhenIdle;
+		PainThreshold 3;
+		LineBlockBits (LINEBITS_VACBOT);
+    }
+
+	enum DISTANCE_TYPES {
+        CHK_CLOSEST,
+        CHK_FURTHEST,
+    }
+
+	array<actor> vacBotParts;
+
+	override void PostBeginPlay() {
+		super.postbeginPlay();
+		initPathing();
+		lookForObjectToMount();
+		timeSpendAlone = -1;
+		// Spawn the Emotion System
+		if(getClassName() != "VACBOT_Recharging")
+		{
+			bool succ;
+			Actor emotionSystem;
+			[succ, emotionSystem] = A_SPAWNITEMEX("VACBOTEmotionSystem", 0, 0, 1, 0, 0, 0, 0, SXF_SETMASTER);
+			emotionControls = VACBOTEmotionSystem(emotionSystem);
+			// Spawn other parts to make it a fully functional VAC-BOT
+			actor childActor;
+
+			[succ, childActor] = A_SPAWNITEMEX("VACBOT_Brush_1", 0, 0, 1, 0, 0, 0, 0, SXF_SETMASTER);
+			vacBotParts.push(childActor);
+			[succ, childActor] =  A_SPAWNITEMEX("VACBOT_Brush_2", 0, 0, 1, 0, 0, 0, 0, SXF_SETMASTER);
+			vacBotParts.push(childActor);
+			[succ, childActor] =  A_SPAWNITEMEX("VACBOT_LED", 0, 0, 1, 0, 0, 0, 0, SXF_SETMASTER);
+			if(emotionControls)
+			{
+				emotionControls.pairedLED = childActor;
+			}
+			vacBotParts.push(childActor);
+			if(emotionControls) vacBotParts.push(emotionControls);
+		}
+	}
+
+	override void tick() {
+		super.tick();
+		speed = 2;
+		handleMountedObject();
+		handlePainFrightenCooldown();
+		handleCleaning();
+		if(bChaseMonsters && target)
+		{
+			speed = 4;
+		}
+	}
+
+	override void prepareForTravel(DawnLevelTransitioner trans) {
+        Super.prepareForTravel(trans);
+
+		// emotionControls and LED will be in the vacbotParts array
+		for(int x = 0; x < vacBotParts.size(); x++) {
+			prepareAttachedForTravel(vacBotParts[x]);
+		}
+
+		if(mountedObject) {
+			let sa = SelacoActor(mountedObject);
+			if(sa) {
+				if(!sa.bTravelAllowed) {
+					dropMountedObject();
+				} else if(!sa.preparedForTravel) sa.prepareForTravel(trans);
+			} else {
+				prepareAttachedForTravel(mountedObject);
+			}
+		}
+    }
+
+	override void finishedTravel(PlayerPawn newPP, DawnLevelTransitioner transitioner) {
+        Super.finishedTravel(newPP, transitioner);
+
+		// emotionControls and LED will be in the vacbotParts array
+		for(int x = 0; x < vacBotParts.size(); x++) {
+			restoreAttachedFromTravel(vacBotParts[x]);
+		}
+
+		if(mountedObject) {
+			let sa = SelacoActor(mountedObject);
+			if(sa) {
+				if(sa.preparedForTravel) sa.finishedTravel(newPP, transitioner);
+			} else {
+				restoreAttachedFromTravel(mountedObject);
+			}
+		}
+    }
+
+	void handlePainFrightenCooldown()
+	{
+		if(painFrightenCooldown)
+		{
+			speed = 3;
+			if(painFrightenCooldown == 1)
+			{
+				bFrightened = false;
+			}
+			painFrightenCooldown--;
+		}
+	}
+
+	void handleCleaning()
+	{
+		if(bDoesCleaning)
+		{
+			// 1. First we need to make sure the VAC-BOT has seen Dawn. This is priority #1!
+			if(!recentlySeenDawn && level.time % 10 == 0) {;
+
+				checkProximity("Dawn", 300, 1, CPXF_SETTARGET | CPXF_CLOSEST);
+			}
+
+			// 2. If Dawn is target, get close
+			if(target is "Dawn" && checkProximity("Dawn", 110, 1, CPXF_CHECKSIGHT) && !recentlySeenDawn) {
+				speed = 3;
+				recentlySeenDawn = 1;
+				A_PLAYSOUND("VACBOT/SEE", CHAN_AUTO, 0.5);
+				if(emotionControls) {
+					emotionControls.setEmotion("Emotion_love");
+				}
+				timeSpendAlone = 0;
+				setStateLabel("JumpHappy");
+			}
+
+			if(target is "dawn") {
+				speed = 3;
+			}
+
+			// 3. Player is greeted, we now search for trash once every so often
+			if(recentlySeenDawn && level.time % 30 == 0) {
+				scanForTrash(1500, CHK_CLOSEST);
+			}
+
+			//4. If the scan is successful, a target is found and will now be chased in order of disance.
+			eatTrash();
+
+			// Check for danger and flee
+			if(level.time % 35 == 0 && painFrightenCooldown <= 0) {
+				bool alreadyFrightened = bFRIGHTENED;
+				bFRIGHTENED = false;
+				ThinkerIterator it = ThinkerIterator.Create("SelacoEnemy");
+				SelacoEnemy enemy = SelacoEnemy(it.Next());
+				for (; enemy; enemy = SelacoEnemy(it.Next())) 
+				{
+					if (enemy.bIsmonster && enemy.lastHeard && Distance2DSquared(enemy) < 750*750 && skill != SKILL_SMF)
+					{
+						if(!alreadyFrightened)
+						{
+							A_PLAYSOUND("VACBOT/SCARE", CHAN_VOICE);
+						}
+						target = enemy;
+						break;
+					}
+				}
+			}
+			emotionController(); // Used to update the screen depending on the circumstance
+		}
+	}
+
+	void handleMountedObject()
+	{
+		if(mountedObject && !mountedObject.bNOBLOCKMAP)
+		{
+			mountedObject.vel = (0,0,0);
+			mountedObject.vel = mountedObject.vel;
+			mountedObject.Warp(self, -5, 0, height-3, 0, flags:WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+
+			// Remove actor from mounted object.
+			if(mountedObject is "pickupableDecoration" && pickupableDecoration(mountedObject).pickedUpOwner) 
+			{
+				mountedObject = null;
+			}
+		}
+	}
+
+	void enterMineMode()
+	{
+		target = null;
+        bDoesCleaning = false; // Selected VAC-BOT will no longer clean.
+        bChaseMonsters = true; // Selected VAC-BOT will go after monsters.
+		bFRIGHTENED = false;
+		junkList.clear();
+
+	}
+
+	void disengageMineMode()
+	{
+		bDoesCleaning = true;
+		bChaseMonsters = false;
+		speed = 2;
+	}
+
+	void lookForObjectToMount()
+	{
+		ThinkerIterator it = ThinkerIterator.Create("actor");
+
+		actor mountableObject = actor(it.Next());
+		for (; mountableObject; mountableObject = actor(it.Next())) 
+		{
+			if(mountableObject.bNoInteraction || Distance2DSquared(mountableObject) >= 5*5 || mountableObject == self || mountableObject is "Dawn")
+				continue;	
+			mountedObject = mountableObject;
+			break;
+		}
+	}
+
+	void eatTrash() 
+	{
+		if(target && recentlySeenDawn && !target.bisMonster && !(target is "Dawn")) 
+		{
+			speed = 2;
+			for(int x=0;x<junkList.size();x++) 
+			{
+				let targetActor = SelacoActor(junkList[x]);
+				if(targetActor && distance2DSquared(targetActor) < 25*25) 
+				{
+					// Actor might be sleeping, wake it up and prep it for cleaning
+					targetActor.wake();
+					targetActor.isCleaned = true;
+					targetActor.bPreventSleep = true;
+
+					// Effects
+					A_PLAYSOUND("VACBOT/CLEAN2", CHAN_AUTO, 0.15);
+					A_PLAYSOUND("VACBOT/REMOVETRASH", CHAN_AUTO, 0.06);
+					targetActor.A_SPAWNITEMEX("BodyImpactSmokeTiny",0,0,4);
+
+					// Fly trash towards VAC_BOT
+					targetActor.SetOrigin((pos.x, pos.y, pos.z), true);
+					for(int i = 0; i <=particleEffects;i++) 
+					{
+						targetActor.A_SpawnParticle("#3399ff", SPF_FULLBRIGHT, 20, 3, frandom(0,360), frandom(-5,5), frandom(-5,5), frandom(0,8), frandom(-0.5,0.5), frandom(-0.5,0.5), frandom(0,1));
+					}
+					//Remove actor from the list
+					junkList.delete(x);
+				}
+			}
+			// pick the closest one from our sorted list
+			if(junkList.size()>0)
+			{
+				target = junklist[junkList.size()-1];
+				if(target is "GoreSystem") {
+					hasGoreTask = true;
+				} else {
+					hasGoreTask = false;
+				}
+			}
+		}
+	}
+
+	override void die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		if(source is "Dawn") {
+			Stats.AddStat(STAT_VACBOTS_MURDERED, 1, 0);
+		}
+		removeAllParts();
+		dropMountedObject();
+
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+
+	void dropMountedObject() {
+		if(mountedObject && SelacoActor(mountedObject)) {
+			SelacoActor(mountedObject).ridingVACBOT = null;
+		}
+		mountedObject = null;
+	}
+
+
+	void removeAllParts()
+	{
+		for(int x=0;x<vacBotParts.size();x++)
+		{
+			if(vacBotParts[x])
+			{
+				vacBotParts[x].destroy();
+			}
+		}
+	}
+
+	float GetDistance(int x1, int x2, int y1, int y2) {
+		return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
+	}
+
+    int scanForTrash(double rad = 250, DISTANCE_TYPES distance = CHK_CLOSEST)
+    {
+		int oldAngle = angle;
+		target = null;
+		hasGoreTask = false;
+		// Create the iterator
+		ThinkerIterator it = ThinkerIterator.Create("SelacoActor");
+		SelacoActor currentJunk = SelacoActor(it.Next());
+		array<int> distances;
+		int junkAmount;
+		junkList.clear();
+        for (; currentJunk; currentJunk = SelacoActor(it.Next())) 
+		{
+			let currentJunkProps = SelacoActor(currentJunk);
+            if (!currentJunkProps || !currentJunkProps.bIsTrash || (currentJunkProps.pos.z >= pos.z + MAXSTEPHEIGHT-7) || (pos.z <= currentJunkProps.pos.z - 8))
+                continue;
+
+			// Now that everything is valid, check distance.
+			int junkDistance = distance2DSquared(currentJunkProps);
+			if(junkDistance > rad*rad)
+			{
+				continue;
+			} 
+            ++junkAmount;
+			A_FACE(currentJunk);
+			if(checkSight(currentJunk)) {
+				junkList.push(currentJunk);
+				distances.push(junkDistance);
+			}
+        }		
+		angle = oldAngle;
+		// Sort actors based on distance.
+		if(junkList.size() > 0) {
+			int i, j, temp1;
+			Actor temp2;
+			for(i=0;i<distances.size();i++) 
+			{
+				for(j=i+1;j<distances.size();j++) {
+					if(distances[i]<distances[j]) {
+						Actor selectedMo = junkList[i];
+						Actor selectedMo2 = junkList[j];
+
+						temp1 = distances[i];
+						temp2 = selectedMo;
+
+						distances[i]=distances[j];
+						junkList[i] = junkList[j];
+
+						distances[j]=temp1;
+						junkList[j] = temp2;
+					}
+				}
+			}
+
+			// Set target based on DISTANCE_TYPE parameter
+			if(junkList.size()>0) 
+			{
+				if(distance == CHK_CLOSEST) {
+					target = junkList[junkList.size()-1];
+					hasGoretask = false;
+					if(target is "GoreSystem") 
+					{
+						hasGoreTask = true;
+					}
+				}
+				if(junkList.size() == 0) {
+					hasGoreTask = false;
+				}
+				if(distance == CHK_FURTHEST) {
+					target = junkList[1];
+				}
+			}
+
+   		 return junkAmount;
+		}
+		return 0;
+    }
+
+	// Executes every tick.
+	const LONELYTHRESHOLD = 3200; // How long before loneliness kicks in?
+	void emotionController() {
+		bool foundEmotion = false;
+		//  If Dawn is close, hearteyes (ID 1)
+		if(emotionControls && bDoesCleaning) {
+			if(!hasGoreTask && recentlySeenDawn && checkProximity("Dawn", 110, 1) && !bFrightened) {
+				foundEmotion = true;
+				currentEmotionID = 1;
+				if(emotionControls) {
+					emotionControls.setEmotion("Emotion_love", 0);
+				}
+				// Refresh the lonelyness
+				timeSpendAlone = 1;
+			}
+
+
+			// ID 2
+			// Switch to a sad face after not being close to the player for too long :(
+			if(timeSpendAlone >= 0) {
+				timeSpendAlone++;
+				if(timeSpendAlone > LONELYTHRESHOLD) {
+					foundEmotion= true;
+					currentEmotionID = 2;
+					emotionControls.setEmotion("Emotion_Sad", 0);
+				}
+			}
+
+			if(bFRIGHTENED) {
+				foundEmotion = true;
+				speed = 3;
+				currentEmotionID = 3;
+				emotionControls.setEmotion("Emotion_Sad", 1);
+				// Look if there's shelter above the VAC-BOT.
+				FLineTraceData RemoteRay;
+				LineTrace(angle,60, -90,offsetz: height,offsetforward:-15, data: RemoteRay);
+				if (RemoteRay.HitType == TRACE_HitCeiling)	{
+					speed = 0;
+					setOrigin((pos.x, pos.y, pos.z), true);
+				}
+			}
+
+			if(hasGoreTask && !bFRIGHTENED) {
+				foundEmotion = true;
+				currentEmotionID = 4;
+				activationtype = THINGSPEC_Default;
+				// Slow down and shake a bit when driving towards gore
+				if((target) && target is "GoreSystem" && distance2DSquared(target) < 150*150) {
+					A_SetAngle(angle+frandom(-3,3));
+					speed = 1;
+				}
+				emotionControls.setEmotion("Emotion_Disgusted", 1);
+			}
+
+			// Everything OK? Go smiley!
+			if(!foundEmotion && !bFRIGHTENED) {
+				activationtype = THINGSPEC_Activate;
+				bUseSpecial = true;
+				currentEmotionID = 0;
+				emotionControls.setEmotion("Emotion_Happy_Looper", 1);
+			}
+		}
+	}
+
+	States {
+		Spawn: // Spawn the components
+			VOXE L 0;
+		DriveAround:
+			TNT1 A 0 A_PLAYSOUND("movers/chairride", CHAN_6, 0.3, 1);
+			TNT1 A 0 A_PLAYSOUND("VACBOT/VACUUM", CHAN_7, 1, 1, attenuation: 1.2);
+			VOXE L 1 {
+				if(bChaseMonsters)
+				{
+					A_LOOK();
+				}
+				if(target || bChaseMonsters) {
+					A_CHASE();
+				} else {
+					A_WANDER();
+				}
+			}
+			loop;
+		DriveForward:
+			VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 
+			{
+				A_CHANGEVELOCITY(2,0,0, CVF_REPLACE | CVF_RELATIVE);
+			}
+			goto DriveAround;
+		Pain:
+			TNT1 A 0 {
+				painFrightenCooldown = 350;
+				if(skill != SKILL_SMF)
+				{
+					bFRIGHTENED = true;
+				}
+				A_PLAYSOUND("VACBOT/SCARE", CHAN_VOICE);
+			}
+			goto DriveAround;
+		Death:
+			TNT1 A 0 {
+				removeAllParts();
+				A_PLAYSOUND("VACBOT/BOOM", CHAN_AUTO, 0.25);
+                for(int x=0;x<4;x++) {
+                    A_SpawnProjectile("circuitboardsmall", random(6,10), angle:random(0,360), CMF_TRACKOWNER | CMF_OFFSETPITCH, pitch:frandom(-80,-90));
+                }
+				//A_PLAYSOUND("VACBOT/DEATH", CHAN_AUTO, pitch:0.5);
+				A_Playsound("Destruction/explosion", CHAN_AUTO, 0.8, 0, 0.8);
+			}
+			TNT1 AAAAAA 2 A_SPAWNITEMEX("SmallExplosion", frandom(-5.2,5.2), frandom(-5.2, 5.2), frandom(1,15));
+			stop;
+		JumpHappy:
+			TNT1 A 0 {
+				A_PlaySound("VACBOT/love", CHAN_AUTO, 1.0);
+			}
+			VOXE L 5 A_FACETARGET;
+		JumpHappyLoops:
+			TNT1 A 0 {
+				previousTarget = target;
+				target = players[0].mo;
+				A_FACE(target);
+				stateLoops++;
+				if(stateLoops > 4) {
+					stateLoops = 0;
+					activationtype = THINGSPEC_Activate;
+					bUseSpecial = true;
+					setStateLabel("DriveAround");
+				}
+			}
+			TNT1 A 0 ThrustThingZ(0,20,0,1);
+			TNT1 A 0 A_PlaySound("VACBOT/jump", CHAN_AUTO, 0.3, 0, 0, false, frandom(0.9, 1.0));
+			VOXE LLLLL 1 A_SetAngle(angle + 4);
+			VOXE LLLLLLLLLL 1 A_SetAngle(angle - 4);
+			VOXE LLLLL 1 A_SetAngle(angle + 4);
+			TNT1 A 0 {
+				target = previousTarget;
+			}
+			loop;
+		Active:	
+			TNT1 A 0 {
+				timeSpendAlone = 1;
+				bUseSpecial = false;
+				Stats.AddStat(STAT_VACBOT_PET, 1, 0);
+				activationtype = THINGSPEC_Default;
+                if(skill == SKILL_SMF) {
+                    A_SPAWNITEMEX("KeypadShock", 0, 0, 10, 0, 0, 4);
+                }
+			}
+			TNT1 A 0 {
+				ACS_NamedExecute("VACHUGGING", 0);
+			}
+			goto JumpHappy;
+		ConvertToCombat:
+			TNT1 A 0 A_RemoveChildren(true, RMVF_MISC);
+			TNT1 A 0 { dropMountedObject(); }
+			TNT1 A 0 A_SpawnItemEx("Combat_Vacbot", tid:tid);
+			stop;
+		SilentRemove:
+			TNT1 A 0 A_RemoveChildren(true, RMVF_MISC);
+			TNT1 A 0 { dropMountedObject(); }
+			stop;
+    }
+}
+
+class VACBOT_PINNED : interactable
+{
+	bool objectiveGiven;
+	override void tick()
+	{
+		super.tick();
+		if(getClassName() == "VACBOT_PINNED" && !objectiveGiven && checkProximity("Dawn", 250, 1, CPXF_CHECKSIGHT))
+		{
+			objectiveGiven = true;
+			Objectives.AddObjective("", "$OBJECTIVE_06_03", "$OBJECTIVE_06_03A", 120, onlyInMap: true);
+			Objectives.AddObjective("", "$OBJECTIVE_06_03A", "$OBJECTIVE_06_03A", 121, 120, onlyInMap: true, notify: OBJECTIVE_NOTIFY_LIST);
+		}
+	}
+
+	default
+	{
+		tag "$OBJECT_VACBOT";
+		SelacoActor.UseTag "$ACT_RESCUE";
+		+USESPECIAL
+		+NOGRAVITY;
+		+DONTTHRUST;
+		+BUDDHA
+		+SOLID
+		radius 9;
+		height 15;
+		SelfLighting "454545";
+		SelacoActor.SleepDistance 1024;
+		Activation THINGSPEC_ACTIVATE;
+		scale 0.4;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			VOXE L random(100,140)
+			{
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 14, 0, 0, 1);
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 14, 0, 1, 1);
+				A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", 0, 0, 14);
+				A_SpawnProjectile ("SparkEmberUpward", 13, -5, random (0, 70), 2, random (0, 190));
+			}
+			loop;
+		Active:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+
+				A_PLAYSOUND("VACBOT/UNPLUG", CHAN_AUTO);
+				for(int i=0;i<3;i++)
+				{
+					A_SpawnProjectile ("SparkEmberUpward", frandom(5,10), -5, random (0, 70), 2, random (0, 190));
+				}
+			}
+			TNT1 A 0 A_SPAWNITEMEX("VACBOT_WOUNDED", 
+								5 ,0, 0, 
+								2, tid : self.TID);
+			TNT1 A 50
+			{
+				bNoInteraction = true;
+			}
+			TNT1 A 0
+			{
+				Objectives.CompleteObjective(121, OBJECTIVE_NOTIFY_LIST);
+			}
+			stop;
+	}
+}
+
+class VACBOT_WOUNDED : VACBOT_PINNED
+{
+	int objectiveDelay;
+	bool objectiveBGiven;
+	bool repaired;
+	override void tick()
+	{
+		super.tick();
+		if(objectiveBGiven && level.time % 5 == 0 && !repaired)
+		{
+			findScrewDriver();
+		}
+		objectiveDelay++;
+		if(objectiveDelay >= 75 && !objectiveBGiven)
+		{
+			objectiveBGiven = true;
+			Objectives.AddObjective("", "$OBJECTIVE_06_03B", "$OBJECTIVE_06_03B", 122, 120, onlyInMap: true, notify: OBJECTIVE_NOTIFY_LIST);
+		}
+	}
+
+	void findScrewDriver()
+	{
+        ThinkerIterator it = ThinkerIterator.Create("SCREWDRIVER");
+        ScrewDriver screwDriverActor = ScrewDriver(it.Next());
+        for (; screwDriverActor; screwDriverActor = ScrewDriver(it.Next())) 
+		{
+			if(distance2D(screwDriverActor) < 60)
+			{
+				screwDriverActor.destroy();
+				repaired = true;
+				setStateLabel("Repair");
+			}
+        }
+	}
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		SetTag(string.format("%s \c[darkgray](%s)", getTag(), stringTable.localize("$REQUIRES_SCREWDRIVER")));
+		//console.printf("tid: %i",self.TID);
+	}
+
+	default
+	{
+		SelacoActor.UseTag "$INTERACT_REPAIR";
+		tag "$OBJECT_VACBOT";
+		SelfLighting "454545";
+		-NOGRAVITY;
+		+SelacoActor.ThruPlayers;
+		Activation THINGSPEC_SWITCH;
+	}
+	states
+	{
+		Spawn:	
+			TNT1 A 0;
+			VOXE L random(100,140)
+			{
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 4, 0, 0, 1);
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 14, 0, 1, 1);
+				A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", 0, 0, 5);
+				A_SpawnProjectile ("SparkEmberUpward", 5, -5, random (0, 70), 2, random (0, 190));
+			}
+			loop;
+		Active:
+		Inactive:
+			goto Spawn;
+		Repair:
+			TNT1 A 0 A_SPAWNITEMEX("VAC_BOT", tid : self.TID);
+			TNT1 A 0 ACS_NamedExecute("RescueVacbot",0);
+			TNT1 A 0
+			{
+				A_PrintBold(string.format("\c[omniblue]%s", StringTable.Localize("$VACBOT_REPAIR")), 3.0, "SEL16FONT");
+				A_PLAYSOUND("VACBOT/UPGRADE", CHAN_AUTO, 0.9, 0, 0.9);
+			}
+			TNT1 A 15
+			{
+				bNoInteraction = true;
+			}
+			TNT1 A 40
+			{
+				Objectives.CompleteObjective(122, OBJECTIVE_NOTIFY_LIST);
+			}
+			TNT1 A 0
+			{
+				Objectives.CompleteObjective(120, OBJECTIVE_NOTIFY_LIST);
+			}
+			stop;
+	}
+}
+
+class Combat_VACBOT : PickupableDecoration {
+	  int shotsFired;
+	  int burstNum;
+	  int flashPosition;
+
+	Override Void BeginPlay() {
+		super.BeginPlay();
+		A_PLAYSOUND("VACBOT/UPGRADE", CHAN_AUTO, 0.6, 0, 0.9);
+	}
+
+	default {
+        tag "VAC-BOT";
+		SelacoActor.UseTag "$ACT_REPOSITION";
+        Health 90;
+        scale 0.4;
+        radius 18;
+        height 15;
+		PainChance 255;
+		mass 400;
+		+USESPECIAL;
+		-NOBLOOD;
+		+friendly;
+		+Shootable;
+		-BloodSplatter;
+		+NOBLOODDECALS;
+		+SelacoActor.ShowHealthOnPrompt;
+		+SelacoActor.TravelAllowed;
+		+SelacoActor.preventSleep;
+		+SelacoActor.ThruPlayers;
+		-SelacoActor.SleepWhenIdle;
+		+SelacoActor.ForceFlushable;
+		-PickupableDecoration.HoldFromBack
+		+PickupableDecoration.HoldFromFront
+		-PickupableDecoration.TranslucentPickup;
+        speed 3;
+        MaxStepHeight 18;
+        Gravity 0.8;
+        MaxDropOffHeight 6;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+		PainSound "impact/hardmetal";
+		SELACOACTOR.SleepDistance 0;	// Don't sleep the VACBOT!
+		PainThreshold 5;
+
+		LineBlockBits (LINEBITS_VACBOT | LINEBITS_PICKUPABLES);
+	}
+	states {
+		Spawn: 
+			TNT1 A 0;
+
+			// Drive around aimlessly. Improve this later
+		Drive:
+			TNT1 A 0 A_PLAYSOUND("movers/chairride", CHAN_6, 0.3, 1);
+			VOXE LLLLLLLLLLL 1 {
+				A_WANDER();
+			}
+			TNT1 A 0 {
+				A_Look2();
+			}
+			loop;
+		See:
+			VOXE L 1 
+			{
+				A_FACETARGET();
+			}
+		Missile:
+			TNT1 A 0 A_AlertMonsters;
+			//TNT1 A 0 A_CheckSight("See");
+			VOXE L 1 BRIGHT {
+				if(target && target.health <= 0)
+				{
+					target = null;
+				}
+				int burstNum;
+				int flashPosition;
+				invoker.burstNum++;
+				if (invoker.burstnum == 1) {invoker.flashPosition = -5;}
+				if (invoker.burstnum == 2) {invoker.flashPosition = 0;}
+				if (invoker.burstnum == 3) {invoker.flashPosition = 5; invoker.burstNum = 0;}
+				if(CheckSight(target)) {
+					A_FaceTarget();
+					//ACS_NamedExecuteWithResult("getLiveActorAngle", defaultRotation);
+					A_SpawnItemEx("RifleCaseSpawn",5,0,10,-4);
+					A_PlaySound("turret/ace/attack", CHAN_AUTO, 0.9, 0, 0.5, false);
+					A_SpawnItemEx("MarineMuzzle1", 25, invoker.flashPosition, 10);
+					A_SpawnItemEx("YellowFlareSpawn",0,0,35,0);
+					A_SpawnProjectile("HumanBulletTracer", 14, 0, 0, 0, 90);
+					A_RECOIL(1);
+				} else {
+					setStateLabel("Drive");
+				}
+			}
+			VOXE LLLL 1;
+			TNT1 A 0 {
+				if(getCvar("skill") != 5) {
+					setStateLabel("Missile");
+				}
+			}
+			VOXE LLL 1;
+			loop;
+		xdeath:
+		Death:
+			TNT1 A 0 A_SpawnItem("TurretExplosion");
+			TNT1 A 0 ACS_NamedExecuteAlways("Turret_Kill_ACHIEVEMENT");
+			TNT1 A 0 A_AlertMonsters();
+			TNT1 A 0 A_KillMaster;
+			SENT C 0 A_PlaySound("Sentry/destroyed", CHAN_AUTO);
+			TNT1 A 0 A_NoBlocking;
+			TNT1 A 0 {
+					bUseSpecial = false;
+			}
+			TNT1 A 0 A_SPawnItemEx("VAC_BOT");
+			TNT1 A 0 A_SpawnProjectile("Stacked_Sparks_lite", 32, 0, random(0,360));
+			TNT1 AAAAA 0 A_SpawnProjectile ("plasmaEmber", 48, 0, random (0, 360), 2, random (0, 360));
+			TNT1 AAA 0 A_SpawnProjectile ("BigplasmaEmber", 42, 0, random (0, 360), 2, random (0, 360));
+			stop;
+	}
+}
+
+class VACBOTEmotionSystem : actor {
+
+	actor pairedLED;
+
+	void setEmotion(StateLabel emotionLabel, int overrideEmotion = 0) {
+		if(!isEmoting || overrideEmotion == 1) {
+			setStateLabel(emotionLabel);
+		}
+	}
+
+	override void tick() {
+		super.tick();
+		A_Warp(AAPTR_MASTER, 3, 0, 5.5, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+	}
+
+	bool isEmoting;
+	bool enteredEmote;
+	default {
+		scale 0.4;
+		+NOINTERACTION;
+	}
+
+	States {
+			Spawn:
+		// Happy Cycle
+			Emotion_Happy:
+				TNT1 A 0 A_PlaySound("VACBOT/love", CHAN_5, 0.3);
+			Emotion_Happy_Looper:
+				TNT1 A 0 {
+					enteredEmote = false;
+					isEmoting = false;
+				}
+				VOXE C 1 bright;
+				loop;
+
+		// Love Cycle
+			Emotion_Love:
+				TNT1 A 0 A_PlaySound("VACBOT/emote", CHAN_5, 0.3);
+				TNT1 A 0 {
+					isEmoting = true;
+					if(pairedLED)
+					{
+						pairedLED.setStateLabel("Normal");
+					}
+				}
+			Emotion_Love_Looper:
+				VOXE E 1 bright;
+				TNT1 A 0 A_CheckRange(160, "endEmotionLove");
+				loop;
+			endEmotionLove:
+				TNT1 A 0 {
+					isEmoting = false;
+				}
+				VOXE E 10 bright;
+				TNT1 A 0 {
+					A_PlaySound("VACBOT/love", CHAN_5, 0.3);
+				}
+				goto Emotion_Happy;			
+			Emotion_Disgusted:
+				TNT1 A 0 {
+					if(pairedLED)
+					{
+						pairedLED.setStateLabel("Normal");
+					}
+					if(!enteredEmote) {
+						enteredEmote = true;
+						A_PlaySound("VACBOT/emote", CHAN_5, 0.3);
+					}
+				}
+			Emotion_Disgusted_Looper:
+				VOXE B 1 BRIGHT;
+				loop;
+			Emotion_Sad:
+				TNT1 A 0 {
+					if(!enteredEmote) {
+						enteredEmote = true;
+						A_PlaySound("VACBOT/emote", CHAN_5, 0.3);
+					}
+					if(pairedLED)
+					{
+						pairedLED.setStateLabel("Scared");
+					}
+				}
+			Emotion_Sad_Looper:
+				VOXE F 1 BRIGHT;
+				loop;
+			Pain:
+				TNT1 A 0;
+				stop;
+	}
+}
+
+class VACBOT_LED : Actor 
+{
+
+	override void tick()
+	{
+		super.tick();
+		if(master)
+		{
+			A_Warp(AAPTR_MASTER,1, 0, 2.2, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+		}
+	}
+
+	default
+		{
+		+NOGRAVITY
+		+THRUACTORS
+		+NOINTERACTION;
+		-shootable
+		scale 0.4;
+	}
+	States {
+		Spawn:
+		Normal:
+			VOXE A 1 bright;
+			loop;
+		Scared:
+			VOXE B 1 bright;
+			loop;
+		Charging:
+			VOXE C 1 bright;
+			loop;
+	}
+}
+
+// Scripted VAC-BOT, bumps against the wall until spotting the player.
+class VACBOTBumper : VAC_BOT
+{
+	default
+	{
+		-VAC_BOT.DoesCleaning;
+	}
+
+	override void PostBeginPlay()
+	{
+		super.postbeginPlay();
+		if(emotionControls)
+		{
+			emotionControls.SetStateLabel("Emotion_Sad");
+		}
+	}
+
+	states {
+		Spawn:
+			VOXE L 20;
+			TNT1 A 0 
+			{
+		 		A_PLAYSOUND("movers/chairride", CHAN_6, 0.3, 1);
+			}
+		GoDriveToWall:
+			VOXE L 7;
+		DriveToWall:
+			VOXE L 1 {
+				A_CHANGEVELOCITY(0.4,0,0, CVF_RELATIVE);
+				FLineTraceData RemoteRay;
+				LineTrace(angle,radius+4, 0,offsetz: height,offsetforward:0, data: RemoteRay);
+				if (RemoteRay.HitType == TRACE_HITWALL)	{
+					setStateLabel("GoBack");
+				}
+			}
+			loop;
+		GoBack:
+			VOXE L 1 {
+				A_CHANGEVELOCITY(-0.4, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+                EmitDefinition('ShortSparkParticleDefinition', 1.0, 15, angle:-180, pitch:-35, offset:(5, 0, 0));
+				A_PlaySound("VACBOT/VACBUMP", pitch:frandom(0.95,1.05));
+				A_SPAWNITEMEX("SmokeTrailPieceTight", 4, -3, 5);
+				A_SPAWNITEMEX("SmokeTrailPieceTight", 4, 3, 3);
+				A_SPAWNItemEx("MeleeImpactEffect", 10);
+			}
+			VOXE L 1 {
+				A_SETANGLE(angle+6);
+				A_CHANGEVELOCITY(0, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+			}
+			VOXE L 1 A_SETANGLE(angle-6);
+			VOXE L 1 A_SETANGLE(angle+6);
+			VOXE L 1 A_SETANGLE(angle-6);
+			VOXE L 5;
+			VOXE LLLLLLLLLLLLLLL 1 {
+				A_CHANGEVELOCITY(-0.4, 0, 0, CVF_RELATIVE);
+			}
+		GoBackWaitForStandstill:
+			VOXE L 1 {
+				if(vel.x == 0 && vel.y == 0) 
+				{
+					setStateLabel("GoDriveToWall");
+				}
+			}
+			loop;
+		// Turn into a regular good ol' VAC-BOT
+		Recover:
+			VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 {
+				A_CHANGEVELOCITY(0.3, 0, 0, CVF_RELATIVE);
+			}
+			VOXE L 1 {
+				bDoesCleaning = true;
+			}
+			VOXE LLLLLLLLLLLL 1 {
+				A_CHANGEVELOCITY(0.3, 0, 0, CVF_RELATIVE);
+			}
+			goto DriveAround;
+	}
+}
+
+class VACBOT_Recharging : VAC_BOT {
+
+
+	actor greenLED;
+	bool greenLEDsuccess;
+
+	actor chargingEmotion;
+	bool chargingEmotionSuccess;
+
+	default
+	{
+		-VAC_BOT.DoesCleaning;
+		+NOPAIN
+		+DONTTHRUST
+		SelacoActor.UseTag "$INTERACT_UNPLUG";
+		tag "$OBJECT_RECHARGINGVACBOT";
+	}
+	States 
+	{
+		Spawn: // Spawn the components
+			TNT1 A 0;
+			VACU A 0
+			{
+				A_PLAYSOUND("VACBOT/CHARGING", CHAN_5, 1.0, 1);
+				[greenLEDsuccess, greenLED] = A_SPAWNITEMEX("VACBOT_LED", 1, 0, 1, 0, 0, 0, 0, SXF_SETMASTER);
+				if(greenLED)
+				{
+					vacBotParts.push(greenLED);
+					greenLED.setStateLabel("Charging");
+				}
+				[chargingEmotionSuccess, chargingEmotion] = A_SPAWNITEMEX("VACBOTChargingScreen", 3, 0, 5.5, 0, 0, 0, 0, SXF_SETMASTER);
+				vacBotParts.push(chargingEmotion);
+			}
+		Looper:
+			VOXE L -1;
+			stop;
+		Active:
+		Inactive:
+			TNT1 A 0 A_SPAWNITEMEX("VAC_BOT");
+			TNT1 A 0 A_PLAYSOUND("VACBOT/UNPLUG", CHAN_AUTO);
+			TNT1 A 0
+			{
+				removeAllParts();
+			}
+			stop;
+	}
+}
+
+class VACBOT_Scared : VAC_BOT {
+
+	actor redLED;
+	bool redLEDSuccess;
+	int spawnAngle;
+	override void PostBeginPlay()
+	{
+		super.postbeginPlay();
+		if(emotionControls)
+		{
+			emotionControls.SetStateLabel("Emotion_Sad");
+		}
+		spawnAngle = angle;
+	} 
+
+	override void tick()
+	{
+		super.tick();
+		if(vel.length() > 1)
+		{
+			vel*=0.95;
+		}
+		speed = 2;
+	}
+
+	default
+	{
+		-VAC_BOT.DoesCleaning;
+		+NOPAIN
+		maxstepheight 2;
+		friction 0.7;
+		+DONTTHRUST
+		SelacoActor.UseTag "$ACT_REASSURE";
+		tag "$OBJECT_VACBOT";
+	}
+	States 
+	{
+		Spawn: // Spawn the components
+			TNT1 A 0;
+			VOXE L 1
+			{
+				A_PLAYSOUND("VACBOT/CHARGING", CHAN_5, 1.0, 1, 1.5, pitch:0.8);		
+			}
+		LooperScared:
+			VOXE L 1
+			{
+				A_SETANGLE(angle+random(-5,5));
+			}
+			VOXE L 1
+			{
+				angle = spawnAngle;
+			}
+			loop;
+		Active:
+		Inactive:
+			TNT1 A 0 A_PLAYSOUND("VACBOT/UNPLUG", CHAN_5);
+			TNT1 A 0
+			{
+				bDoesCleaning = true;
+			}
+			goto drivearound;
+	}
+}
+
+class VACBOTChargingScreen : VACBOT_PART {
+	override void tick() {
+		super.tick();
+		A_Warp(AAPTR_MASTER, 3, 0, 5.5, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+	}
+
+	states {
+	Spawn:
+		VOXE S -1 BRIGHT;
+		stop;
+	}	
+}
+
+class VACBOT_Brush_1 : VACBOT_PART {
+	States {
+		Spawn:
+			VOXE L 1 NoDelay bright {
+				A_Warp(AAPTR_TARGET, 7, 7, 0, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+			}
+			loop;
+	}
+}
+class VACBOT_Brush_2 : VACBOT_Brush_1 {
+	States {
+		Spawn:
+			VOXE L 1 NoDelay bright {
+				A_Warp(AAPTR_TARGET, 7, -7, 0, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+			}
+			loop;
+	}
+}

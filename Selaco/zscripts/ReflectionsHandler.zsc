@@ -1,0 +1,33 @@
+class ReflectionsHandler : EventHandler
+{
+    // Welcome to the worlds least interesting EventHandler. Enjoy your stay!
+    // If r_reflections is '1', only reflect walls. 
+    // If r_reflections is '2', reflect Walls and Floors.
+
+    const REFLECTIONS_CV = "r_reflections";
+    int reflectionsSetting;
+    int oldReflectionsSetting;
+
+    override void worldLoaded(WorldEvent e) 
+    {
+        handleReflections();
+    }
+
+    override void worldTick()
+    {
+        if(level.time % TICRATE == 0)
+        {
+            handleReflections();
+        }
+    }
+
+    void handleReflections()
+    {
+        reflectionsSetting = CVar.FindCVar(REFLECTIONS_CV).GetInt();
+        if (oldReflectionsSetting != reflectionsSetting)
+        {
+            ACS_NamedExecuteWithResult("CheckReflectionSetting", 0);
+            oldReflectionsSetting = reflectionsSetting;
+        }
+    }
+}

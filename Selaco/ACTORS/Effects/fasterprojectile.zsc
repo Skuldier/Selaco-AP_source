@@ -1,0 +1,305 @@
+// Custom logic for faster projectiles, since 
+class ProjectileTracer : LineTracer {
+    struct GlassHit {
+        int lineID, side;
+        Vector3 pos;
+    }
+
+    Actor source;   // Must point to the source projectile
+    Actor shooter;  // Ignore shooter as well as source
+    Array<Actor> ignored;
+    bool skipGlass;
+
+    GlassHit glass[10];
+    int glassCount;
+
+    // We are only looking for objects that should block node connections!
+    override ETraceStatus TraceCallback() {
+        // We are just looking for actors that we are allowed to pass through, as a projectile
+        if(Results.HitType == TRACE_HitActor) {
+            if(Results.HitActor) {
+                if(!Results.HitActor.bShootable || Results.HitActor == shooter || Results.HitActor == source) {
+                    return TRACE_Skip;
+                }
+
+                for(int x = ignored.size() - 1; x >= 0; x--) {
+                    if(Results.HitActor == ignored[x]) {
+                        return TRACE_Skip;
+                    }
+                }
+
+                return TRACE_Stop;
+            } else {
+                return TRACE_Skip;
+            }
+        }
+
+        if(Results.HitType == TRACE_HitWall && Results.Tier == TIER_Middle && !(Results.HitLine.flags & (Line.ML_BLOCKEVERYTHING | Line.ML_BLOCKPROJECTILE | Line.ML_BLOCKING))) {
+            /*if(Results.HitLine.special == 49) {
+                glass.push(Results.HitLine);
+                glassSides.push(Results.Side);
+            }*/
+            return TRACE_Skip;
+        }
+
+        // Skip glass if desired
+        if(skipGlass && glassCount < 10 && Results.HitType == TRACE_HitWall && Results.Tier == TIER_Middle && Results.HitLine.special == 49 && Results.HitLine.args[1] != 1) {
+            glass[glassCount].lineID = Results.HitLine.Index();
+            glass[glassCount].side = Results.Side;
+            glass[glassCount].pos = Results.HitPos;
+            glassCount++;
+            return TRACE_Skip;
+        }
+        return TRACE_Stop;
+	}
+}
+
+// @Cockatrice - Copied from FastProjectile, but they use hitscan instead of TryMove()
+// making them infinitely thin but more lightweight when traversing detailed areas
+class FasterProjectile : SelacoActor
+{
+    ProjectileTracer tracer;
+    private int projectileFlags;
+
+    meta int damageToGlass;
+    meta class<Actor> glassDamageDecal, glassPermanentDecal;
+    
+    flagdef AllowWaterSplashing  : projectileFlags, 2;
+    flagdef CollidesWithGlass    : projectileFlags, 3;
+
+    property DamageToGlass      : damageToGlass;
+    property GlassDamageDecal   : glassDamageDecal;
+    property GlassPermanentDecal : glassPermanentDecal;
+
+	Default
+	{
+		Projectile;
+		MissileHeight 0;
+        +FasterProjectile.AllowWaterSplashing;
+        -FasterProjectile.CollidesWithGlass;
+        FasterProjectile.DamageToGlass 80;
+        FasterProjectile.GlassDamageDecal "FishTankDecal";
+        FasterProjectile.GlassPermanentDecal "PermanentGlassDecal";
+	}
+	
+	
+	virtual void Effect() {
+		class<Actor> trail = MissileName;
+		
+        if (trail != null) {
+			double hitz = pos.z - 8;
+
+			if (hitz < floorz) {
+				hitz = floorz;
+			}
+
+			// Do not clip this offset to the floor.
+			hitz += MissileHeight;
+			
+			Actor act = Spawn (trail, (pos.xy, hitz), ALLOW_REPLACE);
+			if (act != null) {
+				if (bGetOwner && target != null)
+					act.target = target;
+				else
+					act.target = self;
+				
+				act.angle = angle;
+				act.pitch = pitch;
+			}
+		}
+	}
+	
+
+	override void Tick () {
+		ClearInterpolation();
+
+		if (isFrozen())
+			return;
+        
+		// @Cockatrice - Ripping is not implemented yet
+		// Handle movement
+		if (Vel != (0, 0, 0)) {
+			if (bMissile && Vel.X == 0 && Vel.Y == 0 && !IsZeroDamage()) {
+				VelFromAngle(MinVel);
+			}
+
+            // Do the first hitscan
+            let originPos = pos;
+            let dir = vel.unit();
+            let dist = vel.length();
+
+            if(!tracer) { 
+                tracer = new("ProjectileTracer");
+                tracer.source = self;
+                tracer.shooter = Target;
+            }
+
+            tracer.skipGlass = !bCollidesWithGlass;
+
+            bool hitSomething = tracer.trace(pos, CurSector, dir, dist, 0x0002 | 0x0004);
+            TraceResults hitResult = tracer.Results;
+            handleSplash(tracer.Results);
+            if(!handleGlass()) return;      // Don't continue if we have been deleted
+
+            if(!hitSomething) {
+                SetOrigin(pos + vel, true);
+            } else {
+                SetOrigin(hitResult.HitPos - (dir * (radius * 0.5)), true);
+
+                if(hitResult.HitType != TRACE_HitActor) {
+                    handleHit(hitResult);
+                    return;
+                } else {
+                    int msHit = 0;
+
+                    // Window shutters have special collision handling, check it here
+                    let shutter = ShutterWindow1(hitResult.HitActor);
+                    if(shutter) {
+                        if(!shutter.getLineAttackCol(Prev, vel.unit())) msHit = 1;
+                        else msHit = SpecialMissileHit(shutter);
+                    } else {
+                        msHit = SpecialMissileHit(hitResult.HitActor);
+                    }
+
+                    
+                    if(msHit == 0 || (hitResult.HitActor && !hitResult.HitActor.bShootable)) {
+                        Destroy();
+                        return;
+                    } else if(msHit != 1) {
+                        if(hitResult.HitActor) DoMissileDamage(hitResult.HitActor);
+                        ExplodeMissile (hitResult.HitLine, hitResult.HitActor);
+                        return;
+                    } else if(msHit == 1) {
+                        // Continue hitscanning forwards, skipping objects we must pass through until we hit a wall, valid actor or nothing
+                        while(true) {
+                            dist = dist - (originPos - pos).length();
+                            if(dist <= 0) break;
+                            tracer.ignored.push(hitResult.HitActor);    // Ignore the actor we just hit and move on
+                            bool hit = tracer.trace(pos, CurSector, dir, dist, 0);
+                            handleSplash(tracer.Results);
+
+                            if(hit) {
+                                if(hitResult.HitType != TRACE_HitActor) {
+                                    handleHit(hitResult);
+                                    return;
+                                }
+
+                                msHit = SpecialMissileHit(hitResult.HitActor);
+                                if(msHit == 0 || (hitResult.HitActor && !hitResult.HitActor.bShootable)) {
+                                    Destroy();
+                                    return;
+                                } else if(msHit != 1) {
+                                    DoMissileDamage(hitResult.HitActor);
+                                    ExplodeMissile (hitResult.HitLine, hitResult.HitActor);
+                                    return;
+                                }
+                                SetOrigin(hitResult.HitPos, true);
+                                originPos = hitResult.HitPos;
+                            } else {
+                                SetOrigin(pos + (dir * dist), true);   // Continue forwards
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            UpdateWaterLevel ();
+            CheckPortalTransition();
+            Effect();
+		}
+
+		if (!CheckNoDelay())
+			return;		// freed itself
+
+		// Advance the state
+		if (tics != -1)
+		{
+			if (tics > 0) tics--;
+			while (!tics)
+			{
+				if (!SetState (CurState.NextState))
+				{ // mobj was removed
+					return;
+				}
+			}
+		}
+	}
+
+
+    bool handleGlass() {
+        for(int x = 0; x < tracer.glassCount; x++) {
+            level.lines[tracer.glass[x].lineID].RemoteActivate(self, tracer.glass[x].side, SPAC_PCROSS, tracer.glass[x].pos);
+            if(!self || bDestroyed) return false;
+        }
+
+        tracer.glassCount = 0;
+
+        return true;
+    }
+
+    // @Cockatrice - Eventually projectiles will define their own splashes, but for now we'll use HitPuff to spawn splashes
+    void handleSplash(TraceResults hitResult) {
+        if(!bAllowWaterSplashing) return;
+
+        if(hitResult.CrossedWater) {
+            let puff = SpawnPuff("HitPuff", hitResult.CrossedWaterPos, angle, angle, 2, PF_TEMPORARY, null);
+            puff.PuffSplash(hitResult.CrossedWaterPos, vel.unit(), hitResult.CrossedWater, null);
+            puff.Destroy();
+        } else if(hitResult.Crossed3DWater) {
+            let puff = SpawnPuff("HitPuff", hitResult.Crossed3DWaterPos, angle, angle, 2, PF_TEMPORARY, null);
+            puff.PuffSplash(hitResult.Crossed3DWaterPos, vel.unit(), null, hitResult.Crossed3DWater);
+            puff.Destroy();
+        }
+    }
+
+    // Returns true if end handling
+    bool handleHit(TraceResults hitResult) {
+        switch(hitResult.HitType) {
+            case TRACE_HitNone:
+            case TRACE_HitActor:
+                Console.Printf("This shouldn't happen!");
+                return false;
+            case TRACE_HitSky: {    // I don't think this ever works, I think we always end up colliding with the ceiling/floor
+                // Handle collision with sky, usually disappearing
+                if(bSkyExplode) {
+                    ExplodeMissile (hitResult.HitLine, NULL);
+                } else {
+                    Destroy();
+                    return true;
+                }
+                return false;
+            }
+            case TRACE_HitCeiling: {
+                if(hitResult.HitTexture == skyflatnum) {
+                    Destroy();
+                    return true;
+                }
+                Destructible.ProjectileHitPlane(self, SECPART_Ceiling);
+                ExplodeMissile (NULL, NULL);
+                return false;
+            }
+            case TRACE_HitFloor: {
+                if(hitResult.HitTexture == skyflatnum) {
+                    Destroy();
+                    return true;
+                }
+
+                HitFloor ();
+                Destructible.ProjectileHitPlane(self, SECPART_Floor);
+                ExplodeMissile (NULL, NULL);
+                return false;
+            }
+            default: {
+                if(hitResult.HitLine && hitResult.HitLine.special == Line_Horizon) {
+                    Destroy();
+                    return true;
+                } else if(hitResult.HitLine && hitResult.HitLine.special == 49) {
+                    hitResult.HitLine.RemoteActivate(self, hitResult.Side, SPAC_Impact, hitResult.HitPos);
+                }
+                ExplodeMissile(hitResult.HitLine, null);
+                return false;
+            }
+        }
+    }
+}

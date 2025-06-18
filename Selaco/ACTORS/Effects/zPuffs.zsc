@@ -1,0 +1,1611 @@
+// TODO:
+// - ShootGlass, ShootCrate and Shootpipe still need to be added
+// - Underwater effects should be different!
+
+Class RicoChet : SelacoActor
+{
+	mixin ImpactMaterial; // Lists of texture materials
+
+	LevelEventHandler leh;
+	Property LightFailChance : LightFailChance;
+	Property LightFailChanceMetal : LightFailChanceMetal;
+	Property particleMultiplier : particleMultiplier; // Chance for particles to fail based on a per-class basis.
+	Property ImpactVolume : IMPACT_VOLUME;
+	
+	Map<uint, state> materialFloorMap, materialWallMap;
+
+	private int puffFlags;
+	flagdef SilentAttack : puffFlags, 1;
+
+	bool spawnDecals;
+	bool isCeilingPuff;							// Did we hit a ceiling?
+	bool hasCheckedMaterial;					// Have we checked for a material yet? With some eventual refinement, we shouldn't need this.
+	bool materialHit; 							// Goes true if a material has been found.
+	int particleIntensity, smokeQuality; 		// CVAR read-outs
+	int pointerValue; 							// Used to point at indexes of the list
+	int LightFailChance; 						// Chance to have a light flare occur on hit for any material that isn't metal
+	float zVelocity;
+	int LightFailChanceMetal; 					// Chance to have a light flare occur on a metal surface.
+	float particleMultiplier; 					// Additional roll that stops particles from spawning, used to have certain weapons spawn less particles
+	name hittex;					
+
+	// Concrete Spawn Presets (This is the default preset when a texture cannot be found)
+	static const string CONCRETE_SMOKETYPES[] = {"SpawnImpactSmokeBig", "SpawnImpactSmokeSmall", "SpawnImpactSmoke","SpawnImpactSmoke"};
+	static const int CONCRETE_DEBRIESCHUNKCOUNT[] = {3, 5, 7, 9, 11, 13, 32};
+	static const int CONCRETE_SPARKSCOUNT[]	   = {0, 1, 2, 2, 2, 3, 4, 17, 27};
+	static const string CONCRETE_CONCRETE_SMOKETYPES[] = {"SpawnImpactSmokeBig", "SpawnImpactSmokeSmall", "SpawnImpactSmoke","SpawnImpactSmoke", "SmokeScatteredCloud", "SmokeScatteredCloud", "WallShrapnelLong", "WallShrapnelLong"};
+
+	// Metal Spawn Presets
+	static const int METAL_SPARKSCOUNT[]	   = {25, 28, 29, 32, 32, 32, 32, 49, 65};
+	static const int METAL_EMBERCOUNT[]	   = 	 {7, 12, 14, 23, 25};
+
+	// Wood Spawn Presets
+	static const string WOOD_SMOKETYPES[] = {"BrownCloud", "BrownCloudLonger", "BrownCloud", "BrownCloud" "BrownCloudLong"};
+	static const int WOOD_WOODPARTICLECOUNT[]  = {20, 21, 21, 22, 23, 24, 25, 26, 60};
+	static const int WOOD_SAWDUSTCOUNT[] 	   = {4, 5, 6, 7, 8, 10, 12, 15};
+
+	const BULLET_PASSBY_SOUND_CHANCE = 12;	
+	const DUST_CHANCE = 25;						 // Chance for a concrete impact effect to spawn a dustcloud on the floor below.
+	float IMPACT_VOLUME;
+
+	void setImpactVolume(float newVolume) {
+		IMPACT_VOLUME = newVolume;
+	}
+
+	float impactVolume() {
+		return IMPACT_VOLUME;
+	}
+  	
+	// Store all available materials along with their State Reference
+	void createMaterialMaps() {
+		// FLOORS
+		materialFloorMap.insert(FM_Grass, findState("FLOOR_ImpactGrass"));
+		materialFloorMap.insert(FM_Box, findState("FLOOR_ImpactWood"));
+		materialFloorMap.insert(FM_Wood, findState("FLOOR_ImpactWood"));
+		materialFloorMap.insert(FM_Cables, findState("FLOOR_ImpactCable"));
+		materialFloorMap.insert(FM_Carpet, findState("ShootCarpet"));
+		materialFloorMap.insert(FM_Rock, findState("FLOOR_ImpactMetal"));
+		materialFloorMap.insert(FM_Catwalk, findState("FLOOR_ImpactMetal"));
+		materialFloorMap.insert(FM_Metal, findState("FLOOR_ImpactMetal"));
+		materialFloorMap.insert(FM_Pipe, findState("FLOOR_ImpactMetal"));
+		materialFloorMap.insert(FM_Grating, findState("FLOOR_ImpactMetal"));
+		materialFloorMap.insert(FM_Water, findState("FLOOR_WaterSplash"));
+		materialFloorMap.insert(FM_GlassFloor, findState("FLOOR_ImpactGlass"));
+		materialFloorMap.insert(FM_VirtualMat, findState("FLOOR_ImpactVirtual)"));
+		materialFloorMap.insert(FM_Void, findState("VoidState"));
+
+		// WALLS
+		materialWallMap.insert(TM_VirtualMat, findState("ShootVirtual"));
+		materialWallMap.insert(TM_Wire, findState("ShootWire"));
+		materialWallMap.insert(TM_MetalCrate, findState("ShootCrate"));
+		materialWallMap.insert(TM_Metal, findState("ShootMetal"));
+		materialWallMap.insert(TM_Wood, findState("SpawnWood"));
+		materialWallMap.insert(TM_WaterPipe, findState("ShootWaterPipe"));
+		materialWallMap.insert(TM_SteamPipe, findState("ShootPipe"));
+		materialWallMap.insert(TM_Glass, findState("ShootGlass"));
+		materialWallMap.insert(TM_Bookshelf, findState("SpawnBookshelf"));
+		materialWallMap.insert(TM_VoidWall, findState("VoidState"));
+
+	}
+
+	// TODO: Simplify! Unify! Switch to Unreal Engine!
+	// The process for spawning ricochet effects is convoluted as hell right now, but it's because there so many entry points to RicoChet
+	// For player tracers the process is as follows:
+	// - Hitscan uses HitPuff as the Puff
+	// 		- HitPuff hits a wall and creates a RicoChet, calling checkImpactEffects() directly
+	// 		- checkImpactEffects() sets the desired state and/or spawns particles. If a material is found (floor or wall) materialHit is set.
+	// 		- The state machine after Spawn: sees that materialHit is set, and goes to Nothing, or continues to the default particle spawning
+	//
+	// For the process of enemy tracers, the process is as follows:
+	// - Enemy tracer spawns RicoChet and manually sets the state label to SpawnEffects
+	// 		- In the state machine we notice materialHit is not set, so handleDrySpawn() is called, doing a linetrace to find walls/floors/ceilings
+	//		- If the linetrace is successful, checkImpactEffects() is called with the results, otherwise the state falls through to default particle spawning behaviour (including floor/ceiling check)
+	//		- If the linetrace is successful, but checkImpactEffects() does not set materialHit, the state machine falls through to default particle spawning behaviour as well
+	//		- If linetrace is successful, and checkImpactEffects() finds a material to hit, custom state is set, or materialHit is set and the state machine goes to Nothing:
+	// 
+	// TODO: Enemy tracers are now using FasterProjectile, which already has the linetrace data. Those projectiles should directly call checkImpactEffects() the same with HitPuff does, skipping an unnecessary linetrace and setup.
+
+	// Prepare everything
+	// Note: switched from PostBeginPlay() to BeginPlay() because these values should be set before checkImpactEffects() is called by HitPuff or similar
+	override void BeginPlay() {
+		super.BeginPlay();
+		spawnDecals = true;
+		// Get handler information
+		leh = LevelEventHandler.Instance();
+		ParticleHandler ph = ParticleHandler.Instance();
+		SmokeHandler sh = SmokeHandler.Instance();
+
+		createMaterialMaps();
+
+		// Are we hitting a ceiling?
+		if(abs(pos.z - ceilingz) <= 6) isCeilingPuff = true;
+
+		particleIntensity = ph.currentParticleSetting + 1;
+		smokeQuality = sh.currentSmokeSetting + 1;
+
+		roll = frandom(0, 360);
+
+		if(!bSilentAttack && random(0,100) <= BULLET_PASSBY_SOUND_CHANCE)
+			A_PLAYSOUND("BULLET/RICOCHET/PASSBY", CHAN_AUTO, 0.95, 0, 1.0, 0, frandom(0.9, 1.2));
+	}
+
+	
+	// Direct hit, fed the trace information so we can go straight to the texture lookup
+	void handleSurfaceHit(FLineTraceData trace) {
+		checkImpactEffects(trace);
+	}
+
+	// We spawned with no trace data, so we have to find the surface to impact ourselves (the classic approach, or for non-hitscan projectiles)
+	void handleDrySpawn() {
+		FLineTraceData trace;
+		if( LineTrace(angle - 180, 5, pitch, offsetz: 0, data: trace) ) checkImpactEffects(trace);
+	}
+
+	// Find the material that has been hit then spawn fitting effects.
+	void checkImpactEffects(FLineTraceData trace) {
+		if (!trace) {
+			return;
+		}
+	
+		hasCheckedMaterial = true;
+	
+		TextureID hittexid = trace.HitTexture;
+	
+		// If hittex has not been assigned, get the texture name from our friend Tex Man
+		if (!hittex) {
+			hittex = Name(texman.GetName(hittexid));
+		}
+	
+		materialHit = true;
+	
+		MaterialIndexer mi = MaterialIndexer.Instance();
+		if (!mi) {
+			return;
+		}
+	
+		// Check if it's a wall hit
+		bool isWallHit = trace.HitType == TRACE_HitWall;
+	
+		// Get the material type based on whether it's a wall hit or not
+		uint materialType = isWallHit
+			? mi.getMaterialType(hittexid)     // get Wall type
+			: mi.getFloorMaterialType(hittexid); // get Floor type
+	
+		// Handle underwater hits
+		// TODO: DISABLED FOR NOW.
+/* 		if (waterLevel > 0) {
+			SetStateLabel("ImpactWater");
+			return;
+		}
+	 */
+		// Determine surface type based on hit type
+		uint surfaceType = isWallHit ? mi.getMaterialType(hittexid) : mi.getFloorMaterialType(hittexid);
+	
+		// Handle floor impact
+		if (!isWallHit) {
+			if (surfaceType == FM_Standard) {
+				setStateLabel("SpawnFloor");
+				return;
+			}
+	
+			if (materialFloorMap.CheckKey(surfaceType)) {
+				if (surfaceType == FM_Void) {
+					destroy();
+				} else {
+					setState(materialFloorMap.Get(surfaceType));
+				}
+				return;
+			}
+		}
+
+		// Handle wall impact
+		else {
+			if (surfaceType == TM_Standard) {
+				SpawnConcreteParticles();
+				return;
+			}
+	
+			if (surfaceType == TM_VoidWall) {
+				destroy();
+			} else {
+				setState(materialWallMap.Get(surfaceType));
+			}
+			return;
+		}
+	}
+
+	void wireEffectGeneric() {
+		if(random(0,100) <= 40) {
+			A_PLAYSOUND("SPARKS/SHORT", CHAN_5, 0.6, pitch:frandom(0.8,1.1));
+		} 		
+
+		// Light, if needed
+		if(random(0,100) <= 50) {
+			spawnLight(220, 190, 32, 48, divisionSpeed:1.4, lightSettingRequirement:2);
+		}
+	}
+
+	void wallWireEffects() {
+		A_SPAWNITEMEX("BulletImpactEffectMetalZpuff", frandom(-15,15), frandom(-15,15));
+		if(leh && leh.gameDetailSetting <= GAMEDETAIL_MEDIUM) {
+			return;
+		}
+		wireEffectGeneric();
+		EmitDefinition('MetalShrapnelParticleShortWideWallDefinition', chance: 0.75, numTries: 25*particleMultiplier, angle:random(0,360), pitch:-90, speed:1, scaleboost:frandom(1.2,1.4));
+		for(int x=0;x<=2;x++) {
+			A_SPAWNITEMEX("SparksNoFlare", frandom(5,20), frandom(-10,10), frandom(-10,10), failchance:125);
+		}		
+	}
+
+	void floorWireEffects() {
+		A_SPAWNITEMEX("BulletImpactEffectMetalZpuff", frandom(-15,15), frandom(-15,15));
+		if(leh && leh.gameDetailSetting <= GAMEDETAIL_MEDIUM) {
+			return;
+		}
+		wireEffectGeneric();
+		EmitDefinition('MetalShrapnelParticleShortWideFloorDefinition', chance: 0.75, numTries: 10*particleMultiplier, angle:random(0,360), speed:1, scaleboost:frandom(1.2,1.4));
+		for(int x=0;x<=2;x++) {
+			A_SPAWNITEMEX("SparksNoFlare", frandom(-20,20), frandom(-20,20), frandom(5,25), failchance:125);
+		}
+	}
+
+	void SpawnAnimatedSmokePuffsWall() {
+		int smokeTarget = 4;
+		if(smokeQuality >= 4) {
+			smokeTarget+=3;
+		}
+
+		for(int x=0;x<=smokeTarget;x++){
+			A_SpawnDefinedParticle(
+				"BulletImpactPuffSmokeDefinition", 
+				xoff: 15, frandom(-15, 15), frandom(0.1, 1.0),
+				xvel: frandom(-2, 2), frandom(-2, 2)
+			);
+		}
+	}
+
+	void spawnImpactEffect(string effectName, int yOffsetLimit)
+	{
+		int yoffsets = 3;
+		for(int x=0;x<particleIntensity+2||x<2;x++)
+		{
+			actor effectActor;
+			bool successSpawn;
+			if(x > 0)
+			{
+				yoffsets = yOffsetLimit;
+			}
+			A_SpawnDefinedParticle(effectName, 7, frandom(-1*yoffsets,yoffsets), frandom(-1*yoffsets,yoffsets));
+		}		
+	}
+	
+	// CONCRETE
+	void SpawnConcreteParticles() {
+
+		// SFX
+		if(!bSilentAttack) {
+			A_PlaySound("impact/concrete", CHAN_6, impactVolume(), pitch:frandom(0.9,1.09));
+			A_PlaySound("dest/concrete/rare", CHAN_AUTO, impactVolume()+0.1, 0, 0.85, pitch:frandom(0.8,1.2));
+		}
+
+		// Spawn concrete dust on the floor
+		if(random(0,100) <= DUST_CHANCE)
+		{
+			A_SPAWNITEMEX("DustCloudFloor", frandom(10,35));
+		}
+
+		// Spawn puff effects
+		spawnImpactEffect("BulletImpactEffectConcreteDefinition", 6);
+
+		// Create decal
+		if (spawnDecals) {
+			A_SpawnItemEx("SpawnBulletDecal", 3);
+		}
+
+		//SpawnAnimatedSmokePuffsWall();
+
+		// Spawn the chunks
+		pointerValue = CONCRETE_DEBRIESCHUNKCOUNT[random(0,CONCRETE_DEBRIESCHUNKCOUNT.size()-1)];
+		EmitDefinition('DebrisChunkParticleDefinition', chance: 0.75, numTries: (pointerValue*1.25)  * particleMultiplier,pitch:-45);
+		EmitDefinition('DebrisChunkParticleDefinitionShortFast', chance: 0.75, numTries: 15  * particleMultiplier,pitch:-25);
+		// Spawn the sparks
+		pointerValue = CONCRETE_SPARKSCOUNT[random(0,CONCRETE_SPARKSCOUNT.size()-1)];
+
+		EmitDefinition('SparkParticleDefinition', chance: 0.35, numTries: (pointerValue*1) * particleMultiplier, angle:random(-15,15), pitch:-45, speed:frandom(3.4,5.5));
+		EmitDefinition('ShortSparkParticleDefinition', chance: 0.35, numTries: (pointerValue*1) * particleMultiplier, angle:random(-15,15), pitch:-45, speed:frandom(3,5.5));	 
+
+		// We dont want potatos to smoke
+		if(smokeQuality > 1) {
+			//A_SpawnProjectile ("WallShrapnel", random(-2, 2), 0, random (-45, 45), CMF_AIMDIRECTION, random(-35,35));
+			//A_SpawnProjectile ("WallShrapnel", random(-2, 2), 0, random (-45, 45), CMF_AIMDIRECTION, random(-35,35));
+			for(int x=0;x<5;x++)
+			{
+				A_SPAWNITEMEX(CONCRETE_CONCRETE_SMOKETYPES[random(0,CONCRETE_CONCRETE_SMOKETYPES.SIZE()-1)], frandom(3,8), frandom(-8,8), frandom(-8,8), frandom(0.1,0.5), frandom(-0.4,0.4), frandom(-0.1,0.1));
+			}
+		}
+		
+		// Chance to spawn a little light
+		if(random(0,LightFailChance) == 1) {
+			A_SetRenderStyle(STYLE_NONE, 0);
+			A_SETSCALE(scale.x + frandom(0.6,1.1));
+			setStateLabel("SpawnMetalFlare");
+		}
+	}
+
+	// METAL
+	const RARE_SOUND_CHANCE = 5;
+	const SPARK_MISSILE_CHANCE = 4;
+	const RICOCHET_CHANCE = 17;
+	const METAL_CHUNK_CHANCE = 13;
+	const LIGHT_FLARE_CHANCE = 50;
+
+	const SPARK_MISSILE_INTENSITY_THRESHOLD = 3;
+	const SMOKE_QUALITY_THRESHOLD = 1;
+	const LIGHTING_QUALITY_THRESHOLD = 3;
+
+	const SPARK_MISSILE_SPEED_MIN = 1.0;
+	const SPARK_MISSILE_SPEED_MAX = 3.0;
+	const SPARK_MISSILE_PERSISTANT_SPEED_MIN = 1.0;
+	const SPARK_MISSILE_PERSISTANT_SPEED_MAX = 6.0;
+
+	void SpawnMetalParticles() {
+		int metalSparksCount = METAL_SPARKSCOUNT[random(0, METAL_SPARKSCOUNT.size() - 1)];
+	
+		// Play impact sound if not silent attack
+		if (!bSilentAttack) {
+			A_PlaySound("impact/metal", CHAN_6, impactVolume(), 0, 0.88f);
+		}
+	
+		// Rare metal impact sounds
+		if (random(0, 100) <= RARE_SOUND_CHANCE) {
+			A_PlaySound("IMPACT/RARE/METAL", CHAN_AUTO, pitch: frandom(0.75, 1.0));
+		}
+	
+		// Spawn metal impact effect
+		spawnImpactEffect("BulletImpactEffectMetalZpuffDefinied", 17);
+		if (spawnDecals) {
+			A_SpawnItemEx("SpawnMetalDecal");
+		}
+	
+		SpawnAnimatedSmokePuffsWall();
+	
+		// Spawn spark missiles if particle intensity is high enough
+		if (random(0, 100) <= SPARK_MISSILE_CHANCE && particleIntensity >= SPARK_MISSILE_INTENSITY_THRESHOLD) {
+			string missileType = (random(0, 1) == 0) ? "SparkMissile" : "SparkMissilePersistant";
+			float speed = (missileType == "SparkMissile") ? frandom(SPARK_MISSILE_SPEED_MIN, SPARK_MISSILE_SPEED_MAX) : frandom(SPARK_MISSILE_PERSISTANT_SPEED_MIN, SPARK_MISSILE_PERSISTANT_SPEED_MAX);
+			A_SpawnItemEx(missileType, 25, 0, 0, speed, 0, 2);
+		}
+	
+		// Chance to ricochet the bullet
+		if (random(0, RICOCHET_CHANCE) == 5) {
+			A_SpawnProjectile("SentryTracerFriendly", 0, 0, angle + random(-20, 20), 2, random(-10, 10));
+		}
+	
+		if (random(0, 100) <= METAL_CHUNK_CHANCE) {
+			for (int x = 4; x > 0; x--) {
+				A_SpawnDefinedParticle("BulletImpactEffectMetalZpuffDefinied", 3, frandom(-15, 15), frandom(-15, 15));
+			}
+			EmitDefinition('MetalChunkDefinition', chance: 0.5, 14 * particleMultiplier, pitch: -60, speed: 2, scaleBoost: frandom(0.9, 1.1));
+		} else {
+			EmitDefinition('MetalShrapnelParticleDefinition', chance: 0.5, numTries: 16 * particleMultiplier, angle: random(-25, 25), pitch: frandom(-10, 10), speed: frandom(1, 2), velocity: (0, 0, frandom(0, 2)), scaleBoost: frandom(1.1, 1.3));
+			EmitDefinition('SparkParticleDefinition', chance: 0.7, numTries: metalSparksCount * particleMultiplier, angle: 0, pitch: frandom(-35, 15), speed: frandom(4, 6), scaleBoost: 1.);
+			EmitDefinition('SparkParticleWilderLargeDefinition', chance: 0.7, numTries: (metalSparksCount * 0.5) * particleMultiplier, angle: 0, pitch: frandom(-35, 15), speed: frandom(4, 6), scaleBoost: 1.2);
+		}
+		// Additional particle effects
+		EmitDefinition('MetalShrapnelParticleShortWallDefinition', chance: 0.55, numTries: 25 * particleMultiplier, angle: -0, pitch: -25, speed: 3, scaleBoost: frandom(1.2, 1.4));
+		EmitDefinition('ShortSparkParticleDefinition', chance: 0.5, numTries: metalSparksCount * particleMultiplier, angle: 0, speed: frandom(2, 3));
+
+		// Spawn smoke and shrapnel if smoke quality is high enough
+		if (smokeQuality > SMOKE_QUALITY_THRESHOLD) {
+			for (int i = 0; i < 3; i++) {
+				A_SpawnProjectile("WallShrapnel", random(-2, 2), 0, random(-45, 45), 2, random(-35, 35));
+			}
+			if (random(0, 2) == 0) {
+				A_SpawnProjectile("WallShrapnel", random(-2, 2), 0, random(-45, 45), 2, random(-35, 35));
+			}
+			for (int i = 0; i < 4; i++) {
+				A_SpawnProjectile("SmokeScatteredCloud", 2, 0, random(0, 360), 2, random(0, 360));
+			}
+		}
+	
+		// Spawn dyncamic light, maybe.
+		if (random(0, 100) <= LIGHT_FLARE_CHANCE && getCvar("lightingQuality") >= LIGHTING_QUALITY_THRESHOLD) {
+			setStateLabel("SpawnMetalFlare");
+			spawnLight(455, 280, 103, random(90, 130), shadowRequirement: -1, 0, divisionSpeed: frandom(1.7, 1.9));
+		}
+	}
+
+	// Bookshelf (followed up by Wood)
+	void SpawnBookshelfParticles()
+	{
+		emit('PaperParticleTexture', 1.0, 11*particleMultiplier);
+		SpawnWoodParticles();
+	}
+
+	// Wood
+	void SpawnWoodParticles() {
+		if(!bSilentAttack) {
+			if(random(0,100) <= 10) {
+				A_PLAYSOUND("impact/wood/rare", CHAN_AUTO, 1.0, 0, 0.8, pitch:frandom(0.8,1.2));
+			}
+			A_PlaySound("impact/wood", CHAN_6, impactVolume()-0.2, 0, 0.97, pitch:frandom(0.9, 1.2));
+		}
+		A_SpawnProjectile ("WoodShrapnel", random(-2, 2), 0, random (-45, 45), 2, random(-35,35));
+		A_SpawnProjectile ("WoodShrapnel", random(-2, 2), 0, random (-45, 45), 2, random(-35,35));
+		A_SpawnProjectile ("WoodShrapnel", random(-2, 2), 0, random (-45, 45), 2, random(-35,35));
+	
+		spawnImpactEffect("BulletImpactEffectWoodDefinition", 16);
+
+		if (spawnDecals) {
+			A_SpawnItemEx("SpawnWoodDecal");
+		}
+
+		// Spawn the embers
+		pointerValue = WOOD_SAWDUSTCOUNT[random(0,WOOD_SAWDUSTCOUNT.size()-1)];
+		EmitDefinition('SawdustDefinition', chance: 0.95, numTries: (pointerValue*2) * particleMultiplier, pitch: frandom(-10,10), offset: (3, 0, 0), scaleBoost:frandom(1,1.25));	
+		EmitDefinition('SawdustShortDefinition', chance: 1.0, numTries: (pointerValue*4) * particleMultiplier, pitch: frandom(-20,-30), offset: (3, 0, 0), scaleBoost:frandom(1,1.25));	
+		
+		pointerValue = WOOD_WOODPARTICLECOUNT[random(0,WOOD_WOODPARTICLECOUNT.size()-1)];
+		EmitDefinition('WoodParticleDefinition', chance: 0.25, numTries: (pointerValue*1) * particleMultiplier, pitch: frandom(-45,-65), offset: (3, 0, 0),scaleBoost:frandom(1,1.25));	
+		emit('PlankParticleShort', chance: 1.0, numTries: 5, pitch:90, speed:-5, scaleBoost:frandom(0.7,0.85));
+
+		// We dont want potatos to smoke
+		if(smokeQuality > 1) { // Medium and Above
+			for(int x=0;x<smokeQuality*2;x++)
+			{
+				A_SPAWNITEMEX(WOOD_SMOKETYPES[random(0,WOOD_SMOKETYPES.SIZE()-1)], frandom(-2,8), frandom(-8,8), frandom(-8,8), frandom(0.1,0.5), frandom(-0.4,0.4), frandom(-0.1,0.1));
+			}
+		}
+	}
+
+	void spawnCrateParticles() {
+		SpawnMetalParticles();
+		if(!bSilentAttack) {
+			A_PlaySound("impact/heavycrate", CHAN_6, impactVolume());
+		}
+	}
+
+	void shootPipe() {
+		A_SpawnItemEx("BulletImpactEffectMetalZpuff", 0, 0, 5);
+		if(!bSilentAttack) {
+			A_PlaySound("impact/metal", CHAN_6, impactVolume()*0.3, 0, 0.8);
+		}
+		if(leh.gameDetailSetting > GAMEDETAIL_LOW) {
+			A_SPAWNITEMEX("PipeBurster");
+		}
+	}
+
+	void spawnWaterPipeEffects() {
+		A_SpawnItemEx("BulletImpactEffectMetalZpuff", 0, 0, 5);	
+
+		// Burster actor that briefly spawns water particles
+		A_SPAWNITEMEX("WaterBurster");
+		if (spawnDecals) {
+				A_SpawnItemEx("SpawnMetalDecal");
+		}
+
+		// SFX
+		if(!bSilentAttack) {
+			A_PlaySound("impact/metal", CHAN_6, impactVolume()*0.45, 0, 0.8);
+		}
+		
+		// particles
+		EmitDefinition('WaterSplashPipeImpact', 1.0, 15, pitch:0);
+	}
+
+	void spawnGlassEffects() {
+		// SFX
+		if(!bSilentAttack){
+			A_PLAYSOUND("impact/glasswall", CHAN_AUTO, impactVolume()-0.1);
+		}
+
+		// Decal
+		A_SpawnItemEx("SpawnGlassDecal");
+
+		// Animated puffs
+		for (int i = 0; i < 3; i++) {
+			A_SpawnItemEx("BulletImpactEffectMetalZpuffTransparant", 1, 0, 5, 1, 3 * (i - 1), 0);
+		}
+		for (int i = 0; i < 3; i++) {
+			A_SpawnItemEx("GlassPuffSmoke", -3, frandom(-7, 7), frandom(-7, 7), frandom(-4, -1), 0, frandom(-4, 4), angle: random(-45, 45));
+		}
+
+		A_SpawnDefinedParticle("BulletImpactEffectPlasticStationaryDefinition", -1);
+		
+		// Particles
+		EmitDefinition('GlassParticleSmallWallDefintion', chance: 1.0, numTries: 15*particleMultiplier, 0, offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)));
+		EmitDefinition('GlassPartParticleDefinition', chance: 1.0, numTries: 25*particleMultiplier, angle:random(-45,45), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)));
+	}
+
+	void spawnWater() {
+		// SFX
+		if(!bSilentAttack) {
+			A_PLAYSOUND("IMPACT/BULLET/WATER", CHAN_AUTO, impactVolume()-0.3);
+		}
+
+		// Visual effects
+		for(int i=0;i<35;i++) {
+			EmitDefinition('WaterSplashParticlePuffDefinition', 1, 1, offset:(random(-3,3),random(-3,3),random(-5,0)));
+			EmitDefinition('WaterSplashParticlePuffWildDefinition', 1, 1, offset:(random(-3,3),random(-3,3),random(-5,0)));			
+		}		
+	}
+	
+	void spawnDefaultFloorEffects() {
+		// Loop some effects
+		for (int x = 0; x < 3; x++) {
+			A_SpawnDefinedParticle("BulletImpactEffectConcreteDefinition", frandom(-7,7), frandom(-7,7), frandom(5,8));
+		}
+		for (int x = 0; x < 4; x++) {
+			A_SpawnItemEx("FloorSmokeUpward", frandom(-8,8), frandom(-8,8), 0, frandom(1.3,8), 0, frandom(9,11), angle:random(0,360));
+		}
+	
+		for (int x = 0; x < 2; x++) {
+			A_SpawnItemEx(CONCRETE_CONCRETE_SMOKETYPES[random(0, CONCRETE_CONCRETE_SMOKETYPES.SIZE() - 1)], frandom(-3,3), frandom(-8,8), frandom(-8,8), frandom(-0.2,0.2), frandom(-0.1,0.1), frandom(0.1,0.2));
+		}
+
+		// Random chance to spawn DustCloudFloor
+		if (random(0,100) <= DUST_CHANCE) {
+			A_SpawnItemEx("DustCloudFloor");
+		}
+	
+		// Emit debris particles
+		EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 0.6, numTries: 35, speed: frandom(-0.4, 4.6));
+		EmitDefinition('DebrisChunkParticleUpwardShortDefinition', chance: 0.75, numTries: 50, speed: frandom(-0.4, 3.6));
+	
+		// Random sparks and dropped sparks if water level is 0
+		if (waterLevel == 0) {
+			EmitDefinition('ShortSparkStraightDefinition', chance: 0.2, numTries: 45, angle: random(0,259), speed: frandom(-0.5, 2.5));
+			EmitDefinition('DroppedSparkWilderLarge360Definition', chance: 0.3, numTries: 15, angle: random(0,259), speed: frandom(-1.5, 3.5), offset: (frandom(-3,3), frandom(-3,3), frandom(-3,3)), velocity: (frandom(0.4,1), frandom(0.4,1), frandom(1,4)));				
+		}
+	
+		// Spawn FloorDecalConcrete
+		A_SpawnItemEx("FloorDecalConcrete");
+
+		// SFX
+		if (!bSilentAttack) {
+			A_PlaySound("impact/concrete", CHAN_6, impactVolume() + 0.1, pitch: frandom(0.9, 1.09));
+			A_PlaySound("dest/concrete/rare", CHAN_AUTO, 1.0, 0, 0.85, pitch:frandom(0.8,1.2));
+		}
+	}
+
+	void spawnWallVirtualEffects() {
+		A_PlaySound("EnergyShield/Damage", CHAN_AUTO, 1.0, 0, 0.7, 0, frandom(0.8,1.25));
+		A_SpawnItemEx("PlasmaExplosion", 0, 0, 5);
+		for(int i = 0; i <=45;i++) {
+			A_SpawnParticle("#53B7E6", SPF_FULLBRIGHT, 45, frandom(1,4), frandom(0,360), frandom(-6,6), frandom(-6,6), frandom(-5,5), frandom(-4,4), frandom(-2,2), frandom(-2,2));
+		}	
+	}
+
+	void spawnFloorVirtualEffects() {
+		A_PlaySound("EnergyShield/Damage", CHAN_AUTO, 1.0, 0, 0.6, 0, frandom(0.8,1.25));
+		A_SpawnItemEx("PlasmaExplosionFlat", 0, 0, 5);
+		for(int i = 0; i <=2;i++) {
+			A_SPAWNITEMEX("SpawnImpactSmokeSmall", 0, 0, 0, frandom(-0.2,0.2), frandom(-0.2,0.2), frandom(0.05,0.15));
+		}	
+		EmitDefinition('MetalShrapnelParticle360Definition', chance: 0.75, numTries: 15, angle:random(0,360), pitch:frandom(-170, -190), speed:frandom(2,9), velocity:(0,0,frandom(0,8)));
+		EmitDefinition('ShortSparkTinyBlueDefinition', chance: 1.0, numTries: 35, angle:random(0,360),  speed:-2, offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)), velocity:(frandom(0.4,1), frandom(0.4,1), frandom(1,4)));
+		for(int i = 0; i <=45;i++) {
+			A_SpawnParticle("#53B7E6", SPF_FULLBRIGHT, frandom(10,35), frandom(1,4), frandom(0,360), frandom(-6,6), frandom(-6,6), frandom(3,5), frandom(-1,1), frandom(-1,1), frandom(0,1));
+		}	
+	}
+
+	void spawnFloorGrass() {
+		// Spawn DirtDecal
+		A_SpawnItemEx("DirtDecal", 0, 0, 1);
+	
+		// Play sound
+		A_PlaySound("ricochet/hit", CHAN_AUTO, 1.0, 0, 1.0, false, frandom(0.80, 1.1));
+	
+		// Emit grass particles and blade particles
+		EmitDefinition('grassparticleDefinition', chance: 1.0, numTries: 3 * particleMultiplier);
+		EmitDefinition('GrassBladeParticleDefinition', chance: 1.0, numTries: 12 * particleMultiplier);
+		EmitDefinition('GrassBladeParticleWildDefinition', chance: 1.0, numTries: 25 * particleMultiplier);
+		EmitDefinition('GrassBladeParticleFastShortDefinition', chance: 1.0, numTries: 25 * particleMultiplier);
+	
+		// Loop to spawn PlantImpactEffectFloor with varying offsets
+		for (int i = 0; i < 6; i++) {
+			A_SpawnItemEx("PlantImpactEffectFloor", 0, 0, 0, frandom(-0.9, 0.9), (i % 2 == 0 ? -2 : 2), frandom(2.0, 2.5));
+		}
+	}
+
+	void spawnFloorGlass() {
+		// Prepare
+		int pitchOffset = 0;
+		zVelocity = 1.3;
+		actor crackActor; // lol
+		bool crackSuccess;
+
+		// Impact sound
+		A_PlaySound("impact/glasswall", CHAN_AUTO, impactVolume() - 0.1);
+
+		// Are we hitting a ceiling?
+		if (isCeilingPuff) {
+			zVelocity *= -1;
+			pitchOffset = -45;
+		}
+
+		// Spawn decal
+		[crackSuccess, crackActor] = A_SpawnItemEx("GlassCrack");
+
+		// Move decal to the ceiling, if needed
+		if (crackActor) {
+			GlassCrack(crackActor).allowEnlarge = true;
+			if (isCeilingPuff) {
+				GlassCrack(crackActor).allowEnlarge = false;
+				GlassCrack(crackActor).ceilingDecal = isCeilingPuff;
+				GlassCrack(crackActor).A_SETSCALE(crackActor.scale.x * 0.5);
+			}
+		}
+
+		// Emit glass particles
+		EmitDefinition('GlassParticleSmallFloorDefintion', chance: 1.0, numTries: 25, pitch: pitchOffset + frandom(-2, 2));
+		EmitDefinition('GlassBead360Definition', chance: 1.0, numTries: 32, pitch: pitchOffset + frandom(-2, 2), speed: frandom(0.4, 0.6));
+		angle = random(0, 360);
+
+		// Spawn BulletImpactEffects
+		A_SpawnDefinedParticle("BulletImpactEffectPlasticDefinition", -1, 0, 0, 0, 0, 1);		
+		A_SpawnDefinedParticle("BulletImpactEffectPlasticSmallDefinition", 4, 0, 5, -1.7, -1.7, 1);
+		A_SpawnDefinedParticle("BulletImpactEffectPlasticSmallDefinition", -4, 5, 5, 1.7, -1.7, 1);
+		A_SpawnDefinedParticle("BulletImpactEffectPlasticSmallDefinition", 4, 5, 5, -1.7, 1.7, 1);
+		A_SpawnDefinedParticle("BulletImpactEffectPlasticSmallDefinition", 4, 0, 5, 1.7, 1.7, 1);		
+	}
+
+	void spawnFloorCarpet() {
+		// Spawn puff effects
+		for (int x = 0; x < 3; x++) {
+			A_SpawnDefinedParticle("BulletImpactEffectConcreteDefinition", frandom(-7, 7), frandom(-7, 7), frandom(5, 8));
+		}
+		for (int x = 0; x < 4; x++) {
+			A_SpawnItemEx("CarpetSmoke", frandom(-10, 10), frandom(-10, 10), 10, frandom(0.2, 0.6), 0, 0.5, angle: random(0, 360));
+		}
+		for (int x = 0; x < 2; x++) {
+			A_SpawnItemEx("FloorSmokeUpward", frandom(-8, 8), frandom(-8, 8), 0, frandom(1.3, 8), 0, frandom(9, 11), angle: random(0, 360), flags:SXF_NOCHECKPOSITION);
+		}
+		A_SpawnItemEx("CarpetSmoke", -3, frandom(-7, 7), frandom(-7, 7), frandom(-2, -2), 0, frandom(0.5, 3.5), angle: random(0, 360));
+
+		// 'TJUHSHHH' sound
+		A_PlaySound("step/plant", CHAN_AUTO, 1.0, 0, 0.9, false, pitch: frandom(1.3, 1.5));
+
+		// Emit carpet puff effects
+		EmitDefinition('CarpetBulletPuffDefinition', 1.0, 45 * particleMultiplier, offset: (0, 0, 1), flags: PE_ABSOLUTE_PITCH);
+		EmitDefinition('carpetBulletPuffWildDefinition', 1.0, 15 * particleMultiplier, offset: (0, 0, 1), flags: PE_ABSOLUTE_PITCH);
+		EmitDefinition('CarpetPuffFastShortDefinition', 1.0, 30 * particleMultiplier, offset: (0, 0, 1), flags: PE_ABSOLUTE_PITCH);
+	
+		// Random dust chance
+		if (random(0, 100) <= DUST_CHANCE) {
+			A_SpawnItemEx("DustCloudFloor");
+		}
+	}
+
+	// Set from enemy tracers? Man, I hate how convoluted this entire damn class is
+	void spawnEnemyEffects() {
+		if(!hasCheckedMaterial) handleDrySpawn();
+		if(materialHit) {
+			SetStateLabel("Nothing");
+		}
+		
+		// Kept for legacy ceiling/floor hits if everything else fails
+		A_CheckFloor("SpawnFloor");
+		A_CheckCeiling("SpawnCeiling");
+
+		SpawnConcreteParticles();
+		A_SpawnDefinedParticle("BulletImpactEffectConcreteDefinition", 0, 0, 5);
+		{
+			if (spawnDecals) {
+				A_SpawnItemEx("SpawnBulletDecal");
+			}
+		}
+		for (int x = 0; x < smokeQuality; x++) {
+			A_SpawnProjectile ("SmokeScatteredCloud", 2, 0, random (0, 360), 2, random (0, 360));
+			A_SpawnProjectile ("WallShrapnel", random(-2, 2), 0, random (-45, 45), 2, random(-50,50));
+		}
+	}
+
+	void shootWire() {
+		actor puffer;
+		bool succ;
+		[succ, puffer] = A_SPAWNITEMEX("BulletImpactEffectMetalZpuff");
+		if(puffer) {
+			puffer.scale*=2;
+		}
+		A_PLAYSOUND("SPARKS/SHORT", CHAN_5, 1.0, pitch:frandom(0.8,1.1));
+		EmitDefinition('MetalShrapnelParticleShortDefinition', chance: 0.75, numTries: 45*particleMultiplier, angle:random(0,360), pitch:-90, speed:1, scaleboost:frandom(1.2,1.4));
+		
+		// Check if we should continue. We dont want to stack too many close to eachother
+		if(CheckProximity(self.getClassName(), 15)) {
+			destroy();
+		}
+	}
+
+	void spawnFloorWood() {
+		if(random(0,100) <= 10) {
+			A_PLAYSOUND("impact/wood/rare", CHAN_AUTO, 1.0, 0, 0.8, pitch:frandom(0.8,1.2));
+		}
+		A_SPAWNITEMEX("WoodFloorDecal");
+		//emit('PlankParticleShort', chance: 1.0, numTries: 2, speed:2, scaleBoost:frandom(0.7,0.85));
+		A_PlaySound("impact/wood", CHAN_6, impactVolume()-0.25, 0, 0.97, pitch:frandom(0.9, 1.2));
+		EmitDefinition('SawDustUpwardDefinition', chance: 0.75, numTries: 45 * particleMultiplier);
+		EmitDefinition('WoodParticleUpwardDefinition', chance: 1.0, numTries: 10*particleMultiplier);
+		EmitDefinition('SawdustFastBriefDefinition', chance: 1.0, numTries: 35 * particleMultiplier,pitch:90,  speed:6,offset: (3, 0, 0));
+		EmitDefinition('WoodParticleUpwardBriefDefinition', chance: 0.75, numTries: 25 * particleMultiplier);
+		A_SpawnItemex("BulletImpactEffectWoodMotion", 0, 0, 0, frandom(-0.6,0.6), -0.7, 0.6);
+		A_SpawnItemex("BulletImpactEffectWoodMotion", 0, 0, 0, frandom(-0.6,0.6), 0.7, 0.6);
+		A_SpawnItemex("BulletImpactEffectWoodMotion", 0, 0, 0, frandom(-0.6,0.6), 0, 1.0);		
+	}
+
+	void spawnFloorMetal() {
+
+		//Smoke
+		A_SpawnItemEx("FloorSmokeUpwardLong", random(-2, 2), random(-2, 2), 0, frandom(-2,2), frandom(-2,2), 8);
+		for (int x = 0; x < 3; x++) {
+			A_SpawnItemEx("FloorSmokeUpward", frandom(-2,2), frandom(-2,2), 0, frandom(1.3,8), frandom(1.3,4), frandom(9,11), angle:random(0,360));
+		}
+
+		// Dynamic Lght, if needed. No idea why it's doing a chance roll like this?
+		if(random(0,LightFailChanceMetal) == 0 && getCvar("lightingQuality") >= 3) {
+			spawnLight(455, 280, 103, random(90,130),shadowRequirement:-1, 0, divisionSpeed:frandom(1.7,1.8));
+		}
+
+		// SFX
+		if(random(0,100) <= 5){
+			A_PLAYSOUND("IMPACT/RARE/METAL", CHAN_AUTO, pitch:frandom(0.75,1.0));
+		}
+		A_PlaySound("impact/metal", CHAN_6, impactVolume()-0.25, 0, 0.88);
+
+		// Puff Effects
+		for(int x = 0; x < 2;x++){
+			A_SpawnItemEx("BulletImpactEffectMetalZpuff", frandom(-2,2), frandom(-2,2), frandom(5,8));
+		}
+
+		// Particles
+		if(random(0,100) <= 10) {
+			// Spawn thick chunks of metal
+			EmitDefinition('MetalChunk360Definition', chance:1.0, 14*particleMultiplier, pitch:-90, speed:4, scaleBoost:frandom(0.9,1.1));
+			// Spawn extra impact effects
+			for(int x=4;x>0;x--)
+			{
+				A_SpawnItemEx("BulletImpactEffectMetalZpuff", frandom(-32,32), frandom(-32,32), frandom(0,7));
+			}
+		}
+		if(waterLevel == 0) {		
+			EmitDefinition('ShortSparkParticleStraightDefintion', chance: 0.75, numTries: 10, angle:random(0,259) ,  speed:frandom(-0.5, 4.5));
+			EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 35*particleMultiplier, angle:random(0,360), pitch:90, speed:frandom(-0.5, 5.5), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)));
+			EmitDefinition('MetalShrapnelParticle360Definition', chance: 0.75, numTries: 10*particleMultiplier, angle:random(0,360), speed:1, scaleboost:frandom(1.2,1.4));
+			EmitDefinition('MetalShrapnelParticleShortDefinition', chance: 0.75, numTries: 65*particleMultiplier, angle:random(0,360), speed:1, scaleboost:frandom(1.2,1.4));
+			EmitDefinition('DroppedSparkWilderLarge360Definition', chance: 1.0, numTries: 15*particleMultiplier, angle:random(0,360), speed:frandom(1.4,2.5));				
+		}
+
+		// Decal
+		A_SpawnItemEx("FloorDecalMetal", 0, 0, 1);
+	}
+
+  Default {
+	SelacoActor.SleepDistance 0;
+	-COUNTKILL;
+	-SHOOTABLE;
+	+CLIENTSIDEONLY;
+	+BLOODLESSIMPACT;
+	+FORCEXYBILLBOARD;
+	+ROLLSPRITE;
+	+THRUACTORS;
+	+NOGRAVITY;
+	+NODAMAGETHRUST;
+	RicoChet.LightFailChance 5;
+	Ricochet.LightFailChanceMetal 1;
+	Ricochet.particleMultiplier 1.0;
+	Ricochet.ImpactVolume 0.98;
+	-SelacoActor.SlopeAlignment;
+	Mass 9999999;
+	alpha 1.0;
+	//damagetype "Shrapnel"
+	RenderStyle "add";
+	Scale 0.5;
+	Speed 0;
+	Radius 6;
+	Height 1;
+  }
+  states
+  {
+  	Spawn:
+		TNT1 A 0;
+	SpawnEffects:
+		TNT1 A 0 {
+			spawnEnemyEffects();
+		}
+		TNT1 A 1;
+		stop;
+
+	Nothing:
+		TNT1 A 5;
+		stop;
+
+	// GLASS
+	ShootGlass:
+		TNT1 A 0 {
+			spawnGlassEffects();
+		}
+		stop;
+
+	// Bookshelf
+	SpawnBookshelf:
+		TNT1 A 0 {
+			SpawnBookshelfParticles();
+		}
+		stop;
+	// VIRTUAL
+	ShootVirtual:
+		TNT1 A 0 {
+			spawnWallVirtualEffects();
+		}
+		stop;
+
+	// CRATE
+	ShootCrate:
+		TNT1 A 0 {
+			spawnCrateParticles();
+		}
+		goto SpawnMetalFlare;
+
+	// PIPE
+	ShootPipe:
+		TNT1 A 0 {
+			if(leh && leh.gameDetailSetting > GAMEDETAIL_LOW) {
+				A_SPAWNITEMEX("PipeBurster");
+			}
+		}
+		TNT1 A 0 
+		{
+			if(!bSilentAttack)
+			{
+				A_PlaySound("impact/metal", CHAN_6, impactVolume()-0.3, 0, 0.8);
+			}
+		}
+		TNT1 A 0 A_SpawnItemEx("BulletImpactEffectMetalZpuff", 0, 0, 5);
+		//TNT1 AAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx("SparkEmbers", random(-4, 4), frandom(-5,5), frandom(-3,3));
+		goto SpawnMetalFlare;
+
+	// WATER
+	ShootWaterPipe:
+		TNT1 A 0 spawnWaterPipeEffects();
+		goto SpawnMetalFlare;
+
+	SpawnMetalFlare:
+		TNT1 A 0 A_Jump(255, "Spawn1", "Spawn2", "Spawn3");
+
+	// @Cockatrice - This can now be used for spawning underwater impact effects
+	// They should probably be different from hitting surfaces above water. Maybe just spawn a bunch of bubbles and a few floaty debris pieces?
+	FLOOR_WaterSplash:
+		TNT1 A 0 {
+			A_SPAWNITEMEX("WaterSplashEffect", 0, 0, 1);
+		}
+	ImpactWater:	
+		TNT1 A 0 {
+			spawnWater();
+		}
+		stop;
+	Spawn1:
+	IPF1 ABCD 2 bright;
+    Stop;
+	
+	Spawn2:
+	IPF2 ABCD 2 bright;
+    Stop;
+	
+	Spawn3:
+	IPF3 ABCD 2 bright;
+    Stop;
+	
+	VoidState:
+		TNT1 A 0 destroy();
+		stop;
+
+	SpawnFloor:
+		TNT1 A 0 {
+			spawnDefaultFloorEffects();
+		}
+		stop;
+
+	FLOOR_ImpactVirtual:
+		TNT1 A 0 {
+			spawnFloorVirtualEffects();
+		}
+		stop;
+
+
+	FLOOR_ImpactGrass:
+		TNT1 A 0 {
+			spawnFloorGrass();
+		}
+		stop;
+
+	FLOOR_ImpactGlass:
+		TNT1 A 0 {
+			spawnFloorGlass();
+		}
+		stop;	
+
+	ShootCarpet:
+		TNT1 A 0 {
+			spawnFloorCarpet();
+		}
+		stop;
+		FLOOR_ImpactCable:
+	ShootWire:
+		TNT1 A 0 {
+			shootWire();
+		}
+		TNT1 AAAAAAA random(3,8)  {
+			A_EXPLODE(10, 50, damageType:"StunningShock");
+			wallWireEffects();
+		}
+		TNT1 AAAA random(15,35) {
+			wallWireEffects();
+		}
+		TNT1 A 500;
+		stop;
+	FLOOR_ImpactCable:
+		TNT1 A 0 {
+			shootWire();
+		}
+		TNT1 AAAAAAA random(3,8)  {
+			A_EXPLODE(10, 25, damageType:"StunningShock");
+			floorWireEffects();
+		}
+		TNT1 AAAA random(15,45) {
+			floorWireEffects();	
+		}
+		TNT1 A 700;
+		stop;
+	FLOOR_ImpactWood:
+		TNT1 A 0{
+			spawnFloorWood();
+		}
+		TNT1 AAA 1 A_SpawnItemEx("WoodShrapnel", frandom(-2,2), frandom(-2,2), 0, frandom(1.3,8), frandom(1.3,4), frandom(6,9), angle:random(0,360));
+		TNT1 A 1 A_SpawnItemEx("WoodShrapnel", random(-2, 2), random(-2, 2), 0, frandom(-2,2), frandom(-2,2), 8);
+		stop;
+
+	FLOOR_ImpactMetal:
+		TNT1 A 0 {
+			spawnFloorMetal();
+		}
+		TNT1 A 0 A_Jump(255, "Spawn1", "Spawn2", "Spawn3");
+		stop;
+
+	ShootMetal:
+		TNT1 A 0 SpawnMetalParticles();
+		stop;
+
+	SpawnWood:
+		TNT1 A 0 SpawnWoodParticles();
+		stop;
+
+	SpawnBookshelf:
+		TNT1 A 0 SpawnBookshelfParticles();
+		stop;
+
+	SpawnCeiling:
+		TNT1 AAA 0 A_SpawnItemEx("FloorSmokeUpward", 0, 0, 0, frandom(1.3,8), 0, -10, angle:random(0,259));
+		TNT1 A 0 A_SpawnItemEx("FloorSmokeUpwardLong", random(-2, 2), random(-2, 2), 0, frandom(-2,2), frandom(-2,2), -8);
+		TNT1 AAAAAAAAAAAAA 0 A_SpawnProjectile ("DebriesChunkUp",random(0,8), random(-12,12), random (-90, 90), 2, random (-360, 360));
+		TNT1 A 0 A_SpawnItemEx("CeilingDecalConcrete");
+		PUFF A 0 bright A_PlaySound("ricochet/hit", CHAN_AUTO, impactVolume());
+		stop;
+
+	}
+
+	override void PuffHit(FLineTraceData trace) {
+		checkImpactEffects(trace);
+	}
+}
+
+class HitPuff : Actor Replaces BulletPuff {
+	mixin ParticleDefinitionEmitter;
+	mixin lightEmitter;
+	class<RicoChet> ricochetType;
+
+	property RicochetType : ricochetType;
+
+	default {
+		renderstyle "Translucent";
+		alpha 0.6;
+		Scale 2.5;
+		radius 20;
+		height 0;
+		+NOBLOCKMAP;
+		+NOGRAVITY;
+		Gravity 0.01;
+		+NOEXTREMEDEATH;
+		+FORCEXYBILLBOARD;
+		DamageType "Bullet";
+		+DONTSPLASH;
+		+HITTRACER
+		-EXPLODEONWATER;
+		HitPuff.RicochetType "RicoChet";
+	}
+
+	states {
+		Spawn:
+			//TNT1 A 0 A_SpawnItemEx ("RicoChet",0,0,-5,0,0,0, 0,SXF_NOCHECKPOSITION,0);
+			//TNT1 A 0;
+			stop;
+		Splash:			// This is the entry point if a puff was spawned when passing through a water surface
+			TNT1 A 0;	// We don't want to spawn RicoChet when splashing, just do the splash effect in PuffSplash()
+			stop;
+		HitThrough:		// This is the entry point if a puff was spawned when passing through an actor that took damage
+			TNT1 A 0;	// We don't want to spawn RicoChet, PuffThrough() can handle anything we need there
+			stop;
+		Melee:
+			TNT1 AAA 0 A_SpawnProjectile ("SmokeScatteredCloud", 2, 0, random (0, 360), 2, random (0, 360));
+			stop;
+	}
+
+	// Spawn effects where the hitscan passed through a water surface
+	// Note: This could be called multiple times, in the rare case that a hitscan passes through multiple water surfaces
+	override bool PuffSplash(Vector3 position, Vector3 direction, Sector sect, F3DFloor floor3D) {
+		let shiftedPos = position + (0, 0, 0.1);
+		EmitDefinition('WaterSplashParticlePuffDefinition', 1, 15, offset: shiftedPos, flags: PE_ABSOLUTE_POSITION);
+		EmitDefinition('WaterSplashParticlePuffWildDefinition', 1, 45, offset: shiftedPos, flags: PE_ABSOLUTE_POSITION);
+		let foam = spawn("WaterFoamSlow", shiftedPos);
+		// Since we can't guarantee the puffs position, use the foam as the sound source
+		foam.A_PLAYSOUND("IMPACT/BULLET/WATER", CHAN_AUTO, 0.6);
+		return true; 
+	}
+
+	override void PuffHit(FLineTraceData trace) {
+		// We hit a wall, let's spawn a RicoChet and provide it with the trace data so it can determine how to react
+		Vector3 spawnPos = trace.HitLocation - (0,0,5) - (trace.HitDir * 0.5);
+
+		if(trace.HitLine) {
+			Vector2 norm = (trace.HitLine.delta * ((trace.LineSide * 2) - 1)).unit();
+			norm = (-norm.y, norm.x);
+			spawnPos.xy += norm * 1.5;
+		}
+
+		RicoChet rico = RicoChet(Spawn(ricochetType, spawnPos));
+		rico.angle = angle;
+		rico.pitch = pitch;
+		rico.checkImpactEffects(trace);
+	}
+
+	/*override void PuffThrough(Actor victim, Vector3 pos, Vector3 dir) {
+	}*/
+}
+
+// For now this is just a seperate hitscan from the trail, and purely a cosmetic effect.
+class RailgunPuffEffect : hitpuff
+{
+	
+
+	default
+	{
+		decal "ScorchMark";
+		renderstyle "Add";
+		damageType "RailAttack";
+		damage 0;
+		alpha 2.0;
+		scale 1.0;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				A_SpawnItem("BaseShockwaveSmallest");
+				if(getCvar("lightingQuality") >= 3) {
+					spawnLight(rColor:165, gColor:397, bColor:567, frandom(120,140), 0, shadowRequirement:3, overbright: 0, divisionSpeed:1.25, alwaysShow:1,weaponFlash:1);
+				}
+				EmitDefinition('MetalShrapnelParticleSphericalDefinition', chance: 0.75, numTries: 250, speed:5);
+			}
+			PLBA ABCABC 1 BRIGHT {
+				A_SETROLL(random(0,360));
+				A_SpawnItemEx("plasmaEmberSmall");
+				A_SpawnItemEx("plasmaEmberSmall");
+			}
+			stop;
+	}
+}
+
+class NothingPuff : hitPuff {
+	override void beginPlay() {
+		destroy();
+	}
+}
+
+class RailgunPuff : hitpuffExtreme
+{
+	default
+	{
+		+ALWAYSPUFF
+		decal "ScorchMark";
+		DamageType "RailAttack";
+		radius 5;
+	}
+}
+
+class FloorDecalConcreteCrack : actor {
+	int spriteindex;
+	default {
+		+FLATSPRITE
+		+THRUACTORS
+		radius 5;
+		scale 0.31;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			CRAK ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			TNT1 A 0 {
+				invoker.spriteIndex = random(1,3);
+				A_SETANGLE(frandom(0, 360));
+			}
+			CRAK A 150 {
+				frame = invoker.spriteIndex;
+
+			}
+			stop;
+	}
+}
+
+class FloorDecalConcreteCrackCeiling : FloorDecalConcreteCrack {
+	default {
+		+FLATSPRITE
+		+SPAWNCEILING
+		+NOGRAVITY
+	}
+}
+
+// Shotgun impacts stack. So the volume is reduced to stop killing the player's ear.
+Class RicoChetShotgun : Ricochet {
+	default {
+		RicoChet.LightFailChance 25;
+		Ricochet.LightFailChanceMetal 90;
+		Ricochet.particleMultiplier 0.4;
+		Ricochet.ImpactVolume 0.51;
+	}
+
+	/*states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETROLL(frandom(0,360));
+				setImpactVolume(0.05);
+				invoker.spawnDecals = true;
+				//A_SETSCALE(frandom(0.4,0.5));
+				setStateLabel("SpawnEffects");
+			}
+			stop;
+	}*/
+}
+
+// Point of impact for Cricket Shots
+Class RicoChetExtreme : RicoChet
+{
+
+	default {
+		Ricochet.particleMultiplier 2.3;
+	}
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+
+		// If the player has the Splash Upgrade, add a bit of splash!
+		if(d && d.player.readyWeapon && SelacoWeapon(d.player.readyWeapon).upgradeCheck('UpgradeCricketSplashDamage') == 1) {
+			A_SPAWNITEMEX("AverageExplosion", -2);
+			A_EXPLODE(5, 100);
+		}
+		A_PLAYSOUND("ENFORCER/BULLETIMPACT", CHAN_AUTO, 0.6, 0, 0.95, pitch:frandom(0.80,1.0));
+	}
+}
+
+class HitPuffAlien : Ricochet {
+	default {
+		Ricochet.particleMultiplier 1.2;
+		Ricochet.ImpactVolume 0.6;
+	}
+
+	override void BeginPlay() {
+		Super.BeginPlay();
+		particleLifetimeModifier = 0.7;
+	}
+}
+
+class HitPuffAlienEnforcer : HitPuffAlien
+{
+	default 
+	{
+		Ricochet.particleMultiplier 2.0;
+		Ricochet.ImpactVolume 0.53;	
+	}
+}
+
+class HitPuffAlienLite : HitPuffAlien {
+	default {
+		Ricochet.ImpactVolume 0.35;	
+		Ricochet.particleMultiplier 0.20;
+	}
+}
+
+class HitPuffAlienMinigun : HitPuffAlien {
+	override void BeginPlay() {
+		Super.BeginPlay();
+		particleLifetimeModifier = 0.45;
+	}
+	default {
+		Ricochet.ImpactVolume 0.55;	
+		Ricochet.particleMultiplier 1.25;
+	}
+}
+
+class HitPuffLite : HitPuff {
+	default {
+		HitPuff.RicochetType "RicoChetLite";
+	}
+}
+
+class HitPuffLiteSMG : HitPuffLite {
+	default {
+		DamageType "SMGBullet";
+	}
+}
+
+class HitPuffMachinegun : Hitpuff
+{
+	default
+	{
+		damageType "AssaultRifleBullet";
+	}
+}
+
+class HitpuffShotgun : Ricochet 
+{
+	default 
+	{ 
+		DamageType "Bullet";
+		radius 50;
+		RicoChet.LightFailChance 25;
+		Ricochet.LightFailChanceMetal 90;
+		Ricochet.particleMultiplier 0.45;
+		Ricochet.ImpactVolume 0.65;
+	}
+}
+class HitpuffSlug : Ricochet 
+{
+	default 
+	{ 
+		DamageType "Bullet";
+		radius 50;
+		RicoChet.LightFailChance 25;
+		Ricochet.LightFailChanceMetal 90;
+		Ricochet.particleMultiplier 2.45;
+		Ricochet.ImpactVolume 1.65;
+	}
+}
+class HitpuffShotgunAlien : HitPuffAlien
+{
+	default 
+	{ 
+		DamageType "Bullet";
+		radius 5;
+		RicoChet.LightFailChance 25;
+		Ricochet.LightFailChanceMetal 90;
+		Ricochet.particleMultiplier 0.45;
+		Ricochet.ImpactVolume 0.65;
+	}	
+}
+class HitpuffShotgunNoSound : HitpuffShotgunAlien
+{
+	default
+	{
+		Ricochet.impactVolume 0;
+		+Ricochet.SilentAttack
+	}
+}
+
+class Shotgunpuff : Hitpuff {
+	default { 
+		HitPuff.RicochetType "HitpuffShotgun";
+		DamageType "Shotgun";
+	}
+}
+
+class SlugPuff : ShotgunPuff {
+	default { 
+		HitPuff.RicochetType "HitpuffSlug";
+		DamageType "Shotgun";
+	}	
+}
+
+class ShotgunpuffSilent : shotgunPuff
+{
+	default
+	{
+		HitPuff.RicochetType "HitpuffShotgunNoSound";
+		DamageType "Shotgun";
+	}
+}
+
+
+Class HitPuffExtreme : HitPuff
+{
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+
+		// If the player has the Splash Upgrade, add a bit of splash!
+		spawnExplosion();
+	}
+
+	void spawnExplosion()
+	{
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+
+		// If the player has the Splash Upgrade, add a bit of splash!
+		if(d && d.player.readyWeapon && SelacoWeapon(d.player.readyWeapon).hasUpgradeClass('UpgradeCricketSplashDamage') == 1) {
+			A_SPAWNITEMEX("AverageExplosion", 5);
+			A_EXPLODE(5, 125);
+		}
+	}
+
+	default {
+		+HITTRACER
+		+HITMASTER
+		+HITOWNER
+		+ALWAYSPUFF
+		+PUFFONACTORS
+		DamageType "MagnumBullet";
+		radius 50;
+		HitPuff.RicochetType "RicoChetExtreme";
+	}
+	states
+	{
+		Spawn:
+		Death:
+		XDeath:
+			TNT1 A 5 spawnExplosion();
+			stop;
+	}
+}
+
+class HitPuffSniper : HitPuffExtreme {
+	default {
+		DamageType "SniperBullet";
+	}	
+}
+
+class RicochetNailgun : Ricochet {
+	states {
+	Spawn:
+		//TNT1 A 0 ThrustThingZ(0,-5,0,1)
+		//TNT1 A 1
+		//TNT1 A 0 A_Explode(4, 15)
+		TNT1 A 0 {
+			invoker.spawnDecals = false;
+			setImpactVolume(0.2);
+		}
+		TNT1 A 0;
+		TNT1 A 0 A_CheckFloor("SpawnFloor");
+		TNT1 A 0 A_SpawnItem ("YellowFlareSmall", 0);
+		TNT1 A 0 A_SpawnItemEx ("UnderwaterHitPuff",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+		
+		TNT1 A 0 {
+			SpawnMetalParticles();
+		}
+	}
+}
+
+
+
+Class RicoChetLite : RicoChet {
+	default {
+		RicoChet.LightFailChance 25;
+		Ricochet.LightFailChanceMetal 90;
+		Ricochet.particleMultiplier 0.75;
+		Ricochet.ImpactVolume 0.25;
+	}
+
+	/*override void BeginPlay() {
+		Super.BeginPlay();
+
+		setImpactVolume(0.25);
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETROLL(frandom(0,360));
+				setImpactVolume(0.25);
+				invoker.spawnDecals = true;
+				//A_SETSCALE(frandom(0.4,0.5));
+				setStateLabel("SpawnEffects");
+			}
+			stop;
+	}*/
+}
+
+Class DirtRicochet: RicoChet
+{
+  Default {
+  alpha 0.8;
+  XScale 1.1;
+  YScale 1.1;
+  }
+  states
+  {
+  Spawn:
+	TNT1 A 2;
+	TNT1 A 0 A_PlaySound("BHITDIR");
+	TNT1 A 0 A_Jump(255, "Spawn1", "Spawn2", "Spawn3");
+  Spawn1:
+	TNT1 A 0;
+	TNT1 A 0 A_SetScale(1.1, 1.1);
+	SDRT ABCDEF 2;
+	Stop;
+ Spawn2:
+	TNT1 A 0;
+	TNT1 A 0 A_SetScale(1.9, 1.9);
+	SDRT ABCDEF 2;
+	Stop;
+  Spawn3:
+	TNT1 A 0;
+	TNT1 A 0 A_SetScale(1.4, 0.4);
+	SDRT ABCDEF 2;
+	Stop;
+  Spawn4:
+	TNT1 A 0;
+	TNT1 A 0 A_SetScale(-1.4, 1.1);
+	SDRT ABCDEF 2;
+	Stop;
+  }
+}
+
+class NailgunPuff : RicoChet {
+
+	default
+	{
+		Scale 0.9;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("nailgun/impact", CHAN_AUTO, 0.8, pitch:frandom(0.9,1.1));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(1.5, 2));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(-1.5, -2));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1.5, 2), 0, frandom(1.5, 2));
+			//TNT1 AAAAA 0 A_SpawnItemEx("SparkEmbers", random(-4, 4), frandom(-5,5), frandom(-3,3));
+			TNT1 A 0 {
+				EmitDefinition('DebrisChunkParticleShortFastTinyDefintion', chance: frandom(0.25,1.0), numTries: 15,pitch:-5);
+				EmitDefinition('ShortSparkParticleDefinition', chance: 0.5, numTries: 60, angle:0, pitch:frandom(-35, -10), speed:3);
+				EmitDefinition('MuchLongerSparkDefinition', chance: 0.5, numTries: 26, angle:random(-10,10), speed:6);
+			}
+			TNT1 A 0 A_Jump(255, "Spawn1", "Spawn2", "Spawn3");
+		Spawn1:
+			//TNT1 A 0 A_SpawnItemEx ("YellowFlareSmall");
+			IPF1 ABCD 1 bright;
+			Stop;
+			
+		Spawn2:
+			//TNT1 A 0 A_SpawnItemEx ("YellowFlareSmall");
+			IPF2 ABCD 1 bright;
+			Stop;
+			
+		Spawn3:
+			TNT1 A 0 A_SpawnItemEx ("YellowFlareSmall");
+			IPF3 ABCD 1 bright;
+			Stop;
+	}
+}
+
+class SiegerPuff : NailgunPuff
+{
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("nailgun/impact", CHAN_AUTO, 0.6, pitch:frandom(0.9,1.1));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(1.5, 2));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(-1.5, -2));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1.5, 2), 0, frandom(1.5, 2));
+			//TNT1 AAAAA 0 A_SpawnItemEx("SparkEmbers", random(-4, 4), frandom(-5,5), frandom(-3,3));
+			TNT1 A 0 A_Jump(255, "Spawn1", "Spawn2", "Spawn3");
+	}
+}
+
+class NailgunPuffLite : NailgunPuff
+{
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("nailgun/impact", CHAN_AUTO, 0.7, pitch:frandom(0.9,1.1));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(1.5, 2));
+			//TNT1 AAAAA 0 A_SpawnItemEx("SparkEmbers", random(-4, 4), frandom(-5,5), frandom(-3,3));
+			TNT1 A 0 {
+				EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 2, angle:random(-65,65), speed:3);
+			}
+			TNT1 A 0 A_Jump(255, "Spawn1", "Spawn2", "Spawn3");
+	}
+}
+
+class MeleeImpactSplash : actor {
+	default {
+		damageType "MeleeImpactSplash";
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_EXPLODE(90, 75, XF_HURTSOURCE);
+			stop;
+	}
+}
+
+class trailPuff : actor
+{
+	default
+	{
+		+NOINTERACTION;
+	}
+	states
+	{
+		spawn:
+			TNT1 A 1;
+			stop;
+	}
+}
+
+Class SpawnBulletDecal : SelacoActor {
+	default {
+		Radius 8;
+		Height 8;
+		Speed 10;
+		Gravity 0.7;
+		Mass 4;
+		+DOOMBOUNCE;
+		PROJECTILE;
+		+MISSILE;
+		+MOVEWITHSECTOR;
+		+CLIENTSIDEONLY;
+		+NOBLOCKMAP;
+		Decal "BulletDecalNew1";
+		+NOTELEPORT;
+	}
+    States {
+        Spawn:
+          TNT1 A 0;
+          TNT1 A 0 A_SETANGLE(angle - 180);
+          TNT1 A 1;
+          goto death;
+        Death:
+          TNT1 A 1 A_SprayDecal("BulletDecalNew1", 172);
+          stop;
+    }
+}
+
+class SpawnPlasmaDecal : SpawnBulletDecal {
+	states {
+        Spawn:
+          TNT1 A 0;
+          goto death;
+        Death:
+			TNT1 A 0;
+			TNT1 A 0 A_SprayDecal("PlasmaDecals", 172);
+			stop;			
+	}
+}
+
+
+class ScorchMarkSmallSpawner : SpawnBulletDecal {
+	states {
+        Spawn:
+          TNT1 A 0;
+          goto death;
+        Death:
+			TNT1 A 0;
+			TNT1 A 0 A_SprayDecal("ScorchMarkSmall", 172);
+			stop;			
+	}
+}

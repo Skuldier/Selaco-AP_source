@@ -1,0 +1,205 @@
+[enu default] 
+
+BB_CONVERT_TITLE = "Convert Game";
+BB_CONVERT_DESCRIPTION = "Your Burger Flipper progress is currently stored in this save-file only. Would you would like to convert to using the \c[hi]Global Save\c- for Burger Flipper?\n\nThe \c[hi]Global Save\c- allows you to keep your progress, even if you die in game or if you change save-games.\n\n\c[YELLOW]WARNING: You will lose the progress made in this save file!";
+BB_CONVERT_DESCRIPTION2 = "\n\nDOUBLE WARNING: Since you don't have a Global save already, you will be starting from scratch!";
+BB_CONVERT_YES = "Convert";
+BB_CONVERT_NO = "Cancel";
+
+BB_NOGEMS_TITLE = "Buy Gems";
+BB_NOGEMS_DESCRIPTION = "Greetings Playtester!\n\nThis isn't implemented on the server yet. AOS hasn't given us permission, it's still labelled as online gambling or some such nonsense.\n\nSorry!\n- Fred A.";
+BB_NOGEMS_OK = "Understood";
+
+BB_PRESTIGE_TITLE = "Increase Prestige";
+BB_PRESTIGE_DESCRIPTION = "Would you like to purchase a \c[HI]Prestige Level\c- upgrade?\n\nUpgrading your \c[HI]Prestige\c- will start the game over, but you will keep your achievements and rewards.\n\nEach \c[HI]Prestige Level\c- adds bonus \c[HI]BPS\c-, increases \c[GOLD]Golden Burger\c- spawns and Burgers gathered from the \c[HI]Pedometer\c-.";
+BB_PRESTIGE_YES = "UPGRADE!";
+BB_PRESTIGE_NO = "No Thanks";
+
+BBPRESTIGE_REQUIRED = "This building requires \c[HI]Prestige %d\c-";
+
+BB_WIPE_TITLE = "Wipe All Progress?";
+BB_WIPE_DESCRIPTION = "This will permanently \c[orange]DELETE ALL PROGRESS\c- accumlated in Burger Flipper. \n\nAre you sure you want to proceed?";
+BB_SETTINGS_WIPE = "Wipe my progress!";
+BB_SETTINGS_CANCEL = "Cancel";
+
+BB_UNINSTALL_TITLE = "Uninstall BurgerFlipper";
+BB_UNINSTALL_DESCRIPTION = "You can uninstall \c[hi]Burger Flipper\c- from your Codex and make it unavailable for the rest of your Playthrough. \n\nYou will no longer be able to play the game but your global progress will not be lost.";
+BB_SETTINGS_UNINSTALL = "Uninstall";
+
+BB_SETTINGS_TITLE = "BurgerFlipper Options";
+BB_SETTINGS_DESCRIPTION = "Would you like uninstall BurgerFlipper or reset your progress?";
+
+BB_Uninstall = "Uninstall";
+BB_ResetProgress = "Reset Progress";
+BB_ReturnToGame = "Return to game";
+BB_Settings = "Settings";
+
+BB_Build_Flipper = "Spatula";
+BB_Build_Flipper_Ach = "Spatula City!";
+BB_Build_FlipperD = "Automated spatula, will automatically flip burgers every-so-often.";
+BB_Build_Flipper0 = "Spring loaded handles produce 2x the amount of burgers, also 2x as many burgers stuck to the ceiling.";
+BB_Build_Flipper1 = "Mini-fan that blows air upward, giving burgers an extra lift. Flips 2x as many burgers.";
+BB_Build_Flipper2 = "A twisting mechanism is added to the handle, enabling a spin and adding a flair of showmanship. Also doubles the burger production.";
+BB_Build_Flipper3 = "Embed small magnets on the spatula surface to attract the burger patties, preventing any accidental drops during flipping. Reliably flips 2x the amount of burgers.";
+BB_Build_Flipper4 = "Install Laser pointer that provides perfect flipping alignment, allowing for 2x as many burgers flipped.";
+BB_Build_Flipper5 = "Attach a second spatula on top, xzibiting a double-decker design. Flip 2x as many burgers.";
+BB_Build_Flipper6 = "Add a Boomerang, so after flipping it returns for the next toss. A perfect blend of utility and aerodynamics providing 2x as many burgers!";
+BB_Build_Flipper7 = "Conveyer Belt automatically slides the next burger in place, providing 2x the burger flipping efficiency.";
+BB_Build_Flipper8 = "Mirrors added on both sides, creating the illusion of an alternate reality. It looks like you can flip 2x the amount of burgers.";
+BB_Build_Flipper9 = "Quantum physics allow the spatula to exist in multiple states at once. Now flip burgers in parallel universes, doubling your burger-flipping!";
+
+
+BB_Build_Worker = "Minimum-Wager";
+BB_Build_Worker_Ach = "Wage Crimes";
+BB_Build_WorkerD = "\"He is named Oreste and he is from Molise; he is a single dad.\"";
+BB_Build_Worker0 = "Purchase a VAC-BOT to help boost morale and clean spills. Workers are inspired to produce 2x as many burgers.";
+BB_Build_Worker1 = "Give Oreste control over the kitchen playlist, giving workers a sense of autonomy and enjoyment allowing for 2x the burger production.";
+BB_Build_Worker2 = "Turn flipping into a friendly competition with a leaderboard and small prizes for achieving 2x burger-flipping speeds!";
+BB_Build_Worker3 = "Dedicate a day to recognize and appreciate hard work, providing small tokens of acknowledgment. Workers produce 2x as many burgers!";
+BB_Build_Worker4 = "Reward workers with superhero-themed chef capes for hitting flipping milestones, adding a playful touch to double burger production.";
+BB_Build_Worker5 = "Introduce a rotating \"Golden Spatula\" award for the fastest flipper, boosting motivation and doubling productivity.";
+BB_Build_Worker6 = "Designate one day where workers get to choose a silly spatula design. Awards given for the most creative spatula! Produces 2x as many burgers.";
+BB_Build_Worker7 = "Offer a jetpack experience for workers who reach exceptional flipping targets, giving them the chance to flip burgers while soaring through the sky. Doubles burger production again!";
+BB_Build_Worker8 = "Promise a nightly fireworks display for workers who consistently double their burger-flipping output, turning the routine into a dazzling spectacle.";
+BB_Build_Worker9 = "Construct a temporary Ferris wheel near the workplace, allowing workers who double their flipping speed to enjoy a VIP ride with breathtaking views.";
+
+BB_Build_Kitchen = "Kitchen";
+BB_Build_Kitchen_Ach = "Hell's Kitchen";
+BB_Build_KitchenD = "A whole kitchen of workers, paid up to minimum wage with productivity levels to match.";
+BB_Build_Kitchen0 = "Optimize space by arranging patties and buns like a game of Tetris, maximizing every inch of the kitchen and doubling productivity.";
+BB_Build_Kitchen1 = "Glide ingredients on an air hockey table for chefs to catch and stack, adding a dynamic and fast-paced element. Produce 2x as many burgers.";
+BB_Build_Kitchen2 = "Pass around a hot potato-like burger patty, with each chef adding an ingredient before passing it along, creating a collaborative assembly line. Produce 2x as many burgers.";
+BB_Build_Kitchen3 = "Design a whack-a-mole game where chefs assemble burgers as ingredients pop up, testing their speed and coordination. Produce 2x as many burgers.";
+BB_Build_Kitchen4 = "Equip chefs with roller skates to swiftly move around the kitchen, assembling burgers on the go. Produce 2x as many burgers.";
+BB_Build_Kitchen5 = "Catapult finished burgers directly onto waiting plates for a whimsical twist on traditional serving methods and doubling burger production.";
+BB_Build_Kitchen6 = "Install a rotating platform where chefs can continuously add ingredients, allowing for 2x as many burgers produced.";
+BB_Build_Kitchen7 = "Construct an elaborate Rube Goldberg machine where each step contributes to burger assembly, turning it into a playful spectacle and producing 2x as many burgers.";
+BB_Build_Kitchen8 = "Create miniaturized chef clones to assist in parallel burger assembly, doubling production.";
+BB_Build_Kitchen9 = "Implement teleportation booths for instant transfer of completed burgers to waiting customers. Doubles production!";
+
+BB_Build_Frytruck = "Fry Truck";
+BB_Build_Frytruck_Ach = "Grill Billies";
+BB_Build_FrytruckD = "One or two super efficient burger flippers with dreams of grandeur and a mobile grill.";
+BB_Build_Frytruck0 = "Install a secondary flipper mechanism at the window of the fry-truck, allowing cooks to simultaneously flip burgers while taking orders at the window. Produces 2x as many burgers.";
+BB_Build_Frytruck1 = "Super-heated grille doubles the speed that burgers can be cooked, but results in some slightly blackened patties. It's good enough.";
+BB_Build_Frytruck2 = "Foot pedals installed on the grille allow cooks to flip the entire grille at once, resulting in 2x the amount of burgers produced, and a few more grease stains.";
+BB_Build_Frytruck3 = "Connect the truck exhaust to the grille, decreasing heat up timing and adding a unique flavour to produce 2x as many burgers.";
+BB_Build_Frytruck4 = "Add an extra air freshener in the cab of the truck to distract cooks from the smell of grease. Somehow this produces 2x the burger output.";
+BB_Build_Frytruck5 = "Turbo-charge engines on the entire fleet, allowing trucks to reach new customers at break-neck speed. Doubles production!";
+BB_Build_Frytruck6 = "Attach miniature parachutes to finished burgers, allowing chefs to toss them out the serving window for a fun and efficient aerial delivery method that doubles production.";
+BB_Build_Frytruck7 = "Robotic propane delivery ensures cooks never have to waste time fueling up, allowing for doubled burger output.";
+BB_Build_Frytruck8 = "Install a food-grade mobile 3D printer, allowing for customizable designs and doubling the efficiency of burger production.";
+BB_Build_Frytruck9 = "Purchase a robot driver, allowing cooks to continue making burgers even during travel for 2x the efficiency.";
+
+BB_Build_Restaurant = "Restaurant";
+BB_Build_Restaurant_Ach = "Burger King";
+BB_Build_RestaurantD = "World class dining, as long as you came for burgers.";
+BB_Build_Restaurant0 = "Convert a mop bucket into a mobile burger ingredient station, allowing chefs to prepare toppings while they flip burgers, doubling burger output.";
+BB_Build_Restaurant1 = "Install a slide system to transport burgers from the grill directly to the assembly area, minimizing the time it takes to plate each burger and doubling the production efficiency.";
+BB_Build_Restaurant2 = "Utilize synchronized timers with musical cues to coordinate cooking times, ensuring chefs flip burgers in harmony and double the overall production.";
+BB_Build_Restaurant3 = "Introduce a rotating, mechanical bull-shaped grill that chefs ride while flipping burgers, doubling the entertainment factor and production alike.";
+BB_Build_Restaurant4 = "Implement drone delivery from grill to assembly, allowing chefs to focus solely on flipping burgers while drones transport cooked patties to the assembly line. Doubles production rate.";
+BB_Build_Restaurant5 = "Construct a water slide with grilling surfaces, turning the act of flipping burgers into a wet and wild adventure, doubling both the fun and production rates.";
+BB_Build_Restaurant6 = "Convert an overhead ski lift to transport prepped burgers directly to the grill, creating a continuous avalanche of ingredients and doubling production rates.";
+BB_Build_Restaurant7 = "Install a high-speed conveyor belt that propels burgers through a heated tunnel, cooking them at record speed and doubling the restaurant's burger output.";
+BB_Build_Restaurant8 = "Equip chefs with jetpacks for high-speed maneuvering between cooking stations, doubling the efficiency and turning the restaurant into a culinary airstrip.";
+BB_Build_Restaurant9 = "Implement a quantum flip accelerator, allowing chefs to flip burgers at warp speed by bending the laws of physics, doubling the burger output.";
+
+
+BB_Build_Factory = "Factory";
+BB_Build_Factory_Ach = "Factory Reset";
+BB_Build_FactoryD = "Efficient production line with hundreds of workers. No bathroom breaks.";
+BB_Build_Factory0 = "Train staff with augmented reality simulations for 2x faster and more accurate burger assembly.";
+BB_Build_Factory1 = "Introduce agile ninja robots to swiftly assemble burgers with 2x precision and speed.";
+BB_Build_Factory2 = "Implement a hyperloop system to transport ingredients at high speeds between processing stations. Doubles efficiency.";
+BB_Build_Factory3 = "Employ magnetic fields to move patties around during production, doubling production speed.";
+BB_Build_Factory4 = "Factory employs plasma technology for instantaneous searing and cooking, doubling production rate.";
+BB_Build_Factory5 = "Utilize a fleet of drones for immediate delivery of finished burgers to packaging and distribution points. Produces 2x the burgers.";
+BB_Build_Factory6 = "Conduct burger assembly in a zero-gravity environment, allowing for effortless movement and doubled efficiency.";
+BB_Build_Factory7 = "Implement holographic quality control checks to swiftly identify and correct assembly errors, doubling productivity.";
+BB_Build_Factory8 = "Employ alien slave-masters from another world, forcing 2x the productivity out of assembly workers with double the amount of HR complaints.";
+BB_Build_Factory9 = "Source ingredients from the past and future simultaneously, ensuring a constant and diverse supply for 2x the production.";
+
+BB_Build_Megaplex = "Megaplex";
+BB_Build_Megaplex_Ach = "Megaplexity";
+BB_Build_MegaplexD = "Factories stacked on top of factories for maximum space efficiency.";
+BB_Build_Megaplex0 = "Ultra-strong girders hold more weight and allow you to stack double the amount of factories in a single megaplex.";
+BB_Build_Megaplex1 = "Add a Residential quarter to each floor of the Megaplex, allowing works to live where they work and produce 2x as many burgers overall.";
+BB_Build_Megaplex2 = "Construct a helix-shaped building to spiral upwards, effectively doubling the number of factory levels within the same footprint. Also doubles burger production.";
+BB_Build_Megaplex3 = "Use hot air balloons to lift additional factory modules into the sky, creating a floating stack above the original megaplex. Doubles burger production.";
+BB_Build_Megaplex4 = "Implement magnetic levitation technology to suspend factories above one another, maximizing vertical space and doubling overall burger production.";
+BB_Build_Megaplex5 = "Use Velcro-like materials on factory exteriors, allowing for easy attachment and detachment to stack and reconfigure as needed. Doubles burger production.";
+BB_Build_Megaplex6 = "Employ antigravity modules between factory levels, allowing for levitation and easy reconfiguration of the megaplex layout and doubling burger production.";
+BB_Build_Megaplex7 = "Connect factories with a web of elastic netting, allowing for flexible movement and expansion in all directions. Double production potential.";
+BB_Build_Megaplex8 = "Develop a replicator beam system to duplicate existing factory modules, instantly doubling the stack size and burger production.";
+BB_Build_Megaplex9 = "Explore quantum stacking, allowing factories to exist in multiple positions simultaneously for a quantum leap in production space. Doubles production.";
+
+BB_Build_Gigaplex = "Gigaplex";
+BB_Build_Gigaplex_Ach = "Gigaplexity";
+BB_Build_GigaplexD = "Megaplex stacked on top of megaplex. Ridiculous towers of meat flipping.";
+BB_Build_Gigaplex0 = "Stack Megaplex units like a giant Jenga tower, creating a visually striking and interactive stacking structure. Carries a hint of danger but doubles burger production.";
+BB_Build_Gigaplex1 = "Dig giant holes under each Gigaplex, doubling the amount of Megaplexes in each stack and doubling burger production.";
+BB_Build_Gigaplex2 = "Stack more Megaplexes in each Gigaplex by adding them sideways. effectively doubles production, but requires workers to wear magnetic boots.";
+BB_Build_Gigaplex3 = "Install magnetic stabilizers that keep thousand foot towers of burger production from swaying in the wind, allowing more and more Megaplexes in a single tower.";
+BB_Build_Gigaplex4 = "Create levitating islands that support individual megaplex units, enabling them to stack 2x vertically with a touch of magic.";
+BB_Build_Gigaplex5 = "Grow magical beanstalks that lift Megaplexes higher into the sky, doubling Megaplex stacking and thus doubling burger production.";
+BB_Build_Gigaplex6 = "Every Gigaplex is mandated to hire a magical Unicorn mascot. Somehow this doubles burger production.";
+BB_Build_Gigaplex7 = "GWYN-GPT has failed to generate this text. Please try again... (Error #99.64)";
+BB_Build_Gigaplex8 = "Merge quantum holograms of megaplex units, allowing for the appearance of double-stacked structures without physical contact. Looks like 2x burger production.";
+BB_Build_Gigaplex9 = "Implement quantum stacking, allowing Megaplexes to exist in multiple positions simultaneously for a quantum leap in production space. Doubles production.";
+
+BB_Build_Offworld = "Third World Planet";
+BB_Build_Offworld_Ach = "Burger World";
+BB_Build_OffworldD = "Alien planet puts entire population into slavery to produce burgers for Pluto Burger.";
+BB_Build_Offworld0 = "Develop genetically modified burger ingredients that grow at an accelerated rate without compromising taste or quality. Doubles burger production. Only sometimes uses alien DNA.";
+BB_Build_Offworld1 = "Utilize meteor showers of edible ingredients to continuously supply the planet with fresh burger components. Doubles burger production potential.";
+BB_Build_Offworld2 = "Deploy a fleet of burger-harvesting drones to efficiently gather ingredients from all corners of the planet for 2x the amount of burgers produced.";
+BB_Build_Offworld3 = "Establish aquafarms in the planetary oceans for unique underwater burger ingredients, doubling the resource pool. We are sure this won't harm the ecosystem immediately.";
+BB_Build_Offworld4 = "Play energizing tunes across the entire planet to boost the morale and productivity of burger-producing organisms. Doubles production, but may scare some native wildlife.";
+BB_Build_Offworld5 = "Create large sails into solar panels to power floating burger farms in the planet's orbit, doubling the space available for burger production.";
+BB_Build_Offworld6 = "Bioengineer hyper-intelligent alien cows that can communicate preferences, doubling the breeding and farming processes and creating possible ethical dillemas.";
+BB_Build_Offworld7 = "Implement time dilation fields to slow down time, allowing for extended periods of ingredient growth and manufactoring. Produce 2x as many burgers on each planet.";
+BB_Build_Offworld8 = "Achieve quantum synchronicity among all burger-producing entities, ensuring coordinated and simultaneous production and doubling burger production.";
+BB_Build_Offworld9 = "Saturate the breathable atmosphere with giggle-gas to promote joyful burger production. Doubles burger production on each planet. Giggle-gas is not yet known to cause addiction or dependency.";
+
+BB_Build_Consortium = "Galactic Consortium";
+BB_Build_Consortium_Ach = "Burger Federation";
+BB_Build_ConsortiumD = "An entire federation of planets agrees to put their population into slavery to produce burgers for Pluto Burger.";
+BB_Build_Consortium0 = "Conduct regular celestial supply drops from space stations, delivering fresh ingredients to planets in need to double production.";
+BB_Build_Consortium1 = "Implement hyperspace transportation for ingredients, reducing delivery times and ensuring freshness for 2x the burger production.";
+BB_Build_Consortium2 = "Release seasoning clouds that cover entire solar systems, evenly flavoring burgers throughout every burger producing planet. Doubles burger production.";
+BB_Build_Consortium3 = "Source unique fertilizers from exotic exoplanets to enrich the soil and accelerate the growth of specialized burger ingredients for 2x the burger production.";
+BB_Build_Consortium4 = "Implement AI-driven algorithms to optimize the entire burger supply chain, from ingredient sourcing to delivery routes, enabling double efficiency and production.";
+BB_Build_Consortium5 = "Develop stellar navigation apps for burger delivery, guiding ships through the most efficient routes between galaxies to double production.";
+BB_Build_Consortium6 = "Create refrigeration clouds within nebulas to preserve burger ingredients during intergalactic transportation. 2x as many fresh burgers produced.";
+BB_Build_Consortium7 = "Use solar flare accelerators to boost the speed of delivery ships, cutting travel times between galaxies. Double burger production.";
+BB_Build_Consortium8 = "Produce 2x as many burgers by converting asteroids into mobile delivery stations, using their natural orbits to reach different planets on a predictable schedule.";
+BB_Build_Consortium9 = "Implement a cosmic-scale hard-light conveyor belt that spans multiple galaxies, ensuring a constant flow of ingredients to production hubs. Double burger production.";
+
+BB_Build_Portal = "Wormhole";
+BB_Build_Portal_Ach = "Wormholed";
+BB_Build_PortalD = "A wormhole to a far away galaxy allows you to reach additional consortiums at minimal cost.";
+BB_Build_Portal0 = "Construct specialized warp drive freighters designed for large-scale burger shipments through the wormhole for 2x the burger production.";
+BB_Build_Portal1 = "Install quantum boosters at entry points for an extra burst of speed through each wormhole, doubling efficiency.";
+BB_Build_Portal2 = "Shrink burger cargo to a microscopic size for compact shipping through the wormhole, expanding back to normal upon arrival. Doubles wormhole burger production.";
+BB_Build_Portal3 = "Utilize gravitational catapults to launch burgers through the wormhole with minimal energy consumption. Double buger production.";
+BB_Build_Portal4 = "Use quantum tunneling wagons that bypass traditional space, doubling travel efficiency between wormholes.";
+BB_Build_Portal5 = "Park nine deep-space stations on either side of the wormhole to process shipments at double efficiency.";
+BB_Build_Portal6 = "Deploy translucent velocity shields to protect burgers from external forces, ensuring intact and delicious arrivals.";
+BB_Build_Portal7 = "Transmit holographic replicas of burgers through the wormhole, minimizing physical mass and doubling efficiency.";
+BB_Build_Portal8 = "Use containers made of dark matter to absorb excess energy and propel burgers through the wormhole while keeping them hot. Double burger production.";
+BB_Build_Portal9 = "Place burgers in dimensional pouches that can expand or contract based on the available space within the wormhole to double production.";
+
+BB_Build_MirrorUniverse = "Mirror Universe";
+BB_Build_MirrorUniverse_Ach = "Abyss Gazes Back";
+BB_Build_MirrorUniverseD = "An alternate universe in which all life has dedicated existence to creating burgers.";
+BB_Build_MirrorUniverse0 = "Add an additional magic mirror, which duplicates existing mirror universes for double the burger production.";
+BB_Build_MirrorUniverse1 = ".noitcudorp regrub eht elbuod rof sesrevinu rorrim gnitsixe setacilpud hcihw ,rorrim cigam lanoitidda na ddA";
+BB_Build_MirrorUniverse2 = "Implement advanced quantum algorithms to optimize the functioning and stability of the mirror universe an double burger production possibilities.";
+BB_Build_MirrorUniverse3 = "Develop cosmic energy harness within each mirror universe, ensuring a sustainable power source for burger production. Produces 2x burgers.";
+BB_Build_MirrorUniverse4 = "Fine-tune temporal synchronization to maintain consistency and reduce fluctuations between the mirror universes, doubling production.";
+BB_Build_MirrorUniverse5 = "Implement load-balancing algorithms that distribute energy and resources evenly across different dimensions, allowing for double the burger flipping potential.";
+BB_Build_MirrorUniverse6 = "Establish connections between mirror universes to share knowledge, resources, and genetic clones of Oreste. Doubles burger flipping potential.";
+BB_Build_MirrorUniverse7 = "Fine-tune time dilation factors to double the passage of time within the mirror universes, doubling perceived production from the central universe.";
+BB_Build_MirrorUniverse8 = "Construct resonance chambers to amplify temporal coherence, ensuring smoother time interactions. Somehow double burger production.";
+BB_Build_MirrorUniverse9 = "Utilize subspace compression techniques to minimize the space required for storing matter within the mirror universe, doubling it's potential size and burger production.";

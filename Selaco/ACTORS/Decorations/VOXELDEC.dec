@@ -1,0 +1,354 @@
+Actor ItemGotThrownIndumpster {
+	states {
+		Spawn:
+			TNT1 A 10
+			stop
+	}
+}
+
+
+
+actor PlantPotDecorated {
+	-usespecial
+	+nointeraction
+	states{
+		Spawn:
+			POTA A 1
+			POTA A 0 A_SPAWNITEMEX("Plant2DecorativeSmall", 0, -2, 30, 0, 0, 0, 0, SXF_SETMASTER)
+			POTA A 0 A_SPAWNITEMEX("Plant2DecorativeSmall", 0, -2, 30, 0, 0, 0, 90, SXF_SETMASTER)
+		Looper:
+			POTA A -1
+			stop
+	}
+}
+
+Actor PaperTray : DecorationObject 13292 {
+	tag "Paper Tray"
+	Activation THINGSPEC_Default
+	scale 0.35
+	States {
+		spawn:
+			TRAY A -1
+			stop
+	}
+}
+
+Actor Cone : DecorationObject 13103{
+	//category SelacoDecorations
+	-Usespecial
+	Activation THINGSPEC_Default
+	tag "Cone"
+	scale 0.2
+	yscale 0.18
+	States {
+		Spawn:
+			CONE A random(100, 150)
+			loop
+	}
+}
+
+Actor Notepad : PickupableDecoration 13087 {
+	//category SelacoDecorations
+	mass 150
+	height 3
+	radius 9
+	health 5
+	+UseSpecial
+	-CANNOTPUSH
+	+SelacoActor.thruplayers
+	PickupableDecoration.grabSound "PCKBOOK"
+    PickupableDecoration.dumpsterSound "trashbin/paper"
+	+PickupableDecoration.dumpsterCompatible
+	-PickupableDecoration.CanDamageGlass
+	PickupableDecoration.landingSound "landing/paper"
+	Activation THINGSPEC_Switch
+	-NOBLOOD
+	tag "$OBJECT_NOTEPAD"
+	Bloodtype "PaperChunk", "PaperChunk", "PaperChunk"
+	States {
+    	Spawn:
+            VOXE L -1
+			loop
+		Death:
+			TNT1 A 0 A_SpawnProjectile ("PAPERSMOKE", 5, 0, random (0, 10), 2, random (0, 10))
+			TNT1 A 1 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6)
+			stop
+	}
+}
+Actor DeskLampSpawner 9966 {
+	tag "Desk Lamp"
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SpawnItemEx("desklamp_base")
+			stop
+	}
+}
+
+Actor Bottle1_empty : Bottle1 14321 {
+}
+
+actor STOOLLED { 
+
+}
+
+
+Actor Stool2 : DecorationObject {
+	//category SelacoDecorations
+	tag "$OBJECT_STOOL"
+	mass 900
+	health 70
+	friction 1.0
+	-pushable
+	+Solid
+	+DONTTHRUST
+	-NOBLOOD
+	-USESPECIAL
+	SelacoActor.CollisionSound "PUSH/SMALLPROP"
+	Activation THINGSPEC_Default
+	+SELACOACTOR.SleepWhenIdle
+	-SELACOACTOR.WakeNearPlayer
+	BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite"
+	PainSound "impact/hardmetal"
+	painchance 256
+	DamageFactor "ExplosiveImpact", 5
+	scale 1.05
+	radius 10
+	height 33
+	States {
+		Precache:
+			STOO L 0
+			STOO K 0
+			stop
+		Spawn:
+			TNT1 A 0 
+			//TNT1 A 1 A_SpawnItemEx("STOOLLED", 0, 0, 0, 0, 0, 0, 0, SXF_SETMASTER)
+		Looper:
+			STOO L -1
+		Pain:
+			STOO L 1 A_PAIN()
+			goto Looper
+		Inactive:
+		Active:
+			goto Looper
+		Death.Explosion:
+			TNT1 A 0 A_SpawnItemEx("Stool_piece", 0, 0, 10, frandom(6, 9), frandom(5, 9), frandom(11, 13))
+			stop
+		Death:
+			TNT1 A 0 A_KillChildren
+			TNT1 A 0 A_SpawnItemEx("Stool_piece", 0, 0, 10, frandom(1, 5), frandom(1, 5), frandom(5, 8))
+			TNT1 A 0
+			{
+				bThruActors = true;
+			}
+			STOO K -1
+			loop
+		Destroy:
+			stop
+	}
+}
+
+ACTOR FlickerScreenPaper 3337 {
+	scale 0.15
+	+NOGRAVITY
+	Health 10
+	tag "Flicker Paper"
+	-SOLID
+	+NOBLOODDECALS
+	+ROLLSPRITE
+	+shootable
+	deathsound "dest/paper"
+	Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP"
+	+WALLSPRITE
+	states {
+		Spawn:
+			PAPE D -1
+			stop
+	}
+}
+
+Actor SodaTics : Inventory {
+	Inventory.MaxAmount 2500
+}
+
+
+Actor SodaCanEmptyDecoration : SodaCanEmpty  5371 {
+	//category OminousDecoration
+	+USESPECIAL
+	+NOINTERACTION
+	tag "ArachnoCola Empty Placed"
+	height 2
+	radius 5
+	States {
+		Spawn:
+			TNT1 A 0
+			VOXE L 1 {
+				SleepIndefinite();
+			}
+			loop
+	}
+}
+
+Actor SodaShotsLeft : Inventory {
+	Inventory.MaxAmount 8
+}
+
+
+Actor SodaShooterSingle {
+	+NOGRAVITY
+	States {
+		Spawn:
+			TNT1 A 0
+		ShootSodaCans:
+			TNT1 A 0
+			TNT1 A 4 A_PLAYSOUND("script/coin", CHAN_AUTO, 0.25)
+			TNT1 A 2 A_SPAWNITEMEX("SodaCanRolling", 0, 0, 0, 5, 0, 0, 0)
+			stop
+		Death:
+			TNT1 A 0
+			stop
+	}
+}
+
+Actor SodaShooterUpward : SodaShooter {
+	+NOGRAVITY
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_GiveInventory("SodaShotsLeft", 80)
+		ShootSodaCans:
+			TNT1 A 0
+			TNT1 A 0 A_JumpIfInventory("SodaShotsLeft", 1, 1)
+			goto Death
+			TNT1 A 0 A_TakeInventory("SodaShotsLeft", 1)
+			TNT1 A 7 A_SPAWNITEMEX("SodaCanRolling", 0, 0, 0, random(2,3), random(2,3), random(3,6), 0)
+			TNT1 A 0 A_PLAYSOUND("script/coin", CHAN_AUTO, 0.2)
+			Loop
+		Death:
+			TNT1 A 0
+			stop
+	}
+}
+
+
+Actor SodaCanRolling : SodaCan  {
+	//category OminousDecoration
+	tag "$FOOD_ARACHNOCOLA"
+	Speed 15
+	mass 2
+	radius 6
+	height 6
+	PainChance 255
+	pushfactor 1.0
+	+PUSHABLE
+	+SHOOTABLE
+	+THRUACTORS
+	+SOLID
+	DamageFactor "Kick", 0.0
+	PainChance "ExplosiveImpact", 255
+	BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite"
+	Activation THINGSPEC_Switch
+	-BloodSplatter
+	BounceFactor 0.2
+	BounceCount 4
+	BounceSound "impact/can"
+	SeeSound "impact/can"
+
+	States {
+		Spawn:
+			VOXE L 4
+			TNT1 A 0 A_SetAngle(angle + 90)
+			TNT1 A 0 A_GiveInventory("SodaTics", 250)
+			goto Spawned
+		Inactive:
+		Active:
+			TNT1 A 1 ACS_NamedExecuteWithResult("DrinkingArachno", healAmount)
+			goto Spawned
+		Spawned:
+			VOXE L 0 A_PlaySound("impact/canroll", CHAN_5, 1.0, 1)
+			TNT1 A 0 A_SETPITCH(pitch + 5)
+			VOXE L 2 A_JumpIf(velx == 0 && vely == 0 && velz == 0, "SpawnedAndSteady")
+			loop
+		SpawnedAndSteady:
+			VOXE L random(3,7)
+			loop
+		Bounce.Floor:
+			TNT1 A 0 A_SETANGLE(angle + random(5, 97), SPF_INTERPOLATE)
+			goto Spawned
+		Destroy:
+			VOXE LBBBBBBBBB 1 A_FADEOUT(0.1)
+			stop
+	}
+}
+
+Actor Dumpster : DecorationObject  5320{
+	//category OminousDecoration
+	scale 0.5
+	xscale 0.7
+	mass 500
+	yscale 0.55
+	+solid
+	tag "$OBJECT_DUMPSTER"
+	States {
+		Active:
+		Inactive:
+		Spawn:
+			TRAS H -1
+			loop
+	}
+}
+
+
+actor CardBoardBouncer  : SwitchableDecoration  {
+	//category OminousDecoration
+	tag "$OBJECT_CARDBOARDBOX"
+    +CLIENTSIDEONLY
+	MaxStepHeight 9000
+	+DOOMBOUNCE
+	+Missile
+    +BOUNCEONFLOORS
+	speed 7
+	radius 15
+	DamageFactor "Kick", 0.0
+    +NOTELEPORT
+    +DONTSPLASH
+    +BOUNCEONFLOORS
+	+SOLID
+	+USEBOUNCESTATE
+    +MOVEWITHSECTOR
+	+SHOOTABLE
+	+FLOORCLIP
+    +BOUNCEONFLOORS
+    +BOUNCEONWALLS
+	+BOUNCEONCEILINGS
+	Friction 0.1
+	scale 0.85
+	health 1000000
+	PainChance 255
+	BounceFactor 0.55
+	BounceCount 4
+	BounceSound "impact/box"
+	SeeSound "impact/box"
+	mass 5
+	BloodType "Cardboard_Chunk_less", "Cardboard_Chunk_less", "Cardboard_Chunk_less"
+	states {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_ChangeVelocity(0, 0, 3)
+		Roll:
+			CBOX ABCDEF 3 {
+				A_SpawnProjectile("Cardboard_Chunk");
+				A_SETANGLE(angle + 8, SPF_INTERPOLATE);
+				A_CHANGEFLAG("Solid", TRUE);
+			}
+			TNT1 A 0 A_JumpIf(velx == 0 && vely == 0, "SpawnedAndSteady")
+			loop
+		SpawnedAndSteady:
+			CBOX A 1 A_CHANGEFLAG("solid", true)
+			CBOX A 0 A_CHANGEFLAG("Shootable", true)
+			loop
+
+	}
+}
+
+

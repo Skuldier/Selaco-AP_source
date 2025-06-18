@@ -1,0 +1,3065 @@
+#include "ACTORS/Weapons/SelacoWeaponUpgrades.zsc"
+#include "ACTORS/Weapons/SelacoWeaponCrosshairs.zsc"
+
+class PushButtonNow : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class DawnKick : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+class DawnKickFast : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+
+Class SmgTaserCharge : Inventory {
+	// How many tics for a full charge?
+	Default
+	{
+		inventory.maxamount 1100;
+	} 
+}
+
+Class ShockChargeCooldown : Inventory
+{
+	// Cooldown Max
+	Default
+	{
+		inventory.maxamount 1000;
+	}	
+}
+
+class ShatteredWindow : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}}
+
+// Used to revert the current alt fire status when a new one is equiped
+class NewAltFire : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+
+Class Zoomed : Inventory
+{
+	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+Class AutoMode : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}}
+
+Class ZoomMode : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class MeleeButton : Inventory
+{ 	Default
+	{
+		inventory.maxamount 1;
+	}
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+
+		let d = Dawn(owner);
+		if(d && d.holdingObject) {
+			// Cancel melee when Dawn is holding an object, throw instead
+			d.dropObject();
+			destroy();
+		}
+	}
+}
+
+class HasNoAmmo  : Inventory
+{ 	Default
+	{
+		inventory.maxamount 1;
+	} }
+
+class CodexLooperItem : Inventory
+{ 	Default
+	{
+		inventory.maxamount 1;
+	} 
+}
+class CancelAnimation : Inventory
+{ 	Default
+	{
+		inventory.maxamount 1;
+	} 
+}
+
+class ShieldEyes : Inventory
+{ 	Default
+	{
+		inventory.maxamount 1;
+	} 
+}
+
+class Reloading : Inventory
+{
+	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class CodexPressed : Inventory
+{
+	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+class ScanLightPanelPressed : Inventory
+{
+	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class ShowHands : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+class RemoveHandNoCancel : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+class ShowHands2 : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+class ShowHandsFast : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class ShowHandsFast2 : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+class MediumRangeExplosion : Inventory {	Default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class HasScriptShot : Inventory { default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class HasScriptReload : Inventory { default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class Showpass : Inventory { default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+enum PSP_Overlays_Selaco
+{
+	PSP_LEGS = -400,
+	PSP_OFFHAND = -215,		// Always refers to Dawn left hand. Used when pushing buttons and such.
+	PSP_WeaponMuzzleFlash = -214
+}
+
+enum ConsumeAmmoFlags {
+	CAF_NODRYFIRE = 1,
+}
+
+enum EWeaponReadyFlags
+{ 
+	WRF_NOBOB = 1,
+	WRF_NOSWITCH = 2,
+	WRF_NOPRIMARY = 4,
+	WRF_NOSECONDARY = 8,
+	WRF_NOFIRE = WRF_NOPRIMARY | WRF_NOSECONDARY,
+	WRF_ALLOWRELOAD = 16,
+	WRF_ALLOWZOOM = 32,
+	WRF_DISABLESWITCH = 64,
+	WRF_ALLOWUSER1 = 128,
+	WRF_ALLOWUSER2 = 256,
+	WRF_ALLOWUSER3 = 512,
+	WRF_ALLOWUSER4 = 1024,
+	WRF_BLOCKSLIDESTATE = 2048,
+}
+
+
+class SelacoWeapon : WeaponBase
+{
+	static const String throwables[] = {
+		"HandgrenadeAmmo",
+		"IceGrenadeAmmo",
+		"MineAmmo"
+	};
+
+
+	meta bool hideAmmo;
+	meta bool alwaysShowInWorkshop;
+	meta Color ammoColor;
+
+	int offhandAnimationTime;
+	const ANIMATION_OFFHAND_MAX = 18;
+	mixin UIInputHandlerAccess;
+
+	int stateDelayer; // Use this to have a tick do *something* after a certain abmount of ticks within a state. Reset to 0 after.
+
+	// MELEE LUNGING
+	bool isMeleeAttack; // Goes to true at the start of a melee, goes false after a melee
+	Actor lungeTarget; // Actor we are trying to hit while melee
+	int throwablePointer;
+	int legSprite, lowAmmoThreshold;
+	
+	// SLIDING
+	int slideTransition;
+	int slideFrame;
+	int slideMax;
+	int slideShake;
+	int cameraMotion;
+	float slideZoom;
+	int heavyShakeDelay;
+	bool activeSlideState;
+	bool dropKickHit;
+	bool isUnderWater;
+	bool dualWielding;
+	bool allowSlide;
+	int altFireMode;
+
+	bool meleeTargetHit;
+	bool skipLegSprite;
+	float currentZoomFactor;
+	bool TargetInRange;
+	bool hasConfidenceBooster;
+	bool noAnimationCancel;
+	bool isZooming;
+	bool holdingHeavyObject;
+	bool chamberLoad;
+	bool inWeaponSlideAnimation;
+	bool weaponIsReady; // Used to prevent sounds from playing when switching levels.
+	String weaponSprite;
+	String slidingSprite;
+
+	bool supportsADS;
+
+	// Muzzle Flash system
+	string flashSprite;
+	int flashNumber;
+
+	int weaponFrame;
+	int xPos;
+	int yPos;
+	int isFiring;
+	int weaponFrameDelayer;
+	bool shatteredWindow;
+	int bulletDamageToGlass;	// How much damage to glass does each bullet do (Hitscan only)
+	float bulletForceToGlass;	// How much force does a bullet breaking glass cause? (Hitscan only)
+	float flarePos; 			//used to randomize flare offsets to make it look more chaotic
+
+	float lookscaleValue;
+	float weaponOffsetIncrement;
+	float adjustedWeaponOffset;
+	
+	// Button Pushing
+	bool isPushingButton; 		// Used to slow down lookscale
+	bool targetFound; 			// Slow down aim when hovering over an enemy (Aim Assist)
+	bool hasSpeedLoader; 		// Weapons with fast reload upgrades use this
+	bool hasMasterKey; 			// Weapons that can blow up wallcracks
+	bool isUpgradeable;			// Should this weapon show in the workshop?
+	bool bipodMode;
+	
+	String meleeUpgradeName; 	// Every weapon has their own melee upgrade item. This is used to find it.
+	String imagePrefix;			// Filename prefix for finding images in the upgrade menu
+	
+	property WeaponOffsetIncrement 	: weaponOffsetIncrement; // Adjusts how far the weapon moves to the left or right per tick.
+	property MagazineSize 			: magazineSize; // How many shots before a reload is required?
+	property HideAmmo 				: hideAmmo;
+	property lowAmmoThreshold 		: lowAmmoThreshold;
+	property SlidingSprite 			: slidingSprite;
+	property MeleeUpgradeName 		: meleeUpgradeName;
+	property AlwaysShowInWorkshop 	: alwaysShowInWorkshop;
+	property SupportsADS 			: supportsADS;
+	property LowAmmoPitchSound 		: lowAmmoPitchSound;
+	property DryFireSound 		: dryfireSound;
+	// Weapon Properties
+	int weaponPelletAmount; // Used for shotgun-like weapons
+	int weaponDamage, adjustedDamage, weaponFireRate, weaponProjectileSize, weaponAreaOfEffect, weaponProjectileSpeed;
+	int magazineSize, adjustedMagazine, weaponKickback, shotFired, weaponStatistic;
+	float weaponHeadshotMultiplier, rumbleIntensity;
+	float adjustedSpread, adjustedRecoil, weaponRecoil, weaponSpread, weaponStabilizationSpeed;
+
+	meta float rumbleDeductionSpeed;
+	meta float weaponRecoilMax, weaponSpreadReductionSpeed, weaponRecoilReductionSpeed;
+	meta float weaponSpreadIncreasePerShot, weaponRecoilIncreasePerShot, weaponSpreadMinimum;
+	meta float weaponSpreadMaximum;
+	
+	string weaponSound, readySound, deselectSound, meleeSprite, interactionSprite, voxelDecorationModel, meleeSpritev2;
+	bool isSilenced, isGrenadeLauncherMode;
+	string altFireLabel, lowAmmoPitchSound, dryfireSound;
+
+	property weaponPelletAmount			 : weaponPelletAmount;
+	property WeaponDamage 				 : weaponDamage;
+	property WeaponHeadshotMultiplier 	 : weaponHeadshotMultiplier;
+	property weaponProjectileSpeed		 : weaponProjectileSpeed;
+	property WeaponKickback  			 : weaponKickback;
+	property WeaponRecoil 				 : weaponRecoil;
+	property WeaponSpread 				 : weaponSpread;
+	property WeaponSpreadReductionSpeed  : weaponSpreadReductionSpeed;
+	property WeaponRecoilReductionSpeed  : weaponRecoilReductionSpeed;
+	property WeaponSpreadIncreasePerShot : weaponSpreadIncreasePerShot;
+	property WeaponRecoilIncreasePerShot : weaponRecoilIncreasePerShot;
+	property WeaponSpreadMaximum		 : weaponSpreadMaximum;
+	property WeaponRecoilMax			 : weaponRecoilMax;
+	property WeaponSpreadMinimum 		 : weaponSpreadMinimum;
+	property WeaponAreaOfEffect			 : weaponAreaOfEffect;
+	property WeaponSound  				 : weaponSound;
+	property WeaponFireRate 			 : weaponFireRate;
+	property ReadySound	  				 : readySound;
+	property deselectSound	 			 : deselectSound;
+	property rumbleIntensity 			 : rumbleIntensity;
+	property rumbleDeductionSpeed 		 : rumbleDeductionSpeed;
+	property WeaponProjectileSize		 : weaponProjectileSize;
+	property WeaponStabilizationSpeed	 : weaponStabilizationSpeed;
+	property WeaponStatistic			 : weaponStatistic;
+	property MeleeSprite : meleeSprite;
+	property MeleeSpritev2 : meleeSpritev2;
+	property InteractionSprite : interactionSprite;
+	property VoxelDecorationModel : voxelDecorationModel; // Weapon voxel to spawn on player death
+	property ImagePrefix : imagePrefix;
+	property Upgradeable : isUpgradeable;
+	property AltFireLabel 			: altFireLabel;	// Name that appears in upgrade menu for alt-fire list
+	property AmmoColor 				: ammoColor;
+	property BulletDamageToGlass 	: bulletDamageToGlass;
+	property BulletForceToGlass 	: bulletForceToGlass;
+
+	private int selacoWeaponFlags;
+
+	flagdef ignoreRateOfFireBehavior : selacoWeaponFlags, 1;
+	flagdef DisallowLastWeaponSwitch : selacoWeaponFlags, 5;			// Disallows logging this weapon as the last weapon, for weapon switch. Set as negative to preserve savegames
+	flagdef DroppedWeapon			 : selacoWeaponFlags, 20;			// Used internally on death to prevent spawning more than one weapon
+	flagdef MeleeWeapon				 : selacoWeaponFlags, 23;
+	
+
+	const WEAPON_SWAP_SPEED = 9; 			// How many tics after removing the weapon does it take to whip out a new one? (Pistol and fists are excluded from this rule)
+	const WEAPON_WHEEL_COOLDOWN = 6;		// Ticks that weapon wheel sensitivity returns
+	const WEAPON_WHEEL_COOLDOWN_HARD = 3;	// Ticks where sensitivty is still 0 after cooling down from weapon wheel
+
+
+	const BACKPACK_RELOAD_TIME = 10*TICRATE;	// Time in seconds for a Backpack Reload to occur
+	int backpackReloadTime;
+	
+	int rarityID;
+
+	virtual void cancelFiringLoop()
+	{
+		A_STOPSOUND(CHAN_WEAPON);
+		A_STOPSOUND(CHAN_7);
+		isFiring = 0;
+	}
+
+	float pow(float base, float exponent) {
+		float result = 1.0;
+
+		for (int i = 0; i < exponent; ++i) {
+			result *= base;
+		}
+		return result;
+	}
+
+	Default {
+		+PRECACHEALWAYS;		
+		WeaponBase.BobRangeX 1.8;
+		WeaponBase.BobRangeY 1.4;
+		WeaponBase.BobSpeed 2.4;
+		WeaponBase.BobStyle "InverseSmooth";
+		SelacoWeapon.weaponStabilizationSpeed 0;
+		SelacoWeapon.rumbleIntensity 0.4;
+		SelacoWeapon.rumbleDeductionSpeed 0.2;
+		SelacoWeapon.weaponSound "Weapons/rifle/ready";
+		SelacoWeapon.SlidingSprite "RIFX";
+		SelacoWeapon.MeleeSprite "RIFM";
+		SelacoWeapon.DryFireSound "combat/firedry";
+		SelacoWeapon.voxelDecorationModel "UC36Rifle";
+		SelacoWeapon.HideAmmo false;
+		SelacoWeapon.weaponRecoilMax 0.55;
+		SelacoWeapon.weaponSpreadMaximum 5.2;
+		SelacoWeapon.MeleeUpgradeName "";
+		SelacoWeapon.lowAmmoPitchSound "weapon/lowmechanicalsound";
+		SelacoWeapon.Upgradeable true;
+		SelacoWeapon.ImagePrefix "rifle";
+		SelacoWeapon.AltFireLabel "$ALT_FIRES";
+		SelacoWeapon.SupportsADS false;
+		SelacoWeapon.AmmoColor "FF 00 00";
+		SelacoWeapon.BulletDamageToGlass 30;
+		SelacoWeapon.BulletForceToGlass 12;
+		-SelacoWeapon.DisallowLastWeaponSwitch;
+		+FLOORCLIP;
+		+NOGRAVITY;
+		+DONTGIB;
+		+WeaponBase.WIMPY_WEAPON;
+		+WeaponBase.NOAUTOAIM;
+		+INVENTORY.UNDROPPABLE
+		+WeaponBase.NOALERT;
+		+WeaponBase.NOAUTOFIRE;
+		+WeaponBase.NO_AUTO_SWITCH;
+		WeaponBase.UpSound "none";
+		WeaponBase.Kickback 100;
+		-WeaponBase.MELEEWEAPON;
+	}
+
+	// Find upgrades in player inventory and add enabled ones to our cache
+	// This will be used when a player picks up a weapon that they had purchased upgrades for, but lost the weapon (like RifleStart)
+	virtual void checkForUpgrades(Dawn girlCaptainDown) {
+        for(Inventory item = girlCaptainDown.InvFirst; item != NULL; item = item.NextInv()) {
+			let ug = WeaponUpgrade(item);
+			if(ug && ug.weapon == GetClass() && ug.isEnabled()) {
+				addUpgrade(ug);
+				ug.onEnabled();		// Make sure any additional effects added by the upgrade get applied
+			}
+		}
+	}
+
+	action void thrownEquipmentItem() {
+		Stats.AddStat(STAT_EQUIPMENTITEMS_THROWN, 1,0);
+	}
+
+	clearscope virtual void findUpgrades(Array< class<WeaponUpgrade> > list) {
+        int numClasses = AllActorClasses.size();
+        for(int x = 0; x < numClasses; x++) {
+            if(AllActorClasses[x] is 'WeaponUpgrade' && !(AllActorClasses[x] is 'WeaponAltFire')) {
+                class<WeaponUpgrade> cls = (class<WeaponUpgrade>)(AllActorClasses[x]);
+				readonly<WeaponUpgrade> wu = GetDefaultByType(cls);
+				if(wu && wu.weapon is getClass()) {
+					list.push(cls);
+				}
+            }
+        }
+	}
+
+	clearscope virtual void findAltFires(Array< class<WeaponAltFire> > list) {
+        int numClasses = AllActorClasses.size();
+        for(int x = 0; x < numClasses; x++) {
+            if(AllActorClasses[x] is 'WeaponAltFire') {
+                class<WeaponAltFire> cls = (class<WeaponAltFire>)(AllActorClasses[x]);
+				readonly<WeaponAltFire> wu = GetDefaultByType(cls);
+				
+				if(wu && wu.weapon is getClass()) {
+					list.push(cls);
+				}
+            }
+        }
+	}
+
+	clearscope virtual void findOwnedUpgrades(PlayerPawn player, Array<WeaponUpgrade> list) {
+        Array< class<WeaponUpgrade> > upgrades;
+		findUpgrades(upgrades);
+
+		for(int x = 0; x < upgrades.size(); x++) {
+			WeaponUpgrade ug = WeaponUpgrade(player.FindInventory(upgrades[x]));
+			if(ug) {
+				list.push(ug);
+			}
+		}
+	}
+
+	action void S_WeaponReady(int flags = 0)
+	{
+		if (!player) return;
+														DoReadyWeaponToSwitch(player, !(flags & WRF_NoSwitch));
+		if ((flags & WRF_NoFire) != WRF_NoFire)			DoReadyWeaponToFire(player.mo, !(flags & WRF_NoPrimary), !(flags & WRF_NoSecondary));
+		if (!(flags & WRF_NoBob))						DoReadyWeaponToBob(player);
+		invoker.allowSlide = flags & (WRF_BLOCKSLIDESTATE | WRF_NOFIRE) ? 0 : 1;
+		player.WeaponState |= GetButtonStateFlags(flags);														
+		DoReadyWeaponDisableSwitch(player, flags & WRF_DisableSwitch);
+
+		// If we are ready to fire, log this weapon as current, for weapon swapping
+		if(player.weaponState & (WF_WEAPONREADY | WF_WEAPONREADYALT)) {
+			let d = Dawn(self);
+			if(d) {
+				d.rememberWeapon(invoker);
+			}
+		}
+	}
+
+
+	clearscope virtual void findOwnedAltFires(PlayerPawn player, Array<WeaponAltFire> list, bool sort = true) {
+		class<SelacoWeapon> cls = getClass();
+
+		for(let p = player.Inv; p != null; p = p.Inv) {
+			WeaponAltFire af = WeaponAltFire(p);
+			
+			// Find position to insert based on Order field
+			if(af && af.weapon is cls) {
+				if(!sort || list.size() == 0) list.push(af);
+				else for(int y = 0; y <= list.size(); y++) {
+					if(y == list.size()) {
+						list.push(af);
+						break;
+					} else if(af.workshopOrder < list[y].workshopOrder) {
+						list.insert(y, af);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// Cheat to give all alt-fires in the game
+	static void GiveAltfires(int playerNum) {
+		int numClasses = AllActorClasses.size();
+        for(int x = 0; x < numClasses; x++) {
+            if(AllActorClasses[x] is 'WeaponAltFire' && !(AllActorClasses[x] is 'AltfireGrenadeLauncherTeddy11') && !(AllActorClasses[x] is 'AltFireScarabMode')) {
+                class<WeaponAltFire> cls = (class<WeaponAltFire>)(AllActorClasses[x]);
+				players[playerNum].mo.GiveInventory(cls, 1, true);
+				Console.Printf("\c[GREEN]Player %d given: %s", playerNum, cls.getClassName());
+            }
+        }
+	}
+
+	static int getDefaultMagazineSize(class<SelacoWeapon> cls) {
+		if(cls is 'GrenadeLauncher') {
+			return GetDefaultByType('GLFragAmmo').maxAmount;
+		} else {
+			let w = GetDefaultByType(cls);
+			if(!w.AmmoType1) return 0;	// If we don't have reserve ammo, like the railgun, don't return a magazine size
+			return w.AmmoType2 ? GetDefaultByType(w.AmmoType2).maxAmount : w.magazineSize;
+		}
+	}
+
+	virtual void cancelAllAnimations()
+	{
+		A_TakeInventory("CancelAnimation", 1);
+		A_TakeInventory("Showpass", 1);
+		A_TakeInventory("DawnKick", 1);
+		owner.A_OVERLAY(PSP_OFFHAND, "CancelOffhand");
+		
+	}
+
+	virtual void endSlide()
+	{
+		A_Playsound("impact/slideend", CHAN_6, 0.6);
+		A_TakeInventory("StopSliding", 1);
+		A_TakeInventory("SlidingIsActive", 1);
+		A_TakeInventory("PlayerSlides", 1);		
+	}
+
+	action void activateSlide()
+	{
+		let player = player;
+		let d = Dawn(player.mo);
+		invoker.wipePuntList();
+		d.A_GiveInventory("CancelAnimation", 1);
+		d.A_TakeInventory("StopSliding", 1);
+		d.A_TakeInventory("PlayerSlides", 1);
+		d.A_TakeInventory("SlidingIsActive", 1);		
+		d.A_TakeInventory("ShieldEyes", 1);
+	}
+
+	// Test code, not final.
+	// We should not use this code here. An attack should signal the BattleOverseer and the rest should be handled from there.
+	virtual void informEnemyOfWeapon()
+	{
+		BattleOverseer overseer = BattleOverseer.instance();
+		if(overseer.squads.size())
+		{
+			overseer.squads[overseer.squads.size()-1].handleWeaponCallout();
+		}
+	}
+
+	// Run this during the first Fire tick of every weapon.
+	virtual void PlayerIsFiring()
+	{
+		inventory loadedAmmo = findInventory(ammoType2);
+		inventory reserveAmmo = findInventory(ammoType1);
+
+		// When Bottomless Mags is used, we want to ensure there's always at least one bullet loaded to prevent awkward shooting behavior.
+		if(hasBottomLessMagsMutator() && loadedAmmo && reserveAmmo && loadedAmmo.amount == 0 && reserveAmmo.amount > 0) {
+			loadedAmmo.amount++;
+			reserveAmmo.amount--;
+		}
+		
+		informEnemyOfWeapon();
+		processShootingRange();
+		owner.A_OVERLAY(PSP_OFFHAND, "CancelOffhand");
+		allowSlide = false;
+
+		if(!bMeleeWeapon && weaponStatistic)
+		{
+			stats.AddStat(weaponStatistic, 1, 0);			
+		}
+
+		let dawn = players[consolePlayer].mo;
+		bool isStunned = dawn.countinv("CooldownStunned");
+		bool isBunnyHopping = dawn.countinv("bunnyHopDuration");
+		int bunnyHopSpread = 0;
+
+		if(Dawn(dawn))
+		{
+			Dawn(dawn).SetStateLabel("FireWeapon");
+		}
+
+		breathingFrame = 0;
+		if(activeSlideState)
+		{
+			inWeaponSlideAnimation = false;
+		}
+
+		// To measure if the player is still attacking or not, we decrement this with every tick. Once 0, it's a safe assumption that the player stopped firing.
+		shotFired = weaponFireRate+1;
+		adjustedDamage = weaponDamage;
+
+		float newWeaponRecoilIncreasePerShot = weaponRecoil * (weaponRecoilIncreasePerShot*0.01);
+		float newWeaponSpreadIncreasePerShot = weaponSpread * (weaponSpreadIncreasePerShot*0.01);
+
+		float maxSpread = weaponSpreadMaximum;
+		float maxRecoil = weaponRecoilMax;
+		// Reduce Spread in Bipod mode
+		if(bipodMode)
+		{
+			newWeaponSpreadIncreasePerShot*0.25;
+		}
+
+		// More spread when stunned
+		if(isStunned)
+		{
+			newWeaponSpreadIncreasePerShot*=1.25;
+		}
+		if(isBunnyHopping)
+		{
+			newWeaponSpreadIncreasePerShot*=0.25;
+			newWeaponRecoilIncreasePerShot/=2;
+		}
+
+		// If zoomed, reduce the effects
+		if(checkIfZooming())
+		{
+			newWeaponRecoilIncreasePerShot*=0.1;
+			newWeaponSpreadIncreasePerShot*=0.4;
+		}
+
+		if(owner is "dawn" && Dawn(owner).hardcore_hasIgnoreweaponLimits) {
+			newWeaponSpreadIncreasePerShot*=1.05;
+			newWeaponRecoilIncreasePerShot*=1.2;
+			maxSpread*=2.5;
+			maxRecoil*=2.5;
+		}
+
+		if(SelacoWeapon(owner.player.readyWeapon).hasUpgradeClass("RecoillessTrait")) {
+			newWeaponRecoilIncreasePerShot = 0;
+		}
+
+		// Adjust spread
+		if(!weaponStabilizationSpeed && adjustedSpread < maxSpread)
+		{
+			adjustedSpread += newWeaponSpreadIncreasePerShot;
+			if(isStunned)
+			{
+				adjustedSpread*=1.25;
+			}
+		}
+
+		// Reduce spread per shot if weapon has a Stabilizer
+		if(weaponStabilizationSpeed && adjustedSpread > weaponSpreadMinimum) 
+		{
+			adjustedSpread -= weaponStabilizationSpeed;
+			// Zooming? Stabilize  faster!
+			if(checkIfZooming()) 
+			{
+				adjustedSpread = adjustedSpread -0.04;
+			}
+			if(isBunnyHopping)
+			{
+				adjustedSpread = adjustedSpread -0.15;
+			}
+		}
+
+		// Adjust recoil
+		adjustedRecoil += newWeaponRecoilIncreasePerShot;
+
+		// If max recoil is reached, stick with a max value to avoid going overboard
+		// By default, this is 0.5 but it can be adjusted per weapon if needed.
+		if(adjustedRecoil >= maxRecoil)
+		{
+			adjustedRecoil = maxRecoil;
+		}
+
+		// Prevent negative recoil values.
+		if(adjustedRecoil <= 0)
+		{
+			adjustedRecoil = 0.2;
+		}
+
+		// Shake the controller
+		applyWeaponRumble();
+
+		// Handles low ammo beeping and other ammo indicators.
+		let l = players[consoleplayer].mo;
+		checkLowAmmo();
+		float lowAmmoPitch = 1.0;
+		if (l.countInv("HasLowAmmo") == 1 && !hideAmmo) {
+			int pitchCheck = (l.countinv(ammoType2) - lowAmmoThreshold);
+			for(int i=0; i>pitchCheck;i--) {
+				lowAmmoPitch = lowAmmoPitch - 0.011;
+			}
+			l.A_PlaySound(lowAmmoPitchSound, CHAN_AUTO, 1, 0, 1.0, 0, lowAmmoPitch);
+		}
+
+		// Return hand to cancel any interaction animation currently player.
+		// Running the ACS script through this function was causing weapons to be unselectable for some reason.
+		// We dont need it anyway since all it does is take away the 'showhands' item which we can also call here.
+		//ACS_NamedExecute("AddHand", 0);
+		A_TakeInventory("ShowHands", 1);
+		A_TakeInventory("ShowHands2", 1);
+		A_TakeInventory("ShowHandsFast", 1);
+		A_GiveInventory("CancelAnimation", 1);
+		A_TakeInventory("ShieldEyes", 1);
+		A_TakeInventory("PushButtonNow", 1);
+		A_TakeInventory("MediumRangeExplosion", 1);
+		ACS_NamedTerminate("RemoveHand", 0);
+		cancelAllAnimations();
+
+		// Increment attacking stat
+		if(!bMeleeWeapon) {
+			stats.AddStat(STAT_SHOTS_FIRED, 1, 0);
+		}
+
+		// Notify crosshair that a shot was just taken
+		if(activeCrosshair) {
+			activeCrosshair.weaponFire();
+		}
+
+		// Add reflection if we fired the plasma rifle
+		if(self is "PlasmaRifle") {
+			let d = Dawn(owner);
+			if(d && d.countInv("GasMask") > 0) {
+				d.flashReflection(10);
+			}
+		}
+
+		// Notify upgrades that a shot is about to happen
+		onBeforeWeaponFire();
+	}
+
+	action float getWeaponVolume(float reductionSteps = 0.06) {
+		if(invoker.hasBottomLessMagsMutator()) {
+			return 1.0;
+		}
+
+		float weaponVolume = 1.0;
+		int volumeCheck = (countinv(invoker.ammoType2) - invoker.lowAmmoThreshold);
+		for(int i=0; i>volumeCheck;i--) {
+			weaponVolume = weaponVolume - reductionSteps;
+		}
+		return weaponVolume;
+	}
+
+	// TODO: Awful, wrote in a rush. Improve later.
+	int breathingInterval;
+	int breathingFrame;
+	bool downward;
+
+	action void	breathWobble(string breathingSprite, int frameCounts) {
+		X_SetOverlaySprite(1, breathingSprite, invoker.breathingFrame);
+		if(waterLevel < 3) {
+			if(invoker.breathingInterval % 3 == 0) {
+				if(!invoker.downward) {
+					invoker.breathingFrame++;
+				} else {
+					invoker.breathingFrame--;
+				}
+				if(invoker.breathingFrame >= frameCounts) {
+					invoker.downward = true;
+				}
+				if(invoker.breathingFrame <= 0) {
+					invoker.downward = false;
+				}
+			}
+			invoker.breathingInterval++;
+		}
+	}
+
+	action void A_SlideRumble() {
+		if(pos.z == floorZ) {
+			InputHandler.Instance().AddWorldFeedback2(
+				(frandom(0.01,0.5), frandom(0.01,0.5)),
+				(frandom(0.01,0.5), frandom(0.01,0.5)),
+				(frandom(0.01,0.5), frandom(0.01,0.5)),
+				(frandom(0.01,0.5), frandom(0.01,0.5))
+			);
+		}
+	}
+
+	action void A_EquipNewWeapon() {
+		invoker.backpackReloadTime = 0;
+		
+		// Play ready sound
+		if(!invoker.weaponIsReady) {
+			A_PLAYSOUND(invoker.readySound, CHAN_AUTO, 0.4, pitch:frandom(0.95,1.05));
+			invoker.weaponIsReady = true;
+		}
+		if(waterLevel == 3)
+		{
+			invoker.isUnderWater = true;
+		}
+	}
+	
+	action void checkWeaponReady()
+	{
+		if(invoker.weaponIsReady)
+		{
+			SetWeaponState("ReallyReady");
+		}		
+	}
+
+	action void A_UNEQUIPWEAPON() {		
+		a_stopsound(chan_7);
+		a_stopsound(chan_weapon);
+		invoker.iszooming = false;
+		invoker.isUnderWater = false;
+		A_ZOOMFACTOR(1.0);
+		invoker.breathingFrame = 0;
+		A_PLAYSOUND(invoker.deselectSound, CHAN_AUTO, 0.4, pitch:frandom(0.95,1.05));
+		invoker.weaponIsReady = false;
+		invoker.adjustedSpread = invoker.weaponSpread;
+		invoker.adjustedRecoil = invoker.weaponRecoil;
+	}
+
+
+	// Some weapons use 'modes' for alt fires (e.g Zooming, Changing fire modes). We need to remove these whenever the player swaps their alt fire.
+	virtual void swapAltFire() {
+		// kill zoom
+		altFireMode = 0;
+		setZoomStatus(false);
+	}
+
+	action void loadChamber() {
+		if(invoker.chamberLoad) {
+			invoker.Chamberload = false;
+			A_PLAYSOUND("weapon/chamberload", pitch:frandom(0.95,1.05));
+		}
+	}
+
+	action void dryFire() {
+		A_PlaySound(invoker.dryfireSound, pitch:frandom(0.99,1.01));
+		invoker.breathingFrame = 0;
+		invoker.calloutEmptyWeapon();
+	}
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		calculateStats();
+	}
+
+	override void DetachFromOwner() {
+		destroyTraits();	// Traits should not stay on the owner, they would be orphaned
+		Super.DetachFromOwner();
+	}
+
+	void initUpgrades() {
+		PlayerPawn player = PlayerPawn(owner);
+
+		if(player) {
+			// Re-enabled upgrades that should be attached to this weapon
+			Array<WeaponUpgrade> upgrades;
+			Array<WeaponAltFire> altFires;
+			findOwnedUpgrades(player, upgrades);
+			findOwnedAltFires(player, altFires);
+
+			for(int x = 0; x < upgrades.size(); x++) {
+				if(upgrades[x].isEnabled()) {
+					upgrades[x].setEnabled(false);
+					upgrades[x].setEnabled(true);
+				}
+			}
+
+			bool foundAltFire = false;
+			for(int x = 0; x < altFires.size(); x++) {
+				if(altFires[x].isEnabled()) {
+					altFires[x].setEnabled(false);
+					if(!foundAltFire) altFires[x].setEnabled(true);
+					foundAltFire = true;
+				}
+			}
+
+			// We need an alt fire, so if at least one exists install the first one.
+			if(altfires.size() > 0 && !foundAltFire) {
+				altFires[0].setEnabled(false);
+				altFires[0].setEnabled(true);
+			}
+		}
+    }
+
+	// Automatically reload weapons when they are not used.
+	void doBackpackReload()
+	{
+		if(!owner || !owner.player)
+			return;
+			
+		// Only count for the currently selected weapon
+		if(owner && owner.player && ( (owner.player.readyWeapon && owner.player.readyWeapon.GetClassName() != getClassName()) || owner.countinv("HardcoreMode") == 1) )
+			return;
+
+		// Increment backpack timer
+		let d = Dawn(owner);
+		if(!d || d.weaponWheelUp <= 0)	// Don't increase timer when the weapon wheel is up
+			backpackReloadTime++;
+
+		// Only continue if we reach the required time
+		if(abs(backpackReloadTime) <= BACKPACK_RELOAD_TIME)
+		{
+			return;
+		}
+
+		// Dawn is now 'Born Ready'
+		// Start all over again.
+		backpackReloadTime = 0;
+
+		// Do nothing if we have this disabled.
+		if(!getCvar("g_backpackReloading"))
+		{
+			return;
+		}
+
+		// Get all weapons owned by the player
+		int totalClasses = AllClasses.size();
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // Get a list of all available weapon pickups
+            if(AllClasses[x] is 'SelacoWeapon') 
+            {
+                inventory i = owner.FindInventory((class<SelacoWeapon>)(AllClasses[x]));
+				SelacoWeapon w = SelacoWeapon(i);
+
+				// Skip currently selected weapon and ignore Fake Weapons because they are fake as shit.
+				if(w && owner.player.readyWeapon && (owner.player.readyWeapon.getClassName() == w.getClassName() || w is "FakeWeapon")) {
+					continue;
+				}
+
+				// Reload accepted weapon
+				if(w)
+				{
+					w.insertNewAmmo(0, w);
+				}
+            }
+        }
+
+
+	}
+
+	override void tick() {
+		super.tick();
+		if(!isInited) {
+			initUpgrades();
+			isInited = true;
+		}
+	
+		doBackpackReload();
+
+		if (players[consolePlayer].mo && players[consolePlayer].WeaponState & WRF_NoFire && !isMeleeAttack && !inWeaponSlideAnimation) {
+			players[consolePlayer].mo.A_SETROLL(0);
+		}
+
+		adjustLookscale();
+
+		if(owner && lungeTarget) {
+			snapToMeleeTarget();
+		}
+
+		// Prevent 'Shattered Window' from playing after another animation
+		if(shatteredWindow)
+		{
+			shatteredWindow = false;
+			players[0].mo.A_TakeInventory("ShatteredWindow", 1);
+		}
+		if(players[0].mo.countinv("ShatteredWindow") == 1)
+		{
+			shatteredWindow = true;
+		}
+		if(activeCrosshair) activeCrosshair.tick();
+	}
+
+	void doWeaponHandling()
+	{
+		//// ==== WEAPON HANDLING CODE ==== /////
+		// Makes 'Adjusted' values slowly return to their base values.
+
+		// When zero, we know the player stopped attacking. This works in conjunction with ``WeaponFireRate``
+		if(shotFired != 0)
+		{
+			shotFired--;
+		}
+
+		if(bipodMode)
+		{
+			adjustedSpread*=0.2;
+		}
+
+		// Player no longer attacks, start bringing values back
+		if(shotFired <= 0 || bIgnoreRateOfFireBehavior)
+		{
+			// bring AdjustedRecoil back to WeaponRecoil, slowly.
+			if(adjustedRecoil > weaponRecoil) {
+				adjustedRecoil-=weaponRecoilReductionSpeed;
+			} 
+			// Ensure the base value is used when the stat is done changing
+			else
+			{
+				adjustedRecoil = weaponRecoil;
+			}
+
+			// bring AdjustedSpread back to WeaponSpread.
+			if(!(weaponStabilizationSpeed) && adjustedSpread > weaponSpread) {
+				adjustedSpread-=weaponSpreadReductionSpeed*0.1;
+			} 
+
+			// In case of a Stabilization Weapon, we increase spread instead
+			else if(weaponStabilizationSpeed &&  adjustedSpread < weaponSpread) {
+				adjustedSpread+=weaponSpreadReductionSpeed*0.1;
+			}
+
+			// Ensure the base value is used when the stats are done changing
+			else
+			{
+				adjustedSpread = weaponSpread;
+			}			
+		}
+	}
+
+	virtual bool TakeWeaponAmmo(int ammoToTake = 1, int flags = 0, inventory ammoType2Override = null) {
+		Inventory ammoReserves = owner.FindInventory(ammoType1);
+		Inventory ammoLoaded = owner.FindInventory(ammoType2);
+	
+		if (ammoType2Override) {
+			ammoLoaded = ammoType2Override;
+		}
+		if (!ammoLoaded) {
+			return false;
+		}
+
+		if(level.levelnum == 100 && hasBottomLessMagsMutator()) {
+			return true;
+		}
+	
+		// If bottomless mags is enabled and there isn't enough loaded ammo, transfer from reserve.
+		if (hasBottomLessMagsMutator() && ammoLoaded.amount < ammoToTake) {
+			if (ammoReserves && ammoReserves.amount > 0) {
+				int transferAmount = min(ammoToTake - ammoLoaded.amount, ammoReserves.amount);
+				ammoReserves.amount -= transferAmount;
+				ammoLoaded.amount += transferAmount;
+
+				if(ammoReserves.amount < 0) {
+					ammoReserves.amount = 0;
+				}
+			}
+		}
+
+		if (hasBottomLessMagsMutator() && ammoReserves && ammoReserves.amount >= ammoToTake) {
+			ammoReserves.amount-=ammoToTake;
+			return true;
+		}
+	
+		// Check if there's still not enough ammo left. Reload if necessary.
+		if (ammoLoaded.amount < ammoToTake) {
+			if (!(flags & CAF_NODRYFIRE)) {
+				DryFire();
+			}
+			setWeaponState("ReloadWeapon");
+			return false;
+		}
+
+		// Deduct ammo
+		ammoLoaded.amount -= ammoToTake;
+	
+		// Successfully deducted ammo
+		return true;
+	}
+
+    SelacoWeapon getWeapon(class<SelacoWeapon> targetWeapon, int playerNum = -999) {
+        if(playerNum == -999) playerNum = PlayerNumber();
+
+        PlayerPawn player = players[playerNum].mo;
+        if(player) return SelacoWeapon(player.FindInventory(targetWeapon));
+        else return null;
+    }
+
+	void adjustLookscale() {
+		// Check for Lookscale stuff
+		lookscaleValue = 1.0;
+		if(checkIfZooming()) {
+			lookscaleValue = getCvar("g_zoomsensitivity");
+		}
+		if(isPushingButton) {
+			lookscaleValue = 0.28;
+		}
+		if(targetFound) {
+			lookscaleValue = 0.5;
+		}
+		if(checkIfZooming() && isUsingGamepad()) {
+			lookscaleValue = lookscaleValue / 1.2;
+		}
+		if(holdingHeavyObject) { 
+			lookscaleValue *=0.5;
+		}
+
+		// Special check for Dawn when she is first climbing a ladder
+		// Or is in the weapon wheel
+		// Unfortunately this can't be adjusted in the Dawn class
+		let d = Dawn(owner);
+		if(d && d.curLadder && d.ladderFromTop && level.totalTime - d.ladderTime <= Dawn.LADDER_TURN_INPUT_TIMEOUT_TICKS) {
+			double time = level.totalTime - d.ladderTime;
+			
+			lookscaleValue *= time / double(Dawn.LADDER_TURN_INPUT_TIMEOUT_TICKS);
+		}
+
+		// Adjust look if the weapon wheel is showing, or if cooldown is active
+		if(d && d.weaponWheelUp > 0) {
+			if(d.weaponWheelUp > WEAPON_WHEEL_COOLDOWN) lookscaleValue = 0.00000001;
+			else if(d.weaponWheelUp >= WEAPON_WHEEL_COOLDOWN - WEAPON_WHEEL_COOLDOWN_HARD) lookscaleValue = 0.00000001;
+			else lookscaleValue *= 1.0000001 - (double(d.weaponWheelUp) / double(WEAPON_WHEEL_COOLDOWN - WEAPON_WHEEL_COOLDOWN_HARD));
+		}
+
+		lookscale = lookscaleValue;
+		targetFound = false;
+	}
+
+	// I didn't like having to use 3 different functions for every firing tick. Keeping it here in a single function.
+	action void A_SELACORECOIL(float recoilPitch = 0, float recoilRoll = 0, float recoilAngle = 0, bool setvalues = false) {
+		if(invoker.bipodMode)
+		{
+			recoilAngle*=0.2;
+			recoilPitch*=0.2;
+			recoilRoll*=0.2;
+		}
+		if(setValues) {
+			A_SetAngle(recoilAngle);
+			A_SetPitch(recoilPitch, SPF_INTERPOLATE);
+			A_SetRoll(recoilRoll);
+		} else {
+			A_SetAngle(angle + recoilAngle);
+			A_SetPitch(pitch + recoilPitch, SPF_INTERPOLATE);
+			A_SetRoll(roll + recoilRoll, SPF_INTERPOLATE);
+		}
+	}
+
+	// Zooming
+	action void setZoomStatus(bool zoomStatus) {
+		invoker.isZooming = zoomStatus;
+		A_GiveInventory("CancelAnimation", 1);
+		A_TakeInventory("ShowHands", 1);	
+		if (!zoomStatus) {
+			invoker.isZooming = false;
+			A_TakeInventory("ZoomMode", 100);
+		}
+	}
+
+	action void S_ZoomFactor(float zoomFactor) {
+		A_ZoomFactor(zoomFactor);
+	}
+
+	action void toggleZoomStatus() {
+		A_GiveInventory("CancelAnimation", 1);
+		invoker.cancelAllAnimations();
+		invoker.isZooming =! invoker.isZooming;
+	}
+
+	action void CheckUnZoom() {
+		let player = player;
+		let d = Dawn(player.mo);
+		if(d && !d.altAttackDown && invoker.isZooming && !getCvar("g_togglezoom")) {
+			// Hack to unzoom when releasing the zoom button via AltAttack. If this fails blame Cockatrice
+			SetWeaponState("SwapZoom");
+		}
+	}
+
+	// Simple check if the player is currently holding the Attack button
+	// Mainly used to briefly 'pause' the firing state when zooming to prevent weapons from firing faster than intended
+	action bool isAttackInput()
+	{
+		if(player.cmd.buttons & BT_ATTACK) {
+			return true;
+		}
+		return false;
+	}
+
+	action bool getToggleMode() {
+		if(getCvar("g_togglezoom") == 1) {
+			return true;
+		}
+		return false;
+	}
+
+	action bool checkIfZooming() {
+		return invoker.isZooming;
+	}
+
+	// Function to retrieve the ammo type of your currently equiped weapon
+	action int GetWeaponAmmoType() {
+		return countinv(invoker.ammoType2);
+	}
+
+	// Ammo Checks
+	bool checkLowAmmo(bool lowAmmoWarning = 1) {
+		let l = players[0].mo;
+
+		// No need for this when the gun doesn't even have ammo
+		if(hideAmmo || hasBottomLessMagsMutator()) {
+			return false;
+		}
+		bool hasLowAmmo;
+
+		if(level.levelnum == 100)
+		{
+			l.GiveInventory("PlentyOfAmmo", 1);
+			l.TakeInventory("hasLowAmmo", 1);
+			return false;
+		}
+
+		// Player has reload indicators turned off? Give ''PlentyOfAmmo'' to prevent it from breaking 
+		// if the player decides to turn indicators off *after* having low ammo.
+		if (getCvar("g_reloadIndicator") == 0 && countinv("hasLowAmmo") == 1) {
+			l.GiveInventory("PlentyOfAmmo", 1);
+			l.TakeInventory("hasLowAmmo", 1);
+		}
+
+		if (getCvar("g_reloadIndicator") == 1) {
+			if (l.countinv(ammoType2) <= lowAmmoThreshold && lowAmmoWarning) {
+				if(l.countinv("hasLowAmmo") == 0) {
+					l.A_PlaySound("combat/ammolo", CHAN_AUTO,0.8);
+				}
+				if (l.countinv(AmmoType2) == 0 && l.countinv(AmmoType1) == 0) {
+					l.GiveInventory("HasNoAmmo", 1);
+					l.TakeInventory("PlentyOfAmmo", 1);
+				}
+				l.TakeInventory("PlentyOfAmmo", 1);
+				l.GiveInventory("hasLowAmmo", 1);
+				return true;
+			}
+		}
+		l.TakeInventory("HasNoAmmo", 1);
+		l.GiveInventory("PlentyOfAmmo", 1);
+		l.TakeInventory("hasLowAmmo", 1);
+		return false;
+	}
+
+	void calloutEmptyWeapon()
+	{
+		// Let the overseer know the player is empty.
+		BattleOverseer overseer = BattleOverseer.instance();
+		if(overseer.squads.size())
+		{
+			overseer.squads[overseer.squads.size()-1].handleAmmoCallout();
+		}
+	}
+
+	bool hasBottomLessMagsMutator() {
+		if(owner is "dawn" && (dawn(owner).hasBottomLessMags || SelacoWeapon(owner.player.readyWeapon).hasUpgradeClass("BottomlessTrait"))) {
+			return true;
+		}
+		return false;
+	}
+
+	action void doWeaponReload(int halfammo = 0) {
+		let reserveAmmo = FindInventory(invoker.ammoType1);
+		let loadedAmmo = FindInventory(invoker.ammoType2);
+		
+		if(loadedAmmo.amount == 0) {
+			invoker.chamberLoad = true;
+		}
+
+		// Deny reload
+		if ((level.levelnum != MAP_SAFEROOMEXTENSION) && !reserveAmmo.amount > 0 || loadedAmmo.amount >= loadedAmmo.maxAmount || (halfAmmo && loadedAmmo.amount >= reserveAmmo.amount) || (Dawn(invoker.owner) && Dawn(invoker.owner).curLadder) || invoker.hasBottomLessMagsMutator()) {
+			A_Takeinventory("Reloading",1);
+			CheckReloadCancelling();
+			A_WeaponOffset(-0 + invoker.xPos, invoker.yPos +5,WOF_INTERPOLATE);
+			SetWeaponState("ReallyReady");
+
+		// Approve reload
+		} else {
+			invoker.calloutEmptyWeapon();
+			invoker.isZooming = false;
+			A_ZoomFactor(1.0);
+		}
+	}
+
+	// Used when Dawn removes the magazine / clip from the weapon. This makes Tiered Reloads possible
+	action void removeCurrentAmmo() {
+		let reserveAmmo = FindInventory(invoker.ammoType1);
+		let loadedAmmo = FindInventory(invoker.ammoType2);
+		
+		// Disabled for now, perhaps as a standalone mutator.
+		bool isHardcoreMode = countinv("HardcoreMode") && getCvar("g_hardcoremode_reloading");
+
+		// temporarily increase the reserve with the max magazine amount so we dont end up spilling ammo needlessly when we are at full capacity
+		reserveAmmo.MaxAmount+=loadedAmmo.maxAmount;
+		
+		A_TakeInventory("Zoomed", 1);
+		A_TakeInventory("ZoomMode", 1);
+		A_GiveInventory("AutoMode", 1);
+		setZoomStatus(false);
+		while (loadedAmmo.amount > 0) {
+			// playing in Hardcore Mode causes you to toss out all of your ammo.
+			// Being in a shooting range does not add loaded ammo to reserve ammo because that would *give* ammo
+			if(!isHardcoreMode && (level.levelnum != MAP_SAFEROOMEXTENSION)) {
+				reserveAmmo.amount+=1;
+			}
+			loadedAmmo.amount-=1;
+			S_WeaponReady(WRF_NOFIRE);
+			A_WeaponOffset(-0 + invoker.xPos, invoker.yPos +5,WOF_INTERPOLATE);
+		}
+
+		// Restore back to normal
+		reserveAmmo.MaxAmount-=loadedAmmo.maxAmount;;
+	}
+
+	action void insertNewAmmo(int halfAmmo = 0, SelacoWeapon weapon = null) {
+		PlayerPawn pawn = players[consoleplayer].mo;
+		bool isBackPackReload;
+		if(!weapon)
+		{
+			weapon = SelacoWeapon(pawn.player.readyWeapon);		
+		}
+		else
+		{
+			isBackPackReload = true;
+		}
+
+		let reserveAmmo = pawn.FindInventory(weapon.ammoType1);
+		let loadedAmmo = pawn.FindInventory(weapon.ammoType2);
+
+		if(!loadedAmmo || !reserveAmmo)
+		{
+			return;
+		}
+
+		while (reserveAmmo.amount > 0 || (level.levelnum == 100) && loadedAmmo.amount != loadedAmmo.maxAmount) {
+			A_TakeInventory("HasNoAmmo", 1);
+
+			if (loadedAmmo.amount >= loadedAmmo.maxAmount || (halfAmmo && loadedAmmo.amount >= reserveAmmo.amount)) {
+				break;
+			}
+			
+			loadedAmmo.amount+=1;
+			// Deduct reserve ammo, unless in a shooting range
+			if(level.levelnum != MAP_SAFEROOMEXTENSION)
+			{
+				reserveAmmo.amount-=1;
+			}
+
+			S_WeaponReady(WRF_NOFIRE);
+			A_WeaponOffset(-0 + invoker.xPos, invoker.yPos +5,WOF_INTERPOLATE);
+		}
+
+		if(!isBackPackReload)
+		{
+			if(level.levelnum != MAP_SAFEROOMEXTENSION)
+			{
+				// Player is on their last mag
+				if(pawn.player.readyWeapon.getClass() is weapon.getClass() && checkIfLastMagazine())
+				{
+					invoker.outOfReservesWarning();
+				}
+			}
+			invoker.checkLowAmmo();
+		}
+	}
+
+	void outOfReservesWarning()
+	{
+		// Have Dawn call it out.
+		if(countinv("DangerStateActive") == 0) 
+		{
+			a_playsound("dawn/ammo", CHAN_6, 1.0);
+		}
+
+		// Beep beep
+		A_PLAYSOUND("UI/OUTOFRESERVE", CHAN_AUTO, 0.85, pitch:1.1);
+
+		// Signal the AMMOWARNING HUD element by changing Dawn's reservesTime
+		let d = Dawn(owner);
+		if(d) d.reservesTime = level.totalTime;
+
+		//A_PRINTBOLD("Out of Reserves");
+	}
+
+	action void S_WeaponOffset(float weaponYOffset = 0, float weaponXOffset = 0) {
+		if(getCVAR("g_smallweapons") == 1) {
+			weaponYOffset = weaponYOffset + 8;
+		}
+		A_WeaponOffset(weaponXOffset, 32 + weaponYOffset, WOF_INTERPOLATE);
+	}
+
+	// Since this stores state in Dawn instead of in the weapon, every weapon will need to call
+	// A_EnableWeaponShift() when pulled out to establish wether or not we want weaponshifting
+	action void A_EnableWeaponShift(bool enable = true, bool reset = false, double multiplier = 1.0) {
+		let d = Dawn(player.mo);
+
+		if(d) {
+			d.EnableWeaponShift(enable, reset);
+		}
+	}
+
+	// Melee things
+	action bool checkMeleeUpgrade() {
+		//if (invoker.hasConfidenceBooster || invoker.countinv(invoker.meleeUpgradeName)) {
+		if (invoker.hasConfidenceBooster || invoker.hasUpgradeClass(invoker.meleeUpgradeName)) {
+			return true;
+		}
+		return false;
+	}
+
+	action void addMeleeUpgrade() {
+		invoker.hasConfidenceBooster = true;
+	}
+
+	action void removeMeleeUpgrade() {
+		invoker.hasConfidenceBooster = false;
+	}
+
+
+	action void spawnMeleeAttack(string meleePuff = "WeaponMelee") {
+		if (checkMeleeUpgrade()) {
+			meleePuff = "WeaponMeleeEnhanced";
+		}
+		//A_FireProjectile("WeaponMeleeGlassImpact", 0, 0, 5, 5);
+		A_FireProjectile(meleePuff, 0, 0, 5, 5);
+	}
+
+	// Upgrade things
+	action bool upgradeCheck(class<WeaponUpgrade> upgrade) {
+		let player = self.player;
+		if (!player) return null;
+
+		//if(player.ReadyWeapon)
+		//{
+			return invoker.hasUpgradeClass(upgrade);
+		//}
+		return null;
+	}
+
+	action bool altFireCheck(class<WeaponAltFire> altFire) {
+		//let player = self.player;
+		//if (!player) return null;
+
+		//if(player.ReadyWeapon)
+		//{
+			return (player || invoker.Owner.player) && invoker.hasUpgradeClass(altFire);
+		//}
+		return null;
+	}
+
+	action void applyWeaponRumble() {
+		float currentRumbleIntensity = invoker.rumbleIntensity;
+		Array<float> weaponRumbleList;
+		for (float x=currentRumbleIntensity;x>0;x-=invoker.rumbleDeductionSpeed) {
+			weaponRumbleList.push(x);
+		}
+
+		InputHandler.Instance().AddWorldFeedback(weaponRumbleList);
+	}
+
+	virtual void stopAttackingSound()
+	{
+		A_STOPSOUND(CHAN_WEAPON);
+	}
+
+	action bool checkIfLastMagazine() {
+		let reserveAmmo = FindInventory(invoker.ammoType1);
+		if (reserveAmmo && reserveAmmo.amount == 0)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	action void emberEffect(float volume = 0.3, int emberCount = 5) {
+		if(levelEventHandler.instance().gameDetailSetting <= GAMEDETAIL_MEDIUM) {
+			return;
+		}
+		A_PLAYSOUND("weapon/sparkemit1", CHAN_AUTO, volume, 0, 1.0, false, frandom(0.86, 1.0));
+		for (int i = 0; i < emberCount; i++) {
+			A_FireProjectile("WeaponEmber", frandom(10,15), 5, 10, 0);
+		}
+	}
+
+	action void cycleThrowables() {
+		// Populate the list of throwables
+		Array<class<SelacoAmmo> > throwables;
+		EquipmentHandler handler = EquipmentHandler.instance();
+		throwables.copy(handler.allThrowables);
+		
+		// Who is Dawn
+		let player = player;
+		let d = Dawn(invoker.owner);
+
+		// No dawn? No cycling!
+		if(!d) {
+			return;
+		}
+
+		// Prepare a list for all viable choices
+		array<SelacoAmmo> validChoices;
+
+		int highestOrder = -1;
+		SelacoAmmo lowestGrenadeOrder; 
+
+		// Find all Throwables that have at least 1 ammo and mark them as valid
+		for (int x = 0; x < throwables.size(); x++) {
+			let ammoType = GetDefaultByType(throwables[x]);
+			let throwableInstance = d.FindInventory(ammoType.getClass());
+
+			if (throwableInstance && throwableInstance.Amount > 0) {
+				if (ammoType.grenadeOrder > highestOrder) {
+					highestOrder = ammoType.grenadeOrder;
+					lowestGrenadeOrder = SelacoAmmo(throwableInstance);
+				}
+				validChoices.push(SelacoAmmo(throwableInstance));
+			}
+		}
+
+		// Do nothing if no options
+		if (validChoices.size() == 0) {
+			return;
+		}
+
+		// Find the index of the currently equipped throwable
+		int currentEquippedIndex = -1;
+		for (int i = 0; i < validChoices.size(); i++) {
+			if (validChoices[i].grenadeOrder == d.equippedThrowable.grenadeOrder) {
+				currentEquippedIndex = i;
+				break;
+			}
+		}
+
+		// Cycle through validChoices
+		int nextIndex = (currentEquippedIndex + 1) % validChoices.size();
+		for (int i = 0; i < validChoices.size(); i++) 
+		{
+			// If we have inventory for the selected pointer, we are done.
+			if (validChoices[nextIndex].Amount > 0) {
+				// Check if we swapped and inform the nerd behind the computer
+				if (d.equippedThrowable.getClassName() != validChoices[nextIndex].getClassName()) {
+					d.equippedThrowable = validChoices[nextIndex];
+					informSwappedThrowable(d.equippedThrowable, d.equippedThrowable.AmmoName);
+				}
+				return; 
+			}
+			nextIndex = (nextIndex + 1) % validChoices.size();
+		}
+	}
+
+	action void setThrowable(class<SelacoAmmo> cls) {
+		let d = Dawn(invoker.owner);
+		let inv = SelacoAmmo(d.FindInventory(cls));
+		if(d && inv) {
+			d.equippedThrowable = inv;
+			informSwappedThrowable(inv, d.equippedThrowable.AmmoName);
+		}
+	}
+
+	// Equipment has changed, play a cute souund effect
+	action void informSwappedThrowable(SelacoAmmo inv, string grenadeName)
+	{
+		/*A_PLAYSOUND("ui/SWAPTHRO", CHAN_AUTO);
+		
+		// This needs a Cock
+		//A_PRINTBOLD(string.format("%s %s", stringtable.Localize(grenadeName), stringtable.localize("$WORD_EQUIPPED")));
+		let elem = HUDElementGL(HUD.FindElement('HUDElementGL'));
+		if(elem) {
+			elem.throwableSwap(inv);
+		}*/
+
+		// Handled in HUDElementGL for now
+		// TODO: Get HUDMSG working so we can finally send UI events
+	}
+
+	float flashScale;
+	int rotationOffset;
+	float flashXOffset, flashYOffset;
+	float flashAlpha;
+	bool flashMirrored; //Used for weapons that require dual wielding
+	bool noRandomScale;
+	action void S_SelacoMuzzleFlash(String spriteName = "----", int frame =-1, float scale = 0.2, int rotation = 5, int xOffset  = 0, int yOffset = 0, float fAlpha = 2.0, bool mirrored = false, bool fixedScale = false)
+	{
+		invoker.flashMirrored = false;
+		if(mirrored)
+		{
+			invoker.flashMirrored = true;
+		}
+		invoker.flashXOffset = xoffset;
+		invoker.flashYOffset = yoffset;
+		invoker.flashSprite = spriteName;
+		invoker.flashAlpha = fAlpha;
+		invoker.flashNumber = frame;
+		invoker.flashScale = frandom(-0.1, scale);
+		if(fixedScale)
+		{
+			invoker.flashScale = scale;
+		}
+		invoker.rotationOffset = frandom(-1*rotation, rotation);
+		A_OVERLAY(PSP_WEAPONMUZZLEFLASH, "WeaponMuzzleFlash");
+		A_OVERLAY(PSP_WEAPONMUZZLEFLASH+1, "WeaponMuzzleFlash");
+		A_OVERLAY(PSP_WEAPONMUZZLEFLASH+2, "WeaponMuzzleFlash");
+	}
+
+	action void X_SetOverlaySprite(int layer, string spriteName = "----", int frame = -1)
+	{
+		if(self.player) {
+			PSprite psp = self.player.GetPSprite(layer);
+			if(psp && psp.CurState != null) {
+				int sprite = GetSpriteIndex(spriteName);
+				if(sprite > -1 && spriteName != "----") {
+					psp.sprite = sprite;
+				}
+				if(frame > -1) {
+					psp.frame = frame;
+				}
+			}
+		}
+	}
+
+/* 	action Actor A_WeaponFireProjectile(class<Actor> missiletype, double angle = 0, bool useammo = true, double spawnofs_xy = 0, double spawnheight = 0, int flags = 0, double pitch = 0) {
+		let player = self.player;
+		if (!player) return null;
+
+		let weapon = player.ReadyWeapon;
+		let projectile = A_FireProjectile(missiletype, angle, useammo, spawnofs_xy, spawnheight, flags, pitch);
+
+		if(projectile) {
+			projectile.master = weapon;
+		}
+
+		return projectile;
+	}
+ */
+
+	virtual void throwEquipmentItem()
+	{
+		if(!players[consolePlayer].FindPSprite(PSP_OFFHAND))
+		{
+			setWeaponState("ThrowEquipment");
+		}
+	}
+ 
+    action void SetWeaponState(statelabel st,int layer=PSP_WEAPON)
+    {
+		PlayerInfo player = players[consolePlayer];
+        if(player) player.setpsprite(layer,invoker.findstate(st));
+    }	
+
+	action void doGrenadeThrow()
+	{
+		invoker.checkLowAmmo();
+		A_STOPSOUND(chan_voice);		
+	}
+
+	action void CheckReloadCancelling(bool noFiring = false) {
+		if (CheckInventory("MeleeButton", 1)) {
+			SetWeaponState("MeleeAttack");
+			invoker.checkLowAmmo();
+			A_STOPSOUND(chan_voice);
+		}
+		if (CheckInventory("UseGadget", 1)) {
+			SetWeaponState("ThrowEquipment");
+			invoker.checkLowAmmo();
+			A_STOPSOUND(chan_voice);
+		}
+		if (CheckInventory("PlayerSlides", 1)) {
+			invoker.allowSlide = false;
+			activateSlide();
+			A_OVERLAY(PSP_LEGS, "FirstPersonLegsStandDelay");
+		}
+		if(Dawn(invoker.owner) && Dawn(invoker.owner).curLadder)
+		{
+			setWeaponState("ReallyReady");
+		}
+		if(noFiring)
+		{
+			return;
+		}
+		if (CountInv(invoker.AmmoType2) == 0) {
+			S_WeaponReady(WRF_NOFIRE);
+		}
+	}
+
+	const zoomRange = 1.7;
+	action void CheckPlayerStates(int zoom = 0) {
+		float zoomLevel = 1.0;
+		invoker.noAnimationCancel = false;
+		if(zoom) {
+			zoomLevel = zoomRange;
+		}
+		A_TakeInventory("CodexLooperItem", 1);
+		invoker.isPushingButton = false;
+		if (CheckInventory("MediumRangeExplosion", 1)) {
+			SetWeaponState("MoveGunDown");
+			A_STOPSOUND(CHAN_WEAPON);
+			A_ZoomFactor(zoomLevel);
+			A_TakeInventory("MediumRangeExplosion", 1);
+		}
+		if(WF_WEAPONREADY)
+		{
+			if (CheckInventory("MeleeButton", 1) && !(getClassName() == "DMR" && CheckIfZooming())) {
+				A_STOPSOUND(CHAN_WEAPON);
+				SetWeaponState("MeleeAttack");
+				A_ZoomFactor(1.0);
+			}
+			if (CheckInventory("NewAltFire", 1)) {
+				A_TakeInventory("NewAltFire", 1);
+				invoker.swapAltFire();
+			}
+		}
+		if (CheckInventory("ShatteredWindow", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("ShatterWindow");
+			A_TakeInventory("ShatteredWindow", 1);
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("CodexPressed", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("OpenCodex");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("ScanLightPanelPressed", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("ScanLight");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("Showpass", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("gotoShowpass");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("ShowHands", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("HandRemoved");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("RemoveHandNoCancel", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			invoker.noAnimationCancel = true;
+			SetWeaponState("HandRemoved");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (countinv("PushButtonNow") == 1) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("PushButton");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (countinv("DawnKick") == 1) {
+			A_STOPSOUND(CHAN_WEAPON);
+			A_GiveInventory("ShowHandsFast", 1);
+			SetWeaponState("Kick");
+			A_ZoomFactor(zoomLevel);
+		}
+		if(countinv("DawnKickFast") == 1)
+		{
+			A_STOPSOUND(CHAN_WEAPON);
+			A_GiveInventory("ShowHandsFast", 1);
+			A_TakeInventory("DawnKickFast", 1);		// Must be removed before state change to prevent infinite loop
+			SetWeaponState("KickFast");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("ShieldEyes", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("doShieldEyes");
+			A_ZoomFactor(zoomLevel);
+		}
+		A_TakeInventory("CancelAnimation", 1);
+		if (CheckInventory("UseGadget", 1)) {
+			A_STOPSOUND(CHAN_WEAPON);
+			SetWeaponState("ThrowEquipment");
+		}
+		if (CheckInventory("PlayerSlides", 1)) {
+			activateSlide();
+			if(invoker.allowSlide || dawn(player.mo).playerHasWeaponReady())
+			{
+				SetWeaponState("Sliding");
+				A_OVERLAY(PSP_LEGS, "FirstPersonStandDelayed");
+			}
+			else
+			{
+				A_OVERLAY(PSP_LEGS, "FirstPersonLegsStandDelay", noOverride: true);
+			}
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("HasFlashLight", 1)) {
+			SetWeaponState("DoFlashLight");
+			A_ZoomFactor(zoomLevel);
+		}
+		if (CheckInventory("Reloading", 1)) {
+			SetWeaponState("ReloadWeaponInitializer");
+		}
+
+		if (zoom == 0 ){ 
+			A_ZoomFactor(zoomLevel);
+		}
+
+	}
+
+States
+{
+	Precache:
+		TNT1 A 0;	// This exists just to prevent weapons with no Precache from loading every single frame
+		DAHS ABCDEFGH 0;
+		stop;		// STOP must ABSOLUTELY be at the end of PRECACHE, otherwise the engine will look ahead forever and possibly crash
+
+	ReloadWeaponInitializer:
+		TNT1 A 0 {
+			A_STOPSOUND(CHAN_WEAPON);
+			if(invoker.activeSlideState)
+			{
+				invoker.inWeaponSlideAnimation = false;
+			}
+			SetWeaponState("ReloadWeapon");
+		}
+
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+		RIF9 ABCD 1  {
+				X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+				A_SetPitch(pitch + 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		RIF9 E 10  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		RIF9 DCBA 1  {
+				A_SetPitch(pitch - 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		TNT1 A 0 {
+			SetStateLabel("Ready3");
+		}
+
+	beginMoveGunDownAnimation:
+		TNT1 AAA 1  {
+				X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.weaponFrame);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+				invoker.weaponFrame++;
+			
+		}
+		TNT1 A 30  {
+				X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.weaponFrame);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		TNT1 AAA 1  {
+				invoker.weaponFrame--;
+				X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.weaponFrame);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto GoingToReady;
+
+	//int slideTransition;
+	//int slideFrame;
+	//int slideMax;
+	Sliding:
+		TNT1 A 0 {
+			// Check if screenshake is on so we dont have to keep checking for a cvar during the slide
+			invoker.activeSlideState = true;
+			invoker.slideShake = 0;
+			invoker.cameraMotion = 0;
+			invoker.isZOoming = 0;
+            if(getCvar("g_Screenshake") == 2) {
+				invoker.slideShake = 1;
+            }
+			if(getCvar("g_cameraMotion") == 1) {
+				invoker.cameraMotion = 1;
+			} 
+			invoker.meleeTargetHit = false; // Restart the boolean
+			A_STOPSOUND(CHAN_WEAPON);
+			invoker.slideTransition = 0;
+			invoker.slideFrame = 0;
+			invoker.SlideZoom = 1.00;
+			SetWeaponState("Slide_transition");
+		}
+	SLIDE_Transition:
+		TNT1 A 1 {
+			invoker.inWeaponSlideAnimation = true;
+			A_TakeInventory("ShieldEyes", 1);
+			X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.slideFrame);
+			//if(invoker.cameraMotion == 1) {
+				//A_SETROLL(roll+0.5, SPF_INTERPOLATE); This was causing some issues with interpolation, disabled for now!
+			//}
+			S_ZOOMFACTOR(invoker.slideZoom);
+			invoker.slideTransition++;
+			if(getCvar("g_slidezooming") == 1 && getCvar("fov") < 120) {
+				invoker.slideZoom = invoker.slidezoom - 0.02;
+			}
+			if(invoker.slideTransition % 2 == 0) {
+				invoker.slideFrame++;
+			}
+			if(invoker.slideFrame == 4) {
+				SetWeaponState("SlideLooper");
+			}
+			A_SlideRumble();
+            if(invoker.slideShake) {
+                A_QuakeEx(frandom(0,0.6), frandom(0,0.6), frandom(0,0.1), 2, 0, 700, 0, 0, 0, 0, 0, 0, frandom(0, 0.6), frandom(0, 0.6), frandom(0, 0.6));
+             }
+		}
+		loop;
+
+	// OVERLAY
+	SLIDE_ShowDawnLegs:
+		TNT1 A 1 {
+			invoker.activeSlideState = true;
+			A_SlideRumble();
+			X_SetOverlaySprite(1, invoker.SlidingSprite, 3);
+			A_ZOOMFACTOR(invoker.slideZoom);
+			invoker.legSprite = 100;
+			A_OVERLAY(PSP_LEGS, "FirstPersonLegsStand", noOverride: true);
+		}
+		
+	SlideLooper:
+		TNT1 A 1 {
+				A_SlideRumble();
+				if(invoker.slideShake) {
+					A_QuakeEx(1,0, 0 , 10, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 0, 1, 0);
+				}
+				X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.slideFrame);
+				CheckPlayerStates();
+				A_ZOOMFACTOR(invoker.slidezoom);
+				S_WeaponReady();
+				S_WeaponOffset(frandom(-1,1), frandom(-1,1));
+				// If slidekick failed, try punt
+				if(player.mo is "Dawn") {
+					Dawn(player.mo).puntObject();
+				}
+			}
+		loop;
+	StoppedSliding:
+		TNT1 A 0 {
+			invoker.endslide();
+			SetWeaponState("SLIDE_ExitTransition");
+		}
+	SLIDE_ExitTransition:
+		TNT1 A 1 {
+			X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.slideFrame);
+			S_ZOOMFACTOR(invoker.slideZoom);
+			invoker.slideTransition--;
+			if(getCvar("g_slidezooming") == 1 && getCvar("fov") < 120) {
+				invoker.slideZoom = invoker.slidezoom + 0.02;
+			}
+			if(invoker.slideTransition % 2 == 0) {
+				invoker.slideFrame--;
+			}
+			if(invoker.slideFrame <= 0) {
+				invoker.slideTransition = 0;
+				invoker.SlideFrame = 0;
+				invoker.SlideZoom = 1.00;
+				SetWeaponState("ReallyReady");
+			}
+		}
+		loop;
+
+	CancelOffhand:
+		TNT1 A 1
+		{
+			A_PRINTBOLD("RUN");
+		}
+		stop;
+
+	// Used for certain animations. This raises the weapon and removes the 'supporting hand' from the weapon in order to perform an action (e.g shielding eyes, pushing a button)
+	HandRemovedBridge: // Used for when we want to use HandRemoved in the weapon class itself
+	HandRemoved:
+		TNT1 A 0 {
+			invoker.breathingFrame = 0;
+			A_STOPSOUND(CHAN_WEAPON);
+			invoker.weaponFrame = 0;
+			A_TakeInventory("ShowHands", 1);
+		}
+		TNT1 ABCDEF 2 {
+			X_SetOverlaySprite(1, invoker.interactionSprite, invoker.weaponFrame);
+			if(countInv("ShowHandsFast") == 1) {
+				A_SETTICS(1);
+			}
+			invoker.weaponFrame++;
+		}
+		TNT1 A 0 {
+			TakeInventory("ShowHandsFast", 1);
+		}
+		goto HandRemovedLooperGrenadeGoto;
+		
+	HandRemovedGrenadeToss:
+		TNT1 A 0 {
+			invoker.offhandAnimationTime = ANIMATION_OFFHAND_MAX;
+			invoker.breathingFrame = 0;
+			A_STOPSOUND(CHAN_WEAPON);
+			invoker.weaponFrame = 0;
+			A_TakeInventory("ShowHands", 1);
+		}
+		TNT1 CDEF 1 {
+			X_SetOverlaySprite(1, invoker.interactionSprite, invoker.weaponFrame);
+			invoker.weaponFrame++;
+		}
+		TNT1 A 0 {
+			TakeInventory("ShowHandsFast", 1);
+		}
+		goto HandRemovedLooperGrenadeToss;
+
+	HandRemovedLooperGrenadeToss:
+		TNT1 A 0 
+		{
+			invoker.weaponFrame = 5;
+		}
+		TNT1 A 1
+			{
+				invoker.offhandAnimationTime--;
+				invoker.iszooming = false;
+				A_ZOOMFACTOR(1.0);
+				if(invoker.offhandAnimationTime <= 0)
+				{
+					setWeaponState("ReturnHands");
+				}
+				X_SetOverlaySprite(1, invoker.interactionSprite, invoker.weaponFrame);
+				if(!invoker.noAnimationCancel)
+				{
+					S_WeaponReady();
+				}
+				S_WeaponOffset();
+			}
+		Loop;
+
+	HandRemovedLooperGrenadeGoto:
+		TNT1 A 0 
+		{
+			invoker.weaponFrame = 5;
+		}
+	HandRemovedLooperGrenade:
+		TNT1 A 1
+			{
+				invoker.iszooming = false;
+				A_ZOOMFACTOR(1.0);
+				if(countinv("ShowHands2") == 1 && !invoker.noAnimationCancel)
+				{
+					setWeaponState("ReturnHands");
+				}
+				X_SetOverlaySprite(1, invoker.interactionSprite, invoker.weaponFrame);
+				if(!invoker.noAnimationCancel)
+				{
+					S_WeaponReady();
+				}
+				S_WeaponOffset();
+			}
+		Loop;
+
+	ReturnHands:
+		TNT1 ECBA 2 {
+			invoker.noAnimationCancel = false;
+			invoker.weaponFrame--;
+			S_WeaponReady();
+			X_SetOverlaySprite(1, invoker.interactionSprite, invoker.weaponFrame);
+		}
+		goto ReallyReady;
+
+	// In case a reload happens with no reload compatible weapon; do nothing and refund the reload item.
+	ReloadWeapon:
+		TNT1 A 0 A_TakeInventory("Reloading", 1);
+		TNT1 A 0 SetWeaponState("ReallyReady");
+
+	Select:
+		TNT1 AAAAAAAAAAAAAAAAA 0 A_RAISE();
+		TNT1 A 0
+		{
+			// Weapon ready? Skip selection animation.
+			if(invoker.weaponIsReady)
+			{
+				SetWeaponState("ReallyReady");
+			}	
+		}
+		TNT1 A 0;
+	Fire:
+	ReallyReady:
+	Ready:
+		TNT1 A 0
+		{
+			if(!invoker.weaponIsReady)
+			{
+				setWeaponState("Equip");
+			}
+		}
+		TNT1 A 0 A_Jump(255,"GoingToReady");
+		goto GoingToReady;
+	ReadyGoADS:
+		TNT1 A 0 A_Giveinventory("ADSMODE", 1);
+		TNT1 A 0 A_Jump(255,"ReadyADS");
+
+	Deselect:
+		TNT1 A 0
+		{
+			// Reset timer for reserves warning
+			let d = Dawn(invoker.owner);
+			if(d) d.reservesTime = 0;
+
+			// Player isn't dead, unequip instead.
+			if(health > 0)
+			{
+				SetWeaponState("Unequip");
+			}
+		}
+		TNT1 A 1;
+        TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_SetSpeed(0.3);
+	    TNT1 A 0 A_PlaySound("weapons/changing", 1);
+		TNT1 A 0 {
+			invoker.isGrenadeLauncherMode = false;
+			A_STOPSOUND(CHAN_WEAPON );
+			setZoomStatus(false);
+			invoker.isFiring = 0;
+			A_UNEQUIPWEAPON();
+		}
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		TNT1 A 0
+		{
+			if(health <= 0 && random(0,100) <= 99)
+			{
+				A_StopSound(CHAN_WEAPON);
+				A_SETROLL(0);
+				SetWeaponState("DeathArms");	
+			}
+		}
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+		Wait;
+	GoingToReady:
+	SelectingAnimation:
+		TNT1 A 0 A_TakeInventory("IsRunning",1);
+		TNT1 A 0 A_TakeInventory("Reloading",1);
+		TNT1 A 0 A_Jump(255,"Ready4");
+		TNT1 A 0 A_Jump(255, "Ready3");
+		Loop;
+	GoingToReady2:
+		TNT1 A 0 A_TakeInventory("Reloading",1);
+		TNT1 AAAA 0 A_Jump(255, "SelectAnimation");
+		TNT1 AAAA 1 A_Jump(255, "Ready");
+		Loop;
+		
+	ThrowEquipment:
+		TNT1 A 0 A_TakeInventory("UseGadget", 1);
+		TNT1 A 0 A_TakeInventory("ShowHands", 1);
+		TNT1 A 0
+		{
+			let player = player;
+			let d = Dawn(player.mo);
+			invoker.noAnimationCancel = true;
+			if(d.equippedThrowable is "HandGrenadeAmmo")
+			{
+				SetWeaponState("ThrowGrenade");
+				return;
+			} else if (d.equippedThrowable is "IceGrenadeAmmo")
+			{
+				SetWeaponState("ThrowIceGrenade");
+				return;
+			} else if (d.equippedThrowable is "MineAmmo")
+			{
+				SetWeaponState("ThrowMine");
+				return;
+			}
+		}
+		TNT1 A 0 SetWeaponState("ReallyReady");
+
+        ThrowMine:
+			TNT1 A 0 {
+				if(countinv("MineAmmo") == 0) {
+					SetWeaponState("GoingToReady");
+				}
+			}
+            TNT1 A 0 A_ZoomFactor(1.0);
+            TNT1 A 0 A_TakeInventory("UseGadget", 1);
+            TNT1 A 0 A_JumpIfInventory("MineAmmo", 1, 1);
+            NULL A 0 A_PlaySound("StunGrenadeArm", 2);
+            TNT1 A 0 setZoomStatus(false);
+			TNT1 A 0 A_overlay(PSP_OFFHAND, "ThrowMineAnimation");
+			TNT1 A 0
+			{
+				SetWeaponState("HandRemovedGrenadeToss");
+				return;
+			}
+			goto HandRemovedGrenadeToss;
+
+		ThrowMineAnimation:
+			TNT1 A 2;
+			TNT1 A 0 A_PLAYSOUND("PULSEMINE/THROW", CHAN_AUTO, 0.5);
+			TNT1 A 5 thrownEquipmentItem();
+            TNT1 A 0 {
+				if(!ShootingRangeHandler.instance().inShootingRangeSession)
+				{
+					if(countinv("MineAmmo") == 1) {
+						cycleThrowables();
+					}
+					A_TakeInventory("MineAmmo", 1);
+				}
+            }
+            HND7 AB 2;
+			TNT1 A 0 A_FireProjectile("PulseMineThrown", 0, 0, -2, -13);
+            HND7 DEGHJK 2;
+            TNT1 A 0 A_TakeInventory("UseGadget", 1);
+			TNT1 A 4;
+            stop;
+
+	ThrowIceGrenade:
+		TNT1 A 0 {
+			if(countinv("IceGrenadeAmmo") == 0) {
+				SetWeaponState("GoingToReady");
+			}
+		}
+		TNT1 A 0 A_GiveInventory("CancelAnimation", 1);
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0 A_JumpIfInventory("IceGrenadeAmmo", 1, 1);
+		Goto NoIceGrenade;
+		TNT1 A 0 setZoomStatus(false);
+		TNT1 A 0 A_overlay(PSP_OFFHAND, "ThrowIceGrenadeAnimation");
+		TNT1 A 0
+		{
+			SetWeaponState("HandRemovedGrenadeToss");
+			return;
+		}
+		Goto HandRemovedGrenadeToss;
+
+	NoIceGrenade:
+		TNT1 A 0;
+		TNT1 A 0 ACS_NamedExecute("NoNades", 0);
+		TNT1 A 0;
+		goto GoingToReady;
+
+	gotoShowpass:
+		TNT1 A 0 A_overlay(PSP_OFFHAND, "showpassAnimation");
+		Goto Ready;
+
+	showpassAnimation:
+		TNT1 A 0;
+		TNT1 A 0
+		{
+			A_TakeInventory("Showpass", 1);
+		}
+		TNT1 A 0 ACS_NamedExecute("RemoveHand", 0);
+		TNT1 A 14;
+		HDPA ABCDE 2 A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		HDPA f 15 A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		HDPA EDCBA 2 A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		stop;
+
+	ThrowIceGrenadeAnimation:
+		TNT1 A 0; //ACS_NamedExecute("RemoveHand", 0);
+		TNT1 A 2 thrownEquipmentItem();
+		TNT1 A 0 A_PlaySound("GRNPREP", CHAN_AUTO);
+		TNT1 A 6;
+		TNT1 A 0;
+		TNT1 A 0 
+		{
+			if(!ShootingRangeHandler.instance().inShootingRangeSession)
+			{
+				if(countinv("IceGrenadeAmmo") == 1) {
+					cycleThrowables();
+				}
+				A_TakeInventory("IceGrenadeAmmo", 1);
+			}
+		}
+		TNT1 A 0 A_PlaySound("OPNGRN", 1);
+		HND1 A 2;
+		TNT1 A 0 A_FireProjectile("GrenadePin", 0, 0, -14);
+		TNT1 A 0 A_FireProjectile("ThrownIceGrenade", 0, 0, -14);
+		HND1 DE 2;
+		TNT1 A 0 A_Refire;
+		TNT1 A 0 A_PlaySound("THRGRN", 1);
+		TNT1 A 0 A_TakeInventory("DoGrenade", 1);
+		HND1 FJL 2;
+		TNT1 A 6;
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		stop;
+
+	WeaponMuzzleFlash:
+		TNT1 A 1 BRIGHT{
+			int flags;
+			flags = PSPF_RENDERSTYLE;
+			int overlayNum = PSP_WEAPONMUZZLEFLASH+random(0,2);
+			if(invoker.flashMirrored)
+			{
+				flags+=PSPF_MIRROR;
+			}
+			A_OverlayFlags(overlayNum, flags, true);
+			A_OverlayRenderStyle(overlayNum, STYLE_ADD);
+			A_OverlayRotate(overlayNum, invoker.rotationOffset);
+			A_OverlayPivot(overlayNum, 0.5, 0.5);
+			A_OverlayAlpha(overlayNum, invoker.flashAlpha);
+			A_overlayscale(overlayNum, invoker.flashScale, invoker.flashScale, WOF_ADD);
+			A_OverlayOffset(overlayNum, invoker.flashXOffset, invoker.flashYOffset, WOF_ADD);
+			X_SetOverlaySprite(overlayNum, invoker.flashSprite, invoker.flashNumber);
+			S_WeaponOffset();
+			A_SETTICS(1);
+		}
+		stop;
+
+// Used when the player cancels an animation
+	CancelAnimatonProcess: 
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		stop;
+
+	OpenCodex:
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0 A_GiveInventory("CodexLooperItem", 1);
+		TNT1 A 0 ACS_NamedExecute("RemoveHand", 1);
+		TNT1 A 0 A_TakeInventory("CodexPressed", 1);
+		TNT1 A 0 A_overlay(15, "CodexAnimation");
+		Goto Ready;
+
+	CodexAnimation:
+		TNT1 A 6;
+		CODE ABDFHJK 2;
+		TNT1 A 0 A_overlay(15, "CodexLooper");		
+		Goto ready;
+
+
+	ScanLight:
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0;
+		TNT1 A 0 
+		{
+			let player = player;
+			let d = Dawn(player.mo);
+			d.blockMovement = true;
+		}
+		TNT1 A 0 ACS_NamedExecute("RemoveHandNoCancel", 1);
+		TNT1 A 0 A_TakeInventory("ScanLightPanelPressed", 1);
+		TNT1 A 0 A_overlay(15, "ScanLightAnimation");
+		Goto Ready;
+
+	ScanLightAnimation:
+		TNT1 A 13;
+		DAHS ABCDEFGH 0;	
+		DAHS ABCDEFGH 2;	
+		DAHS H 0 {
+			 A_overlay(15, "ScanLightAnimationLooper");
+		}
+		Goto ready;
+
+	ScanLightAnimationLooper:
+		TNT1 A 0;
+		DAHS H 1 {
+			if(countinv("RemoveHandNoCancel") == 0)
+			{
+				A_overlay(15, "ScanLightAnimationRemover");
+			}
+		}
+		loop;
+	ScanLightAnimationRemover:
+		TNT1 A 0 
+		{
+			let player = player;
+			let d = Dawn(player.mo);
+			d.blockMovement = false;
+		}
+		DAHS GFEDCBA 2;
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		TNT1 A 7;
+		TNT1 A 0 {
+			invoker.noAnimationCancel = false;
+		}
+		stop;
+
+	CodexLooper:
+		CODE M 1 BRIGHT;
+		TNT1 A 0 ACS_NamedExecute("RemoveHand", 0);
+		CODE M 1 BRIGHT {
+			if (CountInv("CodexLooperItem") == 0) {
+				A_overlay(15, "CodexRemover");
+			}
+		}
+		loop;
+
+	CodexRemover:
+		//TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		CODE KJHFDBA 2;
+		TNT1 A 7;
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		stop;
+
+	FirstPersonLegsStandDelay:
+		TNT1 A 0 
+		{
+			invoker.legSprite = 100;
+		}
+		TNT1 A 0 A_OVERLAY(PSP_LEGS, "FirstPersonLegsStand");
+		stop;
+
+	FirstPersonStandDelayed:
+		TNT1 A 0
+		{
+			invoker.legSprite = 100;
+		}
+		TNT1 A 4;
+		TNT1 A 0 A_OVERLAY(PSP_LEGS, "FirstPersonLegsStand");
+	FirstPersonLegsStand:
+		TNT1 A 0 {
+			invoker.stateDelayer = 0;
+			invoker.meleeTargetHit = false;
+			invoker.skipLegSprite = false;
+		}
+		DLEG ABCDEF 1 {
+			invoker.activeSlideState = true;
+			A_TakeInventory("ShieldEyes", 1);
+			invoker.stateDelayer++;
+			if(invoker.stateDelayer >= 6 && !invoker.meleeTargetHit) {
+				slideKickHandler();
+			}
+			int legPitch;
+			if(pitch < 24) {
+				legPitch = ((-pitch*2)+90+invoker.legSprite);
+			} else {
+				legpitch = 40;
+			}
+			invoker.legSprite = invoker.legSprite - 20;
+			A_OverlayOffset(PSP_LEGS, 0, legPitch, WOF_INTERPOLATE );
+			if(Countinv("StopSliding") == 1) {
+				invoker.skipLegSprite = true;
+			}
+		}
+		TNT1 A 0 A_OVERLAY(PSP_LEGS, "FirstPersonLegsloop");
+		TNT1 A 0 A_JumpIfInventory("StopSliding", 1, "FirstPersonLegsGetUp");
+	FirstPersonLegsloop:
+		DLEG G 1 {
+			invoker.activeSlideState = true;
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			A_TakeInventory("ShieldEyes", 1);
+			if(!invoker.meleeTargetHit) {
+				slideKickHandler();
+			}
+			int legPitch;
+			if(pitch < 24) {
+				legPitch = ((-pitch*2)+90);
+			} else {
+				legpitch = 40;
+			}
+			if((countInv("StopSliding") == 1 && ((Pos.Z == FloorZ) || (bOnMObj) || invoker.dropKickHit || Waterlevel > 1 || d.climbing || d.mantle) || d.curLadder || d.vel.length() == 0)) {
+				if(invoker.inWeaponSlideAnimation && invoker.allowSlide && d.playerHasWeaponReady())
+				{
+					setWeaponState("stoppedsliding");
+				}
+				A_OVERLAY(PSP_LEGS, "FirstPersonLegsGetUp");
+				invoker.endslide();
+			}
+			A_OverlayOffset(PSP_LEGS, -8, legPitch, WOF_INTERPOLATE );
+		}
+	loop;
+	FirstPersonLegsGetUp:
+		TNT1 A 0 {
+			invoker.activeSlideState = false;
+			invoker.endslide();
+			A_StopSound(CHAN_5);
+			//A_GiveInventory("StopSliding", 1);
+			A_TakeInventory("SlidingIsActive", 1);
+			A_TakeInventory("PlayerSlides", 1);
+			invoker.dropKickHit = false;
+			invoker.legSprite = 40;
+		}
+		TNT1 A 0 A_OVERLAY(PSP_LEGS, "FirstPersonLegsGetUpActual");
+	FirstPersonLegsGetUpActual:
+		DLEG FDBA 2 {
+			//if(invoker.cameraMotion == 1) {
+				//A_SETROLL(roll-0.8, SPF_INTERPOLATE); This was causing some issues with interpolation, disabled for now!
+			//}
+			int legPitch;
+			if(pitch < 24) {
+				legPitch = ((-pitch*2)+90+invoker.legSprite);
+			} else {
+				legPitch = invoker.legSprite;
+			}
+			invoker.legSprite = invoker.legSprite + 20;
+			A_OverlayOffset(PSP_LEGS, 0, legPitch, WOF_INTERPOLATE );
+		}
+	TNT1 A 0 A_SETROLL(0);
+	stop;
+
+	ThrowGrenade:
+		TNT1 A 0 A_GiveInventory("CancelAnimation", 1);
+		TNT1 A 0 A_JumpIfInventory("HandGrenadeAmmo", 1, 1);
+		Goto NoGrenade;
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0 setZoomStatus(false);
+		TNT1 A 0 A_overlay(PSP_OFFHAND, "ThrowGrenadeAnimation");
+		TNT1 A 0 {
+			if(countinv("HandGrenadeAmmo") == 0) {
+				SetWeaponState("SwitchEquipment");
+			}
+			SetWeaponState("HandRemovedGrenadeToss");
+			return;
+		}
+		Goto HandRemovedGrenadeToss;
+
+	ThrowGrenadeAnimation:
+		TNT1 A 0; //SetWeaponState("HandRemovedGrenadeToss");
+		TNT1 A 0 thrownEquipmentItem();
+		TNT1 A 6;
+		TNT1 A 0 A_PlaySound("GRNPREP", CHAN_AUTO);
+		HND1 A 2;
+		TNT1 A 0 A_FireProjectile("GrenadePin", 0, 0, -14);
+		TNT1 A 0 A_FireProjectile("ThrownGrenade1", -2, 0, -1);
+		TNT1 A 0 
+		{
+			if(!ShootingRangeHandler.instance().inShootingRangeSession)
+			{
+				if(countinv("HandgrenadeAmmo") == 1) {
+					cycleThrowables();
+				}
+				A_TakeInventory("HandGrenadeAmmo", 1);
+			}
+		}
+		HND1 CD 2;
+		TNT1 A 0 A_Refire;
+		TNT1 A 0 A_PlaySound("THRGRN", 1);
+		TNT1 A 0 A_TakeInventory("DoGrenade", 1);
+		HND1 EIL 2;
+		TNT1 A 4;
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		stop;
+
+	doShieldEyes:
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0 {
+			if(health > 0) {
+				A_overlay(PSP_OFFHAND, "ShieldEyesAnimation");
+			}
+		}
+		Goto Ready;
+
+	ShieldEyesAnimation:
+		TNT1 A 0 A_TakeInventory("ShieldEyes", 1);
+		TNT1 A 0 A_PlaySound("dawn/startle", CHAN_6);
+		TNT1 A 0 ACS_NamedExecute("RemoveHandFast", 0);
+		TNT1 A 6;
+		HND4 ABCDE 1 {
+			s_WeaponOffset(frandom(-2,2), frandom(-2,2));
+			A_OverlayOffset(PSP_OFFHAND, frandom(-2,2), frandom(-2,2), WOF_INTERPOLATE );
+			A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		}
+		HND4 FFFFFFFFFFFFFFFFFFFFFFFFFFFF 1 {
+			s_WeaponOffset(frandom(-2,2), frandom(-2,2));
+			A_OverlayOffset(PSP_OFFHAND, frandom(-2,2), frandom(-2,2), WOF_INTERPOLATE );
+			A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		}
+		HND4 EEDDCCBBAA 1 {
+			s_WeaponOffset(frandom(-2,2), frandom(-2,2));
+			A_OverlayOffset(PSP_OFFHAND, frandom(-2,2), frandom(-2,2), WOF_INTERPOLATE );
+			A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		}
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		stop;
+
+	PushButton:
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0 A_TakeInventory("PushButtonNow", 1);
+		TNT1 A 0 {
+			invoker.isZooming = false;
+			if (getCvar("g_interactionanimations") == 1) {
+				A_overlay(PSP_OFFHAND, "PushButtonAnimation");
+			}
+		}
+		goto Ready;
+
+	Kick:
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0 A_TakeInventory("PushButtonNow", 1);
+		TNT1 A 0 {
+			invoker.isZooming = false;
+			if (getCvar("g_interactionanimations") == 1) {
+				A_overlay(PSP_LEGS, "KickAnimation");
+			}
+		}
+		goto Ready;
+	KickFast:
+		TNT1 A 0 A_ZoomFactor(1.0);
+		TNT1 A 0 A_TakeInventory("PushButtonNow", 1);
+		TNT1 A 0 {
+			ACS_NamedExecute("RemoveHand", 0);
+			invoker.isZooming = false;
+			if (getCvar("g_interactionanimations") == 1) {
+				A_overlay(PSP_LEGS, "KickAnimationFast");
+			}
+		}
+		goto Ready;
+
+	PushButtonAnimation:	
+		TNT1 A 0;
+		TNT1 A 0 {
+			ACS_NamedExecute("RemoveHand", 0);
+			invoker.isPushingButton = true;
+		}
+		TNT1 A 10;
+		HND2 CCDDEE 1 A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		HND2 EEEE 1 A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		TNT1 A 0 {
+			invoker.isPushingButton = false;
+		}
+		HND2 CCBBAA 1 A_JumpIfInventory("CancelAnimation", 1, "CancelAnimatonProcess");
+		TNT1 A 0 {
+			A_TakeInventory("PushButtonNow", 1);
+		}
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		TNT1 A 0;
+		stop;
+
+	KickAnimation:	
+		TNT1 A 0;
+		TNT1 A 0 
+		{
+			ACS_NamedExecute("RemoveHand", 0);
+			invoker.isPushingButton = true;
+			let player = player;
+			let d = Dawn(player.mo);
+			d.blockMovement = true;
+			A_PLAYSOUND("DAWN/KICK", CHAN_AUTO, 1.0, 0, 0);
+		}
+		TNT1 A 11;
+		DAWK ABCDE 1;
+		DAWK FGHI 1;
+		DAWK A 0 
+		{
+			A_PlaySound("weapons/fistmelee", CHAN_AUTO, pitch:frandom(0.7,0.75));
+			if(getCvar("g_Screenshake") >= 1) {
+				A_QuakeEx(1, 1, 1, 10, 0, 700, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+			}
+			A_ZOOMFACTOR(0.81, ZOOM_INSTANT);
+		}
+		DAWK IIJJK 1;
+		DAWK KLM 1 A_SETANGLE(angle+2.4);
+		DAWK MM 1 
+		{
+			A_SETANGLE(angle-1.6);
+			A_ZOOMFACTOR(1.0);
+		}
+		DAWK NOPPQQRRSSTT 1
+		{
+			A_ZOOMFACTOR(1.0);
+		}
+		TNT1 A 0
+		{
+			let player = player;
+			let d = Dawn(player.mo);
+			d.blockMovement = false;
+			A_TakeInventory("DawnKick", 1);
+		}
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		TNT1 A 0;
+		stop;
+
+	// Oh my god this one does damage!
+	KickAnimationFast:	
+		TNT1 A 0;
+		TNT1 A 0
+		{
+			A_PLAYSOUND("dawn/targetedmelee", CHAN_AUTO, 0.7, 0, 0);
+		}
+		DAWK ABCE 1;
+		DAWK FGI 1;
+		DAWK A 0 
+		{
+			A_PlaySound("weapons/fistmelee", CHAN_AUTO, pitch:frandom(0.7,0.75));
+			if(getCvar("g_Screenshake") >= 1) {
+				A_QuakeEx(1, 1, 1, 10, 0, 700, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+			}
+			A_ZOOMFACTOR(0.91, ZOOM_INSTANT);
+		}
+		DAWK IIJJK 1;
+		DAWK KLM 1;
+		DAWK MM 1 
+		{
+			A_ZOOMFACTOR(1.0);
+		}
+		DAWK NOPPQQ 1
+		{
+			A_ZOOMFACTOR(1.0);
+		}
+		TNT1 A 0
+		{
+			ACS_NamedExecute("AddHand", 0);
+		}
+		DAWK RRSSTT 1
+		{
+			A_ZOOMFACTOR(1.0);
+		}
+		TNT1 A 0
+		{
+			A_TakeInventory("DawnKickFast", 1);
+		}
+		TNT1 A 0;
+		stop;
+
+	NoGrenade:
+		TNT1 A 0;
+		TNT1 A 0 ACS_NamedExecute("NoNades", 0);
+		TNT1 A 0 SetWeaponState("ReallyReady");
+
+
+    // ABILITIES
+	DoCluster:
+		TNT1 A 0 A_TakeInventory("HasCluster", 1);
+		goto GoingToReady;
+
+	DoTurret:
+		TNT1 A 0 A_SpawnItemEx ("SentryGun",45,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+		goto GoingToReady;
+
+	LungeToTarget:
+		TNT1 A 0 {
+			invoker.TargetInRange = true;
+			A_PLAYSOUND("dawn/targetedMelee", CHAN_AUTO);
+		}
+		goto MeleeAttackExecute+1;
+	MeleeAttack:
+	MeleeAttackExecute:
+		TNT1 A 0
+		{
+			let d = Dawn(invoker.owner);
+			d.setStateLabel("MeleeAttack");
+			if(invoker.meleeSpritev2)
+			{
+				setWeaponState("MeleeAttackv2");
+			}
+		}
+		TNT1 A 0 {
+			invoker.weaponFrame = 3;
+			S_ZOOMFACTOR(1.0);
+			A_ZOOMFACTOR(0.97, ZOOM_INSTANT);
+			setZoomStatus(false);
+			invoker.isZooming = false;
+			if (!invoker.TargetInRange && random(0,3) == 0) {
+				A_Playsound("dawn/melee", CHAN_AUTO, 0.8);
+			}
+			invoker.currentZoomFactor = 1.00;
+			A_PlaySound("impact/meleeS1", CHAN_AUTO, 0.9);
+			A_PlaySound("impact/firstpersonMelee",CHAN_AUTO, 0.6, 0, 1.0, false, frandom(0.85, 1.0));
+		}
+		goto beginMelee;
+	beginMelee:
+		TNT1 A 0 {
+			meleeAndLunge();
+			invoker.stopAttackingSound();
+			invoker.isMeleeAttack = true;
+			invoker.isFiring = 0;
+			invoker.isZooming = false;
+		}
+		TNT1 A 1 {
+			X_SetOverlaySprite(1, invoker.meleeSprite, invoker.weaponFrame);
+			if(invoker.TargetInRange && invoker.weaponFrame > 0) { // Target in range? Lunge to the target!
+				A_Recoil(-15);	
+			}
+			A_ZoomFactor(invoker.currentZoomFactor);
+			invoker.currentZoomFactor = invoker.currentZoomFactor - 0.02;	
+			if(getCvar("g_screenshake") > 0)
+			{
+				A_QuakeEx(4, 4, 4 , 6, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 3, 0, 4);
+			}
+			if(invoker.weaponFrame < 5) {
+				invoker.weaponFrame++;
+			} else {
+				invoker.weaponFrame++;
+			}
+		}
+		TNT1 A 1 {
+			X_SetOverlaySprite(1, invoker.meleeSprite, invoker.weaponFrame);
+			invoker.currentZoomFactor = invoker.currentZoomFactor - 0.02;	
+			A_ZoomFactor(invoker.currentZoomFactor);	
+			if(invoker.TargetInRange && invoker.weaponFrame > 0) { // Target in range? Lunge to the target!
+				A_Recoil(-15);
+			}
+			if(getCvar("g_cameraMotion")) {
+				A_SETROLL(roll - 5, SPF_INTERPOLATE);
+			}
+			if(invoker.weaponFrame < 5) {
+				invoker.weaponFrame++;
+			} else {
+				invoker.weaponFrame++;
+			}
+		}
+		TNT1 A 0 {
+			executeMeleeHits();
+		}		
+		TNT1 AAAAAAA 1 {
+			X_SetOverlaySprite(1, invoker.meleeSprite, invoker.weaponFrame);
+		}
+		TNT1 AA 1 {
+			X_SetOverlaySprite(1, invoker.meleeSprite, invoker.weaponFrame);
+		}
+		TNT1 A 0
+		{
+			A_PLAYSOUND("DAWN/MELEE/RETURN", CHAN_AUTO, 0.4, pitch:1.4);
+		}
+		TNT1 ABCD 1 {
+			X_SetOverlaySprite(1, invoker.meleeSprite, invoker.weaponFrame);
+			invoker.weaponFrame--;
+			A_ZoomFactor(invoker.currentZoomFactor);
+			invoker.currentZoomFactor = invoker.currentZoomFactor + 0.01;		
+			if(getCvar("g_cameraMotion")) {
+				A_SETROLL(roll + 0.5, SPF_INTERPOLATE);
+			}
+		}
+		TNT1 EF 1 {
+			X_SetOverlaySprite(1, invoker.meleeSprite, invoker.weaponFrame);
+			invoker.weaponFrame--;
+			A_ZoomFactor(invoker.currentZoomFactor);
+			invoker.currentZoomFactor = invoker.currentZoomFactor + 0.005;		
+			if(getCvar("g_cameraMotion")) {
+				A_SETROLL(roll + 1.25, SPF_INTERPOLATE);
+			}
+		}
+		TNT1 A 0 A_SetRoll(0);
+		TNT1 A 0 {
+			invoker.isMeleeAttack = false;
+			invoker.TargetInRange = false;
+		}
+		goto GoingToReady;
+
+		//MELEE VERSION 2
+		// We will eventually have to migrate everything to this new system.
+		// It allows for more frames and is a bit less messy.
+		// Currently, this is only used for the railgun.
+	MeleeAttackv2:
+		TNT1 A 0 {
+			invoker.weaponFrame = 0;
+			S_ZOOMFACTOR(1.0);
+			A_ZOOMFACTOR(1.0, ZOOM_INSTANT);
+			setZoomStatus(false);
+			invoker.isZooming = false;
+			if (!invoker.TargetInRange && random(0,3) == 0) {
+				A_Playsound("dawn/melee", CHAN_VOICE, 0.8);
+			}
+			invoker.currentZoomFactor = 1.00;
+			A_PlaySound("impact/meleeS1", CHAN_AUTO, 0.9);
+			A_PlaySound("impact/firstpersonMelee",CHAN_AUTO, 0.6, 0, 1.0, false, frandom(0.85, 1.0));
+		}
+		goto beginMeleev2;
+	beginMeleev2:
+		TNT1 A 0 {
+			meleeAndLunge();
+			invoker.stopAttackingSound();
+			invoker.isMeleeAttack = true;
+			invoker.isFiring = 0;
+			S_ZOOMFACTOR(1.0);
+			invoker.isZooming = false;
+			if(getCvar("g_screenshake") > 0)
+			{
+				A_QuakeEx(4, 4, 4 , 4, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 4);
+			}
+		}
+		TNT1 ABCDEFG 1 {
+			X_SetOverlaySprite(1, invoker.meleeSpritev2, invoker.weaponFrame);
+			if(invoker.TargetInRange && invoker.weaponFrame > 0) { // Target in range? Lunge to the target!
+				A_ZoomFactor(invoker.currentZoomFactor);
+				A_Recoil(-15);
+				invoker.currentZoomFactor = invoker.currentZoomFactor - 0.02;		
+			}
+			A_SpawnProjectile ("ShakeYourAssMinor", 1, 0, random (0, 360), 2, random (0, 160));
+			if(getCvar("g_cameraMotion")) {
+				A_SetAngle(angle + 1.5, SPF_INTERPOLATE);
+			}
+			if(invoker.weaponFrame < 5) {
+				invoker.weaponFrame++;
+			} else {
+				invoker.weaponFrame++;
+			}
+		}
+		TNT1 A 0 {
+			executeMeleeHits();
+		}
+		TNT1 HHHHH 1 {
+			X_SetOverlaySprite(1, invoker.meleeSpritev2, invoker.weaponFrame);
+		}
+		TNT1 A 0
+		{
+			A_PLAYSOUND("DAWN/MELEE/RETURN", CHAN_AUTO, 0.4, pitch:1.4);
+		}
+		TNT1 IJKL 1 {
+			X_SetOverlaySprite(1, invoker.meleeSpritev2, invoker.weaponFrame);
+			invoker.weaponFrame++;
+			if(invoker.TargetInRange) { // Target in range? Lunge to the target!
+				A_ZoomFactor(invoker.currentZoomFactor);
+				invoker.currentZoomFactor = invoker.currentZoomFactor + 0.02;		
+			}
+			if(getCvar("g_cameraMotion")) {
+				A_SetAngle(angle - 0.75, SPF_INTERPOLATE);
+			}
+		}
+		TNT1 A 0 A_SetRoll(0);
+		TNT1 A 0 {
+			invoker.isMeleeAttack = false;
+			invoker.TargetInRange = false;
+		}
+		goto GoingToReady;
+
+
+		DeathArms:
+			TNT1 A 0 A_OVERLAY(PSP_OFFHAND, "DeathArmsAnimation");
+			TNT1 A 0 {
+				// @Cockatrice - DeathArms: gets called repeatedly during a slide, so we make sure to only drop the weapon once
+				// Otherwise if you die during a slide you drop like 30 weapons
+				if(!invoker.bDroppedWeapon)	{
+					A_FireProjectile(invoker.voxelDecorationModel, -15);
+					invoker.bDroppedWeapon = true;
+				}
+			}
+		DeathArmsAnimation:
+			TNT1 A 15;
+			DAD1 ABCDEFGHIJKFGHIJKLMNPTV 3;
+			DAD1 V -1;
+			stop;
+
+	}
+	
+
+
+	override void MarkPrecacheSounds() {
+		Super.MarkPrecacheSounds();
+		
+		MarkSound(WeaponSound);
+		MarkSound(ReadySound);
+	}
+
+
+	// Special version of A_FireBullets that generates callbacks for mods/traits/randomizer
+	action Actor FireBullets(double spread_xy, double spread_z, int numbullets, int damageperbullet, class<Actor> pufftype = "BulletPuff", int flags = 1, double range = 0, class<Actor> missile = null, double Spawnheight = 32, double Spawnofs_xy = 0) {
+		let puff = A_FireBullets(spread_xy, spread_z, numbullets, damageperbullet, pufftype, flags, range, missile, Spawnheight, Spawnofs_xy);
+		if(puff) puff.master = invoker.owner;
+		invoker.OnWeaponFire(puff);
+		return puff;
+	}
+
+
+	// Special version of A_FireProjectile that generates the same callbacks
+	action Actor FireProjectile(class<Actor> missiletype, double angle = 0, bool useammo = true, double spawnofs_xy = 0, double spawnheight = 0, int flags = 0, double pitch = 0) {
+		let proj = A_FireProjectile(missileType, angle, useammo, spawnofs_xy, spawnheight, flags, pitch);
+		if(proj) proj.master = invoker.owner;
+		invoker.OnWeaponFire(proj);
+		return proj;
+	}
+
+	// Call this right before firing the weapon, so stats/calculations can be changed before spawning projectiles
+	virtual void onBeforeWeaponFire() {
+		for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x]) {
+                activeUpgrades[x].onBeforeWeaponFire(self, owner);
+            }
+        }
+	}
+
+	// Call this after firing the weapon to send events to upgrade classes
+	virtual void onWeaponFire(Actor projectileOrPuff) {
+		for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x]) {
+                activeUpgrades[x].onWeaponFire(self, owner, projectileOrPuff);
+            }
+        }
+	}
+
+
+	virtual int onDamageVictim(Actor victim, Actor projectileOrPuff, int damage, Name damageType, int flags = 0) {
+		for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x]) {
+                damage = activeUpgrades[x].onDamageVictim(self, owner, victim, projectileOrPuff, damage, damageType, flags);
+            }
+        }
+
+		return damage;
+	}
+
+
+	virtual void onKill(Actor victim, Actor projectileOrPuff) {
+		for(int x = 0; x < activeUpgrades.size(); x++) {
+            if(activeUpgrades[x]) {
+                activeUpgrades[x].onKill(self, owner, victim, projectileOrPuff);
+            }
+        }
+	}
+}
+
+
+
+// Parent class for muzzle flashes.
+class PlayerMuzzleflash : actor
+{
+    property lightSize   : lightSizeMin, lightSizeMax; 
+	int lightSizeMin, lightSizeMax;
+
+	mixin LightEmitter;
+	int overbrightValue;
+	int allowShadow;
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		int lightingQuality = getCvar("LightingQuality");
+		int muzzleFlashShadows = getCvar("r_muzzleflashShadows");
+		allowShadow = -1;
+				
+		if(muzzleFlashShadows >= 2)
+		{
+			allowShadow = 1;
+		}
+
+		if(lightingQuality < 2)
+		{
+			lightSizeMin*=0.75;
+			lightSizeMax*=0.75;
+		}else if(lightingQuality >= 4)
+		{
+			lightSizeMin*=1.15;
+			lightSizeMax*=1.15;			
+		}
+
+		spawnLightEffect();
+	}
+
+	virtual void spawnLightEffect() { }
+
+	int getLightSize()
+	{
+		return random(lightSizeMin, lightSizeMax);
+	}
+
+	default 
+	{
+		PlayerMuzzleFlash.lightSize 130, 150;
+		+NOINTERACTION;
+	}
+
+	states {
+		Spawn:
+			TNT1 A 3;
+			stop;
+	}
+
+}

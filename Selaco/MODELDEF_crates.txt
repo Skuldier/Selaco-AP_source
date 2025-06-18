@@ -1,0 +1,222 @@
+
+
+Model CrateDecoration
+{
+   UseActorPitch
+   UseActorRoll
+   noperpixellighting
+   Path "MD/box"   
+   Model 0 "crate.md3"    
+   Scale 1 1 1            
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectHealth  
+{
+   Path "MD/Crate"
+   Model 0 "crate.md3"    
+   Skin 0 "crate_health.png"
+   Scale 0.76 0.76 0.76
+   Inherits CrateDecoration
+}
+
+Model CrateObjectArmor 
+{
+   Path "MD/Crate"
+   Model 0 "crate_armor.md3"    
+   Skin 0 "crate_armor.png"
+   Scale 0.76 0.76 0.76
+   Inherits CrateObjectHealth
+}
+
+Model CrateObjectAmmo
+{
+   UseActorPitch
+   UseActorRoll
+   Path "MD/Crate"
+   noperpixellighting
+   Model 0 "crate_ammo.md3"    
+   Skin 0 "crate_ammo.png"
+   Scale 0.76 0.76 0.76    
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectMedium  
+{
+   UseActorPitch
+   UseActorRoll
+   Path "MD/Crate"
+   noperpixellighting
+   Model 0 "crate.md3"    
+   Skin 0 "crate.jpg"
+   Scale 0.76 0.76 0.76    
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+Model CrateObjectBoobytrap  
+{
+   UseActorPitch
+   UseActorRoll
+   Path "MD/Crate"
+   noperpixellighting
+   Model 0 "crate.md3"    
+   Skin 0 "crate.jpg"
+   Scale 0.76 0.76 0.76    
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+MODEL CratePainted
+{
+   UseActorPitch
+   UseActorRoll
+   Path "MD/Crate"
+   noperpixellighting
+   Model 0 "CRATE_PAINTED.md3"    
+   Skin 0 "CRATE_PAINTED.PNG"
+   Scale 0.76 0.76 0.76    
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+
+Model CrateObjectLarge  
+{
+   UseActorPitch
+   UseActorRoll
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "crate.md3"    
+   Skin 0 "crate.jpg"
+   Scale 0.88 0.88 0.88          
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateMediumBreakOnTouch  
+{
+   UseActorPitch
+   UseActorRoll
+   Path "MD/Crate"
+   noperpixellighting
+   Model 0 "crate.md3"    
+   Skin 0 "crate.jpg"
+   Scale 0.76 0.76 0.76    
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectSmall  
+{
+   UseActorPitch
+   UseActorRoll
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "crate.md3"    
+   Skin 0 "crate.jpg"
+   Scale 0.63 0.63 0.63   
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model crateObjectPiece_1 
+{
+   
+   UseActorPitch
+   UseActorRoll
+	USEACTORROLL
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "CRATE_PIECE_1.md3"    
+   Skin 0 "CRATE_PIECE_1.jpg"
+   Scale 0.7 0.7 0.7        
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+
+Model CrateObjectPiece_2
+{
+   UseActorPitch
+   UseActorRoll
+	USEACTORROLL
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "CRATE_PIECE_2.md3"    
+   Skin 0 "CRATE_PIECE_2.jpg"
+   Scale 0.7 0.7 0.7        
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectPiece_3
+{
+   UseActorPitch
+   UseActorRoll
+	USEACTORROLL
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "CRATE_PIECE_3.md3"    
+   Skin 0 "CRATE_PIECE_3.jpg"
+   Scale 0.7 0.7 0.7        
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectPiece_4
+{
+   UseActorPitch
+   UseActorRoll
+	USEACTORROLL
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "CRATE_PIECE_4.md3"    
+   Skin 0 "CRATE_PIECE_4.jpg"
+   Scale 0.7 0.7 0.7        
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectPiece_5
+{
+   UseActorPitch
+   UseActorRoll
+	USEACTORROLL
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "CRATE_PIECE_5.md3"    
+   Skin 0 "CRATE_PIECE_5.jpg"
+   Scale 0.7 0.7 0.7        
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectOpen
+{
+   UseActorPitch
+   UseActorRoll
+	USEACTORROLL
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "crate_open.md3"    
+   Skin 0 "crate_open.jpg"
+   Scale 0.7 0.7 0.7        
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}
+
+Model CrateObjectLit
+{
+   UseActorPitch
+   UseActorRoll
+	USEACTORROLL
+   Path "MD/Crate"      
+   noperpixellighting
+   Model 0 "crate_lit.md3"    
+   Skin 0 "crate_lit.jpg"
+   Scale 0.7 0.7 0.7        
+   ZOffset 0
+   FrameIndex VOXE L 0 0
+}

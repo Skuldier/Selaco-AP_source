@@ -1,0 +1,810 @@
+// Everything here is used for cinematic setpieces. As in, a scripted piece of existing effects.
+
+// Don't touch this.
+class CinematicEffectMaster : actor {
+    default {
+        +NOGRAVITY;
+        Radius 5;
+        RenderStyle "None";
+    }
+}
+
+// Ceiling Destructor - Perfect for when a Juggernaut comes from a ceiling
+class CeilingSmasherJuggernaut : CinematicEffectMaster {
+    default {
+        +missile;
+        speed 3;
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SPAWNITEMEX("CeilingSmasherJuggernaut_SmokeMissile", frandom(-40,40), frandom(-40,40), 0, frandom(8,17), frandom(-15,15), frandom(-10,-20));
+            stop;
+    }
+}
+
+
+class CeilingSmasherJuggernaut_SmokeMissile : actor {
+    default {
+        +missile;
+        speed 20;
+    }
+
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 AAAAAAAA 1 A_SPAWNITEMEX("SmokeTrailPieceSmall");
+            stop;
+    }
+}
+
+// Used to fake destroyed ceilings.
+class CeilingCollapser : SelacoActor {
+    bool performanceMode;
+    int bounces;
+
+    private int ceilingCollapserFlags;
+    flagdef PlayCollapseSound                : CeilingCollapserFlags, 0;      // Do not sleep automatically, can be used on and off to prevent sleep during animations
+
+    override void tick() {
+        super.tick();
+        if (!getPerformanceMode() && level.time % random(3,17) == 0 && vel.z != 0) {
+            A_SPAWNITEMEX("MudDustSmall");
+         }
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        if(random(0,40) == 5) {
+            A_SPAWNITEMEX("SpawnImpactSmokeSmallSuperShort", 0, 0, -4);
+        }
+        if(bPlayCollapseSound)
+        {
+            A_PLAYSOUND("destruction/collapse", CHAN_AUTO, 0.95);
+        }
+        gravity = gravity+=frandom(-0.15,0.15);
+    }
+
+    virtual void setPerformanceMode() {
+        performanceMode = false;
+    }
+
+    bool getPerformanceMode() {
+        return performanceMode;
+    }
+    default {
+        +MISSILE
+        +DOOMBOUNCE
+        +UseBounceState
+        +CeilingCollapser.PlayCollapseSound
+        SelacoActor.SleepDistance 0;
+        BounceFactor 0.4;
+        height 2;
+        +solid
+        +ThruActors
+        scale 0.75;
+        BounceCount 3;
+        speed 7;
+        Gravity 0.7;
+    }
+    states {
+        Precache:
+            CEIL A 0;
+            stop;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 setPerformanceMode();
+        Spawn2:
+            TNT1 A 0 A_ChangeVelocity(speed, 0, 0, CVF_relative);
+            TNT1 A 0 A_SetAngle(angle +random(-5,5));
+            TNT1 A 0 A_SetPitch(frandom(-40, 40));
+            CEIL A 0;
+        Bounce:
+            TNT1 A 0 {
+                if(bounces > 0) {
+                    A_PLAYSOUND("bounce/collapse", CHAN_AUTO, 1.0);
+                }
+            }
+            CEIL A 2 {
+                bounces++;
+                if (!getPerformanceMode()) {
+                    EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 1.0, numTries: 5, angle:random(0,259), speed:frandom(0.4,1.2), offset:(frandom(-3,3), frandom(-3,3),frandom(24,32)), velocity:(frandom(0.1,0.3), frandom(0.1,0.3), frandom(1,8)));
+                    EmitDefinition('LongerSparkDefinition', chance: 0.75, numTries: 24, angle:random(-35,35), pitch:frandom(-90, 0), speed:frandom(1,4));
+                }
+            }
+            TNT1 A 0 A_SPAWNITEMEX("DirtDecalMaster");
+            TNT1 A 0 SetStateLabel("Looper");
+        Looper:
+            CEIL AA 1 {
+                if(vel.z != 0) {
+                    A_SETPITCH(pitch + frandom(7,8));
+                }
+            }
+            loop;
+        Death:
+            CEIL A 90 {
+                A_SETPITCH(0);
+                A_ChangeLinkFlags(0);
+            }
+            CEIL A 1 {
+                Sleepindefinite();
+                A_ChangeLinkFlags(1);
+                A_SETPITCH(0);
+            }
+    }
+}
+
+class CeilingCollapserPerformance : CeilingCollapser {
+
+    override void setPerformanceMode() {
+        performanceMode = true;
+    }
+}
+
+// GRATE wall texture
+CLASS WALL_COLLAPSE_1 : SELACOACTOR 
+{
+    int aliveTime;
+
+    override void tick()
+    {
+        super.tick();
+        if(level.time % 3 == 0 && (vel.x != 0 || vel.y != 0))
+        {
+            //EmitDefinition('SparkParticleDefinition', chance: 0.75, numTries: 12, angle:random(-35,35), pitch:frandom(-90, 0), speed:frandom(1,4), offset:(random(-25,25),random(-25,25),random(-25,25)));
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", frandom(-25,25), frandom(-25,25), frandom(-5,5));
+        }
+        if(aliveTime == 9)
+        {
+            bNoInteraction = false;
+            bNoGravity = false;
+            A_CHANGELINKFLAGS(0);
+            A_CHANGEVELOCITY(0, 0, -8, CVF_RELATIVE);
+            A_SETSize(13, 0);
+        } else {
+            aliveTime++;
+        }
+        
+    }
+    default
+    {
+        +MISSILE;
+        +NOINTERACTION;
+        BounceFactor 0.5;
+        WallBounceFactor 0.5;
+        Bouncecount 3;
+        +DOOMBOUNCE
+        radius 5;
+        height 5;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 
+            {
+                A_PLAYSOUND("SCRIPT/BREAKMETALGRATE", CHAN_AUTO, 0.7, 0, 1.0, pitch:1.2);
+                A_PLAYSOUND("destruction/collapse", CHAN_AUTO, 0.95);
+                A_CHANGEVELOCITY(7, 0, -1, CVF_RELATIVE);
+            }
+        Looper:
+            CEIL A 1 {
+                A_SETPITCH(pitch+15);
+            }
+            loop;
+        Bounce:
+            TNT1 A 0 {
+                A_PLAYSOUND("bounce/collapse", CHAN_AUTO, 1.0);
+                setStateLabel("looper");
+            }
+        death:
+            CEIL A -1 {
+                A_SETPITCH(0);
+                A_SETANGLE(angle - 15);
+            }
+            stop;
+    }
+}
+
+// Grey Ceiling Panel
+class CEILING_COLLAPSE_TILE_1 : CeilingCollapser { }
+class CEILING_COLLAPSE_TILE_1_Performance : CeilingCollapserPerformance { }
+
+// Tiny Panel
+class CEILING_COLLAPSE_TILE_2 : CeilingCollapser { 
+
+}
+class CEILING_COLLAPSE_TILE_2_Performance : CeilingCollapserPerformance { }
+
+class CEILING_COLLAPSE_TILE_3 : CeilingCollapser { }
+class CEILING_COLLAPSE_TILE_3_Performance : CeilingCollapserPerformance { }
+
+class CEILING_COLLAPSE_TILE_4 : CeilingCollapser { }
+class CEILING_COLLAPSE_TILE_5 : CeilingCollapser { }
+class CEILING_COLLAPSE_TILE_6 : CeilingCollapserPerformance { }
+
+class CEILING_COLLAPSE_TILE_7  : CeilingCollapser { }
+class CEILING_COLLAPSE_TILE_8  : CeilingCollapserPerformance { }
+class CEILING_COLLAPSE_TILE_9  : CeilingCollapser { }
+class CEILING_COLLAPSE_TILE_10 : CeilingCollapserPerformance 
+{ 
+    override void tick()
+    {
+        super.tick();
+        if(level.time % random(3,4) == 0 && (vel.x != 0 || vel.y != 0))
+        {
+            EmitDefinition('LongerSparkDefinition', chance: 0.75, numTries: 15, angle:random(-35,35), pitch:frandom(-90, 0), speed:frandom(1,4), offset:(random(-25,25),random(-25,25),random(-25,25)));
+            A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", frandom(-25,25), frandom(-25,25), frandom(-5,5));
+        }
+    }
+}
+class CEILING_COLLAPSE_TILE_11 : CEILING_COLLAPSE_TILE_10 
+{ 
+
+    default
+    {
+        radius 25;
+    }
+    states
+    {
+        Looper:
+            CEIL A 2 {
+                if(vel.z != 0) {
+                    A_SETPITCH(pitch+25);
+                }
+            }
+            loop;
+    }
+}
+class CEILING_COLLAPSE_TILE_14 : CeilingCollapserPerformance {
+    override void tick()
+    {
+        super.tick();
+        if((vel.x != 0 || vel.y != 0))
+        {
+            A_SPAWNITEMEX("BodyImpactSmokeTiny", frandom(-25,25), frandom(-25,25), frandom(-5,5));
+        }
+    } 
+    default
+    {
+        speed 2;
+        radius 1;
+    }
+}
+
+class CEILING_COLLAPSE_TILE_16 : CEILING_COLLAPSE_TILE_14 { }
+
+class CEILING_COLLAPSE_TILE_FBF : CEILING_COLLAPSE_TILE_9 
+{ 
+
+    default
+    {
+        radius 5;
+    }
+}
+
+
+// Grate-like
+class CEILING_COLLAPSE_TILE_12 : CeilingCollapserPerformance 
+{ 
+    override void tick()
+    {
+        super.tick();
+        if(level.time % random(3,4) == 0 && (vel.x != 0 || vel.y != 0))
+        {
+            A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", frandom(-25,25), frandom(-25,25), frandom(-5,5));
+        }
+    }
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        A_CHANGEVELOCITY(0,0,frandom(10,13));
+    }
+
+    default
+    {
+        +THRUACTORS;
+        radius 5;
+    }
+    
+}class CEILING_COLLAPSE_TILE_13 : CeilingCollapserPerformance 
+{ 
+    default
+    {
+        radius 5;
+    }
+}
+
+class GrateFloorPiece1 : CEILING_COLLAPSE_TILE_10 { 
+    default
+    {
+        radius 5;
+        height 5;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 
+            {
+                A_CHANGEVELOCITY(7, 0, -1, CVF_RELATIVE);
+            }
+        Looper:
+            CEIL A 1 {
+                A_SETPITCH(pitch+15);
+            }
+            loop;
+        Bounce:
+            TNT1 A 0 {
+                A_PlaySound("impact/metalsmall",CHAN_AUTO, 0.4, 0, 0.9, false, frandom(1.3,1.4));
+                setStateLabel("looper");
+            }
+    }
+}
+class GrateFloorPiece2 : GrateFloorPiece1 { }
+
+class CEILING_COLLAPSE_TILE_4_Performance : CeilingCollapserPerformance { }
+
+class CEILING_COLLAPSE_TILE_5_SPAWNER : actor {
+    default {
+        radius 25;
+        +NOINTERACTION
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                for(int i=0;i<=32;i++) {
+                    A_SPAWNITEMEX("CEILING_COLLAPSE_TILE_5_performance", frandom(0,32), 0, 0, frandom(0,1), frandom(0,1), frandom(-1,1), random(0,360));
+                }
+            }
+            stop;
+    }
+}
+
+class CEILING_COLLAPSE_TILE_5_performance : CeilingCollapserPerformance {
+    default {
+        height 2;
+        -CeilingCollapser.PlayCollapseSound
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 setPerformanceMode();
+        Spawn2:
+            TNT1 A 0 A_ChangeVelocity(4, frandom(-1,2), 0, CVF_relative);
+            TNT1 A 0 A_SetAngle(angle +random(-20,20));
+            TNT1 A 0 A_SetPitch(frandom(-40, 40));
+            CEIL A 0;
+        Bounce:
+            TNT1 A 0 A_PlaySound("impact/tinypla",CHAN_AUTO, 0.6, 0, 1.0, false, frandom(0.9, 1.0));
+            CEIL A 2 {
+                if (!getPerformanceMode() && random(0,100) <= 15) {
+                    EmitDefinition('LongerSparkWildDefinition', chance: 1.0, numTries: 3, pitch: -180, offset:(0, 0, 32));
+                }
+            }
+            TNT1 A 0 SetStateLabel("Looper");
+        Looper:
+            CEIL AA 1 {
+                A_SETPITCH(pitch + frandom(15,30));
+            }
+            loop;
+        Death:
+            CEIL A 10 {
+                A_SETPITCH(0);
+            }
+            CEIL A 300 {
+                bNoInteraction = true;
+                A_SETPITCH(0);
+            }
+            CEIL AAAAAAAAAA 2 {
+                A_FADEOUT(0.1);
+            }
+            stop;
+    }
+}
+
+class VOXELDOORCRASH : SelacoActor {
+    
+    default {
+        -SELACOACTOR.SlopeAlignment;
+        xscale 0.85;
+        yscale 0.8;
+        radius 5;
+        height 5;
+        +NOBLOCKMAP;
+    }
+    states {
+        Spawn:
+            VOXE L 1;
+            TNT1 A 0 {
+                A_playsound("dest/DOORBREACH1", CHAN_AUTO, 1.0, 0, 0.5);
+            }
+            VOXE L 1 A_ChangeVelocity(15, 0, 0);
+            VOXE LLLLLLLLLLLLL 1 {
+                EmitDefinition('LongerSparkDefinition', chance: 1.0, numTries: 45, angle:frandom(-170, -190), pitch:frandom(-65, -15), speed:frandom(0.4,2.5), offset:(frandom(-25,25), frandom(-25,25),frandom(-25,25)), velocity:(frandom(-2,2), frandom(-2,2), 0));	
+                A_SETPITCH(PITCH+7);
+            }
+            VOXE L -1;
+    }
+}
+
+
+class VOXELDOORIDLE : Interactable {
+
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        useIcon = TexMan.CheckForTexture("XH_KICK");
+    }
+
+    default {
+        -UseSpecial;
+        -SelacoActor.AllowBurning
+        -SELACOACTOR.SlopeAlignment;
+        Activation THINGSPEC_DEFAULT;
+        +SHOOTABLE;
+        +Solid;
+        +BLOCKLOF;      // Should prevent soldiers from firing at the door
+        xscale 0.87;
+        yscale 0.74;
+        radius 23;
+        height 90;
+        mass 1000;
+	    BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/hardmetal";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+    }
+}
+
+class VoxelDoorKickable : VOXELDOORIDLE {
+    string kickActor;
+    property kickActor : kickActor;
+
+    int kickTimer;
+    const KICK_TIME_REQUIREMENT = 18;
+    bool kicked;
+    override void tick() 
+    {
+        super.tick();
+        if(level.time % random(7,14) == 0) {
+            A_SPAWNITEMEX("Sparks_Shadowcaster", 0, frandom(-22,-29), frandom(0,72));
+            A_playSound("script/sparks", 1.0, 0.3);
+        }
+        if(kicked)
+        {
+            kickTimer++;
+            if(kickTimer == KICK_TIME_REQUIREMENT)
+            {
+                setStateLabel("Kicked");
+                return;
+            }
+        }
+    }
+
+    void handleDoorKick()
+    {
+        PlayerPawn pawn=players[0].mo;
+        let d = Dawn(pawn);
+        if(!d)
+        {
+            return;
+        }
+        if(d.countinv("NoDawnArmor") == 1)
+        {
+            d.A_PLAYSOUND("dawn/targetedMelee5", CHAN_AUTO, 1.0, 0, 0);
+            SetStateLabel("Pain.shotgun");
+        }
+        if(d.getCvar("g_interactionAnimations") == 0)
+        {
+            setStateLabel("Kicked");
+            return;
+        }
+        if(SelacoWeapon(d.player.ReadyWeapon)&& d.playerHasWeaponReady(1))
+        {
+            bUseSpecial = false;
+            activationType = THINGSPEC_DEFAULT;
+            d.GiveInventory("DawnKick", 1);
+        }
+        else
+        {
+            setStateLabel("Spawn");
+        }
+    }
+
+    default 
+    {
+        SelacoActor.UseTag "$INTERACT_KICK";
+        Tag "$ACT_OBJ_DOOR";
+        VoxelDoorKickable.kickActor "VOXELDOORKICKABLEFLYING";
+        +UseSpecial
+        +DONTTHRUST
+        SelacoActor.sleepDistance 512;
+        painchance 255;
+        Activation THINGSPEC_Switch;
+    }
+
+    states {
+        pain:
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+        Inactive:
+        Active:
+            TNT1 A 0 {
+                handleDoorKick();
+            }
+        WaitForKick:
+            TNT1 A 0 
+            {
+                bNoInteraction = true;
+                bPreventSleep = true;
+                kicked = true;
+            }
+            VOXE L -1;
+        Kicked:
+        Pain.shotgun:
+            TNT1 A 0 {
+                A_SPAWNITEMEX(kickActor);
+            }
+            stop;
+    }
+}
+
+class VOXELDOORKICKABLEHIGHVELOCITY : VoxelDoorKickable
+{
+    default
+    {
+        VoxelDoorKickable.kickActor "VOXELDOORKICKABLEFLYINGHIGHVELOCITY";
+    }
+}
+
+class VOXELDOORKICKABLEFAST : VOXELDOORKICKABLE
+{
+    default 
+    {
+      VoxelDoorKickable.kickActor "VoxelDoorKickableFlyingFast";  
+    }
+}
+
+class VOXELDOORKICKABLEFLYING : VOXELDOORIDLE {
+    default {
+        SelacoActor.UseTag "$INTERACT_KICK";
+        Tag "$ACT_OBJ_DOOR";
+        -SELACOACTOR.SlopeAlignment;
+        -UseSpecial
+        Activation THINGSPEC_DEFAULT;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                ActivationType = THINGSPEC_Default;
+                bUseSpecial = false;
+                A_SetSize(17,8);
+            }
+            TNT1 A 0 {
+                A_SPAWNITEMEX("MeleeImpactLarger", -12, 0, 43);
+                A_PLAYSOUND("script/doorkick", CHAN_AUTO, attenuation:0.7);
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(1,1, 2, 8, 0, 200, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+                }
+                setStateLabel("FlyForward");
+            }
+        FlyForward:
+            VOXE L 1 A_ChangeVelocity(-12, 4, 0, CVF_relative);
+            VOXE LLLLLLLLLLLLL 1 {
+                bDontThrust = true;
+                bThruPlayers = true;
+                bDecorativeActor = true;
+                bPushable = false;
+                A_SetSize(20,8);
+                A_SETPITCH(PITCH-6.8);
+                A_SETANGLE(angle+2);
+                A_SETSCALE(scale.x, scale.y+0.01);
+            }
+            TNT1 A 0 
+            {
+                vel = (0, 0, 0);
+                A_ChangeLinkFlags(1);
+            }
+            TNT1 A 0 ACS_NamedExecuteAlways("DoorKicked", 0);
+            VOXE L -1 Sleepindefinite();
+    }
+}
+
+class VOXELDOORKICKABLEFLYINGHIGHVELOCITY : VOXELDOORKICKABLEFLYING
+{
+    states
+    {
+        FlyForward:
+            VOXE L 1 A_ChangeVelocity(-17, -4, 0, CVF_relative);
+            VOXE LLLLLLLLLLLLL 1 {
+                bThruPlayers = true;
+                bDecorativeActor = true;
+                bPushable = false;
+                bDontThrust = true;
+                 A_SetSize(20,8);
+                A_SETPITCH(PITCH-6.8);
+                A_SETANGLE(angle-2);
+                A_SETSCALE(scale.x, scale.y+0.01);
+            }
+            TNT1 A 0
+            {
+                vel = (0, 0, 0);
+                A_CHANGELINKFLAGS(1);
+            }
+            TNT1 A 0 ACS_NamedExecuteAlways("DoorKicked", 0);
+            VOXE L -1 Sleepindefinite();
+    }
+}
+
+class VoxelDoorKickableFlyingFast : VOXELDOORKICKABLEFLYING {
+
+    override void tick() 
+    {
+        super.tick();
+        if(vel.x != 0 && vel.y != 0)
+        {
+            EmitDefinition('LongerSparkDefinition', chance: 0.75, numTries: 19, angle:random(-35,35), pitch:frandom(-90, 0), speed:frandom(1,4), offset:(random(-25,25),random(-25,25),random(-25,25)));
+            A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", frandom(-25,25), frandom(-25,25), frandom(0,35));
+        }
+    }    
+    states 
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                ActivationType = THINGSPEC_Default;
+                bUseSpecial = false;
+                A_SetSize(17,8);
+            }
+            VOXE L 0;
+            TNT1 A 0 {
+                A_SPAWNITEMEX("MeleeImpactLarger", -5, 0, 38);
+                A_PLAYSOUND("script/doorkick", CHAN_AUTO, attenuation:0.7);
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(1,1, 2, 8, 0, 200, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+                }
+            }
+            goto FlyForward;
+        FlyForward:
+            VOXE L 1 A_ChangeVelocity(-8, 0, 0, CVF_relative);
+            VOXE LLLLLLLLLLLLL 1 {
+                bThruPlayers = true;
+                bDecorativeActor = true;
+                bPushable = false;
+                A_SetSize(25,8);
+                A_SETPITCH(PITCH-7);
+                //A_SETANGLE(angle+2);
+                A_SETSCALE(scale.x, scale.y+0.01);
+            }
+            TNT1 A 0
+            {
+                vel = (0, 0, 0);
+                A_CHANGELINKFLAGS(1);
+            }
+            TNT1 A 0 ACS_NamedExecuteAlways("DoorKicked", 0);
+            VOXE L -1 Sleepindefinite();
+    }
+}
+
+class DOOR_KNOCKOVER : Interactable
+{
+    float pitchSpeed;
+    default
+    {
+        tag "$ACT_OBJ_DOOR";
+        SelacoActor.usetag "$ACT_OPEN";
+        +SOLID;
+        +DONTTHRUST
+        radius 25;
+        height 90;
+        friction 0.3;
+        +USESPECIAL
+        +INTERPOLATEANGLES
+        -SelacoActor.SlopeAlignment
+        activation THINGSPEC_Activate;
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+        Inactive:
+        Active:
+            TNT1 A 0
+            {
+                A_CHANGEVELOCITY(-4, 0, 0, CVF_RELATIVE);
+                wake();
+                bUseSpecial = false;
+                activationType = THINGSPEC_DEFAULT;
+                A_PLAYSOUND("DOOR/KNOCKOVER/STARTFALLING",CHAN_AUTO, 0.5);
+                A_PLAYSOUND("DOOR/KNOCKOVER/CREAKING", CHAN_5, 0.5,pitch:0.8);
+            }
+        Fallover:
+            VOXE L 1
+            {
+                pitchSpeed+=0.09;
+                pitch-=pitchSpeed;
+                if(pitch <= -90)
+                {
+                    setStateLabel("Death");
+                    if(pitch <= -70)
+                    {
+                        bThruActors = true;
+                        bNoInteraction = true;
+                    }
+                }
+            }
+            loop;
+        Death:
+            TNT1 A 0
+            {
+                A_SPAWNITEMEX("CircularSmokeSpawner", -50);
+                A_PLAYSOUND("DOOR/KNOCKOVER/COMPLETE", CHAN_5, 0.5);
+            }
+            VOXE L 1
+            {
+                pitch = -90;
+            }
+            VOXE L 1
+            {
+                pitch = -88;
+            }
+            VOXE L 1
+            {
+                pitch = -90;
+            }
+            VOXE L 1
+            {
+                pitch = -88;
+            }
+            VOXE L 1
+            {
+                pitch = -90;
+            }
+            VOXE L -1
+            {
+                sleepIndefinite();
+            }
+    }
+}
+
+class CircularSmokeSpawner : actor
+{
+    default
+    {
+        +NOINTERACTION;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                // Spawn smoke around a circle
+                for(int x=0;x<360;x+=10)
+                {
+                    if(random(0,100) <= 33)
+                    {
+                        A_SPAWNITEMEX("BulletImpactEffectMetalZpuff", 26, 0, 0, 2, angle:x);
+                    }
+                    actor smokePuff;
+                    bool suc;
+                    [suc, smokePuff] = A_SPAWNITEMEX("ScatterSmoke", 15, frandom(-10,10), 0, 0.8, 0, 0.3, angle:x);
+                    if(smokePuff)
+                    {
+                        SelacoSmoke(smokePuff).cullDistance = 1;
+                        SelacoSmoke(smokePuff).fadingSpeed = 0.05;
+                    }
+                }
+            }
+            stop;
+    }
+}

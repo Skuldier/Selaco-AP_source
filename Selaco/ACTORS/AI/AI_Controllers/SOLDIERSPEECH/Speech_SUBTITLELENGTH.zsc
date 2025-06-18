@@ -1,0 +1,706 @@
+extend class SpeechHandler
+{
+
+    // SIGHT
+    static const float SOLDIER_SIGHT_soundLength[] = {
+        2.0,
+        1.2,
+        1.2,
+        1.2,
+        2.0,
+        1.2,
+        1.0,
+        1.0,
+        1.0,
+        1.5,
+        1.0,
+        1.0,
+        1.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        3.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5
+    };
+
+    // SQUAD LOST -- 68
+    static const float SOLDIER_SQUADLOST_soundLength[] = {
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        2.0,
+        2.0,
+        3.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0
+    };
+
+    static const float SOLDIER_ARMORCUT_soundLength[] = {
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+    };
+
+    static const float SOLDIER_PUSH_soundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0
+    };
+
+    static const float SOLDIER_FLASHLIGHT_SoundLength[] = {
+        2.0,
+        3.0,
+        2.0
+    };
+
+    static const float SOLDIER_PURSUIT_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_ATTACK_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_GRENADEWARNING_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_THROWGRENADE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_TARGETHIT_SoundLength[] = {
+        2.0,
+        3.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_PAIN_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_MANDOWN_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        2.0,
+        3.0,
+        2.0,
+        4.0,
+        3.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_RELOAD_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.5
+    };
+
+    static const float SOLDIER_RETREAT_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_SEARCH_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_SEARCH_Responder_SoundLength[] = {
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_ACKNOWLEDGE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_ACKNOWLEDGE_SIMPLE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_NEGATIVE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_NEGATIVE_SIMPLE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_MANDOWN_RESPONSE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        4.0,
+        3.0,
+        2.0,
+        2.0,
+        2.5,
+        2.5,
+        2.5,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_GIVINGCOVER_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_DISTANCE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_PUSHRESPONSE_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_DEPLOYTURRET_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_DEPLOYSHIELD_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_DEPLOYShockDroid_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_SquadleaderLost_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0
+    };
+
+    static const float SOLDIER_Shielding_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float SOLDIER_KILL_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        6.0,
+        6.0
+    };
+
+    static const float SOLDIER_CALLOUTSHOTGUN_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.5
+    };
+ 
+    static const float SOLDIER_CALLOUTGRENADELAUNCHER_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0
+    };
+
+    static const float SOLDIER_CalloutTargetAmmo_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        3.0
+    };
+
+    static const float ENFORCER_SIGHT_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5
+    };
+
+    static const float ENFORCER_ATTACK_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5
+    };
+
+    static const float ENFORCER_MANDOWN_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5
+    };
+
+    static const float ENFORCER_CHASE_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const float ENFORCER_HIT_SoundLength[] = {
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.0,
+        2.5,
+        2.5
+    };
+
+    static const float SOLDIER_Smoke_SoundLength[] = {
+        1.5,
+        1.5
+    };
+
+    static const float ENFORCER_Smoke_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0
+    };
+
+    static const float ENFORCER_TARGETHIT_SoundLength[] = {
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5
+    };
+
+    static const float ENFORCER_FRAGWARNING_SoundLength[] = {
+        1.5,
+        2.5,
+        1.5,
+        4.5,
+        3.0,
+        3.0,
+        5.0
+    };
+
+    static const int ENFORCER_PUSH_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+    };
+
+    static const int SOLDIER_HEAR_SoundLength[] = {
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+    };
+
+    static const int SOLDIER_SNIPERCALLOUT_SoundLength[] = {
+        3.0,
+        3.0,
+        4.0,
+        3.0
+    };
+
+    static const int ENFORCER_RETREAT_SoundLength[] =
+    {
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+    };
+}

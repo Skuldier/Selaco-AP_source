@@ -1,0 +1,140 @@
+[DoorNormal
+   Door 0
+   0   DoorOpenNormal
+   1   DoorCloseNormal
+   2   DoorOpenBlazing
+   3   DoorCloseBlazing
+]
+
+:HatchOpen
+   door 0
+   playuntildone door/hatch/open
+end
+
+:WoodDoorOld
+   door 32
+   play door/oldwood/open
+   playrepeat door/oldwood/open
+   end
+
+:WoodDoor
+   door 0
+   play door/wood/open
+   playrepeat door/wood/loop
+   stopsound door/wood/stop
+end
+
+
+:PushWall
+   door 43
+   playrepeat mover/pushwall
+   stopsound mover/PUSHEND
+   playuntildone    mover/pushwall
+end
+
+
+:LockerDoor
+   door 0
+   playrepeat script/SQKDOOR
+   stopsound script/SQKDOOR
+   playuntildone    script/SQKDOOR
+   nostopcutoff
+end
+
+:RestRoomDoor
+   door 53
+   playuntildone door/restroomdoor
+   playrepeat plats/pt1_mid
+   stopsound mover/thindoor/close
+end
+
+:SmallElevator
+   door 0
+   play plats/pt1_strt
+   playrepeat plats/pt1_mid
+   stopsound plats/pt1_stop
+end
+
+:MetalBarDoor
+   door 0
+   play door/metal/open
+   stopsound door/metal/impact
+end
+
+
+:BigElevator
+   door 0
+   playtime  elevator/big/start 48
+   playrepeat elevator/big/loop
+   stopsound elevator/big/end
+end
+
+:RockDoor
+   door 0
+   volume 60
+   playrepeat DOOR/ROCK/LOOP
+   stopsound DOOR/ROCK/END
+end
+
+:STARLIGHTDOOR
+   door 0
+   playuntildone STARLIGHT/ENTRYDOOR
+end
+
+
+:BathroomStallOpen
+   door 0
+   playrepeat mover/stall/open
+   stopsound mover/stall/end
+end
+
+:BathroomStallClose
+   door 0
+   playrepeat mover/stall/end
+   stopsound mover/stall/end
+end
+
+:BathroomStallUp
+   door 0
+   playrepeat mover/stall/up
+   stopsound mover/stall/up
+end
+
+:BathroomStallSwitch
+   door 0
+   playrepeat mover/stall/switch
+   stopsound mover/stall/switch
+end
+
+:BathroomStallBeep
+   door 0
+   playrepeat mover/stall/beep
+   stopsound mover/stall/beep
+end
+
+:SmallOfficeSideways
+   door 0
+   playuntildone   door/small/open1
+   stopsound       door/small/close1
+end
+
+:ThinDoubleDoor
+   door 64
+   playuntildone   mover/thindoor/open
+   stopsound        mover/thindoor/close
+end
+
+:DeathSilent
+end
+
+:RJRailtravel
+    door 60
+    playrepeat STARLIGHT/CARGOSERVO
+    attenuation surround
+end
+
+:RJScanner
+    door 61
+    playrepeat AMBIENT/INDUSTRIAL4
+    attenuation surround
+end

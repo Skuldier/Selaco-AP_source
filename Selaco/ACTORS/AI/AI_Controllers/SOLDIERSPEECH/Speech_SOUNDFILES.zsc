@@ -1,0 +1,706 @@
+extend class SpeechHandler
+{
+
+     // SIGHT
+    static const string SOLDIER_SIGHT_SoundReference[] = {
+        "grunt/active1",
+        "grunt/active2",
+        "grunt/active3",
+        "grunt/active4",
+        "grunt/active5",
+        "grunt/active6",
+        "grunt/active7",
+        "grunt/active8",
+        "grunt/active9",
+        "grunt/active10",
+        "grunt/active11",
+        "grunt/active12",
+        "grunt/active13",
+        "grunt/active14",
+        "grunt/active15",
+        "grunt/active16",
+        "grunt/active17",
+        "grunt/active18",
+        "grunt/active19",
+        "grunt/active21",
+        "grunt/active22",
+        "grunt/active23",
+        "grunt/active24",
+        "grunt/active25",
+        "grunt/active26",
+        "grunt/active27",
+        "grunt/active28",
+        "grunt/active29",
+        "grunt/active30",
+        "grunt/active31",
+        "grunt/active32",
+        "grunt/active33",
+        "grunt/active34",
+        "grunt/active35",
+        "grunt/active36",
+        "grunt/active37",
+        "grunt/active38",
+        "grunt/active39",
+        "grunt/active40",
+        "grunt/active41",
+        "grunt/active42",
+        "grunt/active45",
+        "grunt/active46",
+        "grunt/active47",
+        "grunt/active48",
+        "grunt/active49",
+        "grunt/active50",
+        "grunt/active51",
+        "grunt/active52",
+        "grunt/active53",
+        "grunt/active54",
+        "grunt/active55",
+        "grunt/active56",
+        "grunt/active57",
+        "grunt/active58",
+        "grunt/active59",
+        "grunt/active60",
+        "grunt/active61",
+        "grunt/active62"
+    };
+
+    // SQUAD LOST -- 68
+    static const string SOLDIER_SQUADLOST_SoundReference[] = {
+        "grunt/alone1",
+        "grunt/alone2",
+        "grunt/alone3",
+        "grunt/alone4",
+        "grunt/alone5",
+        "grunt/alone6",
+        "grunt/alone7",
+        "grunt/alone8",
+        "grunt/alone9",
+        "grunt/alone10",
+        "grunt/alone11",
+        "grunt/alone12",
+        "grunt/alone13",
+        "grunt/alone14",
+        "grunt/alone15",
+        "grunt/alone16"
+    };
+
+    static const string SOLDIER_ARMORCUT_SoundReference[] = {
+        "grunt/armor1",
+        "grunt/armor2",
+        "grunt/armor3",
+        "grunt/armor4",
+        "grunt/armor5",
+        "grunt/armor6",
+        "grunt/armor7",
+        "grunt/armor8",
+        "grunt/armor9",
+        "grunt/armor10"
+    };
+
+    static const string SOLDIER_PUSH_SoundReference[] = {
+        "grunt/push01",
+        "grunt/push02",
+        "grunt/push03",
+        "grunt/push04",
+        "grunt/push05",
+        "grunt/push06",
+        "grunt/push07",
+        "grunt/push08",
+        "grunt/push10",
+        "grunt/push11",
+        "grunt/push13",
+        "grunt/push14"
+    };
+
+    static const string SOLDIER_FLASHLIGHT_SoundReference[] = {
+        "grunt/flash01",
+        "grunt/flash02",
+        "grunt/flash03"
+    };
+
+    static const string SOLDIER_PURSUIT_SoundReference[] = {
+        "grunt/push01",
+        "grunt/push04",
+        "grunt/push06",
+        "grunt/push08",
+        "grunt/push13",
+        "grunt/attack9",
+        "grunt/attack10",
+        "grunt/attack16",
+        "grunt/attack34",
+        "grunt/retreat12",
+        "grunt/sight24",
+        "grunt/attack22"
+    };
+
+    static const string SOLDIER_ATTACK_SoundReference[] = {
+        "grunt/attack1",
+        "grunt/attack5",
+        "grunt/attack8",
+        "grunt/attack11",
+        "grunt/attack12",
+        "grunt/attack13",
+        "grunt/attack18",
+        "grunt/attack19",
+        "grunt/attack20",
+        "grunt/attack21",
+        "grunt/attack23",
+        "grunt/attack24",
+        "grunt/attack26",
+        "grunt/attack27",
+        "grunt/attack28",
+        "grunt/attack29",
+        "grunt/attack32",
+        "grunt/attack35",
+        "grunt/attack36",
+        "grunt/attack37",
+        "grunt/attack38",
+        "grunt/attack39"
+    };
+
+    static const string SOLDIER_GRENADEWARNING_SoundReference[] = {
+        "grunt/fragwarn1",
+        "grunt/fragwarn2",
+        "grunt/fragwarn3",
+        "grunt/fragwarn4",
+        "grunt/fragwarn5",
+        "grunt/fragwarn6",
+        "grunt/fragwarn7",
+        "grunt/fragwarn8",
+        "grunt/fragwarn9"
+    };
+
+    static const string SOLDIER_THROWGRENADE_SoundReference[] = {
+        "grunt/grenade1",
+        "grunt/grenade2",
+        "grunt/grenade3",
+        "grunt/grenade4",
+        "grunt/grenade5",
+        "grunt/grenade6",
+        "grunt/grenade7",
+        "grunt/grenade8",
+        "grunt/grenade9"
+    };
+
+    static const string SOLDIER_TARGETHIT_SoundReference[] = {
+        "grunt/hittaunt1",
+        "grunt/hittaunt2",
+        "grunt/hittaunt4",
+        "grunt/hittaunt5",
+        "grunt/hittaunt6",
+        "grunt/hittaunt7",
+        "grunt/hittaunt8",
+        "grunt/hittaunt9",
+        "grunt/hittaunt10",
+        "grunt/hittaunt11",
+        "grunt/hittaunt12",
+        "grunt/hittaunt13",
+        "grunt/hittaunt14",
+        "grunt/hittaunt15",
+        "grunt/hittaunt16"
+    };
+
+
+    static const string SOLDIER_PAIN_SoundReference[] = {
+        "grunt/pain1",
+        "grunt/pain2",
+        "grunt/pain3",
+        "grunt/pain4",
+        "grunt/pain5",
+        "grunt/pain6",
+        "grunt/pain7",
+        "grunt/pain8",
+        "grunt/pain9",
+        "grunt/paintaunt10",
+        "grunt/paintaunt11",
+        "grunt/paintaunt12",
+        "grunt/paintaunt13",
+        "grunt/paintaunt14",
+        "grunt/paintaunt15",
+        "grunt/paintaunt16",
+        "grunt/paintaunt17"
+    };
+
+    static const string SOLDIER_MANDOWN_SoundReference[] = {
+        "grunt/mandown1",
+        "grunt/mandown2",
+        "grunt/mandown3",
+        "grunt/mandown4",
+        "grunt/mandown5",
+        "grunt/mandown6",
+        "grunt/mandown7",
+        "grunt/mandown8",
+        "grunt/mandown9",
+        "grunt/mandown10",
+        "grunt/mandown11",
+        "grunt/mandown12",
+        "grunt/mandown13",
+        "grunt/mandown14",
+        "grunt/mandown15",
+        "grunt/mandown16",
+        "grunt/mandown17",
+        "grunt/mandown18",
+        "grunt/mandown19",
+        "grunt/mandown20",
+        "grunt/mandown21",
+        "grunt/mandown22",
+        "grunt/mandown23",
+        "grunt/mandown24",
+        "grunt/mandown25",
+        "grunt/mandown26",
+        "grunt/mandown27",
+        "grunt/mandown28",
+        "grunt/mandown29",
+        "grunt/mandown30",
+        "grunt/mandown31",
+        "grunt/mandown32",
+        "grunt/mandown33",
+        "grunt/mandown34"
+    };
+
+    static const string SOLDIER_RELOAD_SoundReference[] = {
+        "grunt/reload1",
+        "grunt/reload2",
+        "grunt/reload3",
+        "grunt/reload4",
+        "grunt/reload5",
+        "grunt/reload6",
+        "grunt/reload7"
+    };
+
+    static const string SOLDIER_RETREAT_SoundReference[] = {
+        "grunt/retreat1",
+        "grunt/retreat2",
+        "grunt/retreat3",
+        "grunt/retreat4",
+        "grunt/retreat5",
+        "grunt/retreat6",
+        "grunt/retreat7",
+        "grunt/retreat8",
+        "grunt/retreat9",
+        "grunt/retreat10",
+        "grunt/retreat11",
+        "grunt/retreat13",
+        "grunt/retreat14",
+        "grunt/retreat15",
+        "grunt/retreat16",
+        "grunt/retreat18",
+        "grunt/retreat19"
+    };
+
+    static const string SOLDIER_SEARCH_SoundReference[] = {
+        "grunt/search1",
+        "grunt/search2",
+        "grunt/search3",
+        "grunt/search4",
+        "grunt/search5",
+        "grunt/search6",
+        "grunt/search8",
+        "grunt/search9",
+        "grunt/search10",
+        "grunt/search11",
+        "grunt/search12",
+        "grunt/search13",
+        "grunt/search14",
+        "grunt/search15"
+    };
+
+    static const string SOLDIER_SEARCH_Responder_SoundReference[] = {
+        "grunt/sight4",
+        "grunt/sight6",
+        "grunt/sight10",
+        "grunt/sight11",
+        "grunt/sight13",
+        "grunt/sight20",
+        "grunt/sight26",
+        "grunt/sight29",
+        "grunt/update1",
+        "grunt/update2",
+        "grunt/update3",
+        "grunt/update4",
+        "grunt/update5",
+        "grunt/update6",
+        "grunt/update7",
+        "grunt/update8",
+        "grunt/update9",
+        "grunt/update10",
+        "grunt/update11",
+        "grunt/update12"
+    };
+
+    static const string SOLDIER_ACKNOWLEDGE_SoundReference[] = {
+        "grunt/postive1",
+        "grunt/postive2",
+        "grunt/postive3",
+        "grunt/postive4",
+        "grunt/postive5",
+        "grunt/postive6",
+        "grunt/postive7",
+        "grunt/postive8",
+        "grunt/postive9",
+        "grunt/postive10",
+        "grunt/postive11",
+        "grunt/postive12",
+        "grunt/postive13",
+        "grunt/postive14"
+    };
+
+    static const string SOLDIER_ACKNOWLEDGE_SIMPLE_SoundReference[] = {
+        "grunt/postive1",
+        "grunt/postive2",
+        "grunt/postive3",
+        "grunt/postive4",
+        "grunt/postive7",
+        "grunt/postive8",
+        "grunt/postive9",
+        "grunt/postive10",
+        "grunt/postive11",
+        "grunt/postive12",
+        "grunt/postive13",
+        "grunt/postive14"
+    };
+
+    static const string SOLDIER_NEGATIVE_SoundReference[] = {
+        "grunt/negative1",
+        "grunt/negative2",
+        "grunt/negative3",
+        "grunt/negative4",
+        "grunt/negative5",
+        "grunt/negative6",
+        "grunt/negative7",
+        "grunt/negative8",
+        "grunt/negative9",
+        "grunt/negative10"
+    };
+
+    static const string SOLDIER_NEGATIVE_SIMPLE_SoundReference[] = {
+        "grunt/negative1",
+        "grunt/negative2",
+        "grunt/negative7",
+        "grunt/negative8"
+    };
+
+    static const string SOLDIER_MANDOWN_RESPONSE_SoundReference[] = {
+        "grunt/deadreponse1",
+        "grunt/deadreponse2",
+        "grunt/deadreponse3",
+        "grunt/deadreponse4",
+        "grunt/deadreponse5",
+        "grunt/deadreponse6",
+        "grunt/deadreponse7",
+        "grunt/deadreponse8",
+        "grunt/deadreponse9",
+        "grunt/deadreponse10",
+        "grunt/deadreponse11",
+        "grunt/deadreponse12",
+        "grunt/deadreponse13",
+        "grunt/deadreponse14",
+        "grunt/deadreponse15",
+        "grunt/deadreponse16",
+        "grunt/deadreponse17",
+        "grunt/deadreponse18",
+        "grunt/deadreponse19",
+        "grunt/deadreponse20",
+        "grunt/deadreponse21",
+        "grunt/deadreponse22",
+        "grunt/deadreponse23",
+        "grunt/deadreponse24",
+        "grunt/deadreponse25",
+        "grunt/deadreponse26",
+        "grunt/deadreponse27",
+        "grunt/deadreponse28",
+        "grunt/deadreponse29",
+        "grunt/deadreponse30",
+        "grunt/deadreponse31"
+    };
+
+    static const string SOLDIER_GIVINGCOVER_SoundReference[] = {
+        "grunt/cover1",
+        "grunt/cover2",
+        "grunt/cover3",
+        "grunt/cover4",
+        "grunt/cover5",
+        "grunt/cover6",
+        "grunt/cover7",
+        "grunt/cover8",
+        "grunt/cover9",
+        "grunt/cover10",
+        "grunt/cover11",
+        "grunt/cover12",
+        "grunt/cover1",
+        "grunt/cover2",
+        "grunt/cover3",
+        "grunt/cover4",
+        "grunt/cover5",
+        "grunt/cover6",
+        "grunt/cover7",
+        "grunt/cover8",
+        "grunt/cover9",
+        "grunt/cover10",
+        "grunt/cover11",
+        "grunt/cover12",
+        "grunt/cover13",
+        "grunt/cover14"
+    };
+
+    static const string SOLDIER_DISTANCE_SoundReference[] = {
+        "grunt/distance1",
+        "grunt/distance2",
+        "grunt/distance3",
+        "grunt/distance4",
+        "grunt/distance5",
+        "grunt/distance6",
+        "grunt/distance7",
+        "grunt/distance8",
+        "grunt/distance9",
+        "grunt/distance10"
+    };    
+
+    static const string SOLDIER_PUSHRESPONSE_SoundReference[] = {
+        "grunt/pushresponse1",
+        "grunt/pushresponse2",
+        "grunt/pushresponse3",
+        "grunt/pushresponse4",
+        "grunt/pushresponse5",
+        "grunt/pushresponse6",
+        "grunt/pushresponse7",
+        "grunt/pushresponse8",
+        "grunt/pushresponse9",
+        "grunt/pushresponse10"
+    };
+
+    static const string SOLDIER_DEPLOYTURRET_SoundReference[] = {
+        "grunt/gadtur1",
+        "grunt/gadtur2",
+        "grunt/gadtur3"
+    };
+
+    static const string SOLDIER_DEPLOYSHIELD_SoundReference[] = {
+        "GRUNT/SHIELD1",
+        "GRUNT/SHIELD2",
+        "GRUNT/SHIELD3"
+    };
+
+    static const string SOLDIER_DEPLOYShockDroid_SoundReference[] = {
+        "GRUNT/ShockDroid1",
+        "GRUNT/ShockDroid2",
+        "GRUNT/ShockDroid3",
+        "GRUNT/ShockDroid4"
+    };
+
+    static const string SOLDIER_SquadLeaderLost_SoundReference[] = {
+        "GRUNT/squadleaderLost1",
+        "GRUNT/squadleaderLost2",
+        "GRUNT/squadleaderLost3",
+        "GRUNT/squadleaderLost4",
+        "GRUNT/squadleaderLost5",
+        "GRUNT/squadleaderLost6",
+        "GRUNT/squadleaderLost7",
+        "GRUNT/squadleaderLost8",
+        "GRUNT/squadleaderLost9"
+    };
+
+    static const string SOLDIER_shielding_SoundReference[] = {
+        "GRUNT/shielding1",
+        "GRUNT/shielding2",
+        "GRUNT/shielding3",
+        "GRUNT/shielding4",
+        "GRUNT/shielding5",
+        "GRUNT/shielding6",
+        "GRUNT/shielding7"
+    };
+
+    static const string SOLDIER_kill_SoundReference[] = {
+        "GRUNT/kill1",
+        "GRUNT/kill2",
+        "GRUNT/kill3",
+        "GRUNT/kill4",
+        "GRUNT/kill5",
+        "GRUNT/kill6",
+        "GRUNT/kill7",
+        "GRUNT/kill8",
+        "GRUNT/kill9",
+        "GRUNT/kill10"
+    };
+
+    static const string SOLDIER_CalloutShotgun_SoundReference[] = {
+        "GRUNT/CALLOUT/SHOTGUN1",
+        "GRUNT/CALLOUT/SHOTGUN2",
+        "GRUNT/CALLOUT/SHOTGUN3",
+        "GRUNT/CALLOUT/SHOTGUN4",
+        "GRUNT/CALLOUT/SHOTGUN5",
+        "GRUNT/CALLOUT/SHOTGUN6"
+    };
+
+    static const string SOLDIER_CalloutGrenadelauncher_SoundReference[] = {
+        "GRUNT/CALLOUT/GRENADELAUNCHER1",
+        "GRUNT/CALLOUT/GRENADELAUNCHER2",
+        "GRUNT/CALLOUT/GRENADELAUNCHER3",
+        "GRUNT/CALLOUT/GRENADELAUNCHER4",
+        "GRUNT/CALLOUT/GRENADELAUNCHER5",
+        "GRUNT/CALLOUT/GRENADELAUNCHER6"
+    };
+
+    static const string SOLDIER_CalloutTargetAmmo_SoundReference[] = {
+        "GRUNT/CALLOUT/TARGETAMMO1",
+        "GRUNT/CALLOUT/TARGETAMMO2",
+        "GRUNT/CALLOUT/TARGETAMMO3",
+        "GRUNT/CALLOUT/TARGETAMMO4",
+        "GRUNT/CALLOUT/TARGETAMMO5",
+        "GRUNT/CALLOUT/TARGETAMMO6",
+        "GRUNT/CALLOUT/TARGETAMMO7"
+    };
+
+    static const string ENFORCER_SIGHT_SoundReference[] = {
+        "Enforcer/sight1",
+        "Enforcer/sight2",
+        "Enforcer/sight3",
+        "Enforcer/sight4",
+        "Enforcer/sight5",
+        "Enforcer/sight6",
+        "Enforcer/sight7",
+        "Enforcer/sight8",
+        "Enforcer/sight9",
+        "Enforcer/sight10",
+        "Enforcer/sight11",
+        "Enforcer/sight12",
+        "Enforcer/sight13"
+    };
+
+    static const string ENFORCER_ATTACK_SoundReference[] = {
+        "Enforcer/attack1",
+        "Enforcer/attack2",
+        "Enforcer/attack3",
+        "Enforcer/attack4",
+        "Enforcer/attack5",
+        "Enforcer/attack6",
+        "Enforcer/attack7",
+        "Enforcer/attack8",
+        "Enforcer/attack9",
+        "Enforcer/attack10",
+        "Enforcer/attack11",
+        "Enforcer/attack12",
+        "Enforcer/attack13",
+        "Enforcer/attack14"
+    };
+
+    static const string ENFORCER_MANDOWN_SoundReference[] = {
+        "ENFORCER/MANDOWN1",
+        "ENFORCER/MANDOWN2",
+        "ENFORCER/MANDOWN3",
+        "ENFORCER/MANDOWN4",
+        "ENFORCER/MANDOWN5",
+        "ENFORCER/MANDOWN6",
+        "ENFORCER/MANDOWN7",
+        "ENFORCER/MANDOWN8",
+        "ENFORCER/MANDOWN9"
+    };
+
+    static const string ENFORCER_CHASE_SoundReference[] = {
+        "Enforcer/chase1",
+        "Enforcer/chase2",
+        "Enforcer/chase3",
+        "Enforcer/chase4",
+        "Enforcer/chase5",
+        "Enforcer/chase6",
+        "Enforcer/chase7",
+        "Enforcer/chase8",
+        "Enforcer/chase9",
+        "Enforcer/chase10",
+        "Enforcer/chase11",
+        "Enforcer/chase12",
+        "Enforcer/chase13",
+        "Enforcer/chase14",
+        "Enforcer/chase15",
+        "Enforcer/chase16",
+        "Enforcer/chase17",
+        "Enforcer/chase18"
+    };
+
+    static const string ENFORCER_HIT_SoundReference[] = {
+        "ENFORCER/HIT1",
+        "ENFORCER/HIT2",
+        "ENFORCER/HIT3",
+        "ENFORCER/HIT4",
+        "ENFORCER/HIT5",
+        "ENFORCER/HIT6",
+        "ENFORCER/HIT7"
+    };
+
+    static const string SOLDIER_SMOKE_SoundReference[] = {
+        "grunt/smoke1",
+        "grunt/smoke2"
+    };
+
+    static const string ENFORCER_SMOKE_SoundReference[] = {
+        "ENFORCER/SMOKE1",
+        "ENFORCER/SMOKE2",
+        "ENFORCER/SMOKE3",
+        "ENFORCER/SMOKE4",
+        "ENFORCER/SMOKE5"
+    };
+
+    static const string ENFORCER_TARGETHIT_SoundReference[] = {
+        "ENFORCER/TARGETHIT1",
+        "ENFORCER/TARGETHIT2",
+        "ENFORCER/TARGETHIT3",
+        "ENFORCER/TARGETHIT4",
+        "ENFORCER/TARGETHIT5",
+        "ENFORCER/TARGETHIT6",
+        "ENFORCER/TARGETHIT7",
+        "ENFORCER/TARGETHIT8",
+        "ENFORCER/TARGETHIT9"
+    };
+
+    static const string ENFORCER_FRAGWARNING_SoundReference[] = {
+        "ENFORCER/FRAGWARNING1",
+        "ENFORCER/FRAGWARNING2",
+        "ENFORCER/FRAGWARNING3",
+        "ENFORCER/FRAGWARNING4",
+        "ENFORCER/FRAGWARNING5",
+        "ENFORCER/FRAGWARNING6",
+        "ENFORCER/FRAGWARNING7"
+    };
+
+    static const string ENFORCER_PUSH_SoundReference[] = {
+        "ENFORCER/PUSH1",
+        "ENFORCER/PUSH2",
+        "ENFORCER/PUSH3",
+        "ENFORCER/PUSH4",
+        "ENFORCER/PUSH5",
+        "ENFORCER/PUSH6",
+        "ENFORCER/PUSH7",
+        "ENFORCER/PUSH8",
+        "ENFORCER/PUSH9"
+    };
+
+    static const string SOLDIER_HEAR_SoundReference[] = {
+        "GRUNT/HEAR1",
+        "GRUNT/HEAR2",
+        "GRUNT/HEAR3",
+        "GRUNT/HEAR4",
+        "GRUNT/HEAR5",
+        "GRUNT/HEAR6",
+        "GRUNT/HEAR7",
+        "GRUNT/HEAR8"
+    };
+
+    static const string SOLDIER_SNIPERCALLOUT_SoundReference[] = {
+        "GRUNT/CALLOUT/SNIPER1",
+        "GRUNT/CALLOUT/SNIPER2",
+        "GRUNT/CALLOUT/SNIPER3",
+        "GRUNT/CALLOUT/SNIPER4"
+    };
+
+    static const string ENFORCER_RETREAT_SoundReference[] =
+    {
+        "ENFORCER/RETREAT1",
+        "ENFORCER/RETREAT2",
+        "ENFORCER/RETREAT3",
+        "ENFORCER/RETREAT4",
+        "ENFORCER/RETREAT5",
+        "ENFORCER/RETREAT6",
+        "ENFORCER/RETREAT7",
+        "ENFORCER/RETREAT8"
+    };
+}

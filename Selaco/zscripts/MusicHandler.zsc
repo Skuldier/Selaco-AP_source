@@ -1,0 +1,220 @@
+class MusicHandler : EventHandler
+{
+    string previousTrack;
+    float musicVolume;
+    bool completedTrackFade;
+    bool fadeEngaged;
+    bool fadeToWorkshop;
+    bool fadeOutComplete;
+
+    string originalTargetTrack; // Used to detect is a sudden change in the track occurs. Like a player triggering fadeToNewTrack multiple times.
+
+    const FADE_OUT_SPEED = 0.05;
+    const FADE_IN_SPEED = 0.05;
+    
+    override void onRegister()
+    {
+        musicVolume = 1.0;
+        fadingTarget = -1;
+    }
+
+    string newTrack;
+    bool rememberTrack;
+
+    float fadingTarget;
+    float fadeOverride;
+    
+    override void WorldTick()
+    {
+        if(newTrack)
+        {
+            fadeToNewTrack(newTrack, "", rememberTrack);
+        }
+
+        if(fadingTarget > -1)
+        {
+            if (fadingTarget - musicVolume >= 0.05) {
+                fadeInToVolume(fadingTarget);
+            }
+            if(fadingTarget - musicVolume <= 0.05)
+            {
+                fadeOutToVolume(fadingTarget);
+            }
+        }
+    }
+
+    // Fades music out before turning into the Safe Room theme. The current track is then stored so it can be recalled.
+    void fadeToNewTrack(string trackToFadeInto, string inventoryToClear, bool rememberLastTrack)
+    {
+        // Store the current volume to restore it later
+        if(!fadeEngaged)
+        {
+            originalTargetTrack = trackToFadeInto;
+            newTrack = trackToFadeInto;
+            // If the track is the same, do nothing.
+            if(musplaying.name == trackToFadeInto)
+            {
+                return;
+            }
+
+            if(rememberLastTrack)
+            {
+                storeCurrentTrack(); // Before we switch, remember the current track.
+            }
+            musicVolume = 1.0;
+            fadeEngaged = true;
+        }
+
+        // Fade music to 0
+        if (!fadeOutComplete && musicVolume >= 0)
+        {
+            if(fadeOverride == 0)
+            {
+                musicVolume -= FADE_OUT_SPEED; // Adjust the volume gradually
+            } 
+            else
+            {
+                musicVolume -= fadeOverride; // Adjust the volume gradually
+            }
+        }
+
+        // Change the music
+        if(musicVolume <= 0)
+        {
+            fadeOutComplete = true;
+            S_ChangeMusic(trackToFadeInto);  
+        }
+
+        // Now that we finished fading out, fade back in
+        if (fadeOutComplete && musicVolume < 1.0)
+        {
+            if(originalTargetTrack != trackToFadeInto)
+            {
+                S_ChangeMusic(trackToFadeInto);
+            }
+            if(fadeOverride == 0)
+            {
+                musicVolume += FADE_IN_SPEED; // Adjust the volume gradually
+            } 
+            else
+            {
+                musicVolume += fadeOverride; // Adjust the volume gradually
+            }
+        }
+        
+        // Done, reset everything.
+        if(fadeOutComplete && musicVolume >= 1.0)
+        {
+            console.printf("Done!");
+            fadeOverride = 0;
+            newTrack = "";
+            rememberLastTrack = false;
+            musicVolume = 1.0;
+            originalTargetTrack = "";
+			PlayerPawn pawn=players[consolePlayer].mo;
+			let d = Dawn(pawn);
+            d.A_TakeInventory(inventoryToClear, 100);
+            fadeOutComplete = false;
+            fadeEngaged = false;
+        }
+
+        setMusicVolume(musicVolume);
+    }
+
+    static void fadeToNewTrackACS (string newTrackArg, bool rememberLastTrack, float fadeSpeed)
+    {
+        MusicHandler handler = MusicHandler.instance();
+        handler.newTrack = newTrackArg;
+        handler.rememberTrack = rememberLastTrack;
+        handler.fadeOverride = fadeSpeed;
+    }
+
+    static void FadeACS (float volumeTarget, float fadeSpeed)
+    {
+        MusicHandler handler = MusicHandler.instance();
+        handler.fadingTarget = volumeTarget;    
+        handler.fadeOverride = fadeSpeed;
+    }
+
+    // Similar to ACS its ``SetMusic`` function, but here it just stops and doesn't loop.
+    static void SetMusicNoLooping(string trackTitle, float volume)
+    {
+        MusicHandler handler = MusicHandler.instance();
+        handler.fadingTarget = volume;
+        handler.musicvolume = volume;
+        S_ChangeMusic(trackTitle, order: 1, looping:0, force:0); // The non-looping track
+        setMusicVolume(volume);
+    }
+
+    void fadeOutToVolume(float volumeTarget)
+    {
+        if(musicVolume >= volumeTarget)
+        {
+            if(fadeOverride == -1)
+            {
+                musicVolume -= FADE_OUT_SPEED; // Adjust the volume gradually
+            } 
+            else
+            {
+                musicVolume -= fadeOverride; // Adjust the volume gradually
+            }
+        }
+        setMusicVolume(musicVolume);
+        if(musicVolume <= fadingTarget)
+        {
+            musicVolume = fadingtarget;
+            fadingtarget = -1;
+            fadeOverride = 0;
+        }
+    }
+
+    void fadeInToVolume(float volumeTarget)
+    {
+        if(musicVolume <= volumeTarget)
+        {
+            if(!fadeOverride == -1)
+            {
+                musicVolume += FADE_IN_SPEED; // Adjust the volume gradually
+            } 
+            else
+            {
+                musicVolume += fadeOverride; // Adjust the volume gradually
+            }
+        }
+        setMusicVolume(musicVolume);
+        if(musicVolume >= fadingTarget)
+        {
+            musicVolume = fadingtarget;
+            fadingtarget = -1;
+            fadeOverride = 0;
+        }
+    }   
+
+    int getMusicVolume()
+    {
+        return musicVolume;
+    }
+
+    // Remember the current track so we can use it later. Useful for workshops
+    void storeCurrentTrack()
+    {
+        previousTrack = musplaying.name;
+
+    }
+
+    string getPreviousTrack()
+    {
+        return previousTrack;
+    }
+
+    void forgetPreviousTrack()
+    {
+        previousTrack = "";
+    }
+
+    static MusicHandler Instance() {
+        return MusicHandler(EventHandler.Find('MusicHandler'));
+    }
+
+
+}

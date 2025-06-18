@@ -1,0 +1,463 @@
+extend class SpeechHandler
+{
+    // Putting this in a seperate file because it just hurts to look at.
+    // It's sure is a mouth full and there has to be a better way for this, right?
+    // But for now we let our big friend 'Fuckface' automate this block. Have fun!
+    void initSpeech()
+    {
+        sType = SOLDIER_SIGHT;
+        for(int x=0;x<SOLDIER_SIGHT_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_SIGHT_SoundReference[x]);
+            localizationArray.push(SOLDIER_SIGHT_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_SIGHT_soundLength[x]);
+            responseArray.push(SOLDIER_SIGHT_ResponseOptions[x]);
+        }
+        createSpeechContainer();   
+
+        sType = SOLDIER_SQUADLOST;
+        for(int x=0;x<SOLDIER_SQUADLOST_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_SQUADLOST_SoundReference[x]);
+            localizationArray.push(SOLDIER_SQUADLOST_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_SQUADLOST_soundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_ARMORCUT;
+        for(int x=0;x<SOLDIER_ARMORCUT_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_ARMORCUT_SoundReference[x]);
+            localizationArray.push(SOLDIER_ARMORCUT_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_ARMORCUT_soundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_PUSH;
+        for(int x=0;x<SOLDIER_PUSH_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_PUSH_SoundReference[x]);
+            localizationArray.push(SOLDIER_PUSH_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_PUSH_soundLength[x]);
+            responseArray.push(SOLDIER_PUSH_Response[x]);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_PURSUIT;
+        for(int x=0;x<SOLDIER_PURSUIT_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_PURSUIT_SoundReference[x]);
+            localizationArray.push(SOLDIER_PURSUIT_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_PURSUIT_soundLength[x]);
+            responseArray.push(SOLDIER_PURSUIT_Response[x]);
+
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_ATTACK;
+        for(int x=0;x<SOLDIER_PURSUIT_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_ATTACK_SoundReference[x]);
+            localizationArray.push(SOLDIER_ATTACK_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_ATTACK_soundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_GRENADEWARNING;
+        for(int x=0;x<SOLDIER_GRENADEWARNING_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_GRENADEWARNING_SoundReference[x]);
+            localizationArray.push(SOLDIER_GRENADEWARNING_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_GRENADEWARNING_soundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_THROWGRENADE;
+        for(int x=0;x<SOLDIER_THROWGRENADE_SoundReference.size();x++)
+        {
+            soundArray.push(SOLDIER_THROWGRENADE_SoundReference[x]);
+            localizationArray.push(SOLDIER_THROWGRENADE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_THROWGRENADE_soundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_TARGETHIT;
+        for (int x = 0; x < SOLDIER_TARGETHIT_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_TARGETHIT_SoundReference[x]);
+            localizationArray.push(SOLDIER_TARGETHIT_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_TARGETHIT_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_PAIN;
+        for (int x = 0; x < SOLDIER_PAIN_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_PAIN_SoundReference[x]);
+            localizationArray.push(SOLDIER_PAIN_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_PAIN_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_MANDOWN;
+        for (int x = 0; x < SOLDIER_MANDOWN_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_MANDOWN_SoundReference[x]);
+            localizationArray.push(SOLDIER_MANDOWN_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_MANDOWN_SoundLength[x]);
+            responseArray.push(SOLDIER_MANDOWN_Acknowledge[x]);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_RELOAD;
+        for (int x = 0; x < SOLDIER_RELOAD_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_RELOAD_SoundReference[x]);
+            localizationArray.push(SOLDIER_RELOAD_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_RELOAD_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_RETREAT;
+        for (int x = 0; x < SOLDIER_RETREAT_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_RETREAT_SoundReference[x]);
+            localizationArray.push(SOLDIER_RETREAT_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_RETREAT_SoundLength[x]);
+            responseArray.push(SOLDIER_RETREAT_Response[x]);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_SEARCH;
+        for (int x = 0; x < SOLDIER_SEARCH_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_SEARCH_SoundReference[x]);
+            localizationArray.push(SOLDIER_SEARCH_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_SEARCH_SoundLength[x]);
+            responseArray.push(SOLDIER_SEARCH_Responder[x]);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_SEARCH_RESPONSE;
+        for (int x = 0; x < SOLDIER_SEARCH_Responder_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_SEARCH_Responder_SoundReference[x]);
+            localizationArray.push(SOLDIER_SEARCH_Responder_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_SEARCH_Responder_SoundLength[x]);
+            responseArray.push(SOLDIER_SEARCH_Responder_Simple[x]);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_ACKNOWLEDGE;
+        for (int x = 0; x < SOLDIER_ACKNOWLEDGE_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_ACKNOWLEDGE_SoundReference[x]);
+            localizationArray.push(SOLDIER_ACKNOWLEDGE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_ACKNOWLEDGE_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_ACKNOWLEDGE_SIMPLE;
+        for (int x = 0; x < SOLDIER_ACKNOWLEDGE_SIMPLE_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_ACKNOWLEDGE_SIMPLE_SoundReference[x]);
+            localizationArray.push(SOLDIER_ACKNOWLEDGE_SIMPLE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_ACKNOWLEDGE_SIMPLE_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_NEGATIVE;
+        for (int x = 0; x < SOLDIER_NEGATIVE_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_NEGATIVE_SoundReference[x]);
+            localizationArray.push(SOLDIER_NEGATIVE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_NEGATIVE_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_NEGATIVE_SIMPLE;
+        for (int x = 0; x < SOLDIER_NEGATIVE_SIMPLE_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_NEGATIVE_SIMPLE_SoundReference[x]);
+            localizationArray.push(SOLDIER_NEGATIVE_SIMPLE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_NEGATIVE_SIMPLE_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_MANDOWN_RESPONSE;
+        for (int x = 0; x < SOLDIER_MANDOWN_RESPONSE_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_MANDOWN_RESPONSE_SoundReference[x]);
+            localizationArray.push(SOLDIER_MANDOWN_RESPONSE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_MANDOWN_RESPONSE_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_GIVINGCOVER;
+        for (int x = 0; x < SOLDIER_GIVINGCOVER_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_GIVINGCOVER_SoundReference[x]);
+            localizationArray.push(SOLDIER_GIVINGCOVER_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_GIVINGCOVER_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_DISTANCE;
+        for (int x = 0; x < SOLDIER_DISTANCE_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_DISTANCE_SoundReference[x]);
+            localizationArray.push(SOLDIER_DISTANCE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_DISTANCE_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_PUSHRESPONSE;
+        for (int x = 0; x < SOLDIER_PUSHRESPONSE_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_PUSHRESPONSE_SoundReference[x]);
+            localizationArray.push(SOLDIER_PUSHRESPONSE_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_PUSHRESPONSE_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_DEPLOYTURRET;
+        for (int x = 0; x < SOLDIER_DEPLOYTURRET_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_DEPLOYTURRET_SoundReference[x]);
+            localizationArray.push(SOLDIER_DEPLOYTURRET_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_DEPLOYTURRET_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_DEPLOYSHIELD;
+        for (int x = 0; x < SOLDIER_DEPLOYSHIELD_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_DEPLOYSHIELD_SoundReference[x]);
+            localizationArray.push(SOLDIER_DEPLOYSHIELD_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_DEPLOYSHIELD_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+        sType = SOLDIER_DEPLOYShockDroid;
+        for (int x = 0; x < SOLDIER_DEPLOYShockDroid_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_DEPLOYShockDroid_SoundReference[x]);
+            localizationArray.push(SOLDIER_DEPLOYShockDroid_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_DEPLOYShockDroid_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+        sType = SOLDIER_SQUADLEADERDOWN;
+        for (int x = 0; x < SOLDIER_SQUADLEADERLOST_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_SQUADLEADERLOST_SoundReference[x]);
+            localizationArray.push(SOLDIER_SQUADLEADERLOST_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_SQUADLEADERLOST_SoundLength[x]);
+            responseArray.push(SOLDIER_SquadleaderLost_ResponseLines[x]);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_SHIELDING;
+        for (int x = 0; x < SOLDIER_SHIELDING_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_SHIELDING_SoundReference[x]);
+            localizationArray.push(SOLDIER_SHIELDING_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_SHIELDING_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_KILL;
+        for (int x = 0; x < SOLDIER_KILL_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_KILL_SoundReference[x]);
+            localizationArray.push(SOLDIER_KILL_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_KILL_SoundLength[x]);
+            responseArray.push(SOLDIER_SEARCH_Responder_Simple[x]);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_CALLOUTSHOTGUN;
+        for (int x = 0; x < SOLDIER_CALLOUTSHOTGUN_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_CALLOUTSHOTGUN_SoundReference[x]);
+            localizationArray.push(SOLDIER_CALLOUTSHOTGUN_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_CALLOUTSHOTGUN_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_CALLOUTGRENADELAUNCHER;
+        for (int x = 0; x < SOLDIER_CALLOUTGRENADELAUNCHER_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_CALLOUTGRENADELAUNCHER_SoundReference[x]);
+            localizationArray.push(SOLDIER_CALLOUTGRENADELAUNCHER_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_CALLOUTGRENADELAUNCHER_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = SOLDIER_CALLOUTSNIPER;
+        for (int x = 0; x < SOLDIER_SNIPERCALLOUT_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_SNIPERCALLOUT_SoundReference[x]);
+            localizationArray.push(SOLDIER_SNIPERCALLOUT_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_SNIPERCALLOUT_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+
+        sType = SOLDIER_CALLOUTTARGETAMMO;
+        for (int x = 0; x < SOLDIER_CalloutTargetAmmo_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_CalloutTargetAmmo_SoundReference[x]);
+            localizationArray.push(SOLDIER_CalloutTargetAmmo_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_CalloutTargetAmmo_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = ENFORCER_SIGHT;
+        for (int x = 0; x < ENFORCER_SIGHT_SoundReference.size(); x++)
+        {
+            soundArray.push(ENFORCER_SIGHT_SoundReference[x]);
+            localizationArray.push(ENFORCER_SIGHT_LocalizationReference[x]);
+            lengthArray.push(ENFORCER_SIGHT_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = ENFORCER_RETREAT;
+        for (int x = 0; x < ENFORCER_RETREAT_SoundReference.size(); x++)
+        {
+            soundArray.push(ENFORCER_RETREAT_SoundReference[x]);
+            localizationArray.push(ENFORCER_RETREAT_LocalizationReference[x]);
+            lengthArray.push(ENFORCER_RETREAT_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+        
+        sType = ENFORCER_GRENADEWARNING;
+        for (int x = 0; x < ENFORCER_FRAGWARNING_SoundReference.size(); x++)
+        {
+            soundArray.push(ENFORCER_FRAGWARNING_SoundReference[x]);
+            localizationArray.push(ENFORCER_FRAGWARNING_LocalizationReference[x]);
+            lengthArray.push(ENFORCER_FRAGWARNING_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+        sType = ENFORCER_ATTACK;
+        for (int x = 0; x < ENFORCER_ATTACK_SoundReference.size(); x++)
+        {
+            soundArray.push(ENFORCER_ATTACK_SoundReference[x]);
+            localizationArray.push(ENFORCER_ATTACK_LocalizationReference[x]);
+            lengthArray.push(ENFORCER_ATTACK_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = ENFORCER_MANDOWN;
+        for (int x = 0; x < ENFORCER_MANDOWN_SoundReference.size(); x++)
+        {
+            soundArray.push(ENFORCER_MANDOWN_SoundReference[x]);
+            localizationArray.push(ENFORCER_MANDOWN_LocalizationReference[x]);
+            lengthArray.push(ENFORCER_MANDOWN_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+        sType = ENFORCER_PAIN;
+        for (int x = 0; x < ENFORCER_HIT_SoundReference.size();  x++)
+        {
+            soundArray.push(ENFORCER_HIT_SoundReference[x]);
+            localizationArray.push(ENFORCER_HIT_LocalizationReference[x]);
+            lengthArray.push(ENFORCER_HIT_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+
+        sType = SOLDIER_HEAR;
+        for (int x = 0; x < SOLDIER_HEAR_SoundLength.size(); x++)
+        {
+            soundArray.push(SOLDIER_HEAR_SoundReference[x]);
+            localizationArray.push(SOLDIER_HEAR_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_HEAR_SoundLength[x]);
+            responseArray.push(SOLDIER_HEAR_Response[x]);
+        }
+        createSpeechContainer();
+
+        /*sType = SOLDIER_CALLOUTGRENADELAUNCHER;
+        for (int x = 0; x < SOLDIER_CALLOUTGRENADELAUNCHER_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_CALLOUTGRENADELAUNCHER_SoundReference[x]);
+            localizationArray.push(SOLDIER_CALLOUTGRENADELAUNCHER_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_CALLOUTGRENADELAUNCHER_SoundLength[x]);
+            responseArray.push(SOLDIER_SEARCH_Responder_Simple[x]);
+        }
+        createSpeechContainer();*/
+
+        sType = SOLDIER_FLASHLIGHT;
+        for (int x = 0; x < SOLDIER_FLASHLIGHT_SoundReference.size(); x++)
+        {
+            soundArray.push(SOLDIER_FLASHLIGHT_SoundReference[x]);
+            localizationArray.push(SOLDIER_FLASHLIGHT_LocalizationReference[x]);
+            lengthArray.push(SOLDIER_FLASHLIGHT_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+
+
+        sType = ENFORCER_TARGETHIT;
+        for (int x = 0; x < ENFORCER_Targethit_SoundReference.size(); x++)
+        {
+            soundArray.push(ENFORCER_Targethit_SoundReference[x]);
+            localizationArray.push(ENFORCER_Targethit_LocalizationReference[x]);
+            lengthArray.push(ENFORCER_Targethit_SoundLength[x]);
+            responseArray.push(-1);
+        }
+        createSpeechContainer();
+        console.printf("Total sound files added: %d", totalSounds);
+    }
+
+    void createSpeechContainer()
+    {
+        for(int x=0; x<soundArray.size();x++)
+        {
+            //console.printf("\c[Yellow]Selaco Speech: \c-added %s", soundArray[x]);
+            totalSounds++;
+        }
+
+        speechLists[sType] = SpeechContainer.Create(
+                                        'SpeechContainer',
+                                        soundArray, 
+                                        localizationArray, 
+                                        lengthArray, 
+                                        responseArray
+                                    );        
+
+        soundArray.clear();
+        localizationArray.clear();
+        lengthArray.clear();
+        responseArray.clear();
+    }
+
+}

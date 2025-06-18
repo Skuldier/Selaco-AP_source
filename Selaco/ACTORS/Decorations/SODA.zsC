@@ -1,0 +1,21 @@
+Class Soda : Actor {
+	Default {
+		Radius 24;
+		Height 89;
+		
+		
+		+SOLID
+		+INVULNERABLE
+		+NODAMAGE
+		+SHOOTABLE
+		+NOTAUTOAIMED
+		+NEVERTARGET
+		+DONTTHRUST
+	}
+
+	States {
+		Spawn:
+			PLAY A -1;
+			Stop;
+	}
+}

@@ -1,0 +1,2201 @@
+brightmap sprite GLA1A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1A0.dds"
+}
+brightmap sprite GLA1B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1B0.dds"
+}
+brightmap sprite GLA1C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1C0.dds"
+}
+brightmap sprite GLA1D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1D0.dds"
+}
+brightmap sprite GLA1E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1E0.dds"
+}
+brightmap sprite GLA1F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1F0.dds"
+}
+brightmap sprite GLA1G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1G0.dds"
+}
+brightmap sprite GLA1H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1H0.dds"
+}
+brightmap sprite GLA1I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1I0.dds"
+}
+brightmap sprite GLA1J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1J0.dds"
+}
+brightmap sprite GLA1K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1K0.dds"
+}
+brightmap sprite GLA1L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1L0.dds"
+}
+brightmap sprite GLA1M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1M0.dds"
+}
+brightmap sprite GLA1N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1N0.dds"
+}
+brightmap sprite GLA1O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1O0.dds"
+}
+brightmap sprite GLA1P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1P0.dds"
+}
+brightmap sprite GLA1Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1Q0.dds"
+}
+brightmap sprite GLA1R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1R0.dds"
+}
+brightmap sprite GLA1S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1S0.dds"
+}
+brightmap sprite GLA1T0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1T0.dds"
+}
+brightmap sprite GLA1U0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1U0.dds"
+}
+brightmap sprite GLA1V0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1V0.dds"
+}
+brightmap sprite GLA1W0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1W0.dds"
+}
+brightmap sprite GLA1X0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1X0.dds"
+}
+brightmap sprite GLA1Y0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1Y0.dds"
+}
+brightmap sprite GLA1Z0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA1Z0.dds"
+}
+brightmap sprite GLA2A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2A0.dds"
+}
+brightmap sprite GLA2B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2B0.dds"
+}
+brightmap sprite GLA2C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2C0.dds"
+}
+brightmap sprite GLA2D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2D0.dds"
+}
+brightmap sprite GLA2E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2E0.dds"
+}
+brightmap sprite GLA2F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2F0.dds"
+}
+brightmap sprite GLA2G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2G0.dds"
+}
+brightmap sprite GLA2H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2H0.dds"
+}
+brightmap sprite GLA2I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2I0.dds"
+}
+brightmap sprite GLA2J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2J0.dds"
+}
+brightmap sprite GLA2K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA2K0.dds"
+}
+brightmap sprite GLA3A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3A0.dds"
+}
+brightmap sprite GLA3B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3B0.dds"
+}
+brightmap sprite GLA3C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3C0.dds"
+}
+brightmap sprite GLA3D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3D0.dds"
+}
+brightmap sprite GLA3E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3E0.dds"
+}
+brightmap sprite GLA3F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3F0.dds"
+}
+brightmap sprite GLA3G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3G0.dds"
+}
+brightmap sprite GLA3H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3H0.dds"
+}
+brightmap sprite GLA3I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3I0.dds"
+}
+brightmap sprite GLA3J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3J0.dds"
+}
+brightmap sprite GLA3K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3K0.dds"
+}
+brightmap sprite GLA3L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3L0.dds"
+}
+brightmap sprite GLA3M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3M0.dds"
+}
+brightmap sprite GLA3N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3N0.dds"
+}
+brightmap sprite GLA3O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3O0.dds"
+}
+brightmap sprite GLA3P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3P0.dds"
+}
+brightmap sprite GLA3Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3Q0.dds"
+}
+brightmap sprite GLA3R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3R0.dds"
+}
+brightmap sprite GLA3S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA3S0.dds"
+}
+brightmap sprite GLA4A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4A0.dds"
+}
+brightmap sprite GLA4B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4B0.dds"
+}
+brightmap sprite GLA4C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4C0.dds"
+}
+brightmap sprite GLA4D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4D0.dds"
+}
+brightmap sprite GLA4E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4E0.dds"
+}
+brightmap sprite GLA4F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4F0.dds"
+}
+brightmap sprite GLA4G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4G0.dds"
+}
+brightmap sprite GLA4H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4H0.dds"
+}
+brightmap sprite GLA4I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4I0.dds"
+}
+brightmap sprite GLA4J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4J0.dds"
+}
+brightmap sprite GLA4K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4K0.dds"
+}
+brightmap sprite GLA4L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4L0.dds"
+}
+brightmap sprite GLA4M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4M0.dds"
+}
+brightmap sprite GLA4N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4N0.dds"
+}
+brightmap sprite GLA4O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4O0.dds"
+}
+brightmap sprite GLA4P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4P0.dds"
+}
+brightmap sprite GLA4Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4Q0.dds"
+}
+brightmap sprite GLA4R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4R0.dds"
+}
+brightmap sprite GLA4S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4S0.dds"
+}
+brightmap sprite GLA4T0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLA4T0.dds"
+}
+brightmap sprite GLAEA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEA0.dds"
+}
+brightmap sprite GLAEB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEB0.dds"
+}
+brightmap sprite GLAEC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEC0.dds"
+}
+brightmap sprite GLAED0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAED0.dds"
+}
+brightmap sprite GLAEE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEE0.dds"
+}
+brightmap sprite GLAEF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEF0.dds"
+}
+brightmap sprite GLAEG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEG0.dds"
+}
+brightmap sprite GLAEH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEH0.dds"
+}
+brightmap sprite GLAEI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEI0.dds"
+}
+brightmap sprite GLAEJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEJ0.dds"
+}
+brightmap sprite GLAEK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEK0.dds"
+}
+brightmap sprite GLAEL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEL0.dds"
+}
+brightmap sprite GLAEM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEM0.dds"
+}
+brightmap sprite GLAEN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEN0.dds"
+}
+brightmap sprite GLAEO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAEO0.dds"
+}
+brightmap sprite GLAFA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFA0.dds"
+}
+brightmap sprite GLAFB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFB0.dds"
+}
+brightmap sprite GLAFC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFC0.dds"
+}
+brightmap sprite GLAFD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFD0.dds"
+}
+brightmap sprite GLAFE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFE0.dds"
+}
+brightmap sprite GLAFF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFF0.dds"
+}
+brightmap sprite GLAFG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFG0.dds"
+}
+brightmap sprite GLAFH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFH0.dds"
+}
+brightmap sprite GLAFI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFI0.dds"
+}
+brightmap sprite GLAFJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFJ0.dds"
+}
+brightmap sprite GLAFK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFK0.dds"
+}
+brightmap sprite GLAFL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFL0.dds"
+}
+brightmap sprite GLAFM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFM0.dds"
+}
+brightmap sprite GLAFN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFN0.dds"
+}
+brightmap sprite GLAFO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAFO0.dds"
+}
+brightmap sprite GLAIA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIA0.dds"
+}
+brightmap sprite GLAIB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIB0.dds"
+}
+brightmap sprite GLAIC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIC0.dds"
+}
+brightmap sprite GLAID0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAID0.dds"
+}
+brightmap sprite GLAIE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIE0.dds"
+}
+brightmap sprite GLAIF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIF0.dds"
+}
+brightmap sprite GLAIG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIG0.dds"
+}
+brightmap sprite GLAIH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIH0.dds"
+}
+brightmap sprite GLAII0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAII0.dds"
+}
+brightmap sprite GLAIJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIJ0.dds"
+}
+brightmap sprite GLAIK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIK0.dds"
+}
+brightmap sprite GLAIL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIL0.dds"
+}
+brightmap sprite GLAIM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIM0.dds"
+}
+brightmap sprite GLAIN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIN0.dds"
+}
+brightmap sprite GLAIO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIO0.dds"
+}
+brightmap sprite GLAIP0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIP0.dds"
+}
+brightmap sprite GLAIQ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIQ0.dds"
+}
+brightmap sprite GLAIR0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIR0.dds"
+}
+brightmap sprite GLAIS0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIS0.dds"
+}
+brightmap sprite GLAIT0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIT0.dds"
+}
+brightmap sprite GLAIU0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAIU0.dds"
+}
+brightmap sprite GLAKA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAKA0.dds"
+}
+brightmap sprite GLAKB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAKB0.dds"
+}
+brightmap sprite GLAKC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAKC0.dds"
+}
+brightmap sprite GLAKD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAKD0.dds"
+}
+brightmap sprite GLAKE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAKE0.dds"
+}
+brightmap sprite GLASA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASA0.dds"
+}
+brightmap sprite GLASB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASB0.dds"
+}
+brightmap sprite GLASC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASC0.dds"
+}
+brightmap sprite GLASD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASD0.dds"
+}
+brightmap sprite GLASE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASE0.dds"
+}
+brightmap sprite GLASF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASF0.dds"
+}
+brightmap sprite GLASG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASG0.dds"
+}
+brightmap sprite GLASH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASH0.dds"
+}
+brightmap sprite GLASI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASI0.dds"
+}
+brightmap sprite GLASJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASJ0.dds"
+}
+brightmap sprite GLASK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLASK0.dds"
+}
+brightmap sprite GLAUA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAUA0.dds"
+}
+brightmap sprite GLAUB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAUB0.dds"
+}
+brightmap sprite GLAUC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAUC0.dds"
+}
+brightmap sprite GLAUD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAUD0.dds"
+}
+brightmap sprite GLAUE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAUE0.dds"
+}
+brightmap sprite GLAUF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAUF0.dds"
+}
+brightmap sprite GLAWA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWA0.dds"
+}
+brightmap sprite GLAWB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWB0.dds"
+}
+brightmap sprite GLAWC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWC0.dds"
+}
+brightmap sprite GLAWD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWD0.dds"
+}
+brightmap sprite GLAWE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWE0.dds"
+}
+brightmap sprite GLAWF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWF0.dds"
+}
+brightmap sprite GLAWG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWG0.dds"
+}
+brightmap sprite GLAWH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWH0.dds"
+}
+brightmap sprite GLAWI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWI0.dds"
+}
+brightmap sprite GLAWJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWJ0.dds"
+}
+brightmap sprite GLAWK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWK0.dds"
+}
+brightmap sprite GLAWL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWL0.dds"
+}
+brightmap sprite GLAWM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWM0.dds"
+}
+brightmap sprite GLAWN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWN0.dds"
+}
+brightmap sprite GLAWO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAWO0.dds"
+}
+
+brightmap sprite GLF1A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1A0.dds"
+}
+brightmap sprite GLF1B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1B0.dds"
+}
+brightmap sprite GLF1C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1C0.dds"
+}
+brightmap sprite GLF1D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1D0.dds"
+}
+brightmap sprite GLF1E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1E0.dds"
+}
+brightmap sprite GLF1F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1F0.dds"
+}
+brightmap sprite GLF1G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1G0.dds"
+}
+brightmap sprite GLF1H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1H0.dds"
+}
+brightmap sprite GLF1I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1I0.dds"
+}
+brightmap sprite GLF1J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1J0.dds"
+}
+brightmap sprite GLF1K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1K0.dds"
+}
+brightmap sprite GLF1L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1L0.dds"
+}
+brightmap sprite GLF1M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1M0.dds"
+}
+brightmap sprite GLF1N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1N0.dds"
+}
+brightmap sprite GLF1O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1O0.dds"
+}
+brightmap sprite GLF1P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1P0.dds"
+}
+brightmap sprite GLF1Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1Q0.dds"
+}
+brightmap sprite GLF1R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1R0.dds"
+}
+brightmap sprite GLF1S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1S0.dds"
+}
+brightmap sprite GLF1T0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1T0.dds"
+}
+brightmap sprite GLF1U0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1U0.dds"
+}
+brightmap sprite GLF1V0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1V0.dds"
+}
+brightmap sprite GLF1W0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1W0.dds"
+}
+brightmap sprite GLF1X0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1X0.dds"
+}
+brightmap sprite GLF1Y0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1Y0.dds"
+}
+brightmap sprite GLF1Z0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF1Z0.dds"
+}
+brightmap sprite GLF2A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2A0.dds"
+}
+brightmap sprite GLF2B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2B0.dds"
+}
+brightmap sprite GLF2C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2C0.dds"
+}
+brightmap sprite GLF2D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2D0.dds"
+}
+brightmap sprite GLF2E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2E0.dds"
+}
+brightmap sprite GLF2F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2F0.dds"
+}
+brightmap sprite GLF2G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2G0.dds"
+}
+brightmap sprite GLF2H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2H0.dds"
+}
+brightmap sprite GLF2I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2I0.dds"
+}
+brightmap sprite GLF2J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2J0.dds"
+}
+brightmap sprite GLF2K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF2K0.dds"
+}
+brightmap sprite GLF3A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3A0.dds"
+}
+brightmap sprite GLF3B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3B0.dds"
+}
+brightmap sprite GLF3C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3C0.dds"
+}
+brightmap sprite GLF3D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3D0.dds"
+}
+brightmap sprite GLF3E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3E0.dds"
+}
+brightmap sprite GLF3F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3F0.dds"
+}
+brightmap sprite GLF3G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3G0.dds"
+}
+brightmap sprite GLF3H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3H0.dds"
+}
+brightmap sprite GLF3I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3I0.dds"
+}
+brightmap sprite GLF3J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3J0.dds"
+}
+brightmap sprite GLF3K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3K0.dds"
+}
+brightmap sprite GLF3L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3L0.dds"
+}
+brightmap sprite GLF3M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3M0.dds"
+}
+brightmap sprite GLF3N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3N0.dds"
+}
+brightmap sprite GLF3O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3O0.dds"
+}
+brightmap sprite GLF3P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3P0.dds"
+}
+brightmap sprite GLF3Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3Q0.dds"
+}
+brightmap sprite GLF3R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3R0.dds"
+}
+brightmap sprite GLF3S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF3S0.dds"
+}
+brightmap sprite GLF4A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4A0.dds"
+}
+brightmap sprite GLF4B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4B0.dds"
+}
+brightmap sprite GLF4C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4C0.dds"
+}
+brightmap sprite GLF4D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4D0.dds"
+}
+brightmap sprite GLF4E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4E0.dds"
+}
+brightmap sprite GLF4F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4F0.dds"
+}
+brightmap sprite GLF4G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4G0.dds"
+}
+brightmap sprite GLF4H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4H0.dds"
+}
+brightmap sprite GLF4I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4I0.dds"
+}
+brightmap sprite GLF4J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4J0.dds"
+}
+brightmap sprite GLF4K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4K0.dds"
+}
+brightmap sprite GLF4L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4L0.dds"
+}
+brightmap sprite GLF4M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4M0.dds"
+}
+brightmap sprite GLF4N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4N0.dds"
+}
+brightmap sprite GLF4O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4O0.dds"
+}
+brightmap sprite GLF4P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4P0.dds"
+}
+brightmap sprite GLF4Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4Q0.dds"
+}
+brightmap sprite GLF4R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4R0.dds"
+}
+brightmap sprite GLF4S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4S0.dds"
+}
+brightmap sprite GLF4T0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLF4T0.dds"
+}
+brightmap sprite GLFEA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEA0.dds"
+}
+brightmap sprite GLFEB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEB0.dds"
+}
+brightmap sprite GLFEC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEC0.dds"
+}
+brightmap sprite GLFED0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFED0.dds"
+}
+brightmap sprite GLFEE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEE0.dds"
+}
+brightmap sprite GLFEF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEF0.dds"
+}
+brightmap sprite GLFEG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEG0.dds"
+}
+brightmap sprite GLFEH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEH0.dds"
+}
+brightmap sprite GLFEI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEI0.dds"
+}
+brightmap sprite GLFEJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEJ0.dds"
+}
+brightmap sprite GLFEK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEK0.dds"
+}
+brightmap sprite GLFEL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEL0.dds"
+}
+brightmap sprite GLFEM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEM0.dds"
+}
+brightmap sprite GLFEN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEN0.dds"
+}
+brightmap sprite GLFEO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEO0.dds"
+}
+brightmap sprite GLFEP0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFEP0.dds"
+}
+brightmap sprite GLFFA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFA0.dds"
+}
+brightmap sprite GLFFB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFB0.dds"
+}
+brightmap sprite GLFFC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFC0.dds"
+}
+brightmap sprite GLFFD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFD0.dds"
+}
+brightmap sprite GLFFE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFE0.dds"
+}
+brightmap sprite GLFFF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFF0.dds"
+}
+brightmap sprite GLFFG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFG0.dds"
+}
+brightmap sprite GLFFH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFH0.dds"
+}
+brightmap sprite GLFFI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFI0.dds"
+}
+brightmap sprite GLFFJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFJ0.dds"
+}
+brightmap sprite GLFFK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFK0.dds"
+}
+brightmap sprite GLFFL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFL0.dds"
+}
+brightmap sprite GLFFM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFM0.dds"
+}
+brightmap sprite GLFFN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFN0.dds"
+}
+brightmap sprite GLFFO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFO0.dds"
+}
+brightmap sprite GLFFP0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFP0.dds"
+}
+brightmap sprite GLFFQ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFQ0.dds"
+}
+brightmap sprite GLFFR0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFR0.dds"
+}
+brightmap sprite GLFFS0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFS0.dds"
+}
+brightmap sprite GLFFT0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFT0.dds"
+}
+brightmap sprite GLFFU0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFFU0.dds"
+}
+brightmap sprite GLFIA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIA0.dds"
+}
+brightmap sprite GLFIB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIB0.dds"
+}
+brightmap sprite GLFIC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIC0.dds"
+}
+brightmap sprite GLFID0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFID0.dds"
+}
+brightmap sprite GLFIE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIE0.dds"
+}
+brightmap sprite GLFIF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIF0.dds"
+}
+brightmap sprite GLFIG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIG0.dds"
+}
+brightmap sprite GLFIH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIH0.dds"
+}
+brightmap sprite GLFII0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFII0.dds"
+}
+brightmap sprite GLFIJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIJ0.dds"
+}
+brightmap sprite GLFIK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIK0.dds"
+}
+brightmap sprite GLFIL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIL0.dds"
+}
+brightmap sprite GLFIM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIM0.dds"
+}
+brightmap sprite GLFIN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIN0.dds"
+}
+brightmap sprite GLFIO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIO0.dds"
+}
+brightmap sprite GLFIP0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIP0.dds"
+}
+brightmap sprite GLFIQ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIQ0.dds"
+}
+brightmap sprite GLFIR0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIR0.dds"
+}
+brightmap sprite GLFIS0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIS0.dds"
+}
+brightmap sprite GLFIT0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIT0.dds"
+}
+brightmap sprite GLFIU0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFIU0.dds"
+}
+brightmap sprite GLFKA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFKA0.dds"
+}
+brightmap sprite GLFKB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFKB0.dds"
+}
+brightmap sprite GLFKC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFKC0.dds"
+}
+brightmap sprite GLFKD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFKD0.dds"
+}
+brightmap sprite GLFKE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFKE0.dds"
+}
+brightmap sprite GLFSA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSA0.dds"
+}
+brightmap sprite GLFSB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSB0.dds"
+}
+brightmap sprite GLFSC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSC0.dds"
+}
+brightmap sprite GLFSD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSD0.dds"
+}
+brightmap sprite GLFSE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSE0.dds"
+}
+brightmap sprite GLFSF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSF0.dds"
+}
+brightmap sprite GLFSG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSG0.dds"
+}
+brightmap sprite GLFSH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSH0.dds"
+}
+brightmap sprite GLFSI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSI0.dds"
+}
+brightmap sprite GLFSJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSJ0.dds"
+}
+brightmap sprite GLFSK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFSK0.dds"
+}
+brightmap sprite GLFUA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFUA0.dds"
+}
+brightmap sprite GLFUB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFUB0.dds"
+}
+brightmap sprite GLFUC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFUC0.dds"
+}
+brightmap sprite GLFUD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFUD0.dds"
+}
+brightmap sprite GLFUE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFUE0.dds"
+}
+brightmap sprite GLFUF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFUF0.dds"
+}
+brightmap sprite GLFWA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWA0.dds"
+}
+brightmap sprite GLFWB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWB0.dds"
+}
+brightmap sprite GLFWC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWC0.dds"
+}
+brightmap sprite GLFWD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWD0.dds"
+}
+brightmap sprite GLFWE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWE0.dds"
+}
+brightmap sprite GLFWF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWF0.dds"
+}
+brightmap sprite GLFWG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWG0.dds"
+}
+brightmap sprite GLFWH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWH0.dds"
+}
+brightmap sprite GLFWI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWI0.dds"
+}
+brightmap sprite GLFWJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWJ0.dds"
+}
+brightmap sprite GLFWK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWK0.dds"
+}
+brightmap sprite GLFWL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWL0.dds"
+}
+brightmap sprite GLFWM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWM0.dds"
+}
+brightmap sprite GLFWN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWN0.dds"
+}
+brightmap sprite GLFWO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFWO0.dds"
+}
+brightmap sprite GLRSA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSA0.dds"
+}
+brightmap sprite GLRSB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSB0.dds"
+}
+brightmap sprite GLRSC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSC0.dds"
+}
+brightmap sprite GLRSD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSD0.dds"
+}
+brightmap sprite GLRSE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSE0.dds"
+}
+brightmap sprite GLRSF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSF0.dds"
+}
+brightmap sprite GLRSG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSG0.dds"
+}
+brightmap sprite GLRSH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSH0.dds"
+}
+brightmap sprite GLRSI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSI0.dds"
+}
+brightmap sprite GLRSJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSJ0.dds"
+}
+brightmap sprite GLRSK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLRSK0.dds"
+}
+brightmap sprite GLI1A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1A0.dds"
+}
+brightmap sprite GLI1B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1B0.dds"
+}
+brightmap sprite GLI1C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1C0.dds"
+}
+brightmap sprite GLI1D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1D0.dds"
+}
+brightmap sprite GLI1E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1E0.dds"
+}
+brightmap sprite GLI1F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1F0.dds"
+}
+brightmap sprite GLI1G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1G0.dds"
+}
+brightmap sprite GLI1H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1H0.dds"
+}
+brightmap sprite GLI1I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1I0.dds"
+}
+brightmap sprite GLI1J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1J0.dds"
+}
+brightmap sprite GLI1K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1K0.dds"
+}
+brightmap sprite GLI1L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1L0.dds"
+}
+brightmap sprite GLI1M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1M0.dds"
+}
+brightmap sprite GLI1N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1N0.dds"
+}
+brightmap sprite GLI1O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1O0.dds"
+}
+brightmap sprite GLI1P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1P0.dds"
+}
+brightmap sprite GLI1Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1Q0.dds"
+}
+brightmap sprite GLI1R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1R0.dds"
+}
+brightmap sprite GLI1S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1S0.dds"
+}
+brightmap sprite GLI1T0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1T0.dds"
+}
+brightmap sprite GLI1U0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1U0.dds"
+}
+brightmap sprite GLI1V0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1V0.dds"
+}
+brightmap sprite GLI1W0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1W0.dds"
+}
+brightmap sprite GLI1X0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1X0.dds"
+}
+brightmap sprite GLI1Y0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1Y0.dds"
+}
+brightmap sprite GLI1Z0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI1Z0.dds"
+}
+brightmap sprite GLI2A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2A0.dds"
+}
+brightmap sprite GLI2B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2B0.dds"
+}
+brightmap sprite GLI2C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2C0.dds"
+}
+brightmap sprite GLI2D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2D0.dds"
+}
+brightmap sprite GLI2E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2E0.dds"
+}
+brightmap sprite GLI2F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2F0.dds"
+}
+brightmap sprite GLI2G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2G0.dds"
+}
+brightmap sprite GLI2H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2H0.dds"
+}
+brightmap sprite GLI2I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2I0.dds"
+}
+brightmap sprite GLI2J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2J0.dds"
+}
+brightmap sprite GLI2K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI2K0.dds"
+}
+brightmap sprite GLI3A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3A0.dds"
+}
+brightmap sprite GLI3B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3B0.dds"
+}
+brightmap sprite GLI3C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3C0.dds"
+}
+brightmap sprite GLI3D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3D0.dds"
+}
+brightmap sprite GLI3E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3E0.dds"
+}
+brightmap sprite GLI3F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3F0.dds"
+}
+brightmap sprite GLI3G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3G0.dds"
+}
+brightmap sprite GLI3H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3H0.dds"
+}
+brightmap sprite GLI3I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3I0.dds"
+}
+brightmap sprite GLI3J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3J0.dds"
+}
+brightmap sprite GLI3K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3K0.dds"
+}
+brightmap sprite GLI3L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3L0.dds"
+}
+brightmap sprite GLI3M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3M0.dds"
+}
+brightmap sprite GLI3N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3N0.dds"
+}
+brightmap sprite GLI3O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3O0.dds"
+}
+brightmap sprite GLI3P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3P0.dds"
+}
+brightmap sprite GLI3Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3Q0.dds"
+}
+brightmap sprite GLI3R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3R0.dds"
+}
+brightmap sprite GLI3S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3S0.dds"
+}
+brightmap sprite GLI3T0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI3T0.dds"
+}
+brightmap sprite GLI4A0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4A0.dds"
+}
+brightmap sprite GLI4B0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4B0.dds"
+}
+brightmap sprite GLI4C0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4C0.dds"
+}
+brightmap sprite GLI4D0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4D0.dds"
+}
+brightmap sprite GLI4E0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4E0.dds"
+}
+brightmap sprite GLI4F0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4F0.dds"
+}
+brightmap sprite GLI4G0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4G0.dds"
+}
+brightmap sprite GLI4H0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4H0.dds"
+}
+brightmap sprite GLI4I0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4I0.dds"
+}
+brightmap sprite GLI4J0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4J0.dds"
+}
+brightmap sprite GLI4K0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4K0.dds"
+}
+brightmap sprite GLI4L0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4L0.dds"
+}
+brightmap sprite GLI4M0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4M0.dds"
+}
+brightmap sprite GLI4N0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4N0.dds"
+}
+brightmap sprite GLI4O0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4O0.dds"
+}
+brightmap sprite GLI4P0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4P0.dds"
+}
+brightmap sprite GLI4Q0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4Q0.dds"
+}
+brightmap sprite GLI4R0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4R0.dds"
+}
+brightmap sprite GLI4S0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4S0.dds"
+}
+brightmap sprite GLI4T0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLI4T0.dds"
+}
+brightmap sprite GLIEA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEA0.dds"
+}
+brightmap sprite GLIEB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEB0.dds"
+}
+brightmap sprite GLIEC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEC0.dds"
+}
+brightmap sprite GLIED0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIED0.dds"
+}
+brightmap sprite GLIEE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEE0.dds"
+}
+brightmap sprite GLIEF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEF0.dds"
+}
+brightmap sprite GLIEG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEG0.dds"
+}
+brightmap sprite GLIEH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEH0.dds"
+}
+brightmap sprite GLIEI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEI0.dds"
+}
+brightmap sprite GLIEJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEJ0.dds"
+}
+brightmap sprite GLIEK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEK0.dds"
+}
+brightmap sprite GLIEL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEL0.dds"
+}
+brightmap sprite GLIEM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEM0.dds"
+}
+brightmap sprite GLIEN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEN0.dds"
+}
+brightmap sprite GLIEO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEO0.dds"
+}
+brightmap sprite GLIEP0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIEP0.dds"
+}
+brightmap sprite GLIFA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFA0.dds"
+}
+brightmap sprite GLIFB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFB0.dds"
+}
+brightmap sprite GLIFC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFC0.dds"
+}
+brightmap sprite GLIFD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFD0.dds"
+}
+brightmap sprite GLIFE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFE0.dds"
+}
+brightmap sprite GLIFF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFF0.dds"
+}
+brightmap sprite GLIFG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFG0.dds"
+}
+brightmap sprite GLIFH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFH0.dds"
+}
+brightmap sprite GLIFI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFI0.dds"
+}
+brightmap sprite GLIFJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFJ0.dds"
+}
+brightmap sprite GLIFK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFK0.dds"
+}
+brightmap sprite GLIFL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFL0.dds"
+}
+brightmap sprite GLIFM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFM0.dds"
+}
+brightmap sprite GLIFN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFN0.dds"
+}
+brightmap sprite GLIFO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFO0.dds"
+}
+brightmap sprite GLIFP0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIFP0.dds"
+}
+brightmap sprite GLIIA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIA0.dds"
+}
+brightmap sprite GLIIB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIB0.dds"
+}
+brightmap sprite GLIIC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIC0.dds"
+}
+brightmap sprite GLIID0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIID0.dds"
+}
+brightmap sprite GLIIE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIE0.dds"
+}
+brightmap sprite GLIIF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIF0.dds"
+}
+brightmap sprite GLIIG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIG0.dds"
+}
+brightmap sprite GLIIH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIH0.dds"
+}
+brightmap sprite GLIII0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIII0.dds"
+}
+brightmap sprite GLIIJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIJ0.dds"
+}
+brightmap sprite GLIIK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIK0.dds"
+}
+brightmap sprite GLIIL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIL0.dds"
+}
+brightmap sprite GLIIM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIM0.dds"
+}
+brightmap sprite GLIIN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIN0.dds"
+}
+brightmap sprite GLIIO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIO0.dds"
+}
+brightmap sprite GLIIP0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIP0.dds"
+}
+brightmap sprite GLIIQ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIQ0.dds"
+}
+brightmap sprite GLIIR0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIR0.dds"
+}
+brightmap sprite GLIIS0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIS0.dds"
+}
+brightmap sprite GLIIT0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIT0.dds"
+}
+brightmap sprite GLIIU0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIIU0.dds"
+}
+brightmap sprite GLIKA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIKA0.dds"
+}
+brightmap sprite GLIKB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIKB0.dds"
+}
+brightmap sprite GLIKC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIKC0.dds"
+}
+brightmap sprite GLIKD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIKD0.dds"
+}
+brightmap sprite GLIKE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIKE0.dds"
+}
+brightmap sprite GLISA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISA0.dds"
+}
+brightmap sprite GLISB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISB0.dds"
+}
+brightmap sprite GLISC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISC0.dds"
+}
+brightmap sprite GLISD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISD0.dds"
+}
+brightmap sprite GLISE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISE0.dds"
+}
+brightmap sprite GLISF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISF0.dds"
+}
+brightmap sprite GLISG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISG0.dds"
+}
+brightmap sprite GLISH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISH0.dds"
+}
+brightmap sprite GLISI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISI0.dds"
+}
+brightmap sprite GLISJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISJ0.dds"
+}
+brightmap sprite GLISK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLISK0.dds"
+}
+brightmap sprite GLIUA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIUA0.dds"
+}
+brightmap sprite GLIUB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIUB0.dds"
+}
+brightmap sprite GLIUC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIUC0.dds"
+}
+brightmap sprite GLIUD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIUD0.dds"
+}
+brightmap sprite GLIUE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIUE0.dds"
+}
+brightmap sprite GLIUF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIUF0.dds"
+}
+brightmap sprite GLIWA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWA0.dds"
+}
+brightmap sprite GLIWB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWB0.dds"
+}
+brightmap sprite GLIWC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWC0.dds"
+}
+brightmap sprite GLIWD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWD0.dds"
+}
+brightmap sprite GLIWE0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWE0.dds"
+}
+brightmap sprite GLIWF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWF0.dds"
+}
+brightmap sprite GLIWG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWG0.dds"
+}
+brightmap sprite GLIWH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWH0.dds"
+}
+brightmap sprite GLIWI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWI0.dds"
+}
+brightmap sprite GLIWJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWJ0.dds"
+}
+brightmap sprite GLIWK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWK0.dds"
+}
+brightmap sprite GLIWL0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWL0.dds"
+}
+brightmap sprite GLIWM0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWM0.dds"
+}
+brightmap sprite GLIWN0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWN0.dds"
+}
+brightmap sprite GLIWO0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIWO0.dds"
+}
+
+
+brightmap sprite GLAMA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMA0.dds"
+}
+brightmap sprite GLAMB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMB0.dds"
+}
+brightmap sprite GLAMC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMC0.dds"
+}
+brightmap sprite GLAMD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMD0.dds"
+}
+brightmap sprite GLAME0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAME0.dds"
+}
+brightmap sprite GLAMF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMF0.dds"
+}
+brightmap sprite GLAMG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMG0.dds"
+}
+brightmap sprite GLAMH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMH0.dds"
+}
+brightmap sprite GLAMI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMI0.dds"
+}
+brightmap sprite GLAMJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMJ0.dds"
+}
+brightmap sprite GLAMK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAMK0.dds"
+}
+brightmap sprite GLAML0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ACID DISPLAY/GLAML0.dds"
+}
+
+brightmap sprite GLFMA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMA0.dds"
+}
+brightmap sprite GLFMB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMB0.dds"
+}
+brightmap sprite GLFMC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMC0.dds"
+}
+brightmap sprite GLFMD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMD0.dds"
+}
+brightmap sprite GLFME0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFME0.dds"
+}
+brightmap sprite GLFMF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMF0.dds"
+}
+brightmap sprite GLFMG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMG0.dds"
+}
+brightmap sprite GLFMH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMH0.dds"
+}
+brightmap sprite GLFMI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMI0.dds"
+}
+brightmap sprite GLFMJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMJ0.dds"
+}
+brightmap sprite GLFMK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFMK0.dds"
+}
+brightmap sprite GLFML0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/FRAG DISPLAY/GLFML0.dds"
+}
+
+brightmap sprite GLIMA0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMA0.dds"
+}
+brightmap sprite GLIMB0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMB0.dds"
+}
+brightmap sprite GLIMC0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMC0.dds"
+}
+brightmap sprite GLIMD0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMD0.dds"
+}
+brightmap sprite GLIME0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIME0.dds"
+}
+brightmap sprite GLIMF0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMF0.dds"
+}
+brightmap sprite GLIMG0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMG0.dds"
+}
+brightmap sprite GLIMH0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMH0.dds"
+}
+brightmap sprite GLIMI0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMI0.dds"
+}
+brightmap sprite GLIMJ0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMJ0.dds"
+}
+brightmap sprite GLIMK0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIMK0.dds"
+}
+brightmap sprite GLIML0
+{
+    map "SPRITES/Weapons/GRENADELAUNCHER/ICE DISPLAY/GLIML0.dds"
+}

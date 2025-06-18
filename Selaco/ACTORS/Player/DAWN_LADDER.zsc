@@ -1,0 +1,293 @@
+extend class Dawn {
+	Ladder curLadder;
+	bool ladderFromTop;						// Did we grab the ladder from the top or closer to the bottom?
+	bool ladderSpin;						// Requires a spin after grabbing ladder
+	bool holdingClimb;						// Used to deny climb when entering ladder from the top
+	bool ladderNeedsMove;					// Player needs to move into place to use ladder
+	bool ladderSlidingDown;					// Currently sliding, sound has started
+	int ladderTime;							// Time we grabbed the last ladder, or left it
+	int ladderTimeout;                      // How long until ladder can be grabbed again
+
+
+    void cancelLadder(int timeout = 5) {
+		curLadder = null;
+		ladderTime = level.totalTime;
+		ladderTimeout = level.totalTime + timeout;
+
+		if(ladderSlidingDown) {
+			A_StopSound(CHAN_6);
+			ladderSlidingDown = false;
+		}
+	}
+
+
+	virtual void tryGrabLadder(Ladder newLadder, bool fromTop = false, bool needsMove = false) {
+		bool wasOnLadder = !!curLadder;
+		if(!isSliding && curLadder != newLadder && !climbing && !mantle && ladderTimeout < level.totalTime) {
+			if(!fromTop) {
+				if(pos.z > newLadder.pos.z + newLadder.height - 24) return;
+			}
+
+			// Check holding object
+			if(holdingObject) {
+				let pd = PickupableDecoration(holdingObject);
+				if(pd) {
+					if(pd.bNoLadders || holdingObject.radius > 10)
+						return;
+				} else if(holdingObject.radius > 10) {
+					return;
+				}
+			}
+
+			curLadder = newLadder;
+			ladderTime = level.totalTime;
+			ladderNeedsMove = needsMove;
+			ladderLastHeight = pos.z;
+			ladderLastXYDist = (pos.xy - curLadder.pos.xy).length();
+			ladderGrabAngle = angle;
+			ladderFromTop = fromTop;
+			holdingClimb = ladderFromTop && player.cmd.forwardMove > 800;
+			ladderSpin = abs(deltaAngle(ladderGrabAngle, curLadder.angle)) > 70;
+			A_TakeInventory("SlideScriptActive", 1);
+
+			if(!wasOnLadder) {
+				Vel = (0,0,0);
+			}
+
+			if(ladderFromTop) {
+				if(!isDangerState && ladderSpin) 
+					A_PlaySound("dawn/ledge", CHAN_7, 0.25);	// Play exertion sound because we had to grab and spin around, we may want a different one here eventually
+					A_PLAYSOUND("player/crouch/armored", chan_auto, 0.18, 0, pitch:frandom(1.0,1.15));
+			} else {
+				// TODO: Unique grab sound?
+				A_StartSound("step/ladder", CHAN_AUTO, volume: 0.42);
+			}
+
+			// Force zoom to stop
+			let weapon = SelacoWeapon(player.ReadyWeapon);
+			if(weapon) {
+				weapon.A_ZoomFactor(1.0);
+				weapon.isZooming = false;
+			}
+		}
+	}
+
+	virtual void doNextLadderStep() {
+		// Play climbing sound (We are going up)
+		A_StartSound("step/ladder", CHAN_AUTO, volume: 0.7);
+		InputHandler.Instance().AddWorldFeedback2((0, 0.5), (0, 0.2));
+	}
+
+	virtual void doNextLadderStepSideways() {
+		// Play climbing sound (We are going sideways)
+		A_StartSound("step/ladder", CHAN_AUTO, volume: 0.46, pitch: 0.9);
+		InputHandler.Instance().AddWorldFeedback2((0.1, 0.2), (0.1, 0.1));
+	}
+
+    // Do ladder checks every tick
+	virtual void handleLadder() {
+		if(curLadder) {
+			if(curLadder.inactive) {
+				// Ladder is no longer available, let go of it
+				cancelLadder(8);
+			} else if(!climbing && !mantle) {
+				// Check to make sure we are still inside the ladder
+				if((!ladderNeedsMove && pos.z - curLadder.pos.z <= 8 && (Vel.Z < -1. || player.cmd.forwardMove < -800)) || (!ladderNeedsMove && pos.z > curLadder.pos.z + curLadder.height + 16) || pos.z + height < curLadder.pos.z + 24) {
+					// If we are on or near the ground, play the dismount sound
+					if(ladderSlidingDown && (pos.z - floorZ <= 16 || (player && player.onground))) A_StartSound("ladder/dismount", CHAN_AUTO, volume: 0.35);
+					else A_StartSound("step/ladder", CHAN_AUTO, volume: 0.42, pitch: 1.2);
+
+					// Disconnect from the ladder
+					cancelLadder(15);
+				} else if(pos.z >= (curLadder.pos.z + curLadder.height - maxLedgeHeight) && (!ladderFromTop || vel.z > 0.1)) {
+					// Check if we can actually climb
+					let ledgeHeight = findLedgeHeightForClimb();
+					if(developer) A_PrintBold(String.Format("z: %f  Ledge: %f  Max: %f", pos.z, ledgeHeight, maxLedgeHeight));
+					if(ledgeHeight < maxLedgeHeight && ledgeHeight > 0) {
+						// Let the climb code finish the ladder movement
+						climbing = true;
+						mantle = false;
+						
+						A_PlaySound("action/climb", CHAN_AUTO, 0.45);
+						if(!isDangerState) A_PlaySound("dawn/ledge", CHAN_7, 0.3);
+
+						// We will reset curLadder in the climbing code
+						//ladderTimeout = level.totalTime + 8;
+						cancelLadder(8);
+					} else if(ledgeHeight < -height && pos.z > (curLadder.pos.z + curLadder.height - maxStepHeight)) {
+						// Move forward, drop down
+						// This shouldn't have happened, but who knows, someone might put a ladder higher than the wall
+						let a = curLadder.angle;
+						cancelLadder(8);
+						VelFromAngle(4, a);  // Thrust player toward ladder 
+					}
+				} else if(ladderFromTop && ladderSpin && level.totalTime - ladderTime == 8) {
+					A_StartSound("step/ladder", CHAN_AUTO, volume: 0.42);
+				}
+			}
+
+			if(curLadder) {
+				// Do ladder upkeep
+				if(abs(pos.z - ladderLastHeight) > LADDER_STEP_HEIGHT) {
+					if(pos.z - ladderLastHeight > 0 || !ladderSlidingDown) doNextLadderStep();
+					ladderLastHeight = pos.z;
+				} else if(!ladderSlidingDown && vel.z ~== -0.9) {
+					let xyDist = (pos.xy - curLadder.pos.xy).length();
+					if(abs(ladderLastXYDist - xyDist) > 16 && !ladderNeedsMove) {
+						doNextLadderStepSideways();
+						ladderLastXYDist = xyDist;
+					}
+				}				
+
+				if(ladderSlidingDown) {
+					// Add a tiny bit of rumble and screen shake
+					InputHandler.Instance().AddWorldFeedback2((0.0, 0.03));
+					A_QuakeEx(frandom(0,0.5), frandom(0,0.5), frandom(0,0.1), 2, 0, 700, 0, 0, 0, 0, 0, 0, frandom(0, 0.45), frandom(0, 0.45), frandom(0, 0.45));
+				}
+			}
+		}
+	}
+
+
+    virtual void movePlayerOnLadder() {
+		if(!curLadder) return;
+
+		let ticksSinceGrab = level.totalTime - ladderTime;
+		
+		player.onground = (pos.z <= floorz) || bOnMobj || bMBFBouncer || (player.cheats & CF_NOCLIP2);
+		UserCmd cmd = player.cmd;
+		
+		// Check to see if we are still holding forward after entering ladder from the top
+		holdingClimb = holdingClimb && ladderFromTop && cmd.forwardmove > 800;
+
+		if(!ladderNeedsMove && (!ladderSpin || ticksSinceGrab >= LADDER_TURN_TICKS / 2)) {
+			if(player.onground && ticksSinceGrab > 10) {
+				cancelLadder(15);
+				return;
+			}
+			
+			// Do ladder movement, but not while turning
+			Vector2 lookDir = AngleToVector(angle);
+			Vector2 ladderDir = AngleToVector(curLadder.angle);
+			//double ldot = 1.0;//(lookDir dot ladderDir);
+			
+			double fm = holdingClimb ? 0 : cmd.forwardmove;
+			fm *= 1. / 256.;
+			fm /= 35.;
+
+			double sm = cmd.sideMove;
+			sm *= 1. / 256.;
+			sm /= 35.;
+
+			let vz = fm; /** ldot*/;
+			//if(ldot < 0) vz *= 0.25;
+			if(vz < 0 && curLadder.bAllowSlide) vz *= LADDER_SLIDE_SPEED;
+			else vz *= LADDER_CLIMB_SPEED;
+			vel.z = vz;
+			
+			// Stop vel if we are going to be higher than the ladder
+			if(vel.z > 0 && pos.z + vel.z > curLadder.pos.z + curLadder.height) 
+				vel.z = 0;
+			
+			// Limit SM if that movement would put us outside the limits of the ladder
+			let sideVec = AngleToVector(curLadder.angle - 90);
+			double moveLen =  (pos.xy + (sideVec * sm /** ldot*/) - curLadder.pos.xy).length();
+			double lenToLadder = (pos.xy - curLadder.pos.xy).length();
+			if(lenToLadder > curLadder.radius && moveLen > lenToLadder) sm = 0;
+
+			
+			vel.xy = sideVec * (sm * /*ldot * */ LADDER_CLIMB_SIDE_SPEED);
+
+			if(vel.z < -LADDER_CLIMB_SPEED && !ladderSlidingDown && curLadder.bAllowSlide) {
+				// We are sliding!
+				ladderSlidingDown = true;
+				A_StartSound("ladder/slide", CHAN_6, CHANF_LOOP, 0.254, startTime: frandom(0.0, 1.0));
+			} else if(ladderSlidingDown && vel.z > -1) {
+				ladderSlidingDown = false;
+				A_StopSound(CHAN_6);
+				A_StartSound("step/ladder", CHAN_AUTO, volume: 0.75, pitch: 0.89);
+			}
+		}
+
+		if(ladderNeedsMove) {
+			//Vector2 dpos = curLadder.getClosestLadderPos(pos.xy) + angleToVector(curLadder.angle + 180, radius + 4);
+			Vector2 dpos = curLadder.getCenterLadderPos() + angleToVector(curLadder.angle + 180, radius + 4);
+			double dist = (pos.xy - dpos).length();
+			bool inPosition = false;
+
+			// Check if we can move down yet
+			{
+				vector3 oldPos = pos;
+				SetXyz(pos - (0, 0, ladderFromTop ? 8 : -8));   // Account for thin 3D floors
+				inPosition = !ladderFromTop ? dist <= 4 && testMobjLocation() : testMobjLocation();
+				SetXyz(oldPos);
+
+				// Make sure we are also high enough to clear the bottom of the ladder
+				if(inPosition && !ladderFromTop) {
+					if(pos.z - curLadder.pos.z <= 24) {
+						inPosition = false;
+					}
+				}
+			}
+
+
+			// Check if we are already in position
+			if(dist <= 4. && inPosition) {
+				ladderNeedsMove = false;
+			} else if((inPosition && (dist <= 0.5 && !bOnMobj)) || level.totalTime - ladderTime > 70) {
+				// We got into position, but couldn't move down
+				// This is likely because of bad ladder placement or an object unexpectedly in the way
+				// Abandon ladder altogether
+				Angle += cmd.yaw * (360./65536.);
+				
+				cancelLadder(15);
+
+				// TODO: Sound?
+				Console.Printf("Had to abandon ladder, can't move down once in position!");
+				return;
+			} else {
+				Vector2 moveDir = (dpos - pos.xy).unit();
+				dist = (dpos - pos.xy).length();
+
+				// If we are blocked moving towards the ladder, try moving towards the center position of the ladder
+				if(ladderFromTop && !CheckMove(pos.xy + (moveDir * 2.*radius))) {
+					moveDir = (curLadder.pos.xy - pos.xy).unit();
+					dist = (curLadder.pos.xy - pos.xy).length(); // :( 
+				}
+				
+				// Move player in (x/y) towards a valid climb position
+				vel.xy = dist > 0.01 ? moveDir * min(8.0, dist) : (0,0);
+				vel.z = ladderFromTop ? -LADDER_SLIDE_SPEED : dist <= 16 ? (1.429 * LADDER_CLIMB_SPEED) : 0;	// In case there is vertical distance to cover to the ladder
+			}
+		}
+
+		ViewBob = 0;
+		
+		
+		if(ladderFromTop && ticksSinceGrab <= LADDER_TURN_TICKS && ladderSpin) {
+			// Set angle to face ladder
+			A_SetAngle(angle + (deltaAngle(ladderGrabAngle, curLadder.angle) / double(LADDER_TURN_TICKS)), SPF_INTERPOLATE);
+
+			if(ticksSinceGrab < LADDER_TURN_TICKS / 2) {
+				// Move downwards automatically
+				vel.z = -3 * 1.75;
+				if(!ladderNeedsMove) vel.xy = (0,0);
+			}
+		} else if(!ladderFromTop && ticksSinceGrab < 5) {
+			// Add a small amount of vertical when you first grab the ladder
+			vel.z += 0.25;
+		}
+
+		// TODO: Reduce mouse input when starting ladder climb down
+		Angle += cmd.yaw * (360./65536.);
+
+
+		// Add some restoration force to push the player to the desired ladder grab distance
+		if(!ladderNeedsMove) {
+			Vector2 dpos = curLadder.getClosestLadderPos(pos.xy) + angleToVector(curLadder.angle + 180, radius + 4);
+			double dist = (pos.xy - dpos).length();
+
+			if(dist > 0.05) vel.xy += (dpos - pos.xy).unit() * min(dist, 4);
+		}
+	}
+}

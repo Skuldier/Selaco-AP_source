@@ -1,0 +1,2061 @@
+
+#include "zscripts/randomizer/RandomEncounters.zsc"
+const CHANCE_COMMON = 100;
+const CHANCE_UNCOMMON = 25;
+const CHANCE_RARE = 12.5;
+const CHANCE_EPIC = 1.5;
+const CHANCE_LEGENDARY = 0.5;
+
+const RANDOMIZER_TRAP_CHANCE = 1;      // Chance for a Pathnode to spawn Sentry Guns
+const RANDOMIZER_WEAPON_MAX = 2;                // How many weapons per level?
+const RANDOMIZER_WEAPONWITHAMMO_CHANCE = 50;    // Chance for a Weapon Pickup to have additional ammo
+const RANDOMIZER_AMMO_SPAWN_CHANCE = 2;         // Chance for a Pathnode to spawn ammo
+const RANDOMIZER_PICKUP_SPAWN_CHANCE = 1;       // Chance for a pathnode to spawn an item 
+const RANDOMIZER_LOOT_AMMO_AMOUNT_MIN = 1;
+const RANDOMIZER_LOOT_AMMO_AMOUNT_MAX = 3;
+const RANDOMIZER_ENVIRONMENTAL_HAZARD_CHANCE = 1;
+const RANDOMIZER_VACBOT_CHANCE = 0.25;
+const RANDOMIZER_WEAPONDESPAWN_TIME = 60*35;
+const TOTAL_CHANCE = CHANCE_COMMON + CHANCE_UNCOMMON + CHANCE_RARE + CHANCE_LEGENDARY;
+const RANDOMIZER_EARTHQUAKE_TIMECHECK_MIN = 20;
+const RANDOMIZER_EARTHQUAKE_TIMECHECK_MAX = 30;
+const RANDOMIZER_WORLD_DESPAWN_PERCENTAGE = 80;
+const MYSTERYBOX_CHANCE = 50;
+const AMMOBEARER_AMMO_AMOUNT = 6;
+const AMMOBEARER_ARMOR_AMOUNT = 16;
+const GRENADIER_ENGINEER_CHANCE = 5;
+const AMMO_BEARER_CHANCE = 0.75;
+const ARMOR_BEARER_CHANCE = 0.75;
+enum ItemRarity
+{
+    RARITY_COMMON = 0,
+    RARITY_UNCOMMON = 1,
+    RARITY_RARE = 2,
+    RARITY_EPIC = 3,
+    RARITY_LEGENDARY = 4
+}
+
+enum WeaponSpawnType
+{
+    WEAPONSPAWN_VANILLA = 0,
+    WEAPONSPAWN_SWAPPED = 1,
+    WEAPONSPAWN_FULLRANDOM = 2,
+}
+
+enum NodeSpawnType
+{
+    NODE_SPAWN_RANDOM = 0x1,
+    NODE_SPAWN_WALL = 0x2,
+    NODE_SPAWN_STRAIGHT = 0x4,
+    NODE_SPAWN_HIGH_UP = 0x8,
+}
+
+// The whole thing is terribly optimized right now with many pointless loops. Bear with me.
+class RandomizerHandler : EventHandler
+{
+    // TODO: Some redundant stuff here from experimentation
+    array<Pathnode> nodeActors;
+    array<string> weaponPool;
+    array<string> weaponPickups;
+    array<string> ammoPickups;
+    array<string> itemDropTable;
+    array<string> potentialSpawns; // Cleared and repopulated whenever randomizer dice rolls happen
+    array<string> healingItems;
+    array<string> itemCrates;
+    array<string> hazardSpawn;
+    array<string> clutterTable;
+    array<SelacoEnemy> enemySpawns;
+    array<SelacoActor> replacableProps;
+    array<String> enemyThings;
+    array<WeaponPickup> spawnedWeapons;
+    array<SelacoItem> spawnedItemPickups;
+    array<SelacoWeapon> playerWeapons; // Lists all weapons the player owns
+    array<PickupableDecoration> clutterActors;
+    array<class <WeaponPickup> > allWeaponPickups;
+    
+    int worldDespawnPercentage;
+    int weaponDespawnTimer;
+    float vacBotChance;
+    float itemCrateChance;
+    float enemySpawnChance;
+    float trapChance;
+    float hazardChance;
+    float ammoChance;
+    float healthChance;
+    float coverChance;
+    bool allowVacBots;
+    bool randomizerMode;
+    bool hasRandomizer;
+    bool randomizeAmmoValues;
+    bool allowZombieSpawns;
+    bool allowRobotSpawns;
+    bool allowNailgunners;
+    bool allowStingerRifle;
+    bool allowBurstRifle;
+    bool allowCrawlermineQueen;
+    bool allowTieredProgression;
+    bool extraZombies;
+    bool allowShufflePickups;
+    bool allowCrawlerInvasion;
+    bool allowZombieInvasion;
+    int randomEncounterFrequency;
+    int weaponSpawningStyle;
+    bool relocateEnemyPositions;
+    bool allowSawDroneInvasion;
+    bool allowItemCrates;
+    bool allowRandomizedFoodItems;
+    bool allowRandomGifts;
+    bool shuffleEnemySpawns;
+    bool allowTieredEnemies;
+    bool allowTieredWeapons;
+    bool allowSquadLeaders;
+    bool allowCombatChests;
+    bool allowItemShards;
+    bool informRarityIncrease;
+    bool weakenRandomEncounters;
+    bool allowGrenadierEngineers;
+    int earthquakeCounter;
+    int earthquakeTimeCheck;
+    int earthquakeFrequency;
+    int clutterChance;
+    float enemyHighTierFrequency;
+    bool compensatePickups;
+    bool allowHeavyGunners;
+    bool immersiveMode;
+    bool allowAmmoBearer;
+    bool allowArmorBearer;
+    const CABINET_SCRIPT = -int('openCabinet');
+
+    // Get all cvar info
+    override void NewGame() {
+        randomizerMode = CVAR.GetCVar("g_randomizer",players[consoleplayer]).getInt();
+        //hasRandomizer = 1;
+        updateCvars();
+    }
+
+    virtual void updateCvars()
+    { 
+        randomizeAmmoValues =       CVAR.GetCVar("randomizer_randomPickupAmounts",players[consoleplayer]).getInt();
+        allowCrawlermineQueen   =   CVAR.GetCVar("randomizer_allowCrawlermineQueen",players[consoleplayer]).getInt();
+        coverChance           =     CVAR.GetCVar("randomizer_coverChance",players[consoleplayer]).getInt();
+        clutterChance           =   CVAR.GetCVar("randomizer_clutterChance",players[consoleplayer]).getInt();
+        allowTieredProgression =    CVAR.GetCVar("randomizer_allowTieredProgression",players[consoleplayer]).getInt();
+        allowZombieSpawns =         CVAR.GetCVar("randomizer_allowZombies",players[consoleplayer]).getInt();
+        allowRobotSpawns =          CVAR.GetCVar("randomizer_allowRobots",players[consoleplayer]).getInt();
+        allowNailgunners =          CVAR.GetCVar("randomizer_allowNailgunSoldiers",players[consoleplayer]).getInt();
+        allowStingerRifle     =     CVAR.GetCVar("randomizer_allowStingerSoldiers",players[consoleplayer]).getInt();
+        allowBurstRifle =           CVAR.GetCVar("randomizer_allowBurstrifleSoldiers",players[consoleplayer]).getInt();
+        allowHeavyGunners =         CVAR.GetCVar("randomizer_allowHeavyGunners",players[consoleplayer]).getInt();
+        allowShufflePickups =       CVAR.GetCVar("randomizer_shufflePickups",players[consoleplayer]).getInt();
+        weaponSpawningStyle =       CVAR.GetCVar("randomizer_weaponSpawnStyle",players[consoleplayer]).getInt();
+        allowItemShards      =       CVAR.GetCVar("randomizer_allowShardTrails",players[consoleplayer]).getInt();
+        allowSquadLeaders    =      CVAR.GetCVar("randomizer_allowSquadLeaders",players[consoleplayer]).getInt();
+        allowGrenadierEngineers =   CVAR.GetCVar("randomizer_allowEngineerGrenadier",players[consoleplayer]).getInt();
+        weakenRandomEncounters =    CVAR.GetCVar("randomizer_WeakenRandomEncounters",players[consoleplayer]).getFloat();
+        ammoChance              =   CVAR.GetCVar("randomizer_ammoFrequency",players[consoleplayer]).getFloat();
+        vacBotChance =              CVAR.GetCVar("randomizer_vacbotChance",players[consoleplayer]).getFloat();
+        itemCrateChance =           CVAR.GetCVar("randomzier_itemCrateChance",players[consoleplayer]).getFloat();
+        enemySpawnChance =          CVAR.GetCVar("randomizer_extraEnemyChance",players[consoleplayer]).getFloat();
+        enemyHighTierFrequency =   CVAR.GetCVar("randomizer_hightierFrequency",players[consoleplayer]).getFloat(); 
+        healthChance =              CVAR.GetCVar("randomizer_healthChance",players[consoleplayer]).getFloat();
+        randomEncounterFrequency =  CVAR.GetCVar("randomizer_randomEncounterFrequency",players[consoleplayer]).getInt();
+        hazardChance =              CVAR.GetCVar("randomizer_hazardChance",players[consoleplayer]).getFloat();
+        trapChance =                CVAR.GetCVar("randomizer_trapChance",players[consoleplayer]).getFloat();
+        allowZombieInvasion =       CVAR.GetCVar("randomizer_allowZombieInvasions",players[consoleplayer]).getInt();
+        allowSawDroneInvasion =     CVAR.GetCVar("randomizer_allowSawdroneWaves",players[consoleplayer]).getInt();
+        allowCrawlerInvasion =      CVAR.GetCVar("randomizer_allowCrawlerWaves",players[consoleplayer]).getInt();
+        compensatePickups =         CVAR.GetCVar("randomizer_compensatePickups",players[consoleplayer]).getInt();
+        allowRandomizedFoodItems =  CVAR.GetCVar("randomizer_randomizeFood",players[consoleplayer]).getInt();
+        allowRandomGifts         =  CVAR.GetCVar("randomizer_allowGifts",players[consoleplayer]).getInt();
+        shuffleEnemySpawns       =  CVAR.GetCVar("randomizer_shuffleEnemyTypes",players[consoleplayer]).getInt();
+        earthquakeFrequency =       CVAR.GetCVar("randomizer_earthquakeFrequency",players[consoleplayer]).getInt();
+        allowArmorBearer =          CVAR.GetCVar("randomizer_allowArmorBearers",players[consoleplayer]).getInt();
+        allowAmmoBearer =           CVAR.GetCVar("randomizer_allowAmmoBearers",players[consoleplayer]).getInt();
+        allowTieredEnemies  =       CVAR.GetCVar("randomizer_TieredEnemies",players[consoleplayer]).getInt();
+        allowTieredWeapons =        CVAR.GetCVar("randomizer_TieredWeapons",players[consoleplayer]).getInt();
+        relocateEnemyPositions =    CVAR.GetCVar("randomizer_relocateEnemySpawns",players[consoleplayer]).getInt();
+        allowCombatChests =         CVAR.GetCVar("randomizer_allowCombatChests",players[consoleplayer]).getInt();
+        immersiveMode =             CVAR.GetCVar("randomizer_immersiveMode",players[consoleplayer]).getInt();
+
+        randomEncounterFrequency*=TICKRATE;
+    }
+
+
+
+    virtual void getPathnodes() {
+        nodeActors.clear();
+        if(developer) console.printf("\c[green]Randomizer\c-... Obtaining Pathnode Information");
+        ThinkerIterator it = ThinkerIterator.Create("Pathnode");
+        Pathnode nodeActor = Pathnode(it.Next());
+
+        // Store all pathnodes in a list
+        for (; nodeActor; nodeActor = Pathnode(it.Next())) {
+            if(nodeActor is "DoorNode")
+            {
+                continue;
+            }
+            nodeActors.push(nodeActor);
+        }
+
+        // Shuffle all nodes to prevent proximity biases
+        for(int i = nodeActors.size() - 1; i > 0; i--) {
+            int j = random(0, i);
+            Pathnode temp = nodeActors[i];
+            nodeActors[i] = nodeActors[j];
+            nodeActors[j] = temp;
+        }
+
+        if(developer) console.printf("\c[green]Randomizer\c-... %d Path Nodes are available for use", nodeActors.size());
+    }
+
+    // We only ever want to add clutter of objects that are already in the level. This ensures they are most likely thematically and prevents clogging VRAM.
+    virtual void populateClutter()
+    {
+        ThinkerIterator it = ThinkerIterator.Create("SelacoActor");
+        SelacoActor pickupableProp = SelacoActor(it.Next());
+
+        for (; pickupableProp; pickupableProp = SelacoActor(it.Next())) {
+            SelacoActor p = pickupableProp;
+            bool isBreakable = !p.bBuddha; // We do not want buddha actors as these are likely required for progression and should not be duplicated.
+            //bool isUnique = !(clutterTable.Find(p.getClassName()) != clutterTable.Size()); // Do we already have this instance? EDIT: Removed it. It caused equal spawn chances for things like vending machines which is just weird.
+            bool isBig = (p.radius >= 14 && p.height > 25); // Big enough to considered clutter?
+            bool isInteractive = p is "Interactable";
+            bool isWallMounted = p.bWALLSPRITE;
+            bool isObject = p is "DecorationObject";
+            bool isEssential = p.bEssential;
+            if(isBreakable && isBig && p.bShootable && !isWallMounted && !p.bDontThrust && !p.bIsMonster && !isEssential)
+            {
+                clutterTable.push(p.getClassName());
+            }
+        }        
+    }
+
+    virtual void DropLoot(SelacoEnemy enemy)
+    {
+        switch(enemy.rarity)
+        {
+            case RARITY_EPIC:
+            case RARITY_LEGENDARY:
+                // Spawn Weapon parts
+                for(int x=0;x<=1;x++) {
+                    enemy.A_SPAWNITEMEX("WeaponPartPickup", frandom(-1*25, 25), frandom(-1*25, 25), 10, frandom(2,3), 0, 4, angle:random(0,360));
+                }
+                LootDropItems(enemy, 2);
+                LootDropWeapon(enemy);
+                break;
+            case RARITY_RARE:
+                LootDropItems(enemy, 1);
+            case RARITY_UNCOMMON:
+                if(random(0,100) <= 25)
+                {
+                    LootDropItems(enemy, 1);
+                }
+                enemy.A_SPAWNITEMEX("WeaponPartPickup", frandom(-1*25, 25), frandom(-1*25, 25), 10, frandom(2,3), 0, 4, angle:random(0,360));
+                break;
+        }
+    }
+
+
+    virtual void spawnHealth()
+    {
+        if(!healthChance)
+        {
+            return;
+        }
+        // Go through node actors
+        for(int y=0;y<nodeActors.size();y++)
+        {
+            if(frandom(0,100) <= healthChance)
+            {
+                // Check if we hit the spawn chance
+                rollSpawnChances(healingItems, potentialSpawns);
+
+                // Spawn the medkit, if we have any
+                if(potentialSpawns.size())
+                {
+                    if(random(0,1) == 1)
+                    {
+                        SpawnAtNode(nodeActors[y], potentialSpawns[random(0,potentialSpawns.size()-1)], NODE_SPAWN_WALL);
+                    }
+                    else
+                    {
+                        spawnReplacementActor(potentialSpawns[random(0,potentialSpawns.size()-1)]);
+                    }
+                }
+            }
+        }
+    }
+
+    // Drop a random weapon within our pool
+    virtual void LootDropWeapon(SelacoEnemy enemy)
+    {
+        array<String> acceptedSpawns;
+        int randomPick;
+
+        // Go through all the guns and get their drop
+        for(int x=0;x<allWeaponPickups.size();x++)
+        {
+            float dice = frandom(0,99);
+            class<Actor> cls = weaponPickups[x];
+            float weaponChance = WeaponPickup(GetDefaultByType(cls)).randomizerSpawnChance;
+            if(dice <= weaponChance)
+            {
+                acceptedSpawns.push(cls.getClassName());
+            }
+        }
+
+        if(!acceptedSpawns.size())
+        {
+            return;
+        }
+
+        randompick = random(0, acceptedSpawns.size()-1); 
+
+        if(acceptedSpawns.size())
+        {
+            actor lootWeaponPickup;
+            bool cockatriceSucks;
+            [cockatriceSucks, lootWeaponPickup] = enemy.A_SPAWNITEMEX(acceptedSpawns[randomPick]);
+            if(lootWeaponPickup is "WeaponPickup")
+            {
+                if(enemy.rarity)
+                {
+                    float spawnChance = 1.0;
+                    for (int i = 0; i < enemy.rarity; i++) {
+                        spawnChance *= 0.5;
+                    };
+                    WeaponPickup(lootWeaponPickup).weaponDespawnTimer = RANDOMIZER_WEAPONDESPAWN_TIME;
+                    WeaponPickup(lootWeaponPickup).rarityID = assignActorRarity(spawnChance);
+                }
+            }
+        }
+    }
+
+    // Drop random items that are inside the Drop Table
+    virtual void LootDropItems(SelacoEnemy enemy, int itemMax)
+    {
+        int itemDropAmount = random(1, itemMax);
+        for(int x=0;x<itemDropAmount;x++)
+        {
+            // Check spawn changes
+            rollSpawnChances(itemDropTable, potentialSpawns);
+
+            if(potentialSpawns.size())
+            {
+                string itemSpawn = potentialSpawns[random(0,potentialSpawns.size()-1)];
+                enemy.A_SPAWNITEMEX(itemSpawn,0, 0, 32, frandom(4,4), frandom(-4,4), frandom(1,2));
+            }
+        }
+    }
+
+    override void WorldTick()
+    {
+        if(!hasRandomizer)
+        {
+            return;
+        }
+        if(level.mapTime == 2)
+        {
+            if(developer) console.printf("START RANDOMIZING");
+            doRandomize();
+        }
+        if(level.mapTime > 0 && randomEncounterFrequency && level.mapTime > randomEncounterFrequency)
+        {
+            randomEncounters();
+        }
+        if(informRarityIncrease && !(level.mapName ~== "SE_SAFE") && level.mapTime == 20)
+        {
+            players[consoleplayer].mo.A_PlaySound("randomizer/tierincrease", chan_auto);
+            players[consoleplayer].mo.A_PRINTBOLD("\c[pink]Enemy Rarity Chances have been increased!", 3.0, "SEL16FONT");
+        }
+        earthquakeCounter++;
+        if(earthquakeFrequency > 0 && earthquakeCounter >= earthquakeTimeCheck*35)
+        {
+            // Reset earthquake check
+            earthquakeTimeCheck = random(RANDOMIZER_EARTHQUAKE_TIMECHECK_MIN, RANDOMIZER_EARTHQUAKE_TIMECHECK_MAX);
+            earthquakeCounter = 0;
+
+            // Roll die, spawn earthquake.
+            if(random(0,100) <= earthquakeFrequency)
+            {
+                spawnEarthquake();
+            }
+        }
+
+        if((level.mapTime + 7) % 35 == 0) {
+            updateCvars();
+        }
+    }
+
+    virtual void spawnEarthquake()
+    {
+        Dawn d = Dawn(players[consolePlayer].mo);
+        EarthquakeHandler eh = EarthquakeHandler.Instance();
+        if(d && eh)
+        {
+           int targetID = d.tid;
+           int intensity = random(4,9);
+           int duration = 35*4;
+           int radius = random(900,1400);
+           d.A_QuakeEx(2,2, 2, duration, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 4, 0, 5);
+           d.A_PLAYSOUND("DESTRUCTION/EARTHQUAKE/SMALL", CHAN_AUTO, 1.0);
+           eh.launchEarthquake(targetID, intensity, duration, radius);
+        }
+    }
+
+    virtual void spawnExtraEnemies()
+    {
+        if (!enemySpawnChance)
+        {
+            return;
+        }
+    
+        int maxSpawns = nodeActors.size() * (enemySpawnChance / 100.0); // Control density
+        int amountSpawned = 0;
+        float minDistance = 500; // The minimal distance required between bonus spawns. We may want to crank this up
+
+        array<PathNode> spawnedNodes; // Track spawned locations
+
+        for (int x = 0; x < nodeActors.size(); x++)
+        {
+            if (amountSpawned >= maxSpawns) {
+                break;
+            }
+    
+            PathNode nodeActor = nodeActors[x];
+            Dawn d = Dawn(players[consolePlayer].mo);
+    
+            // Prevent extra enemies close to the player spawn
+            if (d && nodeActor && nodeActor.distance2D(d) <= 1000) {
+                continue;
+            }
+    
+            bool tooClose = false;
+    
+            // Check if it's too close to already spawned enemies
+            for (int y = 0; y < spawnedNodes.size(); y++)
+            {
+                if (nodeActor.distance2D(spawnedNodes[y]) < minDistance)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+    
+            if (!tooClose) {
+                amountSpawned++;
+                spawnAtNode(nodeActor, retrieveEnemyFromPool(enemyPool));
+                spawnedNodes.push(nodeActor); // Track spawned locations
+            }
+        }
+
+        if(developer) console.printf("\c[green]Randomizer\c-... Added %d extra enemies", amountSpawned);
+    }
+
+    override void WorldLoaded(WorldEvent e)
+    {
+        randomizerMode = CVAR.GetCVar("g_randomizer",players[consoleplayer]).getInt();
+        updateCvars();
+        informRarityIncrease = false;
+        hasRandomizer = false;
+        if(level.mapName ~== "TITLEMAP" || !randomizerMode || level.mapName ~== "SE_SAFE")
+        {
+            return;
+        }
+        if(!e.isReopen && allowTieredProgression && level.levelNum > 1)
+        {
+            informRarityIncrease = true;
+        }
+        hasRandomizer = true;
+    }
+
+    virtual void doRandomize()
+    {
+        // When to spawn earthquake
+        if(earthquakeFrequency > 0)
+        {
+            if(developer) console.printf("\c[green]Randomizer\c-... Preparing a very deadly earthquake");
+            earthquakeTimeCheck = random(RANDOMIZER_EARTHQUAKE_TIMECHECK_MIN, RANDOMIZER_EARTHQUAKE_TIMECHECK_MAX);
+        }
+        
+        // Restart randomizations per level
+        nodeActors.clear();
+        weaponPickups.clear();
+        ammoPickups.clear();
+        playerWeapons.clear();
+        itemCrates.clear();
+        enemyPool.clear();
+        zombiePool.clear();
+        robotPool.clear();
+        clutterTable.clear();
+        cluster.clear();
+        weaponPool.clear();
+        itemDropTable.clear();
+        hazardSpawn.clear();
+        allWeaponPickups.clear();
+        enemySpawns.clear();
+
+        // ALWAYS RUN THESE FIRST!!
+        if(developer) console.printf("\c[green]Randomizer\c-... Adding Crates to the ItemCrates pool");
+        itemCrates.push("CrateObjectSmall");
+
+        hazardSpawn.push("SelacoExplosiveBarrel");
+        hazardSpawn.push("PropaneTank");
+        hazardSpawn.push("CryoBarrel");
+        hazardSpawn.push("AcidBarrel");
+
+        
+        populateWeaponList();
+        prepareWeaponSpawns();
+        getPathnodes();
+        populateClutter();
+        storeItemPickups();
+        markCabinetPickups();
+        wipePickups();
+        swapPickupLocations();
+        populateLevel();
+        randomizeFood();
+        relocateEnemies();
+        replaceEnemyType();
+        randomizeGifts();
+        spawnExtraClutter();
+        spawnShardTrails();
+    }
+
+    // Spawn a line of shards between two Path Nodes
+    virtual void spawnShardTrails() {
+        if(!allowItemShards) {
+            return;
+        }
+
+        int successfulSpawns = 0; // Debugging
+        int trailCount = (nodeActors.size() + 74) / 75;
+
+        if (trailCount <= 0) return;
+
+        // Make a modifiable copy of nodeActors
+        array<PathNode> availableNodes;
+        availableNodes.copy(nodeActors);
+
+        for (int i = 0; i < trailCount; i++) {
+            if (availableNodes.size() < 2) break; // Not enough nodes left to pair
+
+            PathNode chosenNode;
+            PathNode destinationNode;
+
+            string itemShard = random(0,1) == 1 ? "HealthShardPickup" : "ArmorShardPickup";
+
+            int maxAttempts = 800;
+            int attempts = 0;
+
+            while (!chosenNode && attempts < maxAttempts && availableNodes.size() > 0) {
+                attempts++;
+                int index = random(0, availableNodes.size() - 1);
+                PathNode randomNode = availableNodes[index];
+
+                if (randomNode && randomNode.links.size() > 0 && randomNode.links.size() <= 2) {
+                    PathLink randomLink = randomNode.links[random(0, randomNode.links.size() - 1)];
+                    PathNode linkedNode = randomLink.node;
+
+                    if (linkedNode && abs(randomNode.pos.z - linkedNode.pos.z) <= 10) {
+                        chosenNode = randomNode;
+                        destinationNode = linkedNode;
+
+                        // Remove used nodes from availableNodes so it's never used again
+                        for (int j = 0; j < availableNodes.size(); j++) {
+                            if (availableNodes[j] == chosenNode || availableNodes[j] == destinationNode) {
+                                availableNodes.Delete (j);
+                                j--; 
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!destinationNode || !chosenNode) continue;
+
+            successfulSpawns++;
+
+            chosenNode.A_FACE(destinationNode);
+
+            int nodeDistance = chosenNode.distance2D(destinationNode);
+
+            // Spawn a trail of items from this node to the next
+            for (int x = 0; x < nodeDistance; x += 50) {
+                actor shardItem;
+                bool succ;
+                [succ, shardItem] = chosenNode.A_SPAWNITEMEX(itemShard, x);
+                if (shardItem) {
+                    shardItem.angle = random(0, 360);
+                }
+            }
+        }
+
+        if (developer) console.printf("\c[green]Randomizer\c-... Spawned %d Shard Trails", successfulSpawns);
+    }
+
+        virtual void spawnExtraClutter() {
+        if(clutterChance == 0) {
+            return;
+        }
+
+        if(developer) console.printf("\c[green]Randomizer\c-... Spawning clutter...");
+
+        int totalObjects;
+        array<PickupableDecoration> foundClutterProps; // The ones who already exist in the map when the level is loaded.
+        ThinkerIterator it = ThinkerIterator.Create("PickupableDecoration");
+        PickupableDecoration clutterProp = PickupableDecoration(it.Next());
+        for (; clutterProp; clutterProp = PickupableDecoration(it.Next())) {
+			if(clutterProp.radius <= 14 && clutterProp.height <= 15 && !clutterProp.bEssential) {
+                foundClutterProps.push(clutterProp);
+            }
+		}
+
+        // Now that we have a pool to work with, add a chance to spawn one near clutter.
+        for(int x=0;x<foundClutterProps.size();x++) {
+            PickupableDecoration pd = foundClutterProps[x];
+            int dice = random(0,100);
+            actor randomClutter = foundClutterProps[random(0,foundClutterProps.size()-1)];
+            if(dice <= 100) {
+                actor spawnedObject;
+                bool succ;
+                [succ, spawnedObject] = pd.A_SpawnItemEx(randomClutter.getClassName(), random(-25,25), random(-25,25), 0);
+
+                // Destroy if stuck
+                if(spawnedObject && !spawnedObject.TryMove(spawnedObject.pos.xy, 0)) { 
+                    spawnedObject.destroy();
+                    continue;
+                }
+                totalObjects++;
+            }
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... %d additional bits of clutter has spawned.", totalObjects);
+    }
+
+    virtual void spawnClutter()
+    {
+        if(!coverChance || clutterTable.size() == 0)
+        {
+            return;
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... Spawning additional cover...");
+        for(int x=0;x<nodeActors.size();x++)
+        {
+            PathNode nodeActor = nodeActors[x];
+            if(frandom(0,100) <= coverChance)
+            {
+                spawnAtNode(nodeActor, clutterTable[random(0,clutterTable.size()-1)], NODE_SPAWN_WALL);
+            }
+        }       
+    }
+
+    // Randomizer Mode uses both Pathnodes and clutter objects to mark as potential spawns for items.
+    // This function stores every available object in a list and marks them as replaceable.
+    virtual void storeReplaceableProps()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Finding all replaceable actors");
+        // Store all items in a list
+        ThinkerIterator it = ThinkerIterator.Create("SelacoActor");
+        SelacoActor replaceableProp = SelacoActor(it.Next());
+
+        for (; replaceableProp; replaceableProp = SelacoActor(it.Next())) {
+            // Only ones that aren't important to the game
+            if( replaceableProp.bAllowRandomizerReplacement && replaceableProp.tid == 0 
+                && replaceableProp.getSpawnedLevelNum() == level.levelNum   // Don't randomize if this object belongs to another map
+                && replaceableProp.travelCount <= 0                         // Don't randomize if this object has travelled
+                && replaceableProp.special == 0 
+                && !replaceableProp.bCountSecret 
+                && (replaceableProp.CurSector.flags & (Sector.SECF_SECRET|Sector.SECF_WASSECRET)) == 0                  // Both secret checks are necessary, this may run before the secret flag is set
+                && (replaceableProp.CurSector.special & 1024) == 0                                                      // Both secret checks are necessary, this may run before the secret flag is set
+            ) {
+                PickupableDecoration pu = PickupableDecoration(replaceableProp);
+                if(pu && pu.pickedUpOwner) continue;    // Don't randomize something that is being picked up
+
+                replacableProps.push(replaceableProp);
+            }
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... Found %d actors to replace if needed", replacableProps.size());     
+    }
+
+    virtual void randomizeGifts()
+    {
+        if(!allowRandomGifts && random(0,100) > MYSTERYBOX_CHANCE)
+        {
+            return;
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... Spawning a random gift");
+        array<String> acceptedSpawns;
+
+        // Spawn one
+        if(replacableProps.size())
+        {   
+            for(int x=0;x<allWeaponPickups.size();x++)
+            {
+                float dice = frandom(0,99);
+                class<Actor> cls = weaponPickups[x];
+                float weaponChance = WeaponPickup(GetDefaultByType(cls)).randomizerSpawnChance;
+                if(dice <= weaponChance)
+                {
+                    acceptedSpawns.push(cls.getClassName());
+                }
+            }
+
+            string weapon = acceptedSpawns[random(0,acceptedSpawns.size()-1)];
+            actor presentActor;
+            presentActor = spawnReplacementActor("PRESENT_ITEM");
+            if(presentActor)
+            {
+                Present_item(presentActor).assignedWeapon = weapon;
+            }
+        }
+    }
+
+    // Find one of our stored props and replace it with an ammo pickup
+    virtual actor spawnReplacementActor(string replacementActor)
+    {
+        actor spawnedActor;
+        bool succ;
+        if(!replacableProps.size())
+        {
+            return null;
+        }
+        // Pick a random prop
+        int indexPoiner = random(0, replacableProps.size()-1);
+        actor spawner = replacableProps[indexPoiner];    
+        if(!spawner)
+        {
+            return null;
+        }
+
+        // Spawn the given actor on the place of the selected prop
+        [succ, spawnedActor] = spawner.A_SPAWNITEMEX(replacementActor); 
+        if(spawner.bDormant && spawnedActor) {
+            if(developer) console.printf("Replacing dormant actor with a new dormant actor");
+            spawnedActor.bDormant = true;
+        }
+
+        // Remove the prop
+        spawner.destroy();
+        replacableProps.delete(indexPoiner);
+        
+        return spawnedActor;
+    }
+
+    // Relocate enemies
+    virtual void relocateEnemies()
+    {
+        int enemiesMoved;
+        if(!relocateEnemyPositions)
+        {
+            return;
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... Relocating spawned enemies", enemySpawns.size());
+        // Find all enemies and get a nearby pathnode
+        for(int x=0;x<enemySpawns.size();x++)
+        {
+            bool shuffled = false;
+            SelacoEnemy enemy = enemySpawns[x];
+            array<PathNode> validMoves;
+            for(int j=0;j<nodeActors.size();j++)
+            {
+                PathNode nodeActor = nodeActors[j];
+                // Found one close to this enemy type. Start moving him between 2 links
+                if(!shuffled && nodeActor.links.size() && nodeActor.Distance3D(enemy) <= 500 && nodeActor.checkSight(enemy))
+                {
+                    for(int k=0;k<nodeActor.links.size();k++)
+                    {
+                        PathNode linkedNode = nodeActor.links[k].node;
+                        if(!(linkedNode is "DoorNode") && enemy.tryMove(linkedNode.pos.xy, 0, 0))
+                        {
+                            validMoves.push(linkedNode);
+                        }
+                    }
+                }
+            }
+            if(validMoves.size())
+            {
+                enemiesMoved++;
+                PathNode randomNode = validMoves[random(0,validMoves.size()-1)];
+                enemy.setOrigin((randomNode.pos), false);
+
+                // Just for fun.
+                enemy.A_ChangeVelocity(frandom(-8,8), frandom(-8,8));
+            }
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... A total of %d enemies have been moved to a new location", enemiesMoved);
+    }
+
+    virtual void storeAllSpawnedEnemies()
+    {
+
+        if(developer) console.printf("\c[green]Randomizer\c-... Finding all enemies in the level", enemyThings.size());
+
+        // Get all available enemies in the level
+        ThinkerIterator it = ThinkerIterator.Create("SelacoEnemy");
+        SelacoEnemy enemyThing = SelacoEnemy(it.Next());
+
+        // Store all spawned enemies in a list
+        for (; enemyThing; enemyThing = SelacoEnemy(it.Next())) {
+            enemySpawns.push(enemyThing);
+        }    
+        
+        // Store all available enemies in a list
+		int totalClasses = AllClasses.size();
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // Get a list of all available enemies
+            if(AllClasses[x] is 'SelacoEnemy') 
+            {
+                let def = SelacoEnemy(GetDefaultByType((class<SelacoEnemy>)(AllClasses[x])));
+                // Ensure we only take actors that actually have an Weapon item attached to them
+                if(def.enemyType != ENEMY_Robot && def.randomizerSpawnChance > 0)
+                {
+                    enemyThings.push(def.getClassName());
+                }
+            }
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... A total of %d Enemy Things are added to the list", enemyThings.size());
+    }
+
+    // Used to add bias to higher spawn chances so we get more enforcers and fewer rifleman
+    // The enemy roster in Chapter 1 makes this a little boring because there's not much variety, but whatever.
+    virtual float adjustEnemySpawnChance(float spawnChance) {
+        // Convert baseChance
+        float normalized = spawnChance / 100.0;
+
+        // Adjust with high-tier frequency bias
+        float adjusted = pow(normalized, 1.0 / enemyHighTierFrequency);
+
+        // Convert back to 1-100 range
+        float spawnChance = adjusted * 100.0;
+
+        return spawnChance;
+    }
+
+    virtual void replaceEnemyType()
+    {        
+        if(!shuffleEnemySpawns)
+        {
+            return;
+        }
+
+        // Go over all spawned enemies and replace them with something else.
+        for(int x=0;x<enemySpawns.size();x++)
+        {
+            // Ignore robots
+            if(enemySpawns[x].enemyType == ENEMY_Robot || enemySpawns[x] is "SentryGunAlienTurret")
+            {
+                continue;
+            }
+
+            // Check spawn changes
+            array<string> acceptedSpawns;
+            for(int j=0;j<enemyPool.size();j++)
+            {
+                class<Actor> cls = enemyPool[j];
+                int spawnChance = SelacoEnemy(GetDefaultByType(cls)).randomizerSpawnChance;  
+                spawnChance = adjustEnemySpawnChance(spawnChance);
+                int dice = random(0,99);
+                if(dice <= spawnChance)
+                {
+                    acceptedSpawns.push(cls.getClassName());
+                }
+            }
+
+            // No accepted spawns, abadon early.
+            if(acceptedSpawns.size() == 0) {
+                return;
+            }
+            // Spawn a random enemy from the potential spawns we've found.
+            SelacoEnemy enemy = enemySpawns[x];
+            string randomEnemyActor = acceptedSpawns[random(0,acceptedSpawns.size()-1)];
+            if(enemy && randomEnemyActor != "")
+            {
+                if(enemy.bTrap)
+                {
+                    continue;
+                }
+                actor newEnemy;
+                bool succ;
+                [succ, newEnemy] = enemy.A_SpawnItemEX(randomEnemyActor, flags:SXF_NOCHECKPOSITION, tid:enemy.tid);
+                if(newEnemy)
+                {
+                    newEnemy.args[0] = enemy.args[0];
+                    newEnemy.args[1] = enemy.args[1];
+                    newEnemy.args[2] = enemy.args[2];
+                    newEnemy.args[3] = enemy.args[3];
+                    newEnemy.args[4] = enemy.args[4];
+                    newEnemy.special = enemy.special;
+                }
+                enemy.destroy();
+            }
+        }
+    }
+
+
+    virtual void randomizeFood()
+    {
+        if(!allowRandomizedFoodItems)
+        {
+            return;
+        }
+
+        if(developer) console.printf("\c[green]Randomizer\c-... Randomizing Food Items");
+        // Get all available food items in the level
+        ThinkerIterator it = ThinkerIterator.Create("FoodItem");
+        FoodItem foodThing = FoodItem(it.Next());
+
+        array<FoodItem> foodSpawns;
+        array<String> foodThings;
+        // Store all spawned Food Items in a list
+        for (; foodThing; foodThing = FoodItem(it.Next())) {
+            foodSpawns.push(foodThing);
+        }     
+
+        // Store all available food classes in a list
+		int totalClasses = AllClasses.size();
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // Get a list of all available food items
+            if(AllClasses[x] is 'FoodItem') 
+            {
+                let def = FoodItem(GetDefaultByType((class<FoodItem>)(AllClasses[x])));
+                // Ensure we only take actors that actually have an Weapon item attached to them
+                if(def.healAmount > 0 && def.getClassName() != "FoodItem" && def.getClassName() != "SodaCanGigantic")
+                {
+                    foodThings.push(def.getClassName());
+                }
+            }
+        }
+
+        // Go over all spawned Food Things and replace them with something else.
+        for(int x=0;x<foodSpawns.size();x++)
+        {
+            FoodItem food = foodSpawns[x];
+            string randomFoodActor = foodThings[random(0,foodThings.size()-1)];
+            if(food)
+            {
+                actor replacedActor;
+                bool succ;
+                [succ, replacedActor] = food.A_SpawnItemEX(randomFoodActor);
+                if(food.foodPlate && replacedActor)
+                {
+                    FoodItem(replacedActor).bSpawnPlate = false;
+                    FoodItem(replacedActor).foodPlate = food.foodplate;
+                }
+                food.destroy();
+            }
+        }
+    }
+
+    // Prepare all guns we want to spawn in this level
+    virtual void prepareWeaponSpawns()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Preparing Weapon Spawns");
+        int weaponsToSpawn = random(1, RANDOMIZER_WEAPON_MAX);
+        for(int x=0;x<weaponsToSpawn;x++)
+        {
+            array<string> potentialWeapons;
+            int randIndex = random(0,weaponPickups.size()-1);
+            // Go through all the guns and get their drop
+            for(int x=0;x<allWeaponPickups.size();x++)
+            {
+                float dice = frandom(0,99);
+                class<Actor> cls = weaponPickups[x];
+                float weaponChance = WeaponPickup(GetDefaultByType(cls)).randomizerSpawnChance;
+                if(dice <= weaponChance)
+                {
+                    potentialWeapons.push(cls.getClassName());
+                }
+            }
+            // Select a random one from the guns we found.
+            weaponPool.push(potentialWeapons[random(0,potentialWeapons.size()-1)]);
+        }         
+    }
+
+    virtual void populateLevel()
+    {
+        if(weaponSpawningStyle >= WEAPONSPAWN_SWAPPED)
+        {
+            swapAllWeapons();
+        }
+        if(weaponSpawningStyle == WEAPONSPAWN_FULLRANDOM)
+        {
+            spawnRandomWeapons();
+        }
+        createDropTables();
+        storeReplaceableProps();
+        createEnemyPool();
+        storeAllSpawnedEnemies();
+        spawnAmmo();
+        spawnTraps();
+        spawnRandomItems();
+        spawnVACBots();
+        spawnClutter();
+        spawnItemCrates();
+        spawnHazards();
+        spawnHealthItems();
+        spawnExtraEnemies();
+        spawnHealth();
+        spawnCombatChests();
+    }
+
+    virtual void spawnCombatChests() {
+        if(!allowCombatChests || random(0,100) <= 80 || nodeActors.size() == 0) {
+            return;
+        }
+        PathNode nodeActor = nodeActors[random(0,nodeActors.size()-1)];
+        actor chest;
+        bool succ;
+        [succ, chest] = nodeActor.A_SPAWNITEMEX("CombatChest");
+        if(chest is "CombatChest") {
+            CombatChest(chest).getPathNetwork(nodeActor);
+        }     
+        console.printf("\c[green]Randomizer...\c- A Combat Chest has been spawned");
+    }
+
+    virtual void spawnAtNode(PathNode node, string spawnActor, int flags = NODE_SPAWN_RANDOM)
+    {
+        // Check if connection
+        if(node.links.size() == 0 || spawnActor == "")
+        {
+            return;
+        }
+
+        // Set up
+        actor spawnedActor;
+        bool succ;
+        int xOffset, yOffset;
+        int spawnHeight;
+        int spawnVelocity;
+        class<Actor> cls = spawnActor;
+        int actorRadius = GetDefaultByType(cls).radius;
+        PathLink randomLink;
+        // Go through all links on this node until we find one that has space.
+        for(int x=0;x<node.links.size();x++)
+        {
+            if(node.links[x].radius >= 35)
+            {
+                randomLink = node.links[x];
+            }
+        }
+
+        // No link? Cancel.
+        if(!randomLink)
+        {
+            return;
+        }
+
+        // Face the node to make spawner easier
+        node.A_FACE(randomLink.node);
+
+        // Add spawn rules
+        if(flags & NODE_SPAWN_RANDOM) {
+            xOffset = random(0,randomLink.cost);
+            yOffset = random(0, randomLink.radius);    
+        } else if(flags & NODE_SPAWN_STRAIGHT) {
+            xOffset = random(0,randomLink.cost);
+        } 
+        else if(flags & NODE_SPAWN_WALL) 
+        {
+            spawnVelocity = 15;
+            xOffset = random(0,randomLink.cost);
+            yOffset = randomLink.radius;
+        }
+
+        if(flags & NODE_SPAWN_HIGH_UP)
+        {
+            spawnHeight = 92;
+        }
+
+        // Randomize side
+        yOffset*=random(0,1) ? -1 : 1;
+
+        [succ, spawnedActor] = node.A_SPAWNITEMEX(spawnActor, xOffset, yOffset-actorRadius, spawnHeight, 0, spawnVelocity);
+        if(spawnedActor)
+        {
+            if(spawnedActor.CheckBlock())
+            {
+                spawnedActor.destroy();
+            }
+            // In case we want to run special logic. Defaults to blank
+            if(spawnedActor is "SelacoActor") {
+                SelacoActor(spawnedActor).isRandomizedSpawn();
+            }
+            //spawnedActor.SetOrigin((spawnedActor.pos.x, spawnedActor.pos.y, spawnedActor.floorz), false);
+            spawnedActor.angle+=frandom(-70,70);
+        }
+    }
+
+    // Find all the guns and swap them out with something else.
+    virtual void swapAllWeapons()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Swapping out some guns");
+        ThinkerIterator it = ThinkerIterator.Create("WeaponPickup");
+        WeaponPickup weaponPickupActor = WeaponPickup(it.Next());
+        array<WeaponPickup> foundWeapons;
+        for (; weaponPickupActor; weaponPickupActor = WeaponPickup(it.Next())) {
+            foundWeapons.push(weaponPickupActor);
+        }
+
+        // Go through all weapons we found and replace them
+        for(int x=0;x<foundWeapons.size();x++)
+        {
+
+            if(level.mapName ~== "SE_07A" && foundWeapons[x] is "RAILGUN_PICKUP") {
+                continue;
+            }
+
+            array<string> potentialSpawn;
+            // Go through all the guns and get their drop
+            for(int x=0;x<allWeaponPickups.size();x++)
+            {
+                float dice = frandom(0,99);
+                class<Actor> cls = weaponPickups[x];
+                float weaponChance = WeaponPickup(GetDefaultByType(cls)).randomizerSpawnChance;
+                if(dice <= weaponChance)
+                {
+                    potentialSpawn.push(cls.getClassName());
+                }
+            }
+
+            if(potentialSpawn.size() > 0)
+            {
+                // The weapon we swapped it with.
+                actor swappedWeapon; 
+                bool succ;
+                // Remember special tag
+                int specialTag = foundWeapons[x].special;
+                int arg0 = foundWeapons[x].args[0];
+                int arg1 = foundWeapons[x].args[1];
+                int arg2 = foundWeapons[x].args[2];
+                int arg3 = foundWeapons[x].args[3];
+
+                // Get a random weapon
+                string randomWeapon = potentialSpawn[random(0, potentialSpawn.size()-1)];
+
+                // Swap it
+                [succ, swappedWeapon] = foundWeapons[x].A_SPAWNITEMEX(randomWeapon);
+                foundWeapons[x].destroy();
+                if(swappedWeapon)
+                {
+                    swappedWeapon.special = specialTag;
+                    swappedWeapon.args[0] = arg0;
+                    swappedWeapon.args[1] = arg1;
+                    swappedWeapon.args[2] = arg2;
+                    swappedWeapon.args[3] = arg3;
+                }
+            }
+        }
+    }
+
+    virtual void swapPickupLocations()
+    {
+        if(!allowShufflePickups)
+        {
+            return;
+        }
+        int itemsMoved = 0;
+        if(developer) console.printf("\c[green]Randomizer\c-... Swapping pickup locations");
+
+        
+        array<SelacoItem> swappableItems;
+
+        // Go through all spawned items and only keep items that can be swapped
+        for(int x=0;x<spawnedItemPickups.size();x++)
+        {
+            SelacoItem pickupActor = spawnedItemPickups[x];
+            if(pickupActor && pickupActor.bAllowRandomizerSwapping && !(pickupActor.bUpgradeItem))
+            {
+                swappableItems.push(pickupActor);
+            }
+        }
+
+        // Store a copy of all swappable items into a temporary list
+        array<SelacoItem> tempItems;
+        tempItems.copy(swappableItems);
+    
+        // Shuffle the temporary items array to randomize the destinations
+        for (int i=0;i<tempItems.size();i++)
+        {
+            int swapIndex = random(0, tempItems.size() - 1);
+            // Swap elements
+            SelacoItem temp = tempItems[i];
+            tempItems[i] = tempItems[swapIndex];
+            tempItems[swapIndex] = temp;
+        }
+    
+        // Swap locations of all pickups using the shuffled tempItems array
+        for (int x=0; x<swappableItems.size();x++)
+        {
+            SelacoItem swappingActor = swappableItems[x];
+            SelacoItem swappingDestination = tempItems[x];
+
+            if(swappingDestination.wasDormant) {
+                if(developer) console.printf("Replacing a dormant actor");
+                bool swapWasDormant = swappingActor.bDormant;
+                swappingActor.bDormant = true;
+                swappingActor.wasDormant = true;
+                swappingActor.SpawnFlags |= MTF_DORMANT;    // Necessary for shrink to happen in cabinets
+                swappingActor.deactivate(swappingActor);
+                
+                swappingDestination.bDormant = swapWasDormant;
+                swappingDestination.wasDormant = swapWasDormant;
+                if(!swapWasDormant) {
+                    swappingDestination.SpawnFlags &= ~MTF_DORMANT;
+                    swappingDestination.activate(swappingDestination);
+                } else {
+                    swappingDestination.SpawnFlags |= MTF_DORMANT;
+                    swappingDestination.deactivate(swappingDestination);
+                }
+                
+                int oldTID = swappingActor.tid;
+                swappingActor.changeTID(swappingDestination.tid);
+                swappingDestination.changeTID(oldTID);
+            } else if(swappingActor.wasDormant) {
+                if(developer) console.printf("Replacing a non-dormant actor with dormant");
+                bool swapWasDormant = swappingDestination.bDormant;
+                swappingActor.bDormant = swapWasDormant;
+                swappingActor.wasDormant = swapWasDormant;
+                if(!swapWasDormant) {
+                    swappingActor.SpawnFlags &= ~MTF_DORMANT;
+                    swappingActor.activate(swappingDestination);
+                } else {
+                    swappingActor.SpawnFlags |= MTF_DORMANT;
+                    swappingActor.deactivate(swappingDestination);
+                }
+
+                swappingDestination.bDormant = true;
+                swappingDestination.wasDormant = true;
+                swappingDestination.SpawnFlags |= MTF_DORMANT;
+                swappingDestination.deactivate(swappingDestination);
+
+                int oldTID = swappingActor.tid;
+                swappingActor.changeTID(swappingDestination.tid);
+                swappingDestination.changeTID(oldTID);
+            }
+
+            itemsMoved++;
+
+            // Trade positions with eachother
+            vector3 destinationPos = swappingDestination.pos;
+            vector3 actorPos = swappingActor.pos;
+            int actorAngle = swappingActor.angle;
+            int destinationAngle = swappingDestination.angle;
+            
+            swappingActor.setOrigin(destinationPos, false);
+            swappingActor.angle = destinationAngle;
+            swappingDestination.setOrigin(actorPos, false);
+            swappingDestination.angle = actorAngle;
+            
+            swappingActor.OnRandomizerSwapped(swappingDestination);
+            swappingDestination.OnRandomizerSwapped(swappingActor);
+        }  
+        if(developer) console.printf("\c[green]Randomizer\c-... A total of %d pickups have been moved", itemsMoved);
+    }
+
+    virtual void spawnHazards()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Spawning random hazards");
+        if(hazardChance)
+        {
+            for(int x=0;x<nodeActors.size();x++)
+            {
+                PathNode nodeActor = nodeActors[x];
+                if(frandom(0,100) <= hazardChance)
+                {
+                    spawnAtNode(nodeActor, hazardSpawn[random(0,hazardSpawn.size()-1)]);
+                }
+            }              
+        }       
+    }
+
+    virtual void spawnRandomWeapons()
+    {
+        // Delete all guns in the map.
+        ThinkerIterator it = ThinkerIterator.Create("WeaponPickup");
+        WeaponPickup weapon = WeaponPickup(it.Next());
+
+        // Wipe some ammo
+        for (; weapon; weapon = WeaponPickup(it.Next())) {
+            if(weapon.special == 0)
+            {
+                weapon.destroy();
+            } 
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... Spawning random guns");
+        // Spawn all prepared guns random nodes
+        for(int x=0;x<weaponPool.size();x++)
+        {
+            if(weaponPool[x] && nodeActors.size())
+            {
+                string randomWeapon = weaponPool[x];
+                actor nodeActor = nodeActors[random(0,nodeActors.size()-1)];
+                array<string> potentialWeapons;
+                int randIndex = random(0,weaponPickups.size()-1);
+                // Go through all the guns and get their drop
+                for(int x=0;x<allWeaponPickups.size();x++)
+                {
+                    float dice = frandom(0,99);
+                    class<Actor> cls = weaponPickups[x];
+                    float weaponChance = WeaponPickup(GetDefaultByType(cls)).randomizerSpawnChance;
+                    if(dice <= weaponChance)
+                    {
+                        potentialWeapons.push(cls.getClassName());
+                    }
+                }
+                spawnWeapon(nodeActor, potentialWeapons[random(0,potentialWeapons.size()-1)]);
+            }
+        }      
+    }
+
+    virtual void spawnPickups(actor node, array<string> items, float chance, int spawnType = NODE_SPAWN_RANDOM)
+    {
+        if(!items.size()) {
+            return;
+        }
+        // Spawn Item Pickups
+        if(frandom(0,100) <= chance) 
+        {
+
+            // Set up;
+            PathNode itemNode = nodeActors[random(0,nodeActors.size()-1)];
+            int wallsHit = 0;
+            int randAngle;
+            actor itemActor;
+            bool itemSuccess;
+
+            // Shoot linetraces on top of gift to look for a wall.
+            FLineTraceData RemoteRay;
+            for(int searchAngle = 0;searchAngle<=360;searchAngle+=90) 
+            {
+                itemNode.LineTrace(searchAngle,600, 0,offsetz: itemNode.height+25,data: RemoteRay);
+                if(remoteRay.HitType == TRACE_HITWALL) {
+                    wallsHit++;
+                    wallDistance.push(remoteRay.distance);
+                    wallAngle.push(searchAngle);
+                    randAngle = searchAngle;
+                }
+            }
+            string itemToSpawn = items[random(0,items.size()-1)];
+            if(random(0,1) == 1)
+            {
+                spawnAtNode(itemNode, itemToSpawn, spawnType);
+            }
+            else
+            {
+                spawnReplacementActor(itemToSpawn);
+            }
+        }
+    }
+
+    virtual void spawnVACBots()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Powering up random VAC-Bots");
+        if(vacBotChance)
+        {
+            for(int x=0;x<nodeActors.size();x++)
+            {
+                actor nodeActor = nodeActors[x];
+                if(frandom(0,100) <= vacBotChance)
+                {
+                    nodeActor.A_SPAWNITEMEX("VAC_BOT");
+                }
+            }     
+        }
+    }
+
+    virtual void spawnAmmo()
+    {
+        if(!ammoChance)
+        {
+            return;
+        }
+        if(developer)  console.printf("\c[green]Randomizer\c-... Populating the level with ammo");
+        for(int x=0;x<nodeActors.size();x++)
+        {
+            rollSpawnChances(ammoPickups, potentialSpawns);
+            actor nodeActor = nodeActors[x];
+            spawnPickups(nodeActor, potentialSpawns, ammoChance, NODE_SPAWN_HIGH_UP | NODE_SPAWN_WALL);
+        }      
+    }
+
+    virtual void spawnItemCrates()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Populating the level with crates");
+        if(itemCrateChance)
+        {
+            for(int x=0;x<nodeActors.size();x++)
+            {
+                actor nodeActor = nodeActors[x];
+                spawnPickups(nodeActor, itemCrates, itemCrateChance, NODE_SPAWN_WALL);
+            }              
+        }
+    }
+
+    virtual void storeItemPickups()
+    {
+        ThinkerIterator it = ThinkerIterator.Create("SelacoItem");
+        SelacoItem pickupItem = SelacoItem(it.Next());
+
+        // Wipe some ammo
+        for (; pickupItem; pickupItem = SelacoItem(it.Next())) {
+           if(  !pickupItem.bEssential 
+                && !pickupItem.bCountSecret 
+                && !(pickupItem.special) 
+                && !(pickupItem is "WeaponPickup")
+                && (pickupItem.CurSector.flags & (Sector.SECF_SECRET|Sector.SECF_WASSECRET)) == 0                  // Both secret checks are necessary, this may run before the secret flag is set
+                && (pickupItem.CurSector.special & 1024) == 0                                                      // Both secret checks are necessary, this may run before the secret flag is set
+            ) {
+                spawnedItemPickups.push(pickupItem);
+            } 
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... Stored a total of %d items in the Spawned Pickups table", spawnedItemPickups.size());
+    }
+
+    virtual void rollSpawnChances(array<string> spawnTable, out array<string> potentialSpawns)
+    {
+        // Clear the array first if needed
+        potentialSpawns.clear();
+    
+        // Check spawn chances
+        for(int j=0; j < spawnTable.size(); j++)
+        {
+            class<Actor> cls = spawnTable[j];
+            if(!cls)
+            {
+                continue;
+            }
+            int spawnChance = SelacoItem(GetDefaultByType(cls)).randomizerSpawnChance;  
+            int dice = random(0, 99);
+            if(dice <= spawnChance)
+            {
+                potentialSpawns.push(cls.getClassName());
+            }
+        }
+    }
+
+    virtual void spawnWeapon(actor node, string weaponName)
+    {
+        actor weaponSpawn = node.spawn(weaponName,(node.pos.x, node.pos.y, node.floorz));
+        array<string> ammoPickups;
+        string ammoToSpawn;
+        if(weaponSpawn) {
+            spawnedWeapons.push(WeaponPickup(weaponSpawn));
+        }
+        WeaponPickup weaponPickup = WeaponPickup(weaponSpawn);
+
+        // Spawn ammo alongside the weapon
+        if(random(0,99) <= RANDOMIZER_WEAPONWITHAMMO_CHANCE && !immersiveMode)
+        {
+            // Find suitable ammo
+            int totalClasses = AllClasses.size();
+            for(int x = 0; x < AllClasses.Size(); x++) 
+            {
+                if(AllClasses[x] is 'ammoPickup') 
+                {
+                    let def = ammoPickup(GetDefaultByType((class<ammoPickup>)(AllClasses[x])));
+                    if(def.pickupType == weaponPickup.pickupType && def.pickupCount > 1)
+                    {
+                        ammoPickups.push(def.getClassName());
+                    }
+                }
+            }
+
+            if(ammoPickups.size())
+            {
+                // Pick one of the found ammo types
+                ammoToSpawn = ammoPickups[random(0,ammoPickups.size()-1)];
+
+                // Spawn it
+                node.A_SPAWNITEMEX(ammoToSpawn, 48);
+                node.A_SPAWNITEMEX(ammoToSpawn, -48);
+            }
+        }
+    }
+
+    virtual void spawnRandomItems()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Spawning random items");
+        for(int x = 0; x < nodeActors.size(); x++)
+        {
+            actor nodeActor = nodeActors[x];
+            rollSpawnChances(itemDropTable, potentialSpawns); 
+            spawnPickups(nodeActor, potentialSpawns, ammoChance);
+        }      
+    }
+
+    virtual void spawnHealthItems()
+    {
+        if(!healthChance)
+        {
+            return;
+        }
+        for(int x=0;x<nodeActors.size();x++)
+        {
+            Pathnode nodeActor = nodeActors[x];
+            rollSpawnChances(itemDropTable, potentialSpawns);
+            spawnPickups(nodeActor, potentialSpawns, healthChance);
+        }  
+    }
+
+    virtual void spawnTraps()
+    {
+        if(!trapChance)
+        {
+            return;
+        }
+        if(developer) console.printf("\c[green]Randomizer\c-... Spawning additional traps and hazards");
+        array<string> availableTraps;
+
+        // Find all available traps
+        int totalClasses = AllClasses.size();
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            if(AllClasses[x] is 'SelacoActor') 
+            {
+                let def = SelacoActor(GetDefaultByType((class<SelacoActor>)(AllClasses[x])));
+                if(def.bTrap)
+                {
+                    availableTraps.push(def.getclassName());
+                }
+            }
+        }
+
+        // Spawn found traps at random nodes
+        for(int x=0;x<nodeActors.size();x++)
+        {
+            Pathnode nodeActor = nodeActors[x];
+            string selectedTraps = availableTraps[random(0, availableTraps.size()-1)];
+            if(trapChance && frandom(0,100) <= trapChance)
+            {
+                spawnAtNode(nodeActor, selectedTraps, NODE_SPAWN_WALL);
+            }
+        }         
+    }
+    
+    virtual void wipePickups()
+    {
+        if(!compensatePickups)
+        {
+            return;
+        }
+        int itemsRemoved;
+        if(developer) console.printf("\c[green]Randomizer\c-... Removing a few item pickups");
+        // Wipe some ammo
+        for (int x=0;x<spawnedItemPickups.size();x++)
+        {
+            let pickup = spawnedItemPickups[x];
+
+            if( pickup.bUpgradeItem  || pickup is "WeaponKit" || pickup.wasDormant || pickup.bInsideCabinet) 
+                continue;
+
+
+            if(random(0,99) <= RANDOMIZER_WORLD_DESPAWN_PERCENTAGE && pickup)
+            {
+                itemsRemoved++;
+                if(pickup is "FlaredPickup")
+                {
+                    pickup.wake();
+                    FlaredPickup(pickup).cleanup();
+                }
+                pickup.destroy();
+                spawnedItemPickups.delete(x);
+            }
+        }      
+        if(developer) console.printf("\c[green]Randomizer\c-... A total of %d pickups been removed", itemsRemoved);
+    }
+
+
+    int rarityID;
+    virtual float assignActorRarity(float randomizationMultiplier = 1.0)
+    {
+        // Apply decay to the randomizationMultiplier
+        if (allowTieredProgression) {
+            float levelFactor = pow(0.825, level.levelNum); // Multiplicativeavvijodgijdfigodf decay
+            randomizationMultiplier *= levelFactor;
+        } else {   
+            randomizationMultiplier*=0.75;
+        }
+    
+        // Ensure randomizationMultiplier is at least 0.5
+        float adjustedMultiplier = max(0.5, randomizationMultiplier);
+
+        // Get a random number within the adjusted multiplier range
+        float dice = frandom(0, adjustedMultiplier*100);
+
+        // Determine rarity based on the adjusted chances
+        if (dice < CHANCE_LEGENDARY)
+        {
+            rarityID = RARITY_LEGENDARY;
+        }
+        else if (dice < CHANCE_EPIC)
+        {
+            rarityID = RARITY_EPIC;
+        }
+        else if (dice < CHANCE_RARE)
+        {
+            rarityID = RARITY_RARE;
+        }
+        else if (dice < CHANCE_UNCOMMON)
+        {
+            rarityID = RARITY_UNCOMMON;
+        }
+        else
+        {
+            rarityID = RARITY_COMMON;
+        }
+    
+        return rarityID;
+    }
+
+    static clearscope string GetRarityLabel(int rarity)
+    {
+        string rarityLabel;
+        switch(rarity)
+        {
+            case RARITY_COMMON:
+                rarityLabel = string.format("\c[white](Common)");
+                break;
+            case RARITY_UNCOMMON:
+                rarityLabel = string.format("\c[cyan](Uncommon)");
+                break;
+            case RARITY_RARE:
+                rarityLabel = string.format("\c[Yellow](Rare)");
+                break;
+            case RARITY_EPIC:
+                rarityLabel = string.format("\c[Purple](Epic)");
+                break;
+            case RARITY_LEGENDARY:
+                rarityLabel = string.format("\c[orange](Legendary)");
+                break;
+        }
+        return rarityLabel;
+    }
+
+    static clearscope RandomizerHandler Instance() {
+        return RandomizerHandler(EventHandler.Find("RandomizerHandler"));
+    }
+
+
+    // Marks all items inside cabinets, so we can handle them differently
+    virtual void markCabinetPickups() {
+        Array<int> cabinetFloorIDs;
+        Array<int> cabinetSectorIDs;
+
+        // Find cabinet script lines
+        // TODO: If we have actors that trigger this, check the actors too
+        int numLines = level.lines.size();
+        for(int x = 0; x < numLines; x++) {
+            if(level.lines[x].args[0] == CABINET_SCRIPT) {
+                if(level.lines[x].args[3] != 0) {
+                    cabinetFloorIDs.push(level.lines[x].args[3]);
+                }
+            }
+        }
+
+        // Index all sectors that are cabinets
+        for(int x = 0; x < cabinetFloorIDs.size(); x++) {
+            SectorTagIterator st = Level.CreateSectorTagIterator(cabinetFloorIDs[x]);
+            int secID = st.Next();
+            while(secID > 0) {
+                cabinetSectorIDs.push(secID);
+                secID = st.Next();
+            }
+        }
+
+        // Check sectors of pickups and mark them as belonging to the cabinet
+        int numMarked = 0;
+        for(int x = 0; x < spawnedItemPickups.size(); x++) {
+            let p = spawnedItemPickups[x];
+            if(cabinetSectorIDs.find(p.CurSector.index()) < cabinetSectorIDs.size()) {
+                p.bInsideCabinet = true; 
+                numMarked++;
+            }
+        }
+
+        if(developer) Console.Printf("\c[GREEN]Randomizer\c-... %d Cabinet Lines, %d Cabinet Floors, Marked %d items that were inside a cabinet.", cabinetFloorIDs.size(), cabinetSectorIDs.size(), numMarked);
+    }
+
+    // WEAPON SPAWNING
+    virtual void populateWeaponList()
+    {
+        if(developer) console.printf("\c[green]Randomizer\c-... Populating Weapons List");
+
+		// Prepare lists for weapon pickups and player owned items
+		int totalClasses = AllClasses.size();
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // Get a list of all available weapon pickups
+            if(AllClasses[x] is 'WeaponPickup') 
+            {
+                let def = WeaponPickup(GetDefaultByType((class<WeaponPickup>)(AllClasses[x])));
+                // Ensure we only take actors that actually have an Weapon item attached to them
+                if(def.WeaponName && def.randomizerSpawnChance > 0)
+                {
+                    weaponPickups.push(def.getClassName());
+                    allWeaponPickups.push((class <WeaponPickup>)(def.getClass()));
+                }
+            }
+        
+            // Get a list of all player weapons
+            if(AllClasses[x] is 'SelacoWeapon') 
+            {
+                Inventory foundWeapon = players[consolePlayer].mo.FindInventory((class<SelacoWeapon>)(AllClasses[x]));
+                // Ensure we only take actors that actually have an Weapon item attached to them
+                if(foundWeapon)
+                {
+                    playerWeapons.push(SelacoWeapon(foundWeapon));
+                }
+            }
+        }
+    }
+
+    // Add ammo types for guns that exist in the map, or are owned by the player.
+    virtual void createDropTables()
+    {
+        healingItems.push("PortableMedkit");
+
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // ADD AMMO
+            if(AllClasses[x] is 'ammoPickup' && !(AllClasses[x] is 'AmmoPickupShard')) 
+            {
+
+                // Get ammo pickup type
+                let def = ammoPickup(GetDefaultByType((class<ammoPickup>)(AllClasses[x])));
+
+                // Cancel if it doesn't have any ammo
+                if(!def.pickupType || def.pickupCount <= 0)
+                {
+                    continue;
+                }
+
+                // Does the player have a weapon we need to spawn ammo for?
+                for(int x=0;x<playerWeapons.size();x++)
+                {
+                    if(playerWeapons[x].AmmoType1 && def.pickupType && playerWeapons[x].AmmoType1 is def.pickupType)
+                    {
+                        itemDropTable.push(def.getClassName());
+                        ammoPickups.push(def.getClassName());
+                        continue;                      
+                    }
+                }
+
+                // Is there a weapon in the map that we need to spawn ammo for?
+                for(int x=0;x<spawnedWeapons.size();x++)
+                {
+                    if(spawnedWeapons[x] && def.pickupType && spawnedWeapons[x].pickupType == def.pickupType.getClassName())
+                    { 
+                        itemDropTable.push(def.getClassName());
+                        ammoPickups.push(def.getClassName());
+                        continue;
+                    } 
+                }
+            }
+
+            if(AllClasses[x] is 'healingItem') 
+            {
+                // Get ammo pickup type
+                let def = healingItem(GetDefaultByType((class<healingItem>)(AllClasses[x])));
+                if(def.pickupCount > 2)
+                {
+                    healingItems.push(def.getClassName());
+                }
+            }
+
+            if(AllClasses[x] is 'ArmorPickupBase') 
+            {
+                // Get ammo pickup type
+                let def = ArmorPickupBase(GetDefaultByType((class<ArmorPickupBase>)(AllClasses[x])));
+                if(def.pickupCount > 2)
+                {
+                    healingItems.push(def.getClassName());
+                }
+            }
+             
+            // ADD OTHER ITEMS
+            if(AllClasses[x] is 'Selacoitem' && !(AllClasses[x] is 'AmmoPickup') && !(AllClasses[x] is 'WeaponPickup'))
+            {
+                // Get pickup type
+                let def = SelacoItem(GetDefaultByType((class<SelacoItem>)(AllClasses[x])));
+
+                // We only need items do something and have a spawn chance
+                if(def.pickupCount >= 0 && def.randomizerSpawnChance > 0)
+                {
+                    itemDropTable.push(def.getClassName());
+                }
+            }           
+        }
+    }
+
+	// TIL: GZDoom has no Pow?
+	float pow(float base, float exponent) {
+		float result = 1.0;
+
+		for (int i = 0; i < exponent; ++i) {
+			result *= base;
+		}
+		return result;
+	}
+
+    // Handles custom randomizer behavior.
+    // TO-DO: Move over a bunch of Die stuff here that is related to the Randomizer.
+    virtual void randomizerKill(SelacoEnemy enemy) {
+        if(!enemy) {
+            return;
+        }
+        if(enemy is "EnemySoldier" && EnemySoldier(enemy).isAmmoBearer) {
+            for(int x=0;x<AMMOBEARER_AMMO_AMOUNT;x++) {
+                if(ammoPickups.size() == 0) {
+                    return;
+                }
+                enemy.A_SpawnItemEX(ammoPickups[random(0, ammoPickups.size()-1)], 0, 0, 32, frandom(1,9), 0, frandom(3,7), angle:random(0,360));
+            
+            }
+        }
+        if(enemy is "EnemySoldier" && EnemySoldier(enemy).isArmorBearer) {
+            for(int x=0;x<AMMOBEARER_ARMOR_AMOUNT;x++) {
+                enemy.A_SpawnItemEX("ArmorShardPickup", 0, 0, frandom(24,32), frandom(1,4), 0, frandom(3,7), angle:random(0,360));
+            
+            }
+        }
+    }
+}
+
+class PRESENT_ITEM : Interactable {
+
+    void bombBeep() {
+        A_SPAWNITEMEX("BaseExplosionRadius",0,0, -25);
+        A_Playsound("script/alert4", CHAN_AUTO, 1.0, 0, 0.8, pitch:1.3);
+        A_Playsound("script/alert4", CHAN_AUTO, 1.0, 0, 0.8, pitch:1.3);
+        SpawnLight(255, 30, 30, 96, divisionSpeed:1.1);       
+    }
+
+    const TRAP_CHANCE = 2; // Chance for the present to explode 
+    int rarityToGive;
+    int frameID;
+    int itemAmount;
+    float spinSpeed;
+    float raiseSpeed;
+    array<string> dropTable;
+    float particleSpinHeight;   
+    bool hasExploded;
+    string assignedWeapon;
+    override void activate(actor activator) {
+        ActivationType = THINGSPEC_DEFAULT;
+        bUSESPECIAL = false;
+
+        // Notify the event handler that a gift has been picked up
+        XmasLevelHandler ev = XmasLevelHandler(EventHandler.Find("XmasLevelHandler"));
+        if(ev) ev.giftFound(self);
+
+        super.activate(activator);
+    }
+
+    default {
+        Activation THINGSPEC_SWITCH;
+        tag "$OBJECT_GIFT";
+        +SelacoActor.preventSleep
+        SelacoActor.UseTag "$INTERACT_OPEN";
+        +USESPECIAL;
+        +INTERPOLATEANGLES;
+        gravity 0.7;
+        radius 13;
+        Friction 0;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        spinSpeed = 1.0;
+        raiseSpeed = 2.0;
+        frameID = random(0,8);
+        rarityToGive = assignRarityID();
+    }
+
+    // Giftsplosion
+    void giveGift() {
+        hasExploded = true;
+
+        if(bCountSecret) {
+            XmasHandler ev = XmasHandler(StaticEventHandler.Find("XmasHandler"));
+            if(ev) ev.foundSecrets++;
+            players[consoleplayer].mo.GiveSecret(true, true);
+        }
+
+        // Particles & effects
+        for(int x=0;x<250;x++) {
+            A_SpawnParticle("WHITE", SPF_FULLBRIGHT , frandom(20,30), frandom(2,7), random(0,360), frandom(-3, 3), frandom(-3,3), frandom(8,16), frandom(-2,2), frandom(-2,2), frandom(-3,3));
+            A_SpawnParticle("yellow", SPF_FULLBRIGHT | SPF_RELATIVE  , frandom(20,30), frandom(2,7), random(0,360), frandom(-4, 4), frandom(-4,5), frandom(8,16), 3, 3, frandom(-3,3));
+        }
+        for(int x=15;x>0;x--) {
+            A_SPAWNITEMEX("Snowflake", frandom(-30,30), frandom(-30,30), frandom(-10,50), frandom(1,3), 0, 0, angle:random(0,360));
+        }
+        A_SpawnItemEx("XMASShockwave");
+        SpawnLight(255, 255, 160, 128, divisionSpeed: 1.1);
+
+        // CLING sound
+        A_PLAYSOUND("XMAS/GIFTEXPL", CHAN_5);
+        A_PLAYSOUND("XMAS/GIFTEXPL", CHAN_6);
+
+        // Give the weapon assigned via Randomizer
+        if(assignedWeapon)
+        {
+            // Spawn an Item
+            actor spawnedItem;
+            bool spawnItemSuccess;
+            [spawnItemSuccess, spawnedItem] = A_SPAWNITEMEX(assignedWeapon, 0, 0, 0, 0, 0, 0, angle:random(0,360));
+            if(spawnedItem && players[0].mo) 
+            {
+                WeaponPickup spawnedWeapon = WeaponPickup(spawnedItem);
+            
+                spawnedWeapon.rarityID = rarityToGive;
+                spawnedWeapon.a_face(players[0].mo);
+            }
+        } 
+        // Give random stuff instead because no assigned item
+        else 
+        {
+            // Spawn an Item
+            for(int x=0;x<itemAmount;x++) 
+            {
+                string itemToSpawn = dropTable[random(0, dropTable.size()-1)];
+                actor spawnedItem;
+                bool spawnItemSuccess;
+                [spawnItemSuccess, spawnedItem] = A_SPAWNITEMEX(itemToSpawn, 0, 0, 0, frandom(1,3), 0, 2, angle:random(0,360));
+                if(spawnedItem && players[0].mo) 
+                {
+                    spawnedItem.a_face(players[0].mo);
+                }
+            }
+        }
+    }
+
+    int assignRarityID() {
+        int rarityChance = random(0, 100);
+        if (rarityChance < 15) {              // 15% chance
+            return RARITY_LEGENDARY;
+        } else if (rarityChance < 60) {       // 45% chance
+            return RARITY_EPIC;
+        } else {                              // 60% chance 
+            return RARITY_RARE;
+        }
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE A -1 {
+                frame = frameID;
+            }
+            stop;
+        Inactive:
+        Active:
+            TNT1 A 0 {
+                A_PLAYSOUND("XMAS/USEGIFT", CHAN_AUTO, 1.0, 0, 0.8);
+                for(int x=0;x<200;x++) {
+                    A_SpawnParticle("5f90de", SPF_FULLBRIGHT , 30, frandom(1,2), random(0,360), frandom(-3, 3), frandom(-3,3), frandom(-10,height), frandom(-0.8,0.8), frandom(-0.8,0.8), frandom(0,2));
+                }
+                for(int x=0;x<90;x++) {
+                    A_SpawnParticle("5f90de", SPF_FULLBRIGHT , 30, frandom(1,2), random(0,360), frandom(3, 3), frandom(-3,3), frandom(1,3), frandom(-2,2), frandom(-2,2), frandom(0,0.1));
+                }
+            }
+        // Raise upward, fast
+            VOXE AAAA 1 {
+                roll=frandom(-2.5,2.5);
+                pitch=frandom(-2.5,2.5);
+                bNoGravity = true;
+                SetOrigin((pos.x, pos.y, pos.z+2.0), true);
+                frame = frameID;
+            }
+        // Raise upward, slow down
+            VOXE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 {
+                roll=random(-1.0,1.0);
+                pitch=random(-1.0,1.0);
+                SetOrigin((pos.x, pos.y, pos.z+raiseSpeed), true);
+                frame = frameID;
+                raiseSpeed-=0.09;
+            }
+        // Start spinning
+            VOXE A 2 {
+                roll=random(-1.0,1.0);
+                pitch=random(-1.0,1.0);
+                frame = frameID;
+            }
+            TNT1 A 0 {
+                 A_PLAYSOUND("XMAS/GIFTSPIN", CHAN_5);
+                 A_PLAYSOUND("XMAS/GIFTSPIN", CHAN_6, 0, 1.0);
+            }
+            VOXE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 {
+                roll=random(-4.0,4.0);
+                pitch=random(-4.0,4.0);
+                for(int x=0;x<5;x++) {
+                    A_SpawnParticle("WHITE", SPF_FULLBRIGHT , frandom(25,35), frandom(1,3), random(0,360), frandom(-15, 15), frandom(-15,15), frandom(-5,height), frandom(-1,1), frandom(-1,1), 0);
+                }
+                angle+=spinSpeed;
+                spinSpeed+=1.2;
+                frame = frameID;
+            }
+            TNT1 A 0 {
+                A_SetRenderStyle(1.0, STYLE_Translucent);
+/*                 if(random(0,100) <= TRAP_CHANCE) {
+                    setStateLabel("PrimeBomb");
+                } */
+            }
+        // OH GOD IT SPINS SO FAST 
+            VOXE AAAAAAAAAAAA 1 {
+                roll=random(-4.0,4.0);
+                pitch=random(-4.0,4.0);
+                for(int x=0;x<25;x++) {
+                    A_SpawnParticle("WHITE", SPF_FULLBRIGHT , 7, frandom(3,7), random(0,360), frandom(-15, 15), frandom(-15,15), particleSpinHeight, frandom(-9,9), frandom(-9,9), 0);
+                }
+                particleSpinHeight+=0.8;
+                A_SETSCALE(scale.x + 0.07);
+
+                // Explode and give fancy particles!
+                if(alpha <= 0.4 && !hasExploded) {
+                    giveGift();
+                }
+                alpha-=0.09;
+                angle+=spinSpeed;
+                spinSpeed+=1.2;
+                frame = frameID;
+            }
+            VOXE A 35 {
+                frame = frameID;
+            }            
+            stop;
+        // Oh no, santa gave you a bomb
+        PrimeBomb:
+            TNT1 A 0 {
+                bombBeep();
+                A_SPAWNITEMEX("NUMBER3", 0, 0, 30);
+            }
+            VOXE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 {
+                frame = frameID;
+                A_SETANGLE(angle+5);
+            }
+            TNT1 A 0 {
+                bombBeep();
+                A_SPAWNITEMEX("NUMBER2", 0, 0, 30);
+            }
+            VOXE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 {
+                frame = frameID;
+                A_SETANGLE(angle+5);
+            }
+            TNT1 A 0 {
+                bombBeep();
+                A_SPAWNITEMEX("NUMBER1", 0, 0, 30);
+            }
+            VOXE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 {
+                frame = frameID;
+                A_SETANGLE(angle+5);
+            }
+            TNT1 A 0 {
+                A_SpawnItemEx("PrettyExplosionParticleRain");
+                A_explode(250,250);
+            }
+            stop;
+
+    }
+}

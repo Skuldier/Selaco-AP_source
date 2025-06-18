@@ -1,0 +1,409 @@
+// All blood particles should inherrit from this, it holds all the cvar information and (probably) more.
+class BloodParticleDefinition : ParticleDefinition {
+	int bloodQuality;
+	int censoredMode;
+	int bloodLifeSpan;
+	int permanentGore;
+	int decalSetting;
+	int spawnTime;
+
+    override void init() {
+        super.init();
+    }  
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)    {
+		GoreHandler gh = GoreHandler.instance();
+
+        // This *should* never happen but...
+        if(!gh) {
+            return;
+        }
+
+        bloodQuality = gh.currentGoreSetting;
+		bloodLifeSpan = gh.currentDecalSetting;
+		censoredMode = gh.censorSetting;
+		spawnTime = level.Maptime;
+		permanentGore = gh.permaMode;
+    }
+}
+
+
+CLASS PurpleSplatterEffectTransparantDefined : PurpleSplatterEffectDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.09);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.Alpha = 1.0;
+    }
+}
+
+class PurpleSplatterEffectBigDefinition : PurpleSplatterEffectDefinition {
+    override void Init()
+    {
+        super.Init();
+        self.SetGravity(0.2);
+        self.SetBaseScale(0.24);
+    }    
+}
+
+class PurpleSplatterEffectTinyDefined : PurpleSplatterEffectDefinition {
+    override void Init()
+    {
+        super.Init();
+        self.SetGravity(0.1);
+        self.SetBaseScale(0.07);
+    }    
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.Alpha = 0.6;
+    }
+
+}
+
+class PurpleSplatterEffectSmallDefinition : PurpleSplatterEffectDefinition {
+    override void Init()
+    {
+        super.Init();
+        self.SetGravity(0.1);
+        self.SetBaseScale(0.15);
+    }    
+}
+
+
+class PurpleSplatterEffectGiganticDefinition : PurpleSplatterEffectDefinition {
+
+    override void Init() {
+        super.Init();
+        self.SetGravity(0.01);
+        self.SetBaseScale(0.55);
+        AddAnimationSequence();
+        AddAnimationFrames(1, "PSBL", "ABCDEFGHIJKLMNOPQ", 1);
+        AddAnimationSequence();
+        AddAnimationFrames(2, "PSBL", "ABCDEFGHIJKLMNOPQ", 3);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor){
+        super.OnCreateParticle(particle, refActor);
+        particle.Alpha = 0.8;
+        particle.Roll = random(0, 360);
+        sequence = random(0,2);
+        PlayAnimationSequence(particle, sequence, 0);
+        particle.InitLife(GetAnimationLengthInTicks(sequence));
+        particle.SetScaleStep(1.005);
+        particle.AlphaStep = -0.011;
+    }    
+
+}
+
+class PurpleSplatterDefinition : ParticleDefinition {
+    override void Init()
+    {
+        super.Init();
+        self.SetGravity(0.1);
+        self.DefaultRenderStyle = STYLE_Normal;
+        AddAnimationSequence();
+        AddAnimationFrames(0, "PSBL", "ABCDEFGHIJKLMNOPQ", 1);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.InitLife(GetAnimationLengthInTicks(0));
+        particle.AnimFrame = GetAnimationStartFrame(0);
+        PlayAnimationSequence(particle, 0, 0);
+        particle.Roll = frandom(0, 360);
+        particle.SetScale(0.16);
+        particle.SetScaleStep(1.01);
+        particle.AlphaStep = -0.05;
+    }
+} 
+
+class PurpleSplatterSpreaderDefinition : PurpleSplatterDefinition {
+    override void Init()
+    {
+        super.Init();
+        self.SetGravity(0);
+        self.randomRoll(-15,15);
+        self.DefaultRenderStyle = STYLE_Normal;
+        AddAnimationSequence();
+        AddAnimationFrames(0, "PSBL", "ABCDEFGHIJKLMNOPQ", 1);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle,refActor);
+        particle.SetScaleStep(1.0);
+    }
+
+    override void ThinkParticle(in out ParticleData particle) {
+        particle.scale.y*=1.07;
+    }
+
+} 
+
+class PurpleSplatterEffectDefinition : ParticleDefinition {
+    int sequence;
+    override void Init()
+    {
+        super.Init();
+        //self.SetFlag(PDF_KILLSTOP);
+        self.ClearFlag(DPF_LOOPANIMATION);
+        self.ClearFlag(PDF_VELOCITYFADE);
+        self.SetDefaultParticleFlag(DPF_LOOPANIMATION);
+        self.SetGravity(0.1);
+        self.SetBaseScale(0.17);
+        self.FadeLifeRange(0,1);
+        self.BouncesRange(0,0); 
+        sequence  = AddAnimationSequence();
+        AddAnimationFrames(sequence, "PSBL", "ABCDEFGHIJKLMNOPQ", 2);
+    
+        self.DefaultRenderStyle = STYLE_TRANSLUCENT;
+    }
+    
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Alpha = 0.9;
+        particle.Roll = random(0, 360);
+        particle.InitLife(GetAnimationLengthInTicks(sequence)+20);
+        particle.AnimFrame = GetAnimationStartFrame(sequence);
+        particle.SetScaleStep(1.005);
+        particle.AlphaStep = -0.02;
+        PlayAnimationSequence(particle, sequence, 0);
+    }    
+
+    override void ThinkParticle(in out ParticleData particle) {
+        particle.vel.z-=0.1;
+    }
+}
+
+
+class PurpleBloodMissileDefinition : BloodParticleDefinition {
+    bool spawnTrail;
+    string trailActor;
+
+    override void Init()
+    {
+        super.Init();
+        self.DefaultRenderStyle = STYLE_Normal;
+        self.SetFlag(PDF_KILLSTOP);
+        self.SetBaseScale(0.4);
+        self.RandomGravity(0.6,0.7);
+        self.FadeLifeRange(0,1);
+        self.BouncesRange(0,0); 
+        self.RandomGravity(0.6,0.9);
+        //self.RandomPitch(-60,-120);
+        //self.RandomSpeed(1,9);
+        self.RandomScaleX(1.0,6.4);
+        self.RandomScaleY(1.0,6.4);
+        AddAnimationSequence();
+        AddAnimationFrames(0, "BLOK", "A", 25);  
+
+        trailActor = "PurpleBloodMissileTrailDefinition";
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle,refActor);
+        if(bloodQuality <= 0) {
+            particle.destroy();
+        }
+        particle.InitLife(400);
+        PlayAnimationSequence(particle, 0, 0);
+        particle.Roll = frandom(0, 360);
+
+        // TO-DO: TEMP! Dont keep this. Only here because SpawnDefinedParticle is broken and I need a visual reference
+        particle.vel.x+=frandom(0,2);
+        particle.vel.y+=frandom(0,2);
+        particle.vel.z+=frandom(0.3,0.7);
+    }   
+
+    void spawnTrailEffect(in out ParticleData particle) {
+        ParticleDefinition.SpawnParticle(trailActor, 
+        xoff: particle.pos.x,
+        yoff: particle.pos.y,
+        zoff: particle.pos.z
+    );}
+
+    override void ThinkParticle(in out ParticleData particle) {
+        if(level.time % 2 == 0) {
+            spawnTrailEffect(particle);
+        }
+    }
+
+    override bool OnParticleDeath(in out ParticleData particle)
+    {
+
+        // Splat effect
+        if(particle.pos.z == particle.floorz && random(0,100) <= 50) {
+            ParticleDefinition.SpawnParticle('PurpleBloodImpactSplat', 
+                xoff: particle.pos.x,
+                yoff: particle.pos.y,
+                zoff: particle.pos.z
+            );
+        }
+
+        // Spawn a potential blood decal
+        spawnBloodDecal(particle);
+
+        return 1;
+    }
+
+    virtual void spawnBloodDecal(in out ParticleData particle) {
+        // Spawn a potential blood decal
+        if(random(0,100) <= 50) {
+            particle.SpawnActor('OMINOUS_PurpleSpot');
+        }        
+    }
+}
+
+class PurpleBloodMissileDefinitionNoDecal : PurpleBloodMissileDefinition {
+    override void spawnBloodDecal(in out ParticleData particle) {
+        // Spawn nothing!
+    } 
+}
+
+class PurpleBloodMissileSmallDefinition : PurpleBloodMissileDefinition {
+    override void init() {
+        super.init();
+        trailActor = "PurpleBloodMissileTrailSmallDefinition";
+        self.SetBaseScale(0.55);
+    }
+}
+
+class PurpleBloodImpactSplat : BloodParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.45);
+        AddAnimationSequence();
+        AddAnimationFrames(0, "PDT1", "FGHIJKL", 2);      
+    }
+
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        if(level.mapTime > 35 && particle.pos.z <= particle.floorz) {
+            particle.PlaySound("blooddrop");
+        }
+        particle.InitLife(GetAnimationLengthInTicks(0));
+        PlayAnimationSequence(particle, 0, 0);
+    }   
+}
+
+class PurpleBloodMissileTrailDefinition : BloodParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.2);
+        self.SetFlag(PDF_KILLSTOP);
+        self.BouncesRange(0,0); 
+        self.RandomLife(5,1);
+        self.SetBaseScale(0.17);
+        self.RandomScaleX(1.5,4);
+        self.randomScaleY(1.5,2);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-5,-5);
+        AddAnimationSequence();
+        AddAnimationFrames(0, "PUR1", "AABBCCDDE", 1);      
+    }     
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.InitLife(GetAnimationLengthInTicks(0));
+        PlayAnimationSequence(particle, 0, 0);
+        particle.SetScaleStep(0.98);
+    }    
+
+}
+
+class PurpleBloodMissileTrailSmallDefinition : PurpleBloodMissileTrailDefinition {
+    override void init() {
+        super.init();
+        self.setBaseScale(0.14);
+    }
+}
+
+class SuperGorePurpleDefinition : BloodParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-0.3,0.3);
+        self.SetGravity(0);
+        self.SetBaseScale(0.4);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle,refActor);
+        if(bloodQuality <= 1) {
+            particle.destroy();
+        }
+
+        particle.alpha = 0.49;
+        particle.Texture = SelectRandomFrame("PLER", "AB");
+
+        // Additional variance
+        particle.scale.x*= random(0,1) == 1 ? -1 : 1;
+        particle.scale.y*= random(0,1) == 1 ? -1 : 1;
+        particle.InitLife(-1);
+        particle.SetScaleStep(1.015);
+        particle.AlphaStep = -0.007;
+    }
+}
+
+class SuperGorePurpleMistDefinition : SuperGorePurpleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.7);
+    }
+}
+
+class SuperGorePurpleMistLongDefinition : SuperGorePurpleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.78);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle,refActor);
+        particle.alpha = 0.79;
+    }
+}
+
+class SuperGorePurpleMistLongerDefinition : SuperGorePurpleMistLongDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle,refActor);
+        particle.alpha = 0.99;
+    }
+}
+
+
+class SuperGoreMistPurpleSmallDefinition : SuperGorePurpleMistDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.3);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle,refActor);
+        particle.alpha = 0.35;
+    }
+}
+
+class SuperGoreMistPurpleSmallLowAlphaDefinition : SuperGorePurpleMistDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.3);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle,refActor);
+        particle.alpha = 0.2;
+    }
+}

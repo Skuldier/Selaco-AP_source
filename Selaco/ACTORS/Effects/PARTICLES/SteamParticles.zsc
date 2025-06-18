@@ -1,0 +1,25 @@
+class SteamParticleDefinition : ParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.4);
+        self.RandomRoll(-45,45);
+        self.SetDefaultParticleFlag(DPF_COLLIDEWITHPLAYER);
+        self.Clearflag(PDF_LIFEFADE);
+        self.ClearFlag(PDF_VELOCITYFADE);
+        self.DefaultRenderStyle = STYLE_ADD;
+        AddAnimationSequence();
+        AddAnimationFrames(0, "STEM", "ABCDEFGHIJKL", 2);       
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.alpha = 0.3;
+        particle.AlphaStep = -0.016;
+        particle.InitLife(GetAnimationLengthInTicks(0));
+        particle.AnimFrame = GetAnimationStartFrame(0);
+        PlayAnimationSequence(particle, 0, 0);
+    }
+
+    override void OnParticleCollideWithPlayer(in out ParticleData particle, Actor player) {
+        Dawn(player).AddSteam(random(1,3));
+    }
+}

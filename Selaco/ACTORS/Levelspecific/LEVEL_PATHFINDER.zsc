@@ -1,0 +1,700 @@
+class StretchBed : CoverActor {
+    bool unTouched;
+    int pushTime2;
+
+
+
+    // Send damage to master when hit
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        double topLower = pos.z + Height - (Height * 10);
+        double topUpper = pos.z + Height;
+
+        if((inflictor) && inflictor.Pos.Z >= topLower && inflictor.Pos.Z <= topUpper) {
+            for(int x=0;x<4;x++) {
+                actor paperPuff;
+                bool succ;
+                [succ, paperPuff] = inflictor.A_SPAWNITEMEX("PaperDustEffectShort", 5, frandom(-10,10), frandom(-10,10), frandom(-0.1,-0.2), frandom(-0.1,0.2), frandom(-0.1,-0.1));
+                if(paperPuff) {
+                    paperPuff.scale*=0.1;
+                }
+            }
+        }
+
+        return Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+    }
+
+
+    override bool CanCollideWith(Actor other, bool passive) {
+        if(untouched && other is 'PlayerPawn') {
+            // Check if we are above or close to the top of the bed. We don't want it to flip while standing on it
+            if(other.pos.z < (pos.z + (height * 0.65))) {
+                double toucherVelocity = sqrt((other.vel.x * other.vel.x) + (other.vel.y * other.vel.y));
+                if(toucherVelocity > 7.3 && level.mapTime - pushTime2 > 8) {
+                    unTouched = false;
+                    if(getCvar("g_Screenshake") == 1) {
+                        A_QuakeEx(3, 3, 2, 13, 0, 700, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+                    }
+
+                    // Stop the player if they are sliding
+                    if (other.countinv("SlidingIsActive") == 1) {
+                        other.A_TakeInventory("SlidingIsActive", 1);
+                        other.A_GiveInventory("StopSliding", 1);
+                        other.vel.x = 0;
+                        other.vel.y = 0;
+                        vel.x = 0;
+                        vel.y = 0;
+                    }
+                    A_PlaySound("impact/melee", CHAN_AUTO, 0.3);
+                    Activate(other);
+                }
+            }
+        }
+
+        if(!other.bCannotPush) pushTime2 = level.mapTime;
+
+		return Super.CanCollideWith(other, passive);
+	}
+
+    bool isBeingPushed() {
+        return level.mapTime - pushTime2 <= 5;
+    }
+
+    default {
+        Tag "$OBJECT_STRETCHER";
+        Activation THINGSPEC_Switch;
+        health 140;
+        radius 21;
+        height 30;
+        +CANPASS;
+        +CANNOTPUSH
+        +solid
+        +pushable
+        //+special
+        mass 100;
+        Pushfactor 0.89;
+        MaxStepHeight 3;
+        -CANNOTPUSH;
+        +SelacoActor.WakeOnTouch;
+        +SelacoActor.SleepWhenIdle;
+        -SelacoActor.WakeNearPlayer;
+    }
+    States {
+		Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                invoker.flippedItemName = "StretchBedSide";
+                unTouched = true;
+            }
+        Looper:
+			VOXE L 0 A_STOPSOUND(CHAN_6);
+			VOXE L 3 A_JumpIf (vel.x > 0 || vel.y > 0, "BeginMoving");
+			loop;
+        Pain:
+            TNT1 A 0 A_Pain();
+		BeginMoving:
+            TNT1 A 0 {
+                AlignToPlane(self);
+            }
+			VOXE L 0 A_PLAYSOUND("movers/chairride", CHAN_6, 1.0, 1);
+		Moving:
+			VOXE L 0 A_JumpIf (vel.x == 0 && vel.y == 0, "StopMoving");
+			VOXE L 1 {
+                if(!isBeingPushed()) A_SetAngle(angle + 3, SPF_INTERPOLATE);
+            }
+			loop;
+        StopMoving:
+            goto Spawn;
+        Death:
+            TNT1 AAAAAA 0 A_SPAWNITEMEX("BigSmokes", 0, frandom(-15, 15), 20);
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO);
+            TNT1 A 0 A_SpawnItemEx("StretchBed_piece1", 0, 0, 0, frandom(-4,4), frandom(-5, 5), frandom(3,5));
+            TNT1 A 0 A_SpawnItemEx("StretchBed_piece2", 0, 0, 20, frandom(-4,4), frandom(-5, 5), frandom(3,5));
+            TNT1 A 0 A_SpawnItemEx("StretchBed_piece3", 0, 0, 16, frandom(-4,4), frandom(-5,5), frandom(3,5));
+            stop;
+        Death.explosiveimpact:
+            TNT1 AAAAAA 0 A_SPAWNITEMEX("BigSmokes", 0, frandom(-15, 15), 20);
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO);
+            TNT1 A 0 A_SpawnItemEx("StretchBed_piece1", 0, 0, 0, frandom(-7,7), frandom(-5, 5), frandom(6,15));
+            TNT1 A 0 A_SpawnItemEx("StretchBed_piece2", 0, 0, 20, frandom(-7,7), frandom(-5, 5), frandom(6,15));
+            TNT1 A 0 A_SpawnItemEx("StretchBed_piece3", 0, 0, 16, frandom(-7,7), frandom(-5,5), frandom(6,5));
+            stop;
+    }
+}
+
+class StretchBedSide : StretchBed {
+    mixin hitboxHelper;
+
+    const BIG_MOVE_THRESHOLD = 10;
+    mixin SmokeEmitter;
+    int targetAngle;
+    int angleDiff;
+    int initialMove;
+    bool bigMove;
+    actor rotateCaller;
+
+
+    // Send damage to master when hit
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        if(inflictor && damageType == "MeleeImpact") {
+            activate(source);
+        }
+
+        double topLower = pos.z + Height - (Height * 10);
+        double topUpper = pos.z + Height;
+
+        if((inflictor) && inflictor.Pos.Z >= topLower && inflictor.Pos.Z <= topUpper) {
+            for(int x=0;x<4;x++) {
+                actor paperPuff;
+                bool succ;
+                [succ, paperPuff] = A_SPAWNITEMEX("PaperDustEffectShort", 5, frandom(-10,10), frandom(-10,10), frandom(-0.1,-0.2), frandom(-0.1,0.2), frandom(-0.1,-0.1));
+                if(paperPuff) {
+                    paperPuff.scale*=0.1;
+                }
+            }
+        }
+
+        return Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+    }
+
+
+    override void postBeginPlay() {
+        hitboxAccuracy = 10;
+        hitboxActorClass = "HitboxActorCloth";
+        createHitboxes();
+        for(int x=0;x<hitboxes.size();x++) {
+            hitboxes[x].bThruPlayers = true;
+        }
+        A_SETSIZE(13, height);
+        super.postBeginPlay();
+    }
+
+    override void deactivate(actor deactivator) {
+        activate(deactivator);
+    }
+
+    override void activate(actor activator) {
+        targetAngle = activator.angle;  // Get the activator's angle
+        angleDiff = targetAngle - self.angle;  // Calculate the difference
+        rotateCaller = activator;
+        bPreventSleep = true;
+        initialMove = true;
+
+        makeUnactivatable();
+        wake();
+    }
+
+    override void tick() {
+        super.tick();
+    
+        if (rotateCaller) {
+           rotateToCaller();
+        }
+        updateHitboxes();
+    }
+
+    void rotateToCaller() {
+        // Apply a constant 90-degree offset
+        float adjustedTargetAngle = targetAngle + 90;
+        
+        // Normalize the angle difference
+        float angleDiff = normalizeAngle(adjustedTargetAngle - self.angle);
+        if (abs(angleDiff) >= BIG_MOVE_THRESHOLD) {
+            bigMove = true;
+        }
+    
+        // Handle big moves
+        if (bigMove) {
+            applyRotationEffects(rotateCaller, initialMove);
+        }
+    
+        initialMove = false;
+    
+        // Determine rotation speed with easing
+        float easedRotationSpeed = calculateRotationSpeed(angleDiff);
+    
+        // Apply gradual rotation
+        if (abs(angleDiff) > easedRotationSpeed) {
+            self.angle += sign(angleDiff) * easedRotationSpeed;
+        } else {
+            self.angle = adjustedTargetAngle; // Snap if close enough
+            resetRotation();
+        }
+    }
+
+    void applyRotationEffects(actor caller, bool initialMove) {
+        if(initialMove) {
+            A_PLAYSOUND("METAL/GRIND1", CHAN_6, pitch: frandom(1.1, 1.35));
+            rotateCaller.A_QuakeEx(0.5, 0.5, 0.5, 4, 0, 700);
+        }
+        spawnSmoke("smk7", smokeSize: 0.19, offsets: (frandom(-14, 14), frandom(-10, 10), frandom(-6, 8)),
+        velocity: (0, frandom(-0.3, 0.3), -0.2), smokeAlpha: 0.1, fadingSpeed: 0.95, rollingSpeed: frandom(-0.1, 0.1));
+
+        for(int x=0;x<3;x++) {
+            EmitDefinition('ShortSparkParticleStraightDefintion', chance: 0.5, numTries: 2, pitch:160, speed:frandom(-0.5, 2.5), offset:(frandom(-10,10), -10, 0), scaleBoost:0.35, particleSpawnOffsets:5);
+        }
+        roll = frandom(-6, -10);
+    }
+
+    float calculateRotationSpeed(float angleDiff) {
+        float distanceFactor = abs(angleDiff) / 90.0;
+        float speedFactor = pow(distanceFactor, 0.7);
+    
+        int baseRotationSpeed = random(8, 10);
+        return max(2, baseRotationSpeed * speedFactor);
+    }
+
+    float normalizeAngle(float angle) {
+        return ((angle + 180) % 360) - 180;
+    }
+
+    void resetRotation() {
+        bigMove = false;
+        rotateCaller = null;
+        bPreventSleep = false;
+
+        makeActivatable();
+        roll = 0;
+    }
+
+    default {
+        tag "$OBJECT_COVER";
+        SelacoActor.UseTag "Rotate";
+        health 300;
+        height 31;
+        mass 1000;
+        radius 30;
+        -special
+        +INTERPOLATEANGLES
+        +SelacoActor.WakeNearPlayer
+        +pushable
+        Activation THINGSPEC_Switch;
+        pushfactor 0.8;
+        Pushfactor 0.3;
+        DamageFactor "BulletAlien", 2.0;
+    }
+    states {
+        Spawn:
+         TNT1 A 0;
+         TNT1 A 0 {
+             //A_SetRoll(90);
+             SetStateLabel("Looper");
+         }
+        Pain.MeleeImpact:
+            TNT1 A 0 A_CHECKPROXIMITY("FlipOnSide", "Dawn", 100, 1, CPXF_SETTARGET);
+        Active:
+        Inactive:
+        FlipOnSide:
+            goto looper;
+         Pain:
+            TNT1 A 0 A_Pain();
+        Looper:
+            VOXE L -1;
+            VOXE L -1;    // Hack to preserve savegames
+            VOXE L -1;    // Hack to preserve savegames
+            VOXE L -1;    // Hack to preserve savegames
+            loop;
+    }
+}
+
+class StretchBed_piece1 : actor {
+    mixin ParticleDefinitionEmitter;
+    default {
+        +missile;
+        +DoomBounce;
+        +USEBOUNCESTATE;
+        +THRUACTORS
+        gravity 0.7;
+        radius 5;
+        height 5;
+        BounceFactor 0.8;
+        BounceCount 2;
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            VOXE L 2 {
+                A_SETROLL(roll+10);
+                A_SETANGLE(angle+25);
+            }
+            loop;
+            
+        Death:
+            VOXE L -1 {
+                A_SETROLL(0);
+                A_SETPITCH(0);
+                SleepIndefinite();
+            }
+            loop;
+		Bounce:
+			TNT1 A 0 {
+                EmitDefinition('ShortSparkParticleDefinition', 0.75, 35, pitch:frandom(-50,-170), flags:PE_ABSOLUTE_PITCH);
+            }
+			TNT1 A 0 A_PlaySound("bounce/metalfeet",CHAN_AUTO, 0.75, 0, 1.0, false, 0.9);
+			goto Spawn;
+    }
+}
+
+class StretchBed_piece2 : StretchBed_piece1 {
+
+}
+
+class StretchBed_piece3 : StretchBed_piece1 {
+
+}
+
+class BloodBagStand_piece1 : StretchBed_piece1 {
+}
+
+class BloodBagStand_piece2 : StretchBed_piece1 {
+
+}
+
+class BloodStandalone : SELACOACTORSTATIC {
+    int frameNum;
+    override void PostBeginPlay() 
+    {
+        super.PostBeginPlay();
+        frameNum = random(0,1);
+    }
+    default {
+        -SELACOACTOR.SlopeAlignment
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE A -1 {
+                frame = frameNum;
+            }
+            stop;
+    }
+}
+
+class BloodBagStand : PickupableDecoration {
+
+    override void spawnLandingEffects() {
+        A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0);
+        A_SPAWNITEMEX("ScorchMarkFloorSmall");
+       //A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0, frandom(1, 2), frandom(-1.5, -2));
+        //A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0, frandom(1.5, 2), 0, frandom(1.5, 2));
+    }
+
+
+    default {
+        +NOBLOODDECALS
+        +PUSHABLE
+        +shootable
+        +solid
+        radius 15;
+        height 60;
+        Health 25;
+        PickupableDecoration.holdHeight -30;
+        tag "$OBJECT_BLOODBAGSTAND";
+        PickupableDecoration.landingSound "Officechair/land";
+        BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        PainSound "impact/hardmetal";
+        DamageFactor "MeleeImpact", 10;
+    }
+    states {
+		Spawn:
+			VOXE L 0 A_STOPSOUND(CHAN_6);
+			VOXE L 3;
+			loop;
+        Pain:
+            TNT1 A 0 A_Pain();
+		BeginMoving:
+			VOXE L 0 A_PLAYSOUND("movers/chairride", CHAN_6, 1.0, 1);
+		Moving:
+			VOXE L 0 A_JumpIf (vel.x == 0 && vel.y == 0, "StopMoving");
+			VOXE L 1 A_SetAngle(angle + 3, SPF_INTERPOLATE);
+			loop;
+        StopMoving:
+            goto Spawn;
+        Death:
+            TNT1 AAAAAA 0 A_SPAWNITEMEX("BigSmokes", 0, frandom(-15, 15), 20);
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO);
+            TNT1 A 0 A_SpawnItemEx("BloodBagStand_piece2", 0, 0, 20, frandom(-4,4), frandom(-5, 5), frandom(3,5));
+            TNT1 A 0 A_SpawnItemEx("BloodBagStand_piece1", 0, 0, 60, frandom(-4,4), frandom(-5, 5), frandom(3,5));
+            stop;
+        Death.explosiveimpact:
+            TNT1 AAAAAA 0 A_SPAWNITEMEX("BigSmokes", 0, frandom(-15, 15), 20);
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO);
+            TNT1 A 0 A_SpawnItemEx("BloodBagStand_piece1", 0, 0, 20, frandom(-7,7), frandom(-5, 5), frandom(6,15));
+            TNT1 A 0 A_SpawnItemEx("BloodBagStand_piece2", 0, 0, 60, frandom(-7,7), frandom(-5, 5), frandom(6,15));
+            stop;
+    }
+}
+
+Class medicalequipment1 : SELACOACTOR {
+
+    default {
+        +pushable;
+    	-BloodSplatter
+        +NOBLOODDECALS
+        +shootable;
+        +solid;
+	    PainThreshold 3;
+        DamageFactor "MeleeImpact", 0.1;
+        DamageFactor "BulletAlien", 5.0;
+        Painchance 255;
+        PainChance "ExplosiveImpact", 255;
+        PainChance "MeleeImpact", 256;
+        BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        PainSound "impact/hardmetal";
+        radius 20;
+        height 65;
+        mass 150;
+        health 80;
+        +SelacoActor.SpecialPushable;
+        SelacoActor.SpecialPushFactor 0.5;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                A_PLAYSOUND("MEDICALPUMP/BEEP", CHAN_5, 0.3, 1, 1.2); 
+            }
+            VOXE L -1;
+            stop;
+        Death:
+            TNT1 A 0 {
+                EmitDefinition('ShortSparkParticleDefinition', 0.75, 35);
+            }
+            TNT1 A 0 {
+                for(int x=0;x<getCvar("r_ParticleIntensity");x++) {
+                    A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+                A_SPAWNITEMEX("MedicalPumpPiece2", 0, 0, 48, frandom(2,3), frandom(4, 6), 6, 360);
+                A_SPAWNITEMEX("MedicalPumpPiece3", 0, 0, 25, frandom(2,3), frandom(4,6), 4, 200);
+                A_SPAWNITEMEX("MedicalPumpPiece1", 0, 0, 5, frandom(1,2), frandom(4,6), 2, 0);
+            }
+        stop;
+    }
+}
+
+Class medicalequipment2 : medicalequipment1 {
+    int Force;
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                A_PLAYSOUND("MEDICALPUMP/DATA", CHAN_5, 0.3, 1, 1.2); 
+            }
+            VOXE L -1;
+            stop;
+        Death.Shotgun:
+            TNT1 A 0 {
+                Force = 3;
+            }
+            goto Death;
+        Death.ExplosiveImpact:
+            TNT1 A 0 {
+                Force = 7;
+            }
+            goto Death;
+        Death:
+        TNT1 A 0 {
+            EmitDefinition('ShortSparkParticleDefinition', 0.75, 35);
+        }
+            TNT1 A 0 {
+                for(int x=0;x<getCvar("r_ParticleIntensity");x++) {
+                    A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+                A_SPAWNITEMEX("MedicalPumpPiece4", 0, 0, 48, force + frandom(2,3), force + frandom(4, 6), force + 6, 360);
+                A_SPAWNITEMEX("MedicalPumpPiece3", 0, 0, 25, force + frandom(2,3), force + frandom(4,6), force + 4, 200);
+                A_SPAWNITEMEX("MedicalPumpPiece1", 0, 0, 5, force + frandom(1,2), force + frandom(4,6), force + 2, 0);
+            }
+        stop;
+    }
+}
+
+// Destroyed pieces
+class MedicalPumpPiece1 : actor {
+    mixin ParticleDefinitionEmitter;
+    default {
+        +MISSILE;
+        +DOOMBOUNCE;
+        +USEBOUNCESTATE;
+        +INTERPOLATEANGLES;
+        BounceCount 3;
+        gravity 0.6;
+        BounceFactor 0.4;
+        radius 2;
+        height 2;
+        speed 4;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        Looper:
+            VOXE L 3 {
+                A_SETANGLE(Angle+random(25,30), SPF_INTERPOLATE);
+                A_SETPITCH(PITCH+25, SPF_INTERPOLATE);
+            }
+            loop;
+		Bounce:
+            TNT1 A 0 {
+                for(int x=0;x<=3;x++) {
+                    A_SPAWNITEMEX("BodyImpactSmoke", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+                }
+            }
+            TNT1 A 0 {
+                EmitDefinition('SparkBriefDefintion', 0.75, 30, pitch:frandom(-60,-120), flags:PE_ABSOLUTE_PITCH);
+            }
+			TNT1 A 0 A_PlaySound("impact/heavy/metal",CHAN_AUTO, 0.55, 0, 1.0, false, 1.2);
+			goto Looper;
+        Death:
+            VOXE L 1 {
+                if(random(0,5) == 3) {
+                    A_SPAWNITEMEX("SparkEffectsMedicalEquipment", 0, 0, 16);
+                }
+            }
+            VOXE L 60 {
+                A_SETPITCH(0);
+            }
+            VOXE L 1 {
+                SleepIndefinite();
+            }
+            stop;
+        Safety:         // Hack to preserve savegames
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            VOXE L 1 {  // Hack to preserve savegames
+                SleepIndefinite();
+            }
+            stop;       // Stop
+    }
+}
+
+class MedicalPumpPiece2 : MedicalPumpPiece1 { }
+class MedicalPumpPiece3 : MedicalPumpPiece1 { }
+class MedicalPumpPiece4 : MedicalPumpPiece1 { }
+
+Class PortableMedkitDecoration  : Actor
+{
+    default {
+        +PUSHABLE
+	    pushfactor 0.9;
+	    friction 1.0;
+        +shootable
+        radius 5;
+        height 5;
+        health 2;
+        scale 1.2;
+    }
+	States
+	{
+        Spawn:
+            TNT1 A 0;
+        Check1:
+            MEDS A 1;
+            loop;
+        death:
+            TNT1 A 0;
+            stop;
+	}
+}
+
+class SparkEffectsMedicalEquipment : actor {
+    default {
+        +NOINTERACTION
+        +THRUACTORS
+    }
+    States{
+        Spawn:
+            TNT1 A 90;
+            TNT1 A 2 A_Warp(AAPTR_TARGET, 0, 0, 0, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); // Ensure effects spawn onc corpse.
+			TNT1 AAAAAA random(60,90) {
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+				A_SpawnProjectile ("SparkEmberUpward", 3, -3, random (0, 70), 2, random (0, 190));
+                A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition");
+			}
+        death:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class RooftopSmokeLooper : SelacoActor {
+    default {
+        +NOINTERACTION
+		SELACOACTOR.SleepDistance 2048;
+    }
+    States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 6 {
+                A_SPAWNITEMEX("SpawnCeilingPathfinderSmoke", 0, 0, frandom(0,20), 2, 0, angle:frandom(-20,20));
+            }
+            loop;
+    }
+}
+
+// Baby Decorations are used in OM_01C
+class BabyDecoration1 : SELACOACTORSTATIC {
+    default {
+        +NOGRAVITY
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+    }
+}
+
+class BabyDecoration2 : selacoactor {
+    default {
+        Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP";
+        +NOBLOODDECALS
+        +SHOOTABLE;
+        +NOGRAVITY;
+        +THRUACTORS;
+        height 20;
+        radius 10;
+        Health 5;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+        Death:
+        	TNT1 AAA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(0,50), frandom(-20,20), random(-10,10), frandom(0.3,0.6));
+		    TNT1 A 0 A_PlaySound("dest/paper");
+            stop;
+    }
+}
+
+class BabyDecoration3 : SELACOACTORSTATIC {
+    default {
+        +NOGRAVITY
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+    }
+}

@@ -1,0 +1,1363 @@
+class FishTankController : Actor {
+    int waterSector;
+    double waterHeight, initialBottom, sectorHeight;
+    int fishTankGroup;
+    int numHoles;
+    Array<int> audioTIDs;       // TID of ambient sounds to shut down when glass is destroyed
+    double volume;
+    bool empty;
+
+    Array<Actor> decals;
+    Array<Line> decalLines;
+    Array<int> glassLines;
+
+    Default
+	{
+		Height 0;
+		Radius 0.1;
+		FloatBobPhase 0;
+		RenderRadius -1;
+		+NOBLOCKMAP;
+		+NOGRAVITY;
+		+INVISIBLE;
+		+NOTONAUTOMAP;
+	}
+
+    override void postBeginPlay() {
+        Super.postBeginPlay();
+
+        if(waterSector > -1) {
+            initialBottom = level.sectors[waterSector].FindHighestFloorPoint();
+            sectorHeight = level.sectors[waterSector].FindLowestCeilingPoint() - initialBottom;
+        }
+
+        calculateVolume();
+    }
+
+    override void tick() {
+        bool dontcare;
+        Actor part;
+
+        if(waterSector > -1 && !empty) {
+            let p = level.sectors[waterSector].FindLowestCeilingPoint();
+            if(waterHeight < p) {
+                // Figure out how many decals are below P
+                int nHoles = 0;
+
+                for(int x = 0; x < decals.size(); x++) {
+                    if(decals[x] && decals[x].pos.z < p) {
+                        nHoles++;
+                        decals[x].health = 20;
+                    }
+                }
+                nHoles = max(1, nHoles);
+
+                let moveSpeed = (0.2 / volume) * clamp(nHoles, 1, 10);
+
+                level.sectors[waterSector].MoveCeiling(moveSpeed, waterHeight, 0, -1, false);
+            }
+
+            // Spawn leftover water
+            for(int x = 0; x < decals.size(); x++) {
+                if(decals[x] && decals[x].health > 0) {
+                    // Slowly cut water spawning
+                    // Don't spawn water if the player is far away
+                    if(players[consoleplayer].mo.distance2DSquared(decals[x]) <= (512.0 * 512.0)) {
+                        double vel = max(0.25, (decals[x].health / 20.0) * 2.0);
+                        [dontcare, part] = decals[x].A_SPAWNITEMEX("WaterParticleXSmall", 1.5, 0, 0, vel, 0);
+                        part.A_SetSize(1);  // Required to stop immediate collision with wall
+                    }
+                    decals[x].health--;
+                }
+            }
+        }
+    }
+
+    void tankBroken(Line l) {
+        if(!empty) {
+            level.sectors[waterSector].MoveFloor(9999, initialBottom - 6, 0, -1, false, false);
+            level.sectors[waterSector].MoveCeiling(9999, initialBottom - 5, 0, -1, false);
+            decals.clear();
+
+            if(audioTIDs.size()) {
+                for(int x = 0; x < audioTIDs.size(); x++) {
+                    // Turn off audio with this TID
+                    let iterator = Level.CreateActorIterator(audioTIDs[x]);
+                    Actor act;
+                    while(act = iterator.Next()) {
+                        AmbientSound as = AmbientSound(act);
+                        if(as) {
+                            as.Deactivate(self);
+                        }
+                    }
+                }
+            }
+        }
+
+        empty = true;
+        waterHeight = -999999;
+    }
+
+    // Try to determine the volume of all sectors that use waterSector as a model
+    void calculateVolume() {
+        volume = 6;
+        if(waterSector < 0 || glassLines.size() < 3 || sectorHeight <= 0) return;
+
+        // Create an array of vertices from the lines
+        Array<double> x;
+        Array<double> y;
+        
+        for(int i = 0; i < glassLines.size(); i++) {
+            x.push(level.lines[glassLines[i]].v1.p.x);
+            y.push(level.lines[glassLines[i]].v1.p.y);
+            x.push(level.lines[glassLines[i]].v2.p.x);
+            y.push(level.lines[glassLines[i]].v2.p.y);
+        }
+
+        let N = x.size();
+
+        x.push(level.lines[glassLines[0]].v1.p.x);
+        y.push(level.lines[glassLines[0]].v1.p.y);
+
+        
+        if(N % 2 != 0) {
+            x.push(x[0]);
+            y.push(y[0]);
+        }
+
+        double area = 0;
+        for(int i = 0; i < N; i += 2 ) {
+            area += x[i+1]*(y[i+2]-y[i]) + y[i+1]*(x[i]-x[i+2]);
+        }
+        area = abs(area / 2.0);
+
+        volume = max(6, area / 4096.0 * 0.5);  // Based on a 64 unit square footage, also fudge the numbers so we don't end up with too much volume
+    }
+}
+
+
+class DecalIndexer {
+    int lineID;
+    Array<Actor> decals;
+}
+
+class GlassHandler : EventHandler {
+    mixin CVARBuddy;
+    
+    Array<FishTankController> fishTanks;        // Controllers for each water setup
+    Array<DecalIndexer> decalLookup;             // Storage for decals to be deleted when glass breaks
+    IntTable lineDecalLookup;                   // Indexes which bucket resolves to LineID
+    TextureID permaGlassTexture;
+
+    PickupableDecoration tempDecoration;
+    Vector3 tempDecorationVelocity;
+    Vector3 tempDecorationPos;
+    transient Vector3 tempGlassVals;
+
+    static clearscope GlassHandler Instance() {
+        return GlassHandler(EventHandler.Find("GlassHandler"));
+    }
+
+    // Just removes the decals from the glass
+    static void RemoveDecals(int lineID) {
+        GlassHandler gh = GlassHandler.Instance();
+
+        if(gh) {
+            let iterator = Level.CreateLineIdIterator(lineID);
+            for(int lineNum = iterator.next(); lineNum >= 0; lineNum = iterator.next()) {
+                gh.destroyDecals(lineNum);
+            }
+        }
+    }
+
+    // Removes decals and unsets all physical blocking params
+    static void RemoveGlass(int lineID) {
+        GlassHandler gh = GlassHandler.Instance();
+
+        if(gh) {
+            let iterator = Level.CreateLineIdIterator(lineID);
+            for(int lineNum = iterator.next(); lineNum >= 0; lineNum = iterator.next()) {
+                gh.destroyDecals(lineNum);
+
+                Line l = level.lines[lineNum];
+                l.flags &= ~(Line.ML_BLOCK_PLAYERS | Line.ML_BLOCKUSE | Line.ML_BLOCKING | Line.ML_BLOCKHITSCAN | Line.ML_BLOCKEVERYTHING | Line.ML_BLOCKPROJECTILE);
+                l.special = 0;
+            }
+        }
+    }
+
+    static bool GlassExplosion(Actor source, float range, int numChecks = 10) {
+        GlassHandler handler = Instance();
+        WorldEvent e;
+        FLineTraceData remoteRay;
+        bool hasHit = false;
+        Actor puff;
+        
+        float angleOffs = (Random2[cwbullet]() / 255.0) * 360.0;
+        float eachAng = 360.0 / float(numChecks);
+        for(int x = 0; x < numChecks; x++) {
+            source.LineTrace(
+                angleOffs + (eachAng * x), 
+                range, 
+                (60.0 * Random2[cwbullet]() / 255.0) - 30.0, 
+                flags: TRF_THRUSPECIES | TRF_THRUACTORS | TRF_BLOCKUSE,    // Important, glass blocks use and this is the only thing that makes the linetrace catch it since it allows hitscans through otherwise
+                offsetz: 32, 
+                data: RemoteRay
+            );
+            if (remoteRay.HitLine && (remoteRay.HitLine.special == 49 || remoteRay.HitLine.special == 99))	{
+                // Skip indestructible glass
+                if(remoteRay.HitLine.special == 49 && remoteRay.HitLine.args[1] > 0) continue;
+
+                hasHit = true;
+                if(!puff) puff = Actor.Spawn('GlassDamagePuff', source.pos);
+                else puff.SetOrigin(source.pos, false);
+                puff.target = source;
+
+                if(remoteRay.HitLine.special == 99) {
+                    remoteRay.HitLine.setHealth(0);
+                    handler.damageFishGlass(remoteRay.HitLine, SPAC_Impact, puff, remoteRay.HitLocation, puff.angle);
+                } else handler.resolveGlassContact(remoteRay.HitLine, SPAC_Impact, puff, remoteRay.HitLocation);
+            }
+        }
+
+        return hasHit;
+    }
+
+    FishTankController findTankController(int waterSector) {
+        for(int x = fishTanks.size() - 1; x >= 0; x--) {
+            if(fishTanks[x].waterSector == waterSector) {
+                return fishTanks[x];
+            }
+        }
+
+        return NULL;
+    }
+
+    FishTankController findTankControllerByTag(int sector3DTag) {
+        FishTankController controller;
+        SectorTagIterator st = Level.CreateSectorTagIterator(sector3DTag);
+        int secID = st.Next();
+        while(secID > 0) {
+            controller = findTankController(secID);
+            if(controller) return controller;
+            secID = st.Next();
+        }
+
+        return NULL;
+    }
+
+    FishTankController findOrCreateTankController(int tankGroup, int sector3DTag) {
+        FishTankController controller = findTankControllerByTag(sector3DTag);
+        
+        if(!controller) {
+            controller = FishTankController(Actor.Spawn("FishTankController", (0,0,0)));
+            controller.fishTankGroup = tankGroup;
+            controller.waterSector = -1;
+
+            // Find the water sector
+            SectorTagIterator st = Level.CreateSectorTagIterator(sector3DTag);
+            int secID = st.Next();
+            while(secID > 0) {
+                Sector s = level.sectors[secID];
+
+                // Only consider small sectors with all solid lines
+                // We can't check for special 160 because apparently that gets unset at load time :(
+                if(s.lines.size() <= 4) {
+                    for(int x = 0; x < s.lines.size(); x++) {
+                        if(s.lines[x].flags & Line.ML_TWOSIDED) break;
+
+                        if(x == s.lines.size() - 1) {
+                            // OK, this must be our control sector. At least we will assume so.
+                            controller.waterSector = secID;
+                            controller.waterHeight = s.FindLowestCeilingPoint();
+                            
+                            break;
+                        }
+                    }
+                }
+
+                if(controller.waterSector > -1) break;
+                secID = st.Next();
+            }
+
+            fishTanks.push(controller);
+        }
+
+        return controller;
+    }
+
+    /*override void worldTick() {
+        totalTicks++;
+    }*/
+
+    override void NewGame() {
+        // Reset any stored glass info
+        fishTanks.clear();
+    }
+
+    override void WorldLoaded(WorldEvent e) {
+        // Reset any stored glass info
+        if(!e.IsReopen && !e.IsSaveGame) {
+            permaGlassTexture = TexMan.checkForTexture("CEIL5_G3");
+            lineDecalLookup = new("IntTable").init(200);
+
+            uint lineID = 0, numLines = level.Lines.size();
+            Line l;
+            while(lineID < numLines) {
+                l = level.Lines[lineID++];
+
+                // Check for special invulnerable glass texture
+                if( l.special == 0 && 
+                    permaGlassTexture.isValid() && 
+                    l.sidedef[0] && l.sidedef[1] &&
+                    (l.sidedef[0].GetTexture(Side.Mid) == permaGlassTexture || l.sidedef[1].GetTexture(Side.Mid) == permaGlassTexture) ) {
+
+                    l.special = 49;
+                    l.args[0] = 0;
+                    l.args[1] = 1;
+                    l.activation = 0;
+                }
+
+                if(l.special == 49) {
+                    // Set necessary flags for glass
+                    l.flags |= Line.ML_BLOCK_PLAYERS | Line.ML_BLOCKUSE | Line.ML_BLOCKING;
+                    if(l.args[1] == 1) l.flags |= Line.ML_BLOCKHITSCAN | Line.ML_BLOCKEVERYTHING;
+                    if(l.args[1] > 0) l.flags |= Line.ML_BLOCKPROJECTILE;
+                    l.activation |= SPAC_Damage | SPAC_Death | SPAC_MCross | SPAC_Push | SPAC_MPush | SPAC_Impact;
+                    if(l.args[1] == 0 || l.args[1] == 2) l.activation |= SPAC_PCross;
+
+                    if(l.getHealth() <= 0) {
+                        // Determine size of glass
+                        l.setHealth(random(90, 150));
+                    }
+                } else if(l.special == 99) {
+                    // Set necessary flags for fish tanks
+                    l.flags |= Line.ML_BLOCK_PLAYERS | Line.ML_BLOCKUSE | Line.ML_BLOCKING | Line.ML_BLOCKEVERYTHING | Line.ML_BLOCKHITSCAN | Line.ML_BLOCKPROJECTILE;
+                    l.activation = SPAC_Damage | SPAC_Death | SPAC_PCross;
+                    if(l.getHealth() <= 0) l.setHealth(100);
+
+                    // Find or create fish tank
+                    FishTankController controller = findOrCreateTankController(l.args[0], l.args[1]);
+                    controller.health = max(controller.health, l.health);
+                    controller.glassLines.push(l.index());
+                    if(l.args[4]) {
+                        controller.audioTIDs.push(l.args[4]);   // Add ambient sound
+                    }
+                }
+            }
+        }
+    }
+
+
+    string debugSPAC(int spac) {
+        string res = " ";
+        if(spac & SPAC_Cross) res = res .. "SPAC_Cross ";
+        if(spac & SPAC_Use) res = res .. "SPAC_Use ";
+        if(spac & SPAC_MCross) res = res .. "SPAC_MCross ";
+        if(spac & SPAC_Impact) res = res .. "SPAC_Impact ";
+        if(spac & SPAC_Push) res = res .. "SPAC_Push ";
+        if(spac & SPAC_PCross) res = res .. "SPAC_PCross ";
+        if(spac & SPAC_UseThrough) res = res .. "SPAC_UseThrough ";
+        if(spac & SPAC_AnyCross) res = res .. "SPAC_AnyCross ";
+        if(spac & SPAC_MUse) res = res .. "SPAC_MUse ";
+        if(spac & SPAC_MPush) res = res .. "SPAC_MPush ";
+        if(spac & SPAC_UseBack) res = res .. "SPAC_UseBack ";
+        if(spac & SPAC_Damage) res = res .. "SPAC_Damage ";
+        if(spac & SPAC_Death) res = res .. "SPAC_Death ";
+
+        return res;
+    }
+
+    // 128: Random actor?
+    override void WorldLinePreActivated (WorldEvent e) {
+        // Check for glass effects, we are reusing Hexen's breakable glass special
+        if(e.ActivatedLine && e.ActivatedLine.special == 49 && e.Thing) {
+            e.ShouldActivate = false;
+
+            bool isPseudoProjectile = SelacoActor(e.Thing) && SelacoActor(e.Thing).bIsTelekProjectile;
+            
+            if(developer > 1) Console.Printf("Pre activated: [%s] - %d  %s", debugSPAC(e.activationType), e.ActivatedLine.health, e.Thing ? e.Thing.GetClassName() : 'None');
+
+            // We cannot resolve this hit, it's probably a projectile but that will call back again as SPAC_Damage
+            if((e.activationType & (SPAC_Impact | SPAC_PCross)) && e.DamagePosition ~== (0,0,0) && !(e.Thing is 'WeaponMelee')) {
+                // Zero damage things won't damage the line, so we have to fudge things
+                if(e.Thing && (e.Thing.damage == 0 || isPseudoProjectile) && !(e.Thing is 'PlayerPawn')) {
+                    resolveGlassContact(e.ActivatedLine, e.ActivationType, e.Thing, e.Thing.pos);
+                }
+                
+                return;
+            }
+
+            if(e.activationType & (SPAC_Damage | SPAC_Death)) return; // Don't act on this yet
+            
+            resolveGlassContact(e.ActivatedLine, e.ActivationType, e.Thing, e.DamagePosition);
+        }
+        else if(e.ActivatedLine && e.ActivatedLine.special == 99) {
+            e.ShouldActivate = false;
+
+            if(developer > 1) Console.Printf("Pre activated: [%s] - %d  %s", debugSPAC(e.activationType), e.ActivatedLine.health, e.Thing ? e.Thing.GetClassName() : 'None');
+
+            // WorldLineDamaged is not called when health becomes zero for some reason
+            if(e.ActivatedLine.health == 0) {
+                damageFishGlass(e.ActivatedLine, e.ActivationType, e.Thing, e.DamagePosition, e.DamageAngle);
+            }
+        }
+    }
+
+    override void WorldLineDamaged (WorldEvent e) {
+        //Console.Printf("World Line Damaged: %d  Damage: %d  Health: %d  %s", e.DamageLine ? e.DamageLine.index() : -1, e.damage, e.damageLine ? e.DamageLine.Health : -1, e.DamageSource ? e.DamageSource.getClassName() : 'none');
+
+        if(e.DamageLine && e.DamageLine.special == 99) {
+            if(e.damage > 0 || e.DamageLine.health <= 0)
+                damageFishGlass(e.DamageLine, SPAC_Damage, e.DamageSource, e.DamagePosition, e.DamageAngle);
+        } else if(e.DamageLine && e.DamageLine.special == 49) {
+            // Hacky but we need to prevent projectiles from DamageLine because it calls both Impact and DamageLine
+            if(e.damage > 0 && e.DamageSource && (!e.DamageSource.bMissile || e.DamageSource is 'WeaponMelee')) {
+                damageGlass(e.DamageLine, SPAC_Damage, e.DamageSource, e.DamagePosition, e.DamageAngle);
+            }
+            if(e.DamageLine.args[1] > 0) e.DamageLine.SetHealth(999999);
+        }
+    }
+
+    bool damageFishGlass(Line activatedLine, int activationType, Actor thing, Vector3 pos, double angle) {
+        if(!(thing is 'GlassDamagePuff') && activationType & (SPAC_Damage | SPAC_Death) == 0) {
+            return false;
+        }
+
+        if(thing && thing.DamageType == 'ExplosiveImpact') {
+            activatedLine.setHealth(0);
+        }
+
+        Vector2 glassNorm = activatedLine.delta.unit();
+
+        if(activatedLine.health <= 0) {
+            let controller = findTankControllerByTag(activatedLine.args[1]);
+            
+            // Break glass first, since the water line needs to be intact
+            //breakGlass(Line activatedLine, int activationType, Actor thing, double hitSize, Vector3 pos, Vector3 dir, Vector3 force, bool posIsOrigin: false, double waterZ = -double.MAX)
+            breakGlass( activatedLine, activationType, thing, 32, pos, (glassNorm, 0), 5,
+                        waterZ: controller && !controller.empty ? level.sectors[controller.waterSector].FindLowestCeilingPoint() : -double.max);
+            
+            if(controller) {
+                controller.tankBroken(activatedLine);
+            }
+        } else {
+            // Add a hole
+            let controller = findTankControllerByTag(activatedLine.args[1]);
+            if(controller) {
+                if(thing is 'WeaponMeleeGlassImpact' || thing is 'WeaponMelee') {
+                    // Add decal that does not produce water
+                    pos.xy = activatedLine.pointOnLine(thing.pos.xy, true);
+                    pos.z = thing.pos.z + (thing.height / 2.0);
+                    spawnGlassDecal("MeleeFishDecal", activatedLine, pos, thing ? activatedLine.pointOnSide(thing.pos.xy) : 0, offsetAtEdges: true);
+                } else {
+                    controller.numHoles++;
+                    controller.health = min(controller.health, activatedLine.health);
+                    controller.waterHeight = min(controller.waterHeight, pos.z);
+
+                    FishTankDecal d = FishTankDecal(spawnGlassDecal("FishTankDecal", activatedLine, pos, thing ? activatedLine.pointOnSide(thing.pos.xy) : 0, offsetAtEdges: true));
+
+                    if(d) {
+                        // Check if decal is above water line
+                        let waterLine = controller.waterSector >= 0 ? level.sectors[controller.waterSector].FindLowestCeilingPoint() : -99999;
+                        if(d.pos.z > waterLine) d.health = 0;
+
+                        controller.decals.push(d);
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    Actor spawnGlassDecal(class<Actor> cls, Line activatedLine, Vector3 pos, int lineSide = Line.Front, bool randomRoll = true, bool canFadeOld = false, bool offsetAtEdges = false) {
+        DecalIndexer indexer = getDecalIndexer(activatedLine.Index(), create: true);
+        
+        // Perform maintenance on decals
+        for(int x = indexer.decals.size() - 1; x >= 0; x--) {
+            if(!indexer.decals[x]) indexer.decals.delete(x);
+        }
+
+        // Ignore decals if the linedef specifies 
+        if(!activatedLine.sidedef[lineSide] || activatedLine.sidedef[lineSide].Flags & Side.WALLF_NOAUTODECALS) 
+            return null;
+
+        // Remove an old decal if necessary
+        if(indexer.decals.size() > 25) {
+            if(indexer.decals[0]) indexer.decals[0].destroy();
+            indexer.decals.delete(0);
+        } else if(indexer.decals.size() > 10) {
+            let dcl = indexer.decals[0];
+
+            if(canFadeOld && dcl && dcl is 'GlassDecal') {
+                if(GlassDecal(dcl).fadeout == 0) {
+                    dcl.wake();
+                    GlassDecal(dcl).fadeout = 125;
+                }
+            } else if(dcl)  {
+                dcl.destroy();
+                indexer.decals.delete(0);
+            }
+        }
+        
+        Vector2 glassNorm = activatedLine.delta.unit();
+        double glassAngle = vectorangle(glassNorm.y, -glassNorm.x);
+        if(lineSide == Line.Back) glassAngle += 180;
+
+        // Spawn the hole decal
+        Actor d = Actor.Spawn(cls, pos + ((glassNorm.y, -glassNorm.x) * (lineSide == Line.Front ? 0.35 : -0.35)));
+        d.angle = glassAngle;
+        
+        // If decal is more than RADIUS units from an edge, make it large
+        let p1dist = (d.pos.xy - activatedLine.v1.p).length();
+        let p2dist = (d.pos.xy - activatedLine.v2.p).length();
+        if(p1dist >= d.radius && p2dist >= d.radius) {
+            d.setStateLabel("Large");
+            if(randomRoll) d.roll = random(0, 360);
+            d.bXFLIP = random(0,1);
+        } else {
+            // Which side are we near?
+            // Shove decal off to the side if necessary to not clip the edge
+            if(p1dist < p2dist) {
+                if(offsetAtEdges && p1dist < d.radius / 2.0) {
+                    d.setOrigin((d.pos.xy + (glassNorm * (3.0 - p1dist)), d.pos.z), false);
+                } else if(!offsetAtEdges) {
+                    d.setOrigin((activatedLine.v1.p, d.pos.z), false);
+                    d.bXFLIP = lineSide == Line.Back;
+                }
+            } else {
+                if(offsetAtEdges && p2dist < d.radius / 2.0) {
+                    d.setOrigin((d.pos.xy - (glassNorm * (3.0 - p2dist)), d.pos.z), false);
+                } else if(!offsetAtEdges) {
+                    d.setOrigin((activatedLine.v2.p, d.pos.z), false);
+                    d.bXFLIP = lineSide == Line.Front;
+                }
+            }
+        }
+
+        // Add decal to the indexer
+        indexer.decals.push(d);
+
+        return d;
+    }
+
+
+    // Find or create lookup array
+    DecalIndexer getDecalIndexer(int lineID, bool create = false) {
+        uint index;
+        bool success;
+        [index, success] = lineDecalLookup.get(lineID);
+
+        if(!success) {
+            if(create) {
+                index = decalLookup.size();
+                let indexer = new("DecalIndexer");
+                indexer.lineID = lineID;
+                decalLookup.push(indexer);
+                lineDecalLookup.put(lineID, index);
+                return indexer;
+            }
+            
+            return NULL;
+        }
+
+        return decalLookup[index];
+    }
+
+    // We can't actually remove the indexer, since it would alter the table order
+    // So destroy the decals instead and leave the indexer empty
+    void destroyDecals(int lineID) {
+        uint index;
+        bool success;
+        [index, success] = lineDecalLookup.get(lineID);
+        
+        if(!success) return;
+
+        DecalIndexer indexer = decalLookup[index];
+        for(int x = indexer.decals.size() - 1; x >= 0; x--) {
+            if(indexer.decals[x]) indexer.decals[x].destroy();
+        }
+        indexer.decals.clear();
+    }
+
+
+    bool damageGlass(Line activatedLine, int activationType, Actor thing, Vector3 pos, double angle, int forceDamage = 0) {
+        if(activatedLine.args[1] > 0) {
+            resolveGlassContact(activatedLine, SPAC_IMPACT, thing, pos);
+        }
+
+        return false;
+    }
+
+
+    void breakGlass(Line activatedLine, int activationType, Actor thing, double hitSize, Vector3 pos, Vector3 dir, double force, bool posIsOrigin = false, double waterZ = -double.MAX) {
+        Stats.addStat(STAT_GLASS_DESTOYED, 1, 0);
+
+        // Spawn the glass shards and change necessary line info
+        GlassParticle.SpawnLineGlass(activatedLine, activatedLine.args[0], hitPos: pos, dir: dir, hitSize: hitSize, force: force, posIsOrigin: posIsOrigin, waterZ: waterZ, runScript: true);
+
+        // If the activator was Dawn and it wasn't a projectile, trigger the hands up animation
+        if(thing is 'Dawn' && (activationType == 1 || activationType == 16)) {
+            Dawn d = Dawn(thing);
+            thing.Spawn("Alerter");
+            d.GiveInventory("ShatteredWindow", 1);
+            if(d.countinv("DangerStateActive") == 0 && random(0,4) == 0) {
+                d.A_StartSound("dawn/landinglong", CHAN_AUTO);
+            }
+
+            // Shake gamepad
+			InputHandler.Instance().AddWorldFeedback2(
+				(2, 3),
+				(2, 3),
+                (2, 3),
+                (2, 3)
+			);
+
+        }
+    }
+
+    // Determine the type of contact with glass, and resolve actions
+    bool resolveGlassContact(Line activatedLine, int activationType, Actor thing, Vector3 pos) {
+        double size = thing.radius * 2.5;
+        double force = clamp(thing.vel.length() * 1.35, 1, 20);
+        Dawn dPlayer = Dawn(thing);
+        bool isExplosion = false;
+        bool isHitscan = activationType & SPAC_Impact;
+        bool noDamage = activatedLine.args[1] > 0;
+        bool instantKill = !noDamage && (thing is 'GlassDamagePuff' || activatedLine.health <= 0 || thing is 'WeaponMelee' || thing is 'WeaponMeleeGlassImpact' || thing is 'AlienTracer' || thing is 'SelacoEnemy' || thing is 'FireExThrown' || (thing is 'DeathceptionMaster' && thing.vel.length() >= 2));
+        Vector3 contactPos = pos;
+        Vector2 glassNorm = activatedLine.delta.unit();
+        int side = activatedLine.pointOnSide(thing.pos.xy);
+        // If this is a puff, the source will be the object that fired it
+        // Create a direction between the contact point and the object
+        Vector3 dir = isHitscan && (thing is 'PlayerPawn' || thing is 'SelacoEnemy' || thing is 'GlassDamagePuff' || thing is 'HitPuff') ? (pos - thing.pos) : thing.vel;
+        
+        if(SelacoActor(thing) && SelacoActor(thing).bIsTelekProjectile) {
+            instantKill = true;
+        }
+
+        if(thing && developer > 1) 
+            thing.A_PrintBold(
+                    String.Format(
+                            "Con: %s Type: [%s]  Hits: %d  Exp: %d Kill: %d NDMG: %d Pos: %.2f - %.2f - %.2f", 
+                            thing ? thing.GetClassName() : 'None',
+                            debugSPAC(activationType),
+                            isHitscan,
+                            isExplosion,
+                            instantKill,
+                            noDamage,
+                            pos.x, pos.y, pos.z
+                    )
+            );
+
+
+        // There is no damage pos for certain objects, so we need to calculate from the thing position
+        if(!isHitscan && (activationType & (SPAC_PCross | SPAC_AnyCross | SPAC_Cross)) && pos ~== (0,0,0)) {
+            pos = thing.pos;
+            // TODO: Find pos on plane to position decals at the correct location
+        }
+        
+        // Prevent NaN which cannot be tested for >:(
+        if(!(dir ~== (0,0,0))) dir = dir.unit();
+        else {
+            // Attempt to make a direction out of thin air
+            double hcosb = cos(thing.pitch);
+            dir.x = cos(thing.angle) * hcosb;
+            dir.y = sin(thing.angle) * hcosb;
+            dir.z = -sin(thing.pitch);
+        }
+        
+        if(!noDamage && instantKill) {
+            activatedLine.setHealth(0);
+        } else if(noDamage) {
+            activatedLine.setHealth(999999);
+        }
+
+        // For Projectiles crossing through we will probe the projectile for damage to apply to the glass
+        if(activationType & SPAC_PCross) {
+            size = 45;
+            int damage = 30;
+            if(thing is 'FasterProjectile') damage = FasterProjectile(thing).damageToGlass;
+            else if(thing is 'ThrowableActor') {
+                let throwable = ThrowableActor(thing);
+                damage = throwable.damageToGlass;
+                throwable.vel *= throwable.glassDamping;
+            }
+
+            if(!noDamage) activatedLine.setHealth(activatedLine.health - damage);
+        }
+        // Special case for hitscan
+        else if(isHitscan) {
+            size = 45;
+            force = 12;
+            //dir.x *= -1;
+            //dir.y *= -1;
+            
+            if(thing is 'GlassDamagePuff') {
+                isExplosion = true;
+                pos = thing.pos;
+                size = 256;
+                force = 30;
+            } else if(thing is 'WeaponMelee') {
+                pos.xy = activatedLine.pointOnLine(thing.pos.xy, true);
+                pos.z = thing.pos.z + (thing.height / 2.0);
+            }
+
+            // Apply hitscan damage to line
+            if(!instantKill && !noDamage) {
+                int damage = 30;
+
+                // Get settings from player active weapon since we can't read the puff
+                if(thing.player && thing.player.ReadyWeapon) {
+                    let sw = SelacoWeapon(thing.player.ReadyWeapon);
+                    if(sw) {
+                        damage = sw.bulletDamageToGlass;
+                        force = sw.bulletForceToGlass;
+                    }
+                }
+                activatedLine.setHealth(activatedLine.health - damage);
+            }
+        } else if(!noDamage && activationType == SPAC_Push && !thing.bIsMonster) {
+            // Handle glass being pushed by player or pickupable object
+            PickupableDecoration pd = PickupableDecoration(thing);
+            Vector2 vel = thing.vel.xy;
+            bool canDamage = true;
+            bool isPickedUp = pd && pd.isPickedUp();
+            bool canPlaySound = true;
+            
+            if(pd) {
+                if(pd.radius < 5) return false;     // Small objects don't break the glass
+
+                if(pd.isPickedUp()) {
+                    // tick timeout on glass hits for picked up objects
+                    if(pd.glassHitTime > 0 && level.totalTime - pd.glassHitTime < 10) return false;
+
+                    if(pd.holdVel ~== (0,0,0)) {
+                        if(pd.vel ~== (0,0,0)) {
+                            dir.xy = Actor.angleToVector(pd.pickedUpOwner.angle);
+                            dir.z = 0;
+                            force = 1.5;
+                        } else {
+                            dir = pd.vel.unit();
+                            force = pd.vel.length() * 1.35;
+                        }
+                    } else {
+                        dir = pd.holdVel.unit();
+                        force = pd.holdVel.length() * 1.35;
+                    }
+
+                    pd.glassHitTime = level.totalTime;
+                }
+            }
+            
+            if(pd) {
+                // Get pickup vel if zero
+                if(vel ~== (0,0)) {
+                    vel = pd.holdVel.xy;
+                    canDamage = false;
+                }
+
+                if(pd.bNoThrowDamage || !pd.bCanDamageGlass) canDamage = false;
+                if(pd.glassHitTime > 0 && level.totalTime - pd.glassHitTime < 15) canPlaySound = false;
+                pd.glassHitTime = level.totalTime;
+            }
+            
+
+            if(vel ~== (0,0)) return false;     // If the object is not really moving, don't keep going
+
+            Vector2 velNorm = vel.Unit();
+            double surf = 1.0 - abs(velNorm dot glassNorm);
+            double fudgeSurf = CLAMP(surf, 0.5, 1.0);   // Fudge the surface contact, so as to smooth out collision at very shallow angles
+            double dvel = fudgeSurf * vel.length();
+
+            // Do audio fx for thrown objects
+            if(pd && dvel >= 1 && !isPickedUp && canPlaySound) {
+                pd.A_StartSound(pd.landingSound, CHAN_AUTO);
+
+                // Generic glass impact, possibly combined with smash
+                if(canDamage) thing.A_StartSound("dest/glasssmall", CHAN_AUTO);
+            }
+
+            // TODO: We could use the mass property to determine the velocity required to break the glass
+            // But that will require actually setting the mass property correctly for every object
+            if(dvel < 3.2 || (pd && dvel < 5)) {
+                if(canDamage && dvel >= 1.0) {
+                    // Start taking health away from the glass, so it breaks eventually
+                    // TODO: Play appropriate glass-groaning sound or impact if hard enough
+                    activatedLine.setHealth(activatedLine.getHealth() - 4);
+                    if(activatedLine.getHealth() > 0) {
+                        // TODO: Change to an actual glass-stressing sound
+                        if(random(0,100) > 80) thing.A_StartSound("dest/icecrack", CHAN_BODY, CHANF_NOSTOP);
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else if(dplayer) {
+                // We broke the glass
+                activatedLine.setHealth(0);
+            } else if(canDamage) {
+                // Damage the glass based on speed/size
+                int damage = (thing.radius * 7.0) * min(1.5, dvel / 20.0);
+                activatedLine.setHealth(activatedLine.getHealth() - damage);
+                
+                if(activatedLine.getHealth() > 0) {
+                    if(!isPickedUp && dvel > 10 && thing.radius >= 15) {
+                        // Solid thunk on glass sound
+                        thing.A_StartSound("impact/solidglass", CHAN_BODY, CHANF_NOSTOP);
+                    }
+                    
+                    if(damage >= 2) {
+                        // Pos is unreliable here, generate our own based on object pos
+                        pos.xy = activatedLine.pointOnLine(thing.pos.xy, true);
+                        pos.z = thing.pos.z + (thing.height / 2.0);
+
+                        // Create a crack decal where we damaged
+                        //if(!isPickedUp) spawnGlassDecal(damage >= 10 && thing.radius > 10 ? "GlassCrackDecal" : "GlassCrackDecalSmall", activatedLine, pos, side, randomRoll: true);
+                        if(!isPickedUp) spawnGlassDecal("GlassCrackDecal", activatedLine, pos, side, randomRoll: true, offsetAtEdges: false);
+
+                        // Spawn impact effect
+                        Actor.Spawn('BulletImpactEffectPlasticStationary', pos);
+                    }
+                    return false;
+                }
+            } else if(!canDamage) {
+                // Play impact sound if vel is high enough
+                if(dvel > 3 && canPlaySound) thing.A_StartSound("chunk/impact", CHAN_BODY, CHANF_NOSTOP);
+            }
+
+            if((thing.player && thing.player.jumpTics == 0) || (thing.pos.Z <= thing.floorz || thing.pos.Z ~== thing.floorz)) {
+                // If this is a player and we are on the ground, significantly reduce velocity
+                thing.vel -= (thing.vel * surf) * 0.95;
+            } else if(pd) {
+                // Reduce velocity of picked up object
+                pd.vel -= (pd.vel * surf) * 0.75;
+            } else {
+                // Velocity reduction for jumping player
+                thing.vel -= (thing.vel * surf) * 0.7;
+            }
+
+            // Pickupables will bounce off the solid line, store a ref to the object and the current velocity
+            // So during activation we can fix this
+            if(pd) {
+                tempDecoration = pd;
+                tempDecorationVelocity = pd.vel;
+                tempDecorationPos = pd.pos;
+            }
+        }
+
+
+        // If this was a bullet or projectile, spawn an impact effect
+        if(activationType & (SPAC_PCross | SPAC_Impact | SPAC_Damage)) {
+            if(!(thing is 'EnemySoldier')) {
+                // This is getting convoluted, but do NOT spawn impact effects for NoDamage lines
+                // This is because the projectiles and puffs should already have code for this based
+                // on the texture used for the glass.
+
+                bool shouldMakeParticles = !(activatedLine.flags & (Line.ML_BLOCKHITSCAN | Line.ML_BLOCKEVERYTHING));
+
+                // Spawn bullet effect
+                if(shouldMakeParticles) {
+                    let impact = Actor.Spawn('BulletImpactEffectPlasticStationary', pos);
+                
+                    // Chink sound
+                    impact.A_StartSound("impact/glasswall", CHAN_AUTO, volume: 0.85);
+                }
+
+                if(activatedLine.health > 0 || noDamage) {
+                    // Spawn some glass chunks
+                    // These particles are so small there is no point spawning them when the player is
+                    if(shouldMakeParticles && (players[consoleplayer].mo.pos - pos).length() < (256.0 * 256.0)) {
+                        double glassAngle = vectorangle(glassNorm.y, -glassNorm.x);
+                        if(side == Line.Back) glassAngle += 180;
+                        
+                        //ParticleHandler.Emit('GlassParticleSmallWall', NULL, chance: 1.0, numTries: 2, angle:glassAngle + random(-45,45), offset:pos + (frandom(-3,3), frandom(-3,3),frandom(-3,3)));
+                        //ParticleHandler.Emit('GLASSPART_IMPACT', NULL, chance: 1.0, numTries: 8, angle:glassAngle + random(-45,45), offset:pos + (frandom(-3,3), frandom(-3,3),frandom(-3,3)));
+                        
+                        ParticleDefinition.Emit('GlassParticleSmallWallDefintion', 
+                            NULL,
+                            chance: 1.0, 
+                            numTries: 4, 
+                            angle: glassAngle + random(-45,45), 
+                            offset: pos + (frandom(-3,3), frandom(-3,3),frandom(-3,3))
+                        );
+
+                        ParticleDefinition.Emit('GlassPart_ImpactDefinition', 
+                            NULL,
+                            chance: 1.0, 
+                            numTries: 8, 
+                            angle: glassAngle + random(-45,45), 
+                            pitch: 0, 
+                            offset: pos + (frandom(-3,3), frandom(-3,3),frandom(-3,3))
+                        );
+                    }
+
+                    // Spawn a decal at impact point
+                    class<Actor> decalClass = "FishTankDecal";
+                    if(activatedLine.args[1] == 1) {
+                        decalClass = "PermanentGlassDecal";
+                        if(thing is 'FasterProjectile') decalClass = FasterProjectile(thing).glassPermanentDecal;
+                    } else if(thing is 'FasterProjectile') decalClass = FasterProjectile(thing).glassDamageDecal;
+                    
+                    if(thing is 'WeaponMelee') {
+                        decalClass = "MeleeFishDecal";
+                    }
+
+                    spawnGlassDecal(decalClass, activatedLine, pos, side, canFadeOld: noDamage, offsetAtEdges: true);
+                }
+            }
+        }
+
+        // If we haven't broken the glass, cancel out
+        if(activatedLine.health > 0 || noDamage) {
+            return false;
+        }
+
+        // Alert monsters to the noise of breaking glass
+        thing.spawn("alerter", pos);
+        thing.A_Alertmonsters();
+
+
+        // Spawn some smoke
+        if(activationType & (SPAC_PCross | SPAC_Impact)) {
+            Actor.Spawn('SmokeScatteredCloud', pos);
+        }
+
+        // Spawn effects if a soldier smashed through the glass
+        if(thing is 'EnemySoldier') {
+            let es = EnemySoldier(thing);
+            if(es.vel.xy.length() >= es.speed + 1.0) {
+                bool dontcare;
+                Actor fx;
+                [dontcare, fx] = es.A_SPAWNITEMEX("MeleeWallSmash", 0, 0, 32);
+                fx.A_SetTranslucent(0.2, 0); 
+                es.A_PlaySound("impact/wallhit", CHAN_AUTO, 0.7, 0, 0.98);
+
+                // Reduce velocity
+                Vector2 velNorm = es.vel.xy.Unit();
+                double surf = 1.0 - abs(velNorm dot glassNorm);
+                es.vel *= 0.35;
+            }
+        }
+
+        breakGlass(activatedLine, activationType, thing, size, pos, dir, force, isExplosion);
+
+        return true;
+    }
+
+
+    override void WorldTick() {
+        if(tempDecoration) {
+            tempDecoration.vel = tempDecorationVelocity;
+
+            if(tempDecoration.isPickedUp()) {
+                tempDecoration.interruptHoldForce();    // Briefly cause an interruption
+            }
+        }
+
+        tempDecoration = null;
+    }
+}
+
+
+class GlassDamagePuff : Actor {
+	default {
+        +NOBLOCKMAP;
+        +NOINTERACTION;
+	}
+
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+
+
+class GlassParticle : SelacoParticle {
+    mixin ParticleEmitter;
+    mixin Steppable;
+
+    bool pitchDir;
+
+    // Density is how many particles per map unit to spawn
+    // Pos is location of impact
+    static void SpawnLineGlass(Line sourceLine, int lineID, double density = 0.015, Vector3 hitPos = (0,0,0), Vector3 dir = (0,0,0), double hitSize = 0.0, double force = 25, bool posIsOrigin = false, double waterZ = -double.MAX, bool runScript = false) {
+        int lineNum = -89;
+        let iterator = Level.CreateLineIdIterator(lineID);
+        //let tex = TexMan.checkForTexture("-");
+        bool playedSound = false;
+        TextureID tex;
+        
+        GlassHandler glasser = GlassHandler.Instance();
+
+        while(true) {
+            Line l;
+            if(lineNum == -89) { l = sourceLine; } else { l = level.lines[lineNum]; } // Why doesn't ? work
+            if(!l || (sourceLine == l && lineNum >= 0)) {
+                lineNum = iterator.next();
+                if(lineNum < 0) break;
+                continue;
+            }
+
+            // Run script attached to glass breakage
+            if(runScript && l.args[2] != 0) {
+                ACS_Execute(l.args[2], 0, l.index(), l.args[3]);
+            }
+
+            // Delete any decals that may exist on the glass
+            glasser.destroyDecals(l.Index());
+
+            l.special = 0;
+            l.flags &= ~Line.ML_BLOCK_PLAYERS;
+            l.flags &= ~Line.ML_BLOCKEVERYTHING;
+            l.flags &= ~Line.ML_BLOCKMONSTERS;
+            l.flags &= ~Line.ML_BLOCKUSE;
+            l.flags &= ~Line.ML_BLOCKING;
+            l.flags &= ~Line.ML_BLOCKHITSCAN;
+            l.flags &= ~Line.ML_BLOCKPROJECTILE;
+
+            // If this is a one sided line, we probably want to use a different glass texture
+            // but for now just make sure we don't VM abort
+            if(l.sidedef[0]) l.sidedef[0].SetTexture(1, tex);
+            if(l.sidedef[1]) l.sidedef[1].SetTexture(1, tex);
+
+            l.alpha = MIN(l.alpha, 0.2);
+
+            // Cache ceiling and floor heights from the center of the sector
+            // This is not necessary but should speed things up a bit
+            Vector2 midpoint = l.v1.p + (l.delta * 0.5);
+            double ceilingZ = l.frontsector.ceilingplane.ZatPoint(l.v1.p);
+            double floorZ = l.frontsector.floorplane.ZatPoint(l.v1.p);
+
+            let surfacePos = posIsOrigin ? (midpoint.x, midpoint.y, floorZ + ((ceilingZ - floorZ) * 0.5)) : hitPos;
+            let dir = posIsOrigin ? (surfacePos - hitPos).unit() : dir;
+
+            // Play a glass breaking sound, which requires spawning a dummy actor
+            //if(!playedSound) {
+            if(l == sourceLine) {
+                let sndObj = Actor.Spawn('GlassBreakSnd', (midpoint.x, midpoint.y, floorZ + ((ceilingZ - floorZ) * 0.5)));
+                if(waterZ - floorZ > 10) {
+                    Actor.Spawn('TankBreakSnd', sndObj.pos);
+                }
+                    
+                playedSound = true;
+            }
+
+            float surfaceCover = ceil(l.delta.length() * (ceilingZ - floorZ) * density);
+            int numParticles = min(350, surfaceCover);
+            int numBeads = min(120, surfaceCover * 0.15);
+            int numSmokes = min(10, surfaceCover * 0.05);
+            
+
+            Vector2 glassNorm = l.delta.unit();
+            glassNorm = (glassNorm.y, -glassNorm.x);
+            double glassAngle = vectorangle(glassNorm.x, glassNorm.y);
+
+             // If the sector is not flat, don't precalculate the floor and ceiling values
+            if(!(l.frontsector.floorplane.ZatPoint(l.v2.p) ~== floorZ && l.frontsector.ceilingplane.ZatPoint(l.v2.p) ~== ceilingZ)) {
+                ceilingZ = double.MAX;
+                floorZ = double.MAX;
+            }
+            
+            double colSize = min(max(hitsize, 25), 86);
+
+            // TODO: For wall shapes that are not symmetric, we have to weight our positions based on
+            // the height of the section
+            if(waterZ != -double.max) {
+                numParticles /= 2;  // Reduce glass particles if we are spawning water
+                dir = (glassNorm, 0);
+            }
+
+            for(int x = 0; x < numParticles; x++) {
+                let pos = linedefOffset(l, 0.02, 0.98, 0.02, 0.98, floorZ: floorZ, ceilingZ: ceilingZ);
+                double nearCollision = clamp( (colSize - clamp((pos - surfacePos).length(), 0, colSize)) / colSize,  0.2, 1.0);
+                if(pos.z < waterZ) {
+                    nearCollision = 1.0;
+                }
+
+                Vector3 vel = (dir * force * nearCollision) + (frandom(-1, 1), frandom(-1, 1), 0) + (frandom(-5, 5) * glassNorm.x, frandom(-5, 5) * glassNorm.y, frandom(-2, 0));
+                glasser.tempGlassVals = (
+                    nearCollision * frandom(-15, 15) + frandom(-8, 8),  // pitch speed
+                    nearCollision * frandom(-15, 15) + frandom(-2, 2),  // roll speed
+                    0
+                );
+
+                ParticleDefinition.Emit('GlassParticleDefinition', 
+                    NULL,
+                    chance: 1.0, 
+                    numTries: 1, 
+                    angle: glassAngle, 
+                    pitch: 0, 
+                    offset: pos,
+                    velocity: vel,
+                    flags: PE_ABSOLUTE_PITCH | PE_ABSOLUTE_ANGLE | PE_ABSOLUTE_POSITION | PE_ABSOLUTE_VELOCITY | PE_FORCE_VELOCITY
+                );
+            }
+
+
+            // Now create the impact particles/beads
+            for(int x = 0; x < numBeads; x++) {
+                let pos = linedefOffset(l, 0.02, 0.98, 0.02, 0.98, floorZ: floorZ, ceilingZ: ceilingZ);
+
+                Vector3 vel = (frandom(-8, 8) * glassNorm.x, frandom(-8, 8) * glassNorm.y, frandom(-5, 0));
+                vel += (frandom(-5, 5), frandom(-5, 5), 0);
+
+                ParticleDefinition.Emit('GlassBeadParticleDefinition', 
+                    NULL,
+                    chance: 1.0, 
+                    numTries: 1, 
+                    offset: pos,
+                    velocity: vel,
+                    flags: PE_ABSOLUTE_POSITION | PE_ABSOLUTE_VELOCITY | PE_FORCE_VELOCITY
+                );
+
+            }
+
+
+            // Create splashes
+            // waterSplashParticle
+            if(waterZ != -double.max && waterZ > floorZ) {
+                // Determine amount of water
+                int numSplash = min(numParticles, double(numParticles) * ((waterZ - floorZ) / (ceilingZ - floorZ)));
+                double maxSplashSize = max(10, waterZ - floorZ);
+                
+                for(int x = 0; x < numSplash; x++) {
+                    let pos = linedefOffset(l, 0.02, 0.98, 0.02, 0.98, floorZ: floorZ, ceilingZ: waterZ);
+                    
+                    ParticleHandler.Emit(
+                        "waterSplashParticleFishTank",
+                        NULL,
+                        1.0, 1,
+                        glassAngle,
+                        offset: pos
+                    );
+                }
+            }
+            
+
+            // And smoke
+            for(int x = 0; x < numSmokes; x++) {
+                Actor.Spawn('GlassCloud', linedefOffset(l, 0.2, 0.8, 0.2, 0.8, floorZ: floorZ, ceilingZ: ceilingZ));
+            }
+
+            lineNum = iterator.next();
+            if(lineNum < 0) break;
+        }
+    }
+}
+
+
+class GlassCloud : SmokeScatteredCloud {
+    default
+    {
+        Alpha 0.54;
+    }
+}
+
+
+class GlassBreakSnd : AmbientSound {
+    override void PostBeginPlay() {
+		A_StartSound("destruction/glassbreak", slot: CHAN_AUTO, flags: CHANF_OVERLAP, volume: 0.9, attenuation: 0.9);
+        Destroy();
+	}
+}
+
+class TankBreakSnd : AmbientSound {
+    override void PostBeginPlay() {
+        A_StartSound("destruction/fishtank", CHAN_AUTO, flags: CHANF_OVERLAP, volume: 1, attenuation: 0.9);
+        Destroy();
+    }
+}
+
+
+// Note: Radius should be visible width of the decal
+// Spawner uses radius to determine distance from edge of glass
+class GlassDecal : Actor {
+    mixin SleepDebugger;
+    
+    int fadeout;
+
+    default {
+        //+FLATSPRITE;
+        +NOGRAVITY;
+        +ROLLSPRITE;
+        +WALLSPRITE;
+        +NOINTERACTION;
+        radius 8;
+        height 3;
+        health 20;
+    }
+    
+    override void postBeginPlay() {
+        Super.postBeginPlay();
+        A_SetScale(frandom(scale.x - 0.1, scale.x + 0.05));
+    }
+
+    override void tick() {
+        Super.tick();
+
+        if(fadeout > 0) {
+            if(fadeout < 35) {
+                A_SetTranslucent(fadeout / 35.0, 0);
+            }
+            if(--fadeout == 0) {
+                destroy();
+            }
+        } else {
+            SleepIndefinite();
+        }
+    }
+}
+
+
+class FishTankDecal : GlassDecal {
+    default {
+        radius 8;
+        height 3;
+        scale 0.35;
+        health 20;
+    }
+
+    states {
+        Spawn:
+            GLSH A -1;
+            loop;
+        Large:
+            GLSH B -1 {
+                frame = random(1,2);
+            }
+            loop;
+    }
+}
+
+class GlassCrackDecal : GlassDecal {
+    default {
+        radius 16;
+        height 3;
+        scale 0.25;
+        health 20;
+        RenderStyle "Translucent";
+        alpha 0.7;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            GLSH T -1 {
+                frame = random(14, 18);
+            }
+            loop;
+        Large:
+            GLSH T -1 {
+                frame = random(21, 25);
+            }
+            loop;
+    }
+}
+
+// For non-destructible glass
+class PermanentGlassDecal : GlassDecal {
+    default {
+        radius 16;
+        height 3;
+        scale 0.25;
+        health 20;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            GLSH T -1 {
+                frame = random(19, 20);
+            }
+            loop;
+        Large:
+            GLZZ A -1 {
+                frame = random(0, 5);
+            }
+            loop;
+    }
+}
+
+
+class MeleeFishDecal : GlassDecal {
+    default {
+        radius 16;
+        height 3;
+        scale 0.25;
+        health 20;
+    }
+
+    states {
+       Spawn:
+            TNT1 A 0;
+            GLSH T -1 {
+                frame = random(19, 20);
+            }
+            loop;
+        Large:
+            GLZZ A -1 {
+                if(random(0, 100) > 50) {
+                    frame = 3;
+                }
+            }
+            loop;
+    }
+}
+
+
+class GlassCrackDecalSmall : GlassDecal {
+    default {
+        radius 8;
+        height 3;
+        scale 0.35;
+    }
+
+    // No large state
+    states {
+        Large:
+        Spawn:
+            GLSH T -1 {
+                frame = random(21, 25);
+            }
+            loop;
+    }
+}
+
+
+class PlasmaScorch : GlassDecal {
+    default {
+        radius 16;
+        height 3;
+        scale 0.35;
+    }
+
+    // No small state
+    states {
+        Spawn:
+            TNT1 A 1;
+            stop;
+        Large:
+            SCOR A -1 {
+                frame = random(0, 4);
+            }
+            loop;
+    }
+}
+
+
+// These classes left in as placeholders, to prevent savegame errors
+class GlassParticleSmallWall : GlassParticle {}
+class GlassParticleSmall : GlassParticleSmallWall {}
+class GlassPart_Impact : GlassParticleSmallWall {}
+class GlassBead360 : GlassPart_Impact {}
+class GlassParticleSmall360 : GlassParticle {}
+class GlassParticleSmall360Brief : GlassParticleSmall360 {}
+class GlassParticleIceShatter : GlassParticleSmall360 {}
+class GlassParticleLarge : GlassParticleSmall360 {}
+Class GlassBeadParticle : SelacoParticle {}

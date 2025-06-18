@@ -1,0 +1,298 @@
+// TODO: Move this to a HUD element eventually
+class DamageOverlay : EventHandler {
+	mixin CVARBuddy;
+	mixin UIDrawer;
+	mixin ScreenSizeChecker;
+	mixin HUDScaleChecker;
+	mixin HudDrawer;
+
+	struct DamageData {
+		Actor src;
+		uint8 lifespan;
+		bool hidden, bIsSelfDmg;
+		int endAccuTime; // used to accumulate instant multi-hit attack like from the shotguy
+		uint16 dmgAmount;
+		double startTime;
+		double angle, distance;
+		double deltaAngle, deltaDistance;
+		Color col;
+		Shape2D shape;
+		Shape2DTransform transform;
+	}
+
+	const MUM_DMG_DATA = 4; // max num of simultaneous data on screen from different source
+	DamageData dataList[MUM_DMG_DATA]; // no dynamic arrays support for struct
+	TextureID dmgIndi[10];
+	bool bDrawOverlay;
+	
+	ui bool bOverlayEnabled;
+	ui uint uiTicks;
+	transient ui bool ready;
+	
+	// self-damage
+	vector2 selfDmgPos;
+	Array<Actor> selfDmgPointers;
+	
+	// draw as main menu icon
+	TextureId texSelIcon;
+	int16 selIconH, selIconW;
+
+	// set by user
+	uint8 scaling;
+	bool bAccuDmg;
+
+	const CENTER_RADIUS = 190;
+	const TICKRATE = double(35.0);
+    const ITICKRATE = double(1.0/35.0);
+	const INITSCALE = 0.25;
+
+	protected int invCount(Actor a, class<Inventory> inv, int defValue = 0) {
+		let i = a.FindInventory(inv);
+		return i ? i.Amount : defValue; 
+	}
+
+	//================================================================//
+	// Set config settings
+	//================================================================//
+	void CVarsSetup()
+	{
+		bAccuDmg = 0;
+		scaling = 1;
+	}
+	
+	override void OnRegister() {
+		// Doing this OnRegister because Shape2Ds do not get saved in the state correctly
+		for(int x = 0; x < 10; x++) {
+			dmgIndi[x] = TexMan.CheckForTexture("PAINAR" .. (x + 1), TexMan.Type_Any);
+		}
+
+		[selIconW, selIconH] = TexMan.GetSize(dmgIndi[0]);
+
+		for(int x = 0; x < MUM_DMG_DATA; x++) {
+			dataList[x].shape = new("Shape2D");
+			int vc;
+			Shape2DHelper.AddQuad(dataList[x].shape, (-selIconW, -(selIconH / 2.0)), (selIconW, selIconH), (0,0), (1,1), vc);
+			dataList[x].transform = new("Shape2DTransform");
+		}
+	}
+
+	//================================================================//
+	// On map loaded - initialization
+	//================================================================//
+	override void WorldLoaded(WorldEvent e)
+	{
+		CVarsSetup();
+	}
+
+	//================================================================//
+	// Calculates the angle pointing to the enemy/pos direction
+	//================================================================//
+	void UpdateData(int dataId)
+	{
+		if (dataList[dataId].src != null && players[consoleplayer].mo != null) {			
+			double deltaX, deltaY;
+			if (dataList[dataId].bIsSelfDmg) {
+				deltaX = selfDmgPos.x - players[consoleplayer].mo.pos.x;
+				deltaY = selfDmgPos.y - players[consoleplayer].mo.pos.y;
+			} else {
+				deltaX = dataList[dataId].src.pos.x - players[consoleplayer].mo.pos.x;
+				deltaY = dataList[dataId].src.pos.y - players[consoleplayer].mo.pos.y;
+			}
+			
+			// get the diff between the cur player angle and the angle to the enemy/pos dir
+			double dAngle = players[consoleplayer].mo.DeltaAngle(players[consoleplayer].mo.Angle, atan2(deltaY, deltaX));
+			dAngle = players[consoleplayer].mo.DeltaAngle(dAngle, 270); // the front would shown on the right without this
+
+			// Zero out deltas to avoid movement artifacts
+			dataList[dataId].deltaAngle = dataList[dataId].angle;
+			dataList[dataId].angle = dAngle;
+			dataList[dataId].distance = dataList[dataId].distance;
+		}
+	}
+	
+	override void WorldThingDamaged(WorldEvent e)
+	{
+		// local player damaged by some non-level thing
+		if (players[consoleplayer].mo != null && e.Thing == players[consoleplayer].mo && e.DamageSource != null && e.DamageType != "FallDamage") {
+
+			bool bDataRefresh = false;
+			int dataId = -1;
+			// first check if the dmgsource already have a data to refresh it
+			for (int i=0; i<MUM_DMG_DATA; i++) {
+				if (dataList[i].src != null && dataList[i].src == e.DamageSource) {
+					if (bAccuDmg || level.time <= dataList[i].endAccuTime) {
+						dataList[i].dmgAmount += e.Damage;
+					} else {
+						dataList[i].dmgAmount = e.Damage;
+					}
+					bDataRefresh = true;
+					dataId = i;
+					break;
+				}
+			}
+			// or get the first dmg data available
+			if (dataId == -1) {
+				for (int i=0; i<MUM_DMG_DATA; i++) {
+					if (dataList[i].lifespan == 0) {
+						dataId = i;
+						break;
+					}
+				}
+			}
+			// if none available erase the one with the less lifespan left
+			if (dataId == -1) { 
+				dataId = 0;
+				int bestLifespan = dataList[0].lifespan;
+				for (int i=1; i<MUM_DMG_DATA; i++) {
+					if (dataList[i].lifespan < bestLifespan) {
+						bestLifespan = dataList[i].lifespan;
+						dataId = i;
+					}
+				}
+			}
+
+			dataList[dataId].src = e.DamageSource;
+			dataList[dataId].bIsSelfDmg = (e.Thing == e.DamageSource);
+
+			let armor = invCount(e.Thing, "SelacoArmor");
+			if(armor <= 0) {
+				dataList[dataId].col = 0xFF0000FF;
+			} else {
+				dataList[dataId].col = UIMath.LerpC(0xFF0451D0, 0xFF00B5D5, armor > 50 ? 1.0 : armor / 50.0);
+			}
+			
+
+			if (dataList[dataId].bIsSelfDmg) {
+				selfDmgPos.x = selfDmgPos.y = 0;
+				// get the closest player's rocket/barrel - both use the same default aoe range
+				int bestId = -1;
+				int bestRange;
+				for (int i=0; i<selfDmgPointers.Size(); i++) {
+					if (selfDmgPointers[i] != null) {
+						int dist = players[consoleplayer].mo.Distance3D(selfDmgPointers[i]);
+						if (bestId == -1 || dist < bestRange) {
+							bestId = i;
+							bestRange = dist;
+						}
+					}
+				}
+				if (bestId != -1) {
+					selfDmgPos.x = selfDmgPointers[bestId].pos.x;
+					selfDmgPos.y = selfDmgPointers[bestId].pos.y;
+				}
+				// should only happen when you shoot a rocket point blank - no event is going to registers anything except for the damage here
+				if (selfDmgPos.x == 0 && selfDmgPos.y == 0) {
+					selfDmgPos.x = players[consoleplayer].mo.pos.x;
+					selfDmgPos.y = players[consoleplayer].mo.pos.y;
+				}
+			}
+
+			// min duration is 1.5sec, extended up to 3secs at 100 damage taken
+			float extraLength = float(e.Damage) * 0.52;
+			if (extraLength > 52) extraLength = 52;
+			dataList[dataId].lifespan = 53 + int(extraLength);
+			dataList[dataId].endAccuTime = level.time + dataList[dataId].lifespan; // Let's have a larger accum time now to allow for damage sizes to grow
+			if (!bDataRefresh) dataList[dataId].dmgAmount = e.Damage;
+		 	
+			UpdateData(dataId);
+
+			// Set deltas
+			let time = (double(level.time) / TICKRATE);
+			dataList[dataId].deltaDistance = dataList[dataId].distance;
+			dataList[dataId].deltaAngle = dataList[dataId].angle;
+			dataList[dataId].startTime = time;
+
+			bDrawOverlay = true;
+		}
+	}
+
+
+	override void WorldTick() {
+		if (bDrawOverlay) {
+			if(players[consolePlayer].mo.health <= 0) {
+				bDrawOverlay = false;
+				return;
+			}
+			
+			bool bKeepDrawing = false;
+			
+			for (int i=0; i<MUM_DMG_DATA; i++) {
+				if (dataList[i].lifespan == 0)
+					continue;
+
+				if (--dataList[i].lifespan > 0) {
+					UpdateData(i);
+					bKeepDrawing = true;
+				} else { // data expired - clearing the struct
+					dataList[i].src = null; // must reset
+					dataList[i].hidden = false;
+					dataList[i].endAccuTime = 0;
+					dataList[i].dmgAmount = 0;
+				}
+			}
+
+			if (!bKeepDrawing) {
+				bDrawOverlay = false;
+				return;
+			}
+		}
+	}
+
+	override void UITick() {
+		if(screenSizeChanged() || hudScaleChanged()) {
+        	calcScreenScale(screenSize, virtualScreenSize, screenInsets);
+        }
+
+		if((uiTicks + 2) % 15 == 0) {
+			bOverlayEnabled = iGetCVar("g_damageoverlay") > 0 && iGetCVar("hud_enabled");
+		}
+
+		uiTicks++;
+	}
+
+
+	override void RenderOverlay(RenderEvent e) {
+		if(!ready) {
+			ready = true;
+			for(int x = 0; x < dmgIndi.size(); x++) {
+				if(!TexMan.MakeReady(dmgIndi[x])) ready = false;
+			}
+			if(!ready) return;
+		}
+
+		if (!bDrawOverlay || !bOverlayEnabled)
+			return;
+
+		let scScale = getVirtualScreenScale() * scaling;
+		let time = (double(level.time) / TICKRATE) + (e.FracTic * ITICKRATE);
+		let screenCenter = ((Screen.GetWidth(), Screen.GetHeight()) / 2.0);
+
+		// draw the damage datas on screen
+		for (int i=0; i<MUM_DMG_DATA; i++) {
+			if (dataList[i].lifespan == 0 || dataList[i].hidden) continue;
+
+			double te = time - dataList[i].startTime;
+			float stm = UIMath.Lerpd(1.05, 1.0, clamp((te) / 0.1, 0.0, 1.0));
+			float atm = UIMath.EaseInQuadF(te / dataList[i].lifespan);
+			Shape2D shape = dataList[i].shape;
+			Shape2DTransform transform = dataList[i].transform;
+			
+			double ang = UIMath.LerpA(dataList[i].deltaAngle, dataList[i].angle, e.FracTic);
+
+			transform.clear();
+			transform.translate((CENTER_RADIUS, 0));
+			transform.scale(scScale * stm);
+			transform.rotate(ang);
+			transform.translate(screenCenter);
+			
+			shape.setTransform(transform);
+			
+			int icon = CLAMP(dataList[i].dmgAmount * 0.3, 0, 9) % 10;
+
+			Screen.DrawShape(dmgIndi[icon], true, shape, 
+				DTA_Alpha, (dataList[i].lifespan < 35) ? float(dataList[i].lifespan) / 35 : 1.0f,
+				DTA_Color, dataList[i].col,
+				DTA_Filtering, true);
+		}
+	}
+}

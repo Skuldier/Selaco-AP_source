@@ -1,0 +1,723 @@
+// Actors that can spawn an actor, have them use this class.
+mixin class IconSpawner {
+    string iconName;
+    actor icon;
+    bool iconSuccess;
+    bool hasSeenPlayer;
+    property IconName : iconName;
+    LookExParams SearchParams;
+    override void BeginPlay() {
+        super.PostBeginPlay();
+        SearchParams.fov = 360;
+		SearchParams.minDist = 0;
+		SearchParams.maxDist = 1000;
+		SearchParams.maxHearDist = 1024;
+    }
+
+    void ScanForPlayer() {
+         // If the player is seen, mark on automap and notify the player
+        if(iconName && !hasSeenPlayer && lookForPlayers(true, SearchParams)) {
+           [iconSuccess, icon] = A_SpawnItemEx(iconName);
+           hasSeenPlayer = true;
+        }
+    }
+    
+}
+
+class breadCrumb : MapMarker 
+{
+
+    override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+        args[2] = 1;
+    }
+
+    default
+    {
+        +NOINTERACTION;
+        scale 0.2;
+    }
+    states
+    {
+        Spawn:
+            CRUM B -1 { sleepIndefinite(); }
+            stop;
+        FadeAway:
+            TNT1 A 0 { wake(); }
+            CRUM BBBBBBBBBB 1 A_FADEOUT(0.1);
+            stop;
+    }
+}
+
+class SaferoomMarker : MasterMarker {
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_SAFEROOM";
+        MasterMarker.MapIcon    "ICONIX";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                if(checkproximity("SaferoomMarker", 1500))
+                {
+                    destroy();
+                }
+            }
+            ICON I -1;
+    }
+}
+
+class SECRETFOUNDICON : MasterMarkerCleared {
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_FOUNDSECRET";
+        MasterMarker.MapIcon    "ICONKX";
+    }
+    states {
+        Spawn:
+            ICON K -1;
+            stop;
+    }
+}
+
+class Level1Marker : MasterMarker {
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_SECURITYDOOR";
+        MasterMarker.MapIcon    "ICONCX";
+    }
+    states {
+        Spawn:
+            ICON C 60;
+            stop;
+    }
+}
+
+class Level2Marker : Level1Marker {
+    states {
+        Spawn:
+            ICON D 60;
+            stop;
+    }
+}
+
+class Level3Marker : Level1Marker {
+    states {
+        Spawn:
+            ICON E 60;
+            stop;
+    }
+}
+
+class Level4Marker : Level1Marker {
+    states {
+        Spawn:
+            ICON F 60;
+            stop;
+    }
+}
+
+class Level5Marker : Level1Marker {
+    states {
+        Spawn:
+            ICON G 60;
+            stop;
+    }
+}
+
+class Level6Marker : Level1Marker {
+    states {
+        Spawn:
+            ICON H 60;
+            stop;
+    }
+}
+
+class RedIcon : MasterMarker {
+    default {
+        MasterMarker.MapIcon    "ICONXX";
+    }
+    states {
+        Spawn:
+            ICON X -1;
+    }
+}
+
+class PowercellIcon : MasterMarker {
+
+
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_POWERCELL";
+        MasterMarker.MapIcon    "ICO2AX";
+        +MasterMarker.FollowingIcon;
+    }
+    states {
+        Spawn:
+            ICO2 A 1
+            {
+                if(master)
+                {
+                    //console.printf("My master is %s with inserted value %d", master.getClassName(), PowerCell(master).inserted);
+                } else {
+                    setStateLabel("GoDie");
+                }               
+            }
+            loop;
+        GoDie:
+            ICO2 A 33;
+            stop;
+    }
+}
+
+class PowerCellIconSuccess : MasterMarkerCleared
+{
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_ACTIVEPOWERCELL";
+        MasterMarker.MapIcon    "ICO2BX";
+    }
+    states
+    {
+        Spawn:
+            ICO2 B -1;
+            stop;
+    }
+}
+
+class GwynIcon : MasterMarker {
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_GWYNSTATION";
+        MasterMarker.MapIcon    "ICONXX";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 ACS_NamedExecuteWithResult("AutomapAdded", 5, 5);
+            ICON X -1;
+            stop;
+    }
+}
+
+class SecurityCardIcon : MasterMarker {
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_SECURITYCARD";
+        MasterMarker.MapIcon    "1CONJ0";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 ACS_NamedExecuteWithResult("AutomapAdded", 17, 17);
+            1CON J -1;
+            stop;
+    }
+}
+
+class ExplosiveTargetIcon : MasterMarker {
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_CHARGETARGET";
+        MasterMarker.MapIcon    "ICO1MX";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            1CON M -1;
+            stop;
+    }
+}
+
+class LOCKEDExitMarker : MasterMarker { // 1200
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_EXITMARKER";
+        MasterMarker.MapIcon    "ICONJX";
+    }
+
+    states {
+        Spawn:
+            ICON J -1;
+    }
+}
+
+class UNLOCKEDExitMarker : MasterMarker { // 1220
+    default
+    {
+        MasterMarker.MapLabel   "$MAPICON_EXITMARKER";
+        MasterMarker.MapIcon    "ICONJX";
+    }
+
+    states {
+        Spawn:
+            ICON J -1;
+    }
+}
+
+// DO NOT USE.
+class LevelSwitchIconOLD : MasterMarker {
+    default {
+        Tag "Segment Switch icon";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class LevelSwitchIcon : MasterMarker {  // 1225
+    DawnLevelTransitioner transitionZone;
+
+    default {
+        Tag "Segment Switch icon";
+        MasterMarker.MapIcon    "4CONB0";
+        MasterMarker.LegendIcon "4CONC0";
+        MasterMarker.MapLabel   "$MAPICON_LEVELCHANGE";
+    }
+    states {
+        Spawn:
+            4CON A -1;
+            loop;
+    }
+
+    override void postbeginPlay() {
+        Super.postbeginPlay();
+
+        // Search for nearby level transition zone, and assign ourselves to it
+        if(transitionZone == null) {
+            double lsaDist = 0;
+            BlockThingsIterator it = BlockThingsIterator.Create(self, 1024);
+            while (it.Next()) {
+                let mo = DawnLevelTransitioner(it.thing);
+                if(mo && mo.levelSwitchActor == null && mo.posInside(pos.xy)) {
+                    mo.levelSwitchActor = self;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+class LOCKEDDOOR : MasterMarker { // 1282
+    default {
+        ALPHA 0.6;
+        Tag "LOCKED DOOR";
+        MasterMarker.MapIcon    "ICONWX";
+    }
+
+    states {
+        Spawn:
+            ICON W -1;
+    }
+}
+
+class SecurityMarker : MasterMarker { // 1254
+    default {
+        ALPHA 0.6;
+        Tag "LOCKED DOOR";
+        MasterMarker.MapIcon    "ICONBX";
+    }
+
+    states {
+        Spawn:
+            ICON B 4;
+            stop;
+    }
+}
+
+// Maybe we should turn all Keypads into voxels?
+class KeypadIcon : MasterMarker { // 22113
+    default {
+        MasterMarker.MapLabel   "$MAPICON_KEYPAD";
+        MasterMarker.MapIcon    "ICONYX";
+        +NOINTERACTION;
+        tag "Keypad";
+    } 
+
+    void markComplete()
+    {
+        setStateLabel("Completed");
+    }
+
+    states {
+        Spawn:
+            ICON Y 0;
+            TNT1 A 5 A_LOOKEX(LOF_NOSOUNDCHECK, 0, 1000, 1000, 360, "Seen");
+            loop;
+        Seen:
+            TNT1 A 0 ACS_NamedExecuteWithResult("AutomapAdded", 13, 13);
+        SeenLoop:
+            ICON Y -1;
+            loop;
+        Completed:
+            ICON Z 1 A_SpawnItemEx("KeypadIconCompleted");
+            stop;
+    }
+}
+
+
+class KeypadIconCompleted : MasterMarkerCleared {
+    default {
+        MasterMarker.MapIcon    "ICONZX";
+    }
+    states {
+        Spawn:
+            ICON Z -1;
+            loop;
+    }
+}
+
+class PURPLEDOORMARKER : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_KEYCARDDOOR";
+        MasterMarker.MapIcon    "ICONOX";
+    }
+    states {
+        Spawn:
+            ICON O 65;
+            stop;
+    }
+}
+class PURPLEDOORMARKERPERMA : PURPLEDOORMARKER {
+    states {
+        Spawn:
+            TNT1 A 0;
+            ICON O -1 {
+                  if(args[0] <= 8 && args[1] == false) {
+                        ACS_NamedExecuteWithResult("AutomapAdded", 1, 1);
+                  }
+            }
+            stop;
+        Death:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+
+
+class StorageCabinetUnlocked : MasterMarkerCleared {
+    default {
+        MasterMarker.MapIcon    "ICONVX";
+    }
+    states {
+        Spawn:
+            ICON V -1;
+            loop;
+    }
+}
+
+
+class BLUEDOORMARKER : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_KEYCARDDOOR";
+        MasterMarker.MapIcon    "ICONPX";
+    }
+    states {
+        Spawn:
+            ICON P 65;
+            stop;
+    }
+}
+
+
+class YELLOWDOORMARKER : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_KEYCARDDOOR";
+        MasterMarker.MapIcon    "ICONQX";
+    }
+    states 
+    {
+        Spawn:
+            ICON Q 65;
+            stop;
+    }
+}
+
+
+class MAILMARKER : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_DATAPAD";
+        MasterMarker.MapIcon    "ICONAX";
+    }
+
+    states {
+        Spawn:
+            ICON A -1;
+            loop;
+        Death:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class SPACEBROMARKER : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_SPACEBRO";
+        MasterMarker.MapIcon    "1CONFX";
+    }
+    override void PostBeginPlay() 
+    {
+        super.PostBeginPlay();
+        ACS_NamedExecuteWithResult("AutomapAdded", 15, 15);
+    }
+    default {
+        Tag "SPACE BRO";
+    }
+
+    states {
+        Spawn:
+            1CON F -1;
+            loop;
+    }
+}
+
+class BarrelIcon : MasterMarker 
+{
+    override void tick()
+    {
+        super.tick();
+        if(!master)
+        {
+            destroy();
+        }
+    }
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_HEAVYBARREL";
+        MasterMarker.MapIcon    "1CONIX";
+    }
+	states {
+        Spawn:
+            TNT1 A 0;
+            1CON I -1;
+	}
+}
+
+class SupplyChestIcon : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_SUPPLYCHEST";
+        MasterMarker.MapIcon    "1CONKX";
+    }
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        ACS_NamedExecuteWithResult("AutomapAdded", 16, 16);
+    }
+	states {
+        Spawn:
+            TNT1 A 0;
+            1CON K -1;
+            stop;
+	}
+}
+
+class SquadLeaderMapIcon : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_SQUADLEADER";
+        MasterMarker.MapIcon    "1CONGX";
+    }
+	states {
+        Spawn:
+            TNT1 A 0;
+            1CON G 35;
+            stop;
+	}   
+}
+
+
+class SupplyChestCompleted : MasterMarkerCleared {
+    default {
+        MasterMarker.MapIcon    "1CONLX";
+    }
+	states {
+        Spawn:
+            TNT1 A 0;
+            1CON L -1;
+            stop;
+	}   
+}
+
+
+class BlueDoorUnlocked : MasterMarkerCleared {
+    default {
+        MasterMarker.MapIcon    "ICONSX";
+        MasterMarker.MapLabel   "$AUTOMAP_UNLOCKED_BLUEDOOR";
+    }
+	states {
+		Spawn:
+			ICON S -1;
+			loop;
+	}
+}
+
+class YellowDoorUnlocked : MasterMarkerCleared {
+    default {
+        MasterMarker.MapIcon    "ICONTX";
+        MasterMarker.MapLabel   "$AUTOMAP_UNLOCKED_YELLOWDOOR";
+    }
+	states {
+		Spawn:
+			ICON T -1;
+			loop;
+	}
+}
+
+class PurpleDoorUnlocked : MasterMarkerCleared {
+    default {
+        MasterMarker.MapIcon    "ICONRX";
+        MasterMarker.MapLabel   "$AUTOMAP_UNLOCKED_PURPLEDOOR";
+    }
+	states {
+		Spawn:
+			ICON R -1;
+			loop;
+	}
+}
+
+class mapBluecardIcon : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_KEYCARDDOOR";
+        MasterMarker.MapIcon    "ICONMX";
+    }
+  	states {
+		Spawn:
+			ICON M -1;
+			stop;
+	}
+}
+
+class mapPurplecardIcon : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_KEYCARDDOOR";
+        MasterMarker.MapIcon    "ICONLX";
+    }
+  	states {
+		Spawn:
+			ICON L -1;
+			loop;
+	} 
+}
+
+class mapYellowcardIcon : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_KEYCARDDOOR";
+        MasterMarker.MapIcon    "ICONNX";
+    }
+  	states {
+		Spawn:
+			ICON N -1;
+			stop;
+	} 
+}
+
+class StorageCabinet : MasterMarker {   // 2189
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_CABINET";
+        MasterMarker.MapIcon    "ICONUX";
+        RenderStyle "Translucent";
+        radius 2;
+        +NOGRAVITY;
+    }
+
+	states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 { Stats.AddStat(STAT_STORAGECABINETS_OPENED, 0, 1); }
+        Looking:
+            ICON U 0;
+            TNT1 A 5 A_LookEx(LOF_NOSOUNDCHECK, 0, 200, 0, 360, "SpawnIconAndLoop");
+            loop;
+        SpawnIconAndLoop:
+            ICON U 0 ACS_NamedExecuteWithResult("AutomapAdded",6, 6);
+        Looper:
+            ICON U -1;
+            loop;
+        CabinetCardOpened:
+            TNT1 A 0 A_SpawnItemEx("StorageCabinetUnlocked");
+            stop;
+	}
+}
+
+class map_Weaponkit : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_WEAPONKIT";
+        MasterMarker.MapIcon    "ICO2CX";
+    }
+  	states {
+		Spawn:
+			ICO2 C -1;
+			stop;
+	}
+}
+
+class map_yellowBarrel : MasterMarker {
+    default 
+    {
+        MasterMarker.MapLabel   "$OBJECT_REAGENT";
+        MasterMarker.MapIcon    "ICO2FX";
+    }
+  	states {
+		Spawn:
+			ICO2 F -1;
+			stop;
+	}
+}
+
+
+class map_Weaponkitclear : MasterMarkerCleared {
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_WEAPONKIT";
+        MasterMarker.MapIcon    "ICO2DX";
+    }
+  	states {
+		Spawn:
+			ICO2 D -1;
+			stop;
+	}
+}
+
+
+class map_SentryGun : MasterMarker {
+
+    override void tick()
+    {
+        super.tick();
+        if(master)
+        {
+            warp(master, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        }
+        else
+        {
+            destroy();
+        }
+    }
+
+    default 
+    {
+        MasterMarker.MapLabel   "$MAPICON_SENTRYGUN";
+        MasterMarker.MapIcon    "ICO2EX";
+    }
+  	states {
+		Spawn:
+			ICO2 E -1;
+			stop;
+	}
+}

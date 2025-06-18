@@ -1,0 +1,368 @@
+
+class SwarmFlies : Actor {
+    default {
+        Radius 5;
+        Height 5;
+        Speed 3;
+        PROJECTILE;
+        +NOCLIP;
+        +DONTSPLASH;
+        DistanceCheck "r_ThingLOD";
+        Scale 0.22;
+        ReactionTime 4;
+        //SelacoActor.SleepDistance 700;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        A_ChangeVelocity(frandom(-2,2),frandom(-1,1),frandom(-2,2),1);
+    }
+
+    States
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 { if(Distance2DSquared(players[consoleplayer].mo) > (700.0 * 700.0)) SetStateLabel("WaitForPlayer"); }
+            TNT1 A 0 A_PlaySound("SwarmFly",2,1.0,1);
+        Exist:
+            SFLY ABABAB 1 ThrustThingZ(0, frandom (-1, 1), frandom (1, 0), 1);
+            SFLY A 0 A_CountDown;
+            Loop;
+        Death:
+            SFLY A 1 A_SpawnProjectile("SwarmFlies",0,0,frandom(-20,-10));
+            SFLY B 1 A_StopSound(2);
+            Stop;
+
+        WaitForPlayer:
+            TNT1 A 1 {
+                if(Distance2DSquared(players[consoleplayer].mo) < (700.0 * 700.0)) {
+                    SetStateLabel("Exist");
+                    return;
+                }
+                
+                sleep(15);
+            }
+            Loop;
+    }
+}
+
+// Remembers the starting position of the fly
+class FlyflySpawnPoint : actor
+{
+    states
+    {
+        Spawn:
+            TNT1 A -1;
+            loop;
+    }
+}
+
+
+// TO-DO:
+// Use a ``FlyCluster`` actor that handles some of the logic from nearby flies. Checking everything per-fly is more expensive than needed.
+// IDEAS:
+// - Have the locate a nearby corpse to chill and feed on.
+// - Locate a plant, grass or other vegetation thing to move towards.
+// - Move the fly when he's in Chill Mode and the player gets close
+// - Have an ``Insect`` parent class because Cockroaches and Flies will have some behavior similarities. 
+// - 'Hover' state, where they hover around a random spot of the level rather than fly randomly.
+class Fly : SelacoActor
+{
+    const RANDOM_DIR_CHANCE = 35; // Push towards a random direction. Increase for more 'wiggle'
+    const NEW_STATE_CHANCE = 0.1;
+    const DISTANCE_POS = 200;
+    const CHILL_DURATION = 500; // How long should Mr. Fly do nothing if he decides to relax for a bit?
+    const SPEED_CAP = 9;
+    const FLY_SPEED = 1.5;
+    const ALTITUDE_THRESHOLD = 6;
+    int chillTicks;
+    actor flySpawnPoint; // Will be used a target when going back to his original spot to avoid them from leaving.
+    bool success;
+    bool flying;
+    bool napping;
+
+    static const StateLabel flyState[] = {"FlyAround", "ReturnOrigin", "LandAndChill"};
+
+    void handleAirResistance()
+    {
+        float currentSpeed = vel.Length();
+
+        if (currentSpeed > SPEED_CAP)
+        {
+            float reductionRatio = 3 / currentSpeed;
+
+            // Apply the reduction to the velocity
+            vel *= reductionRatio;
+        }
+    }
+
+    void handleRandomFlight()
+    {
+        if (flying)
+        {
+            // Check if close to floor
+            if (abs(pos.z - floorz) <= ALTITUDE_THRESHOLD)
+            {
+                vel.z += 1;
+            }
+            // Check if close to ceiling
+            if(abs(pos.z -ceilingz) <= ALTITUDE_THRESHOLD)
+            {
+                vel.z -= 1;
+            }
+
+            // Randomly change direction
+            if (Random(0, 100) <= RANDOM_DIR_CHANCE)
+            {
+                A_ChangeVelocity(Frandom(-1*FLY_SPEED, FLY_SPEED), Frandom(-1*FLY_SPEED, FLY_SPEED), Frandom(-0.35, 0.35));
+            }
+        }      
+    }
+
+    // Do a new thing
+	void setNextMove()
+	{
+        resetStates();
+        StateLabel selectedState = flyState[random(0,flyState.size()-1)];
+		SetState(FindState(selectedState));
+	}
+
+    // Reset values
+    void resetStates()
+    {
+        A_SETSPEED(3);
+        bFloat = true;
+        flying = false;
+        chillTicks = 0;
+        bNoGravity = true;
+    }
+
+
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+        [success, flySpawnPoint] = A_SPAWNITEMEX("FlyflySpawnPoint");
+        playFlySound();
+		if(!!(SpawnFlags & MTF_DORMANT))
+		{
+			setStateLabel("InactiveFly");
+		}
+    }
+
+    void playFlySound()
+    {
+        A_PLAYSOUND("FLY/BUZZING", CHAN_5, 0.4, 1, 1.2, pitch:frandom(0.8,1.2));
+    }
+
+    void stopFlySound()
+    {
+        A_StopSound(CHAN_5);
+    }
+
+    override void deactivate(actor deactivator)
+    {
+        stopFlySound();
+        setStateLabel("InactiveFly");
+    }
+
+    override void activate(actor activator)
+    {
+        playFlySound();
+        wake();
+        setStateLabel("Spawn");
+    }
+
+    override void Tick()
+    {
+        // Check if it's time to sleep
+        /*if (level.time % Random(35, 50) == 0)
+        {
+            napping = false;
+
+            // Sleep if player is far away
+            if (Distance2DSquared(players[consoleplayer].mo) > 800 * 800)
+            {
+                napping = true;
+                Sleep(90);
+                return;
+            }
+        }
+
+        // If currently napping, do nothing
+        if (napping)
+        {
+            return;
+        }*/
+
+        // Push to random directions when in flight mode
+        handleRandomFlight();
+
+        // Apply air resistance
+        HandleAirResistance();
+
+        // Call the base tick method
+        super.Tick();
+    }
+    
+
+    default
+    {
+        Radius 5;
+        Height 5;
+        Speed 3;
+        +NOGRAVITY;
+        +FLOAT;
+        +NOBLOCKMAP;
+        +CANNOTPUSH
+        gravity 0.02;
+        DistanceCheck "r_ThingLOD";
+        Scale 0.22;
+        +DONTFOLLOWPLAYERS
+        +SelacoActor.AllowSleepInMotion;
+        -SelacoActor.WakeOnMotion;
+        SelacoActor.NoDebugSleep true;  // Stupid
+        SelacoActor.SleepDistance 800;
+    }
+
+    void setSpawnPointTarget()
+    {
+        if(flySpawnPoint)
+        {
+            target = flySpawnPoint;
+        }
+    }
+
+    // Stop rendering when asleep
+    override void Sleep(int tics) {
+        Super.Sleep(tics);
+        
+        A_SetRenderStyle(1, STYLE_None);
+    }
+
+    // Resume rendering when asleep
+    override void wake() {
+        Super.wake();
+
+        // TODO: Fade in when waking from sleep
+        A_SetRenderStyle(1, STYLE_Normal);
+    }
+
+    // Probably won't be called, but just in case
+    override void sleepIndefinite() {
+        Super.sleepIndefinite();
+        A_SetRenderStyle(1, STYLE_None);
+    }
+
+
+    states
+    {
+
+        // Fly is started by a nearby player or gunshot!
+        Startle:
+            TNT1 A 0;
+            goto FlyAround;
+        InactiveFly:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                stopFlySound();
+            }
+            TNT1 A -1;
+            loop;
+        spawn:
+            SFLY A 0;
+        FlyAround:
+            SFLY AABB 1
+            {
+                flying = true;
+                A_WANDER();
+                if(frandom(0,100) <= NEW_STATE_CHANCE)
+                {
+                    setNextMove();
+                }
+            }
+            loop;
+
+        // Go and land. Relax for a bit then fly off.
+        LandAndChill:
+            TNT1 A 0
+            {
+                bNoGravity = false;
+                bFloat = false;
+            }
+
+        LandOnFloor:
+            SFLY AAABBB 1
+            {
+                // Wiggle while trying to land
+                if(pos.z > floorz)
+                {
+                    A_CHANGEVELOCITY(frandom(-0.3,0.3), frandom(-0.3,0.3), frandom(-0.1,0.1));
+                }
+                // Start chilling and walk.
+                else
+                {
+                    setStateLabel("Chill");
+                }
+            }
+            loop;
+        // Landed, now chill.
+        Chill:
+            SFLY AAABBB 1
+            {
+                chillTicks+=random(1,2);
+                if(random(0,100) <= 65)
+                {
+                    A_CHANGEVELOCITY(frandom(-0.09,0.09), frandom(-0.03,0.03), frandom(0.02,0.03));
+                }
+                //A_LookEx(0, 0, 60, 100, 360, 'Startle'); -- Awful, too demanding. We need to use a fly overseer.
+                A_WANDER();
+                A_SETSPEED(1);
+                if(chillTicks >= CHILL_DURATION)
+                {
+                    resetStates();
+                    setState(findState('FlyAround'));
+                }
+            }
+            loop;
+
+        // Return fly close to his original position
+        ReturnOrigin:
+            SFLY A 1
+            {
+                flying = true;
+                if(flySpawnPoint)
+                {
+                    setSpawnPointTarget();
+                    setState(findState('Returning'));
+                }
+            }
+            SFLY A 1
+            {
+                if(!target)
+                {
+                    setState(findState('FlyAround'));
+                }
+            }
+        
+        Returning:
+            SFLY AABB 1
+            {
+                flying = true;
+                A_CHASE();
+                setSpawnPointTarget();
+                if(level.time % random(20,35) == 0 && flySpawnPoint &&  Distance2DSquared(flySpawnPoint) <= DISTANCE_POS*DISTANCE_POS)
+                {
+                    target = null;
+                    setState(findState('FlyAround'));
+                }
+                if(!target)
+                {
+                    setState(findState('FlyAround'));
+                }
+            }
+            loop;
+
+    }
+}

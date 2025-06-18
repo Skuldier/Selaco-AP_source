@@ -1,0 +1,173 @@
+// Shader for building textures
+material texture "MD/SHOTGUN/SHOTGUN.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.51
+}
+
+HardwareShader Texture "MD/EFFECTS/RAINA0.png" {
+	Shader "SHADERS/rain.glsl"
+    Speed 0.65
+}
+
+HardwareShader Texture RAINB0 {
+	Shader "SHADERS/rain.glsl"
+    Speed 0.65
+}
+
+// Flats / Textures given raindrop effect, redefined with new names
+// These names will be used when automatically replacing these textures at load time
+// =================================================================================
+
+HardwareShader Flat GROUND04 RN_GRND4 {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader ROADFL1A RN_RFL1A {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader ROADFL1B RN_RFL1B {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader ROADFL1C RN_RFL1C {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader ROADCT1A RN_RCT1A {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+HardwareShader ROADCT2A RN_RCT2A {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader ROADCT1J RN_RCT1J {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+HardwareShader FLAT5_7 RN_FLT57 {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader AQCONC18 RN_CON18 {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader CTYPAV1D RN_CPV1D {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader COBLFL1A RN_CBL1A {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader ASPHALTA RN_ASPTA {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader GRAYTLG7 RN_GTLG7 {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader BTILEBLS RN_BTBLS {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.25
+}
+
+HardwareShader CARPAR8A RN_PAR8A {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+
+HardwareShader SSWTCHP RN_WTCHP {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+HardwareShader CEIL5_M RN_CEIL5 {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+
+HardwareShader FLATMA3 RN_FLAT {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+HardwareShader CABSIDEC RN_CABSI {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+HardwareShader CONREC1B RN_CONREC {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+HardwareShader CARPAR5C RN_CARP5C {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+HardwareShader CARPAR5C RN_CARP5C {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+HardwareShader GROUND06 RN_GRND6 {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+HardwareShader GENCON1C RN_NCON1C {
+	Shader "SHADERS/raindrops.glsl"
+	Texture rippleTex "SHADERS/RAINDROP.png"
+	Define opacity = 0.45
+}
+
+/*
+	ROADFL1A = RN_RFL1A
+	ROADFL1B = RN_RFL1B
+	ROADFL1C = RN_RFL1C
+	ROADCT1A = RN_RCT1A
+	FLAT5_7  = RN_FLT57
+	AQCONC18 = RN_CON18
+	CTYPAV1D = RN_CPV1D
+	COBLFL1A = RN_CBL1A
+	ASPHALTA = RN_ASPTA
+	GROUND04 = RN_GRND4
+	GRAYTLG7 = RN_GTLG7
+	BTILEBLS = RN_BTBLS
+	CARPAR8A = RN_PAR8A
+	CONREC1B = RN_CONREC
+	SSWTCHP = RN_WTCHP	
+*/

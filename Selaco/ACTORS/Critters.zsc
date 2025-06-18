@@ -1,0 +1,442 @@
+class Birds : actor {
+    default {
+        scale 0.5;
+        speed 1;
+        +CASTSPRITESHADOW;
+    }
+    states {
+        spawn:
+            BIRD A 10;
+            BIRD ABCABCABCABCABCABCABCABC 3 {
+                A_WANDER();
+                A_LookEx(0, 0, 200, 800, 360, "FlyAway");
+            } 
+            loop;
+        FlyAway:
+            BIRD DEFGFEDE 1 {
+                A_ChangeVelocity(1, 0, 1);
+                A_WANDER();
+                speed = 2;
+                bFloat = true;
+                bNogravity = true;
+                bFRIGHTENED = true;
+            }
+        Looper:
+            BIRD DEFGFEDEFGFEDEFGFEDEFGFE 1 {
+                A_ChangeVelocity(0, 0, 1);
+                A_WANDER();
+                speed = 4;
+                bFloat = true;
+                bFloatbob = true;
+                bNogravity = true;
+                bFRIGHTENED = true;
+            }
+            loop;
+    }
+}
+
+
+
+Class Fish1 : PickupableDecoration {
+
+	bool wasPickedUp; // Needed for the Crime Averted achievement
+	bool survivor; 	// Got saved by the player
+	
+    override bool checkWallCollision() 
+	{ // Quick dirty little function to check if there is a wall nearby. If so, turn the fuck around
+        String hittex;
+        FLineTraceData RemoteRay;
+        LineTrace(angle, 17, pitch, flags: TRF_THRUACTORS, offsetz: height / 2, data: RemoteRay);
+        return RemoteRay.HitType == TRACE_HitWall;
+    }
+
+	void setFishVel(double vel, bool add = false) {
+		if(add) self.vel.xy += angleToVector(angle, vel);
+		else self.vel.xy = angleToVector(angle, vel);
+	}
+
+	void spawnWaterBubble()
+	{
+		A_SPAWNITEMEX("UnderwaterWaterBubble", 10, 0, 0, frandom(-0.1,0.1), frandom(-0.1,0.1), 0.2);
+	}
+
+	string spriteIndex;
+	int dice; // Rolls a die to decide what direction the fish should be going.
+	int thrustDirection; // Thrust Direction
+	double ChangeElevation; // Variable used to decide if the fish should go up or down.
+	double desiredAngle;
+	bool flopping, dumpstered;
+	const BLUB_CHANCE = 2;
+	const FLOP_JUMP_CHANCE = 3;
+
+	Default 
+	{
+		-Shootable;
+		+NOGRAVITY;
+		+CASTSPRITESHADOW;
+		+SLIDESONWALLS;
+		-SelacoActor.SlopeAlignment
+		-SelacoActor.AllowWaterSplashing
+		+SelacoActor.thruplayers
+		+SelacoActor.ForceFlushable;
+		selfLighting "232323";
+		tag "$OBJECT_FISH";
+		radius 16;
+		height 6;
+		MaxStepHeight 2;
+		//+FLOATBOB;
+		mass 10;
+		Speed 1;
+		scale 0.67;
+		xscale 0.67;
+		health 300;
+		BounceCount -1;
+		-PickupableDecoration.TranslucentPickup;
+		+PickupableDecoration.DumpsterCompatible;
+		PickupableDecoration.LandingSound "FISH/SPLAT";
+	}
+
+	states {
+		Indexer:
+			VOXE A 0;
+		Spawn:
+			TNT1 A 0;
+			VOXE A 1
+			{
+				spriteIndex = "VOXE";
+			}
+		Setup:
+			TNT1 A 0
+			{
+				health = random(160, 300);
+				angle = random(0, 360);
+				
+				// Give them a random size
+				A_SetScale(scale.x*(frandom(0.9,1.1)));
+
+				invoker.desiredAngle = angle;
+
+			}
+		FishAI:
+			TNT1 A 1 {
+				sprite = getSpriteIndex(spriteIndex);
+				invoker.desiredAngle = invoker.angle + frandom(-180,180);
+				double waterSurface = SelacoActor.getWaterFloorHeightForMobj(self);
+				invoker.ChangeElevation = frandom(floorZ, waterSurface);
+			}
+		FishAIContinue:
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 BBBCCC 2 {
+				angle += ((desiredAngle - angle) / 6.0);
+				setFishVel(0.65);
+			}
+			TNT1 BBBCCC 2 {
+				angle += ((desiredAngle - angle) / 6.0);
+				setFishVel(0.65);
+			}
+			TNT1 A 0
+			{
+				// If the fish survived from a pickup, give achievement
+				// Doing this here to add a bit of delay. It was awkward to give an achievement the moment a fish dipped their nose in the water
+				if(wasPickedUp && !survivor)
+				{
+					survivor = true;
+					LevelEventHandler leh = LevelEventHandler.instance();
+					leh.SetAchievement("GAME_AVERTED");
+				}
+			}
+			TNT1 BBBCCC 2 {
+				angle += ((desiredAngle - angle) / 6.0);
+				setFishVel(0.65);
+				
+				if (checkWallCollision()) {
+					SetStateLabel("FishBump");
+				}
+			}
+			TNT1 A 0 {
+				vel.xy *= 0.65;	// Slow after thrusting
+			}
+			TNT1 B random(40, 95) {
+				if (checkWallCollision()) {
+					SetStateLabel("FishBump");
+				}
+			}
+			goto FishAI;
+		FishBump:
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 B 1 {
+				// Panic? Or just change direction
+				if(random(0, 100) > 75) {
+					invoker.desiredAngle = angle + frandom(160, 200);
+					angle = invoker.desiredAngle;
+				} else {
+					invoker.desiredAngle += frandom(-90, 90);
+					setStateLabel("FishAIContinue");
+				}
+			}
+			TNT1 A 1 { setFishVel(0.25); }
+			TNT1 BCBCBC 5 {
+				setFishVel(0.15, true);
+			}
+			goto FishAIContinue;
+		UnFlop:	// Fish found water again! Restore fishyness
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 BBBBBB 1 
+			{
+				console.printf("UNFLOP: %d", roll);
+				A_SETROLL(roll != 0 ? roll - 15 : roll);
+			}
+			goto FishAI;
+		Flop:	// Like a fish out of water. I wish we could roll the sprite on it's side
+				// We can!
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 BBBBBB 1 A_SETROLL(roll != 90 ? roll + 15 : roll);
+		FlopAround:
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 BBBCCCBBBCCC random(1, 2) {
+				if(pos.z == floorz && random(0,100) <= FLOP_JUMP_CHANCE && !isPickedUp())
+				{
+					A_PLAYSOUND("fish/flop", CHAN_AUTO, 0.1, pitch:frandom(0.9,1.2));
+					A_SETANGLE(angle+random(-60,60), SPF_INTERPOLATE);
+					A_ChangeVelocity(frandom(0.2,0.5), 0, frandom(0.5,4.5), CVF_RELATIVE);
+				}
+				if(--health == 0) {
+					SetTag(stringtable.Localize("$OBJECT_DEADFISH"));
+					Stats.AddStat(STAT_FISH_KILLED, 1, 0);
+					setStateLabel("DeadFish");
+					return;
+				} else if(waterLevel > 0) {
+					flopping = false;
+					setStateLabel("Unflop");
+					health = random(160, 200);
+					return;
+				}
+			}
+			loop;
+		DeadFish:
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteIndex);
+				bAllowPitchAdjust = false;
+			}
+			TNT1 B 3;
+			// Wait for floor to be touched before sleeping.
+			TNT1 B 1 
+			{
+				if(vel.length() == 0 && !isPickedUp())
+				{
+					setStateLabel("WaitForFade");
+				}
+			}
+			loop;
+		WaitForFade:
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 B 1
+			{
+				/*if(pos.z == floorz)
+				{
+					SetOrigin((pos.x, pos.y,pos.z+3), true);
+				}*/
+				//sleepIndefinite();
+			} 
+        PickUp:
+			TNT1 A 0
+			{
+				wasPickedUp = true;
+				if(health <= 0)
+				{
+					setStateLabel("DeadFish");
+					return;
+				}
+			}
+			goto Flop;
+        Inactive:
+        PutDown:
+        Throw:
+			TNT1 A 0
+			{
+				A_SETROLL(90);
+				if(health <= 0)
+				{
+					setStateLabel("DeadFish");
+					return;
+				}
+			}
+            goto FlopAround;
+		ThrownIndumpster:
+			TNT1 A 0 A_SpawnItemEx("ItemGotThrownIndumpster");
+			TNT1 A 0 {
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 BBCCBB 1 A_FADEOUT(0.08);
+			TNT1 A 0 A_PlaySound(LandingSound, volume: 0.2);
+			TNT1 BBCCBBBBBBBBBBBBBBBBBBB 1 A_FADEOUT(0.08);
+			stop;
+	}
+
+	override void tick() {
+		Super.tick();
+		
+		if(!flopping)
+		{
+			A_SetAngle(angle, SPF_INTERPOLATE);
+			bSleepWhenFar = true;
+		}
+
+		// Stop floating and apply gravity if we are out of water
+		bNogravity = waterLevel != 0;
+		bNOFRICTION = waterLevel > 1;
+
+		if(waterLevel < 2) {
+			vel.z -= 0.05;
+		}
+
+		// Spawn the occassional bubble
+		if(level.time % 5 == 0 && waterLevel >= 2 && random(0,100) <= BLUB_CHANCE && health > 0)
+		{
+			spawnWaterBubble();
+		}
+
+		// cycle thrust up and down to simulate floatbob
+		if(waterLevel > 0) {
+			double dirZ = (ChangeElevation - pos.z);
+			vel.z += (((sin(level.mapTime * 5) * 0.25) - vel.z) / 10.0) +
+					 (dirZ / 1200.0);
+		}
+
+		if(waterLevel == 0 && !flopping && level.mapTime > 5) {
+			flopping = true;
+			bSleepWhenFar = false;
+			gravity = 0.4;
+			A_SETSIZE(Default.radius*0.5);
+			bInterpolateAngles = true;
+			setStateLabel("Flop");
+		}
+	}
+
+	override void itemThrownInDumpster(actor dumpster)
+	{
+		// Dude, this is going to smell.
+		if(flopping && !dumpstered && !isPickedUp()) {
+			dumpstered = true;
+			sprite = getSpriteIndex(spriteIndex);
+		}
+		super.itemThrownInDumpster(dumpster);
+	}
+
+	override bool isConsideredIdle() {
+        return Super.isConsideredIdle() && !isPickedUp() && (health == 0 || !flopping);
+    }
+}
+
+class SmallFish  : Fish1
+{
+	int turnCooldown; 
+	override void tick()
+	{
+		super.tick();
+		if(level.time % random(5,25) == 0 && vel.length() > 0.4)
+		{
+			if (vel.x + vel.y < 0)
+			{
+				bxFlip = false;
+			}
+			else
+			{
+				bxFlip = true;
+			}
+		}
+	}
+
+	default
+	{
+		scale 0.16;
+	}
+	states
+	{
+		Indexer:
+			FIS1 A 0;
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 1
+			{
+				spriteIndex = "FIS1";
+			}
+			goto setup;
+		// Small fish dont flop. They just die.
+		Flop:
+		Death:
+			TNT1 A 0
+			{	
+				Stats.AddStat(STAT_FISH_KILLED, 1, 0);
+				bNogravity = false;
+				health = 0;
+				sprite = getSpriteIndex(spriteIndex);
+			}
+			TNT1 A 100;
+			TNT1 A -1
+			{
+				setOrigin((pos.x, pos.y, floorz), true);
+				bFlatSprite = true;
+				sleepIndefinite();
+			}
+	}
+}
+
+Class DyingFish : Fish1 {
+	default {
+		+FLATSPRITE;
+		-WALLSPRITE;
+		-FLOATBOB;
+		-NOGRAVITY;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			FISH AAAAAAAA 2 A_SETANGLE(angle + (random(-5,5)));
+			TNT1 A 0 ThrustThingZ(0,4,0,1);
+			FISH AAAAAAAA 1 A_SETANGLE(angle + (random(-5,5)));
+			goto DeadFish;
+		DeadFish:
+			FISH A 150;
+			FISH AAAAAAAAAA 1 A_FADEOUT(0.1);
+			stop;
+	}
+}
+
+
+class SoldierScriptedDeath : actor {
+	Default {
+		scale 1.05;
+	}
+	States {
+		Spawn:
+			P055 E 1;
+			loop;
+		Fly:
+		TNT1 A 0 A_PLAYSOUND("grunt/death", CHAN_AUTO);
+		TNT1 A 0 A_SpawnProjectile ("PurpleBloodChunk2", 35, 0, random (0, 360), 2, random (0, 160));
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 35, 0, random (0, 360), 2, random (0, 160));
+		TNT1 A 0 A_RECOIL(3);
+
+	
+	}
+}

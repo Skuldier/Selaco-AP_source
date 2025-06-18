@@ -1,0 +1,164 @@
+class VendingMachineProperties : Purchasable {
+
+    int totalPurchases;
+    int maxPurchases;
+    int delayer;
+    bool success;
+    Actor spawnedVendingMachine;
+
+    default {
+        -SelacoActor.WakeNearPlayer;
+        +SelacoActor.SleepWhenIdle;
+        +SelacoActor.DisallowGravityManipulation;
+        Purchasable.price 1;
+        +SOLID;
+        +UseSpecial;      
+        +SHOOTABLE  
+        SelacoActor.UseTag "$INTERACT_PURCHASE";
+        
+        tag "$FOOD_ARACHNOCOLA";
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+		PainSound "impact/hardmetal";
+        Painchance 255;
+        activation THINGSPEC_Switch;
+        mass 18000;
+        health 10;
+        height 70;
+        radius 23;
+    }
+}
+
+class VendingMachine : VendingMachineProperties {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        A_PLAYSOUND("ambient/medshum", CHAN_AUTO, 0.2, looping:1);
+        maxPurchases = random(10,11);
+    }
+
+    override void isRandomizedSpawn() {
+        bPushable = true;
+    }
+
+    // Player had enough money
+    override void approvedPurchase(actor purchaser) {
+        totalPurchases++;
+        stats.addstat(STAT_VENDINGMACHINES_USED, 1);
+        A_PLAYSOUND("vendingmachine/pay", CHAN_AUTO);
+        delayer = 17; // add 1 second cooldown between purchase
+        bPreventSleep = true;   // Don't sleep until after the cooldown
+        wake();
+        setStateLabel("Purchase");
+        return;
+    }
+
+    // Cooldown to prevent players from mashing Activate
+    void cooldown() {
+        bUseSpecial = false;
+        ActivationType = THINGSPEC_DEFAULT;
+        delayer--;
+        if(delayer == 0) {
+            bUseSpecial = true;
+            ActivationType = THINGSPEC_SWITCH;
+            bPreventSleep = false;
+        }
+    }
+
+    override void Tick() {
+        super.tick();
+        if(delayer > 0) {
+            cooldown();
+        }
+    }
+
+    states {
+        Inactive:
+        active:
+        Spawn:
+            VOXE L -1;
+            stop;
+        Pain:
+            VOXE L 0 A_PAIN();
+            goto Spawn;
+        Purchase:
+            VOXE L 16;
+            VOXE L 0 A_PLAYSOUND("vendingmachine/spit", CHAN_AUTO, 1.0);
+			VOXE L 0 A_SPAWNITEMEX("SodaCanRolling", 10, 3, 8, frandom(3,5), frandom(-0.5,0.5), 0, 0);
+            TNT1 A 0
+            {
+                if(totalPurchases >= maxPurchases) {
+                    A_PLAYSOUND("vendingmachine/error");
+                    bUseSpecial = false;
+                    delayer = -1;
+                    ActivationType = THINGSPEC_DEFAULT;
+                    setStateLabel("Deactivate");
+                }
+            }
+            goto Spawn;
+        Deactivate:
+            TNT1 A 0 {
+                A_PRINTBOLD("This vending machine is depleted.");
+                setStateLabel("Spawn");
+            }
+        xdeath:
+        Death:
+            TNT1 A 0 {
+                for(int x=0;x<25;x++) {
+                    A_SpawnItemEx("LargeGlassParticle1", frandom(4,6), frandom(-15,15), frandom(8,72), frandom(2,9), frandom(-2,2), frandom(-1,4));
+                }
+                A_PLAYSOUND("destruction/glassbreak", CHAN_AUTO, 1.0);
+                A_PLAYSOUND("script/bloop");
+                [success, spawnedVendingMachine] = A_SpawnItemEx("VendingMachineDestroyed", flags: SXF_SETMASTER);
+                if(bPushable) {
+                    spawnedVendingMachine.bPushable = true;
+                } else {
+                    spawnedVendingMachine.A_SPAWNITEMEX("vendmachine_error", 21, 2, 39);
+                    if(spawnedVendingMachine is "VendingMachineDestroyed") {
+                       VendingMachineDestroyed(spawnedVendingMachine).cansToSpit =  maxPurchases - totalPurchases;
+                    }
+                }
+            }
+            stop;
+    }
+}
+
+class VendingMachineDestroyed : VendingMachine {
+    int cansToSpit;
+    int cansSpit;
+    default {
+        +SelacoActor.PreventSleep;
+        -USESPECIAL;
+        +BUDDHA;
+        activation THINGSPEC_DEFAULT;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L 10; 
+            TNT1 A 0 {
+                if(cansToSpit > 0) {
+                    bPreventSleep = true;
+                    setStateLabel("SpitCans");
+                }
+            }
+        DoNothing:
+            VOXE L -1 {
+                SleepIndefinite();
+            }
+            stop;
+        SpitCans:
+            VOXE L 10;
+            TNT1 A 0 {
+                if(cansToSpit > 0) {
+                    A_PLAYSOUND("script/coin", CHAN_AUTO);
+                    A_PLAYSOUND("SODA/EJECT", CHAN_AUTO, 0.4);
+                    A_PLAYSOUND("vendingmachine/spit", CHAN_AUTO, 0.6);
+                    A_SPAWNITEMEX("SodacanRolling", 0, 0, 1, (cansSpit+2.5)*0.8, 0, 4, angle:frandom(-7,7), flags:SXF_NOCHECKPOSITION);
+                    cansToSpit--;
+                    cansSpit++;
+                } else {
+                    setStateLabel("DoNothing");
+                }
+            }
+            loop;
+    }
+}

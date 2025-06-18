@@ -1,0 +1,405 @@
+#include "ZSCRIPTS/BattleSquad.zsc"
+
+// The Battle Overseer keeps track of enemy squads and adjusts their behavior accordingly.
+// Currently only keeps track of squadmembers.
+
+
+// Could haves:
+// - Different squads in case of bigger battles or players engaging multiple groups of enemies.
+// - Add a system where soldiers named "Cockatrice" get a major intelligence nerf >:(
+
+
+
+class BattleOverseer : EventHandler
+{
+    int battleTime;                       // How long has at least one member been in active battle? Resets squad members is empty.
+    int wipeDelay;                        // Debugging, ignore this.
+    int squadID;                          // All members get an ID assigned to them which can be refered to if needed.
+    int debugSquadInfo;                   // Refers to the g_showsquadinfo cvar
+    Array<BattleSquad>  squads;
+    Array<EnemySoldier> freeAgents;       // Unassigned soldiers who will eventually need a squad
+
+    LastSeenBeacon      spotBeacon;       // Maintains last-known location for player
+    bool                playerPositionKnown;
+    uint                playerLastKnownPosTime;     // Keeps track of how long it has been since any unit saw the player
+    uint                lastSquadAlertTime;         // First time an enemy was alerted since creating a squad
+
+    static BattleOverseer Instance() {
+        return BattleOverseer(EventHandler.Find('BattleOverseer'));
+    }
+
+    override void OnRegister() {
+        debugSquadInfo = CVar.FindCVar("AI_ShowSquadInfo").GetInt();
+    }
+
+    // Add soldier to the inactive list.
+	void registerAgent(EnemySoldier soldier) {
+        soldier.generateName();
+        soldier.memberID = squadID++;
+        soldier.squadID = -1;
+        soldier.overseer = self;
+        freeAgents.push(soldier);
+
+        if(debugSquadInfo) {
+            Console.printf("\c[green]Squad Overseer: \c-Free Agent Added %s (ID: #%d)", soldier.alienName, soldier.memberID);
+        }
+    }
+
+    void soldierDied(EnemySoldier soldier, Actor source) {
+        let pos = freeAgents.find(soldier);
+        if(pos != freeAgents.size()) {
+            // This was probably a sneak-kill, so make a sound alert from the dead soldier position
+            if(source) soldier.SoundAlert(source, false, 0);
+            freeAgents.delete(pos);
+        }
+
+        if(debugSquadInfo) {
+            Console.Printf("\c[green]Squad Overseer: \c-Removed Squad Member: %s (ID: #%d, SQUAD: (#%d) %s) because he has been killed by %s", soldier.alienName, soldier.memberID, soldier.squadID, soldier.squadID >= 0 ? squads[soldier.squadID].name : "None", soldier.causeOfDeath);
+        }
+    }    
+
+    override void WorldTick()
+    {
+        // Update the debug cvar
+        if(level.time % 35 == 0) {
+            let oldDebug = debugSquadInfo;
+            debugSquadInfo = CVar.FindCVar("AI_ShowSquadInfo").GetInt() == 1;
+            if(debugSquadInfo != oldDebug) {
+                for(int x = 0; x < squads.size(); x++) squads[x].debug = debugSquadInfo;
+            }
+        }
+
+        // Periodically check if an actor entered combat
+        if (level.time % 5 == 0)
+        {
+            checkCombat();
+        }
+
+        for(int x = 0; x < squads.size(); x++) squads[x].tick();
+
+        // Print squad vitals from time to time if debug mode is active.
+        /*if(debugSquadInfo && level.time % 35 == 0 && squads.size()) {
+            for(int x = 0; x < squads.size(); x++) squads[x].printVitals();
+        }*/
+    }
+
+/*     // Check all squads and see if any of them recently saw Dawn.
+    // THIS WAS BACKWARDS AND I WROTE IT FOR NOTHING. CARRY ON.
+    bool CheckIfSquadsSeenDawnRecently()
+    {
+        // Find all squads
+        for(int x=0;x<squads.size();x++)
+        {
+            if(squads[x].seenDawnRecently())
+            {
+                return true;
+            }
+        }
+        return false;
+    } */
+
+    void assignSoldierToSquad(EnemySoldier soldier, bool isSound = false) {
+        BattleSquad curSquad;
+
+        // Should we make a new squad or assign this soldier to an existing one?
+        if(squads.size() == 0 || level.time - lastSquadAlertTime > 120 || squads[squads.size() - 1].wiped) {
+            lastSquadAlertTime = level.time;
+            curSquad = new("BattleSquad").init(self, squads.size(), debugMode: debugSquadInfo);
+            
+            // This is entirely cheating, but it makes for better combat scenarios
+            // When a new squad is created, the new squad automatically knows where the player is
+            // And we update the spot beacon to the player position
+            if(soldier.target is 'Dawn') {
+                curSquad.playerPositionKnown = true;
+                curSquad.playerLastKnownPosTime = level.time;
+
+                if(!playerPositionKnown) {
+                    // Purposely do not update other squads
+                    playerPositionKnown = true;
+                    moveSpotBeacon(players[0].mo.pos + (0,0,16));
+                }
+            } else {
+                // Something besides Dawn woke the squad, so we set the spot beacon to where the source was
+                curSquad.playerPositionKnown = false;
+                curSquad.playerLastKnownPosTime = level.time;
+
+                moveSpotBeacon(soldier.target.pos + (0,0,16));
+            }
+
+            squads.push(curSquad);
+        } else {
+            curSquad = squads[squads.size() - 1];
+        }
+
+        curSquad.add(soldier);
+
+        soldier.overseer = self;
+        soldier.squad = curSquad;
+        soldier.squadID = curSquad.index;
+        
+        // If any members saw the player, force visual contact
+        // This will prevent SIGHT lines being called when they finally see the player
+        //if(!soldier.bLastAlertWasSound) curSquad.hasVisual = true;
+        if(!isSound) curSquad.hasVisual = true;
+
+        // Have the first soldier play an alert sound if there is more than one member in the squad
+        if(curSquad.size() == 2 && curSquad.squadTarget is 'Dawn') {
+            int speechType = curSquad.hasVisual ? SOLDIER_SIGHT : SOLDIER_HEAR;
+
+            // Check if Dawn has her flashlight on
+            Dawn d = Dawn(curSquad.squadTarget);
+            FlashlightItem fl = d ? FlashlightItem(d.FindInventory("FlashlightItem")) : null;
+            if(fl && fl.flashlightActive) {
+                speechType = SOLDIER_FLASHLIGHT;
+            }
+
+            // Check if other squads already have this target, if so cancel other VO types
+            if(speechType != SOLDIER_SIGHT) {
+                for(int x = 0; x < squads.size(); x++) {
+                    if(squads[x] != curSquad && squads[x].squadTarget) {
+                        speechType = SOLDIER_SIGHT;
+                        break;
+                    }
+                }
+            }
+
+            // Tiny hack, check this squad and any free agents to see if they can see the player
+            // If able to see player, cancel HEAR and ue SIGHT instead
+            if(speechType == SOLDIER_HEAR) {
+                for(int x = 0; x < curSquad.members.size(); x++) {
+                    if(curSquad.members[x].CheckSight(curSquad.squadTarget, SF_IGNOREVISIBILITY)) {
+                        speechType = SOLDIER_SIGHT;
+                        curSquad.hasVisual = true;
+                        break;
+                    }
+                }
+
+                int cnt = 0;
+                for(int x = 0; x < freeAgents.size() && cnt < 10; x++) {
+                    if(freeAgents[x] != soldier && freeAgents[x].target == curSquad.squadTarget) {
+                        cnt++;
+                        if(speechType != SOLDIER_HEAR || freeAgents[x].CheckSight(curSquad.squadTarget, SF_IGNOREVISIBILITY)) {
+                            speechType = SOLDIER_SIGHT;
+                            curSquad.hasVisual = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            curSquad.members[0].talk(speechType, urgent: true);
+        }
+    }
+
+
+    void checkCombat()
+    {
+        // Find all enemies.
+        for (int x = freeAgents.size() - 1; x >= 0; x--)
+        {
+            if (freeAgents[x])
+            {
+                EnemySoldier soldier = freeAgents[x];
+
+                // Soldier has a target is not yet part of a squad
+                if (soldier.target && !soldier.squad) {
+                    assignSoldierToSquad(soldier);
+                    freeAgents.delete(x);
+                }
+            } else {
+                freeAgents.delete(x);
+            }
+        }
+    }
+
+
+    BattleSquad createNewBattleSquad(EnemySoldier firstSoldier, bool playerPositionKnown = false) {
+        BattleSquad curSquad = new("BattleSquad").init(self, squads.size(), debugMode: debugSquadInfo);
+            
+
+        curSquad.playerPositionKnown = playerPositionKnown;
+        curSquad.playerLastKnownPosTime = level.time;
+
+        if(playerPositionKnown && firstSoldier.target) moveSpotBeacon(firstSoldier.target.pos + (0,0,16));
+
+        squads.push(curSquad);
+        curSquad.add(firstSoldier);
+
+        // Remove soldier from free agents
+        let fa = freeAgents.find(firstSoldier);
+        if(fa < freeAgents.size()) freeAgents.delete(fa);
+
+        firstSoldier.overseer = self;
+        firstSoldier.squad = curSquad;
+        firstSoldier.squadID = curSquad.index;
+
+        return curSquad;
+    }
+
+
+    void assignSquad(EnemySoldier soldier, BattleSquad squad) {
+        if(soldier.squad) soldier.squad.remove(soldier);
+        squad.add(soldier);
+        soldier.overseer = self;
+        soldier.squad = squad;
+        soldier.squadID = squad.index;
+
+        // Remove soldier from free agents
+        let fa = freeAgents.find(soldier);
+        if(fa < freeAgents.size()) freeAgents.delete(fa);
+    }
+
+
+    // Player/Visibility Tracking ==============================
+
+    // Player is no longer in the area of the last known location
+    // Once player is no longer considered visible, the first enemy to reach last known location can radio in and put himself and other enemies on patrol
+    // TODO: Maybe have two patrol levels, FAST patrol for just after sight is lost of player, NORMAL patrol after a while once player is gone
+    void playerLeftLastKnownLocation() {
+        playerPositionKnown = false;
+        spotBeacon.SleepIndefinite();       // Sleep the beacon, it is still used to mark the last known location
+
+        // Inform the active squads
+        for(int x = squads.size() - 1; x >= 0; x--) {
+            squads[x].playerLeftLastKnownLocation();
+        }
+    }
+
+    // A soldier has seen the player, upate last seen beacon
+    void playerSeen(EnemySoldier soldier, bool isSound = false) {
+        playerPositionKnown = true;
+        playerLastKnownPosTime = level.time;
+
+        moveSpotBeacon(players[0].mo.pos + (0,0,16));
+
+        if(!soldier.squad) {
+            assignSoldierToSquad(soldier, isSound);
+
+            // Remove from free agents
+            for(int x = freeAgents.size() - 1; x >= 0; x--) {
+                if(freeAgents[x] == soldier) {
+                    freeAgents.delete(x);
+                }
+            }
+        }
+
+        // Check with all squads nearby (except soldier squad) and have them attack player if close enough
+        for(int x = squads.size() - 1; x >= 0; x--) {
+            if(x == soldier.squadID) continue;
+
+            if((squads[x].getSquadLocation() - soldier.pos).length() < 2000) {
+                squads[x].otherSquadSawPlayer(soldier, isSound);
+            }
+        }
+    }
+
+    int activeSoldierCount() {
+        int cnt;
+        for(int x = squads.size() - 1; x >= 0; x--) {
+            if(squads[x].squadStatus != SQUAD_Idle) cnt += squads[x].size();
+        }
+        return cnt;
+    }
+
+    void moveSpotBeacon(Vector3 pos) {
+        if(!spotBeacon) {
+            spotBeacon = LastSeenBeacon( Actor.Spawn("LastSeenBeacon", pos) );
+        } else {
+            spotBeacon.Wake();
+            spotBeacon.SetOrigin(pos, false);
+        }
+    }
+
+    // Returns the most recent time a squad or enemy has seen the player
+    int checkLastPlayerSight() {
+        int lastSeenTime = -1;
+
+        for(int x = squads.size() - 1; x >= 0; x--) {
+            lastSeenTime = max(squads[x].playerLastKnownPosTime, lastSeenTime);
+        }
+
+        return lastSeenTime;
+    }
+
+
+    // VOICE LINES ====================================================
+    // ================================================================
+
+    // This duplicate functionality exists in Overseer as well as individual squads because
+    // the player may not be able to easily identify what squad they are engaging
+    void assignCalloutToSquadmate(int speechID, bool urgent = false, bool ignoreSizeRequirement = false, int delayOffset = 0) {
+        for(int x = 0; x < squads.size(); x++) {
+            if(squads[x].size() > 0 && (squads[x].squadStatus == SQUAD_Chase || squads[x].squadStatus == SQUAD_WillPatrol)) {
+                squads[x].assignCalloutToSquadmate(speechID, urgent, ignoreSizeRequirement, delayOffset);
+            }
+        }
+    }
+
+    void warnGrenade(actor grenadeActor, int explosionRange = 250) {
+        for(int x = 0; x < squads.size(); x++) {
+            if(!squads[x].wiped) {
+                if(squads[x].warnGrenade(grenadeActor, explosionRange)) return;
+            }
+        }
+    }
+
+    EnemySoldier pingResponse_GetSquadmate(int response, EnemySoldier caller) {
+        if(!caller.squad) return null;
+
+        return caller.squad.pingResponse_GetSquadmate(response, caller);
+    }
+}
+
+
+
+// Check to see if Dawn is still close to the area the soldiers have seen her last.
+class LastSeenBeacon : Actor {
+    BattleOverseer overseer;
+    bool debugOn;
+
+	// Set target
+	override void BeginPlay() {
+		super.postbeginPlay();
+		target = players[0].mo;
+	}
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+        overseer = BattleOverseer.Instance();
+
+        if(getCvar("ai_showlinks")) {
+            debugOn = true;
+            SetStateLabel("Debug");
+        }
+    }
+
+	// Check every 5 ticks to see if the player is far enough from the beacon
+	override void tick() {
+		if(target && level.time % 5 == 0) {
+			if(Distance2DSquared(target) > 300*300) {
+				overseer.playerLeftLastKnownLocation();
+			}
+		}
+	}
+
+	default {
+		+NOINTERACTION
+        scale 0.5;
+        alpha 0.6;
+        radius 16;
+        height 40;
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+		Checker:
+			TNT1 A -1;
+			Loop;
+        Debug:
+            EYE1 A -1;
+            Loop;
+		Death:
+			stop;
+	}
+}

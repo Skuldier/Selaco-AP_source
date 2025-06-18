@@ -1,0 +1,387 @@
+class FistsAmmo : ammo {
+	default {
+		Scale 0.75;
+		Inventory.Amount 9000;
+		Inventory.MaxAmount 9000;
+		Ammo.BackpackAmount 9000;
+		Ammo.BackpackMaxAmount 0;
+		+DONTGIB
+		+FLOORCLIP
+	}
+    //Inventory.Icon "CLIPA0"
+    States
+    {
+    Spawn:
+      TNT1 A 0;
+      Stop;
+	Pickup:
+		TNT0 A 0 ACS_NamedExecuteAlways("giveMedkit");
+	}
+}
+
+class Fists : SelacoWeapon
+{	
+
+	// Executes *before* the attack
+	action void prepareAttack(float intensity = 6.0) {
+		let d = Dawn(player.mo);
+		if(d) {
+			d.HUDShake(intensity,intensity);
+		}
+	}
+
+	// Executes when the punch should connect
+	action void punchAttack(string attackType = "WeaponMeleeFist") {
+		int bonusDamage;
+		actor punchActor;
+		if(countinv("MegaPowderAmount"))
+		{
+			bonusDamage+= 100;
+		}
+		if(countInv("ConfidenceBooster"))
+		{
+			bonusDamage+=15;
+		}
+		punchActor = A_FireProjectile(attackType, 0, 0, 0, 6);
+		if(punchActor)
+		{
+			punchActor.SetDamage(punchActor.damage+bonusDamage);
+			punchActor.master = players[consoleplayer].mo;
+			bABSDamage = true;
+		}
+	}
+
+	int comboCooldown;
+	int comboCount;
+	default {
+		WeaponBase.SlotNumber 0;
+		WeaponBase.AmmoUse1 0;
+		WeaponBase.AmmoGive1 5;
+		WeaponBase.AmmoUse2 0;
+		WeaponBase.AmmoGive2 0;
+		+WeaponBase.WIMPY_WEAPON
+		+WeaponBase.NOAUTOAIM
+		+WeaponBase.NOAUTOFIRE
+		+WeaponBase.NOALERT
+		+WeaponBase.NO_AUTO_SWITCH
+		SelacoWeapon.InteractionSprite "KFIH";
+		SelacoWeapon.deselectSound "WEAPONS/FIST/UNEQUIP";
+		SelacoWeapon.readySound "WEAPONS/FIST/EQUIP";
+		SelacoWeapon.ammoColor "FF 94 C4";
+		+SelacoWeapon.MeleeWeapon
+		+FLOORCLIP;
+		+NOGRAVITY;
+		+DONTGIB;
+		Obituary "%o was shot down by %k's Pistol";
+		AttackSound "None";
+		Tag "Fists";
+		Inventory.Icon "WPNFIST";
+		Inventory.PickupSound "weapons/pistolup";
+		Scale 0.80;
+		SelacoWeapon.HideAmmo true;
+		SelacoWeapon.SlidingSprite "FISS";
+		SelacoWeapon.Upgradeable false;
+	}
+	States
+	{
+	index:
+		KFIH A 0;
+	Spawn:
+		FISS A 0;
+		DEGT A -1;
+		Stop ;
+
+	Equip:
+		TNT1 A 0 A_EnableWeaponShift(false);
+		TNT1 A 0 A_EquipNewWeapon();
+		KFSE AB 1;
+		TNT1 A 0 A_PlaySound("WEAPONS/FIST/EQUIP", CHAN_AUTO, volume:0.6);
+		KFSE CDEFGH 1;
+		goto ReallyReady;
+	
+	MoveGunDown:
+	Ready3:
+	ShatterWindow:
+		KFIS A 1;
+	ReallyReady:
+		//TNT1 A 0 A_SetCrosshair(4);
+		TNT1 A 0 A_TakeInventory("CancelAnimation", 1);
+        TNT1 A 0 A_JumpIfInventory("Reloading",1,"ReloadWeapon");
+		TNT1 A 0 A_JumpIfInventory("MeleeButton", 1, "MeleeAttack");
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		KFIS A 1
+			{
+				invoker.comboCooldown++;
+				if(invoker.comboCooldown > 10) {
+					invoker.comboCount = 0;
+					invoker.comboCooldown = 0;
+				}
+				CheckPlayerStates();
+				A_EnableWeaponShift();
+				S_WeaponReady(WRF_ALLOWRELOAD);
+			}
+		Goto ReallyReady;
+
+	Unequip:	    
+		TNT1 A 0 
+		{
+			A_UNEQUIPWEAPON();
+		}
+		KFSE HGECBA 1 {
+			S_WeaponOffset();
+			A_ZOOMFACTOR(1.0);
+		}
+		TNT1 A 1;
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+		TNT1 A 1;
+		wait;
+
+	MeleeAttack:
+		TNT1 A 0 {
+			setZoomStatus(false);
+		}
+		RIFM A 0 {
+			invoker.weaponSprite = "FISS";
+			invoker.weaponFrame = 0;
+		}
+		goto MeleeAttackExecute;
+
+	// With the Fists, it kicks instead!
+	MeleeAttackExecute:
+		TNT1 A 0
+		{
+			meleeAndLunge();
+			let d = Dawn(player.mo);
+			if(invoker.meleeSpritev2)
+			{
+				setWeaponState("MeleeAttackv2");
+			}
+			if(d.isSliding)
+			{
+				// No kick for you!
+				A_TakeInventory("MeleeButton", 1);
+				setWeaponState("reallyready");
+			}
+		}
+		TNT1 A 0 {
+			invoker.weaponFrame = 0;
+			S_ZOOMFACTOR(1.0);
+			A_ZOOMFACTOR(1.0, ZOOM_INSTANT);
+			setZoomStatus(false);
+			invoker.isZooming = false;
+			if (!invoker.TargetInRange && random(0,3) == 0) {
+				A_Playsound("dawn/melee", CHAN_AUTO, 0.8);
+			}
+			invoker.currentZoomFactor = 1.00;
+			A_PlaySound("impact/meleeS1", CHAN_AUTO, 0.3);
+			A_PlaySound("impact/firstpersonMelee",CHAN_AUTO, 0.7, 0, 1.0, false, frandom(0.85, 1.0));
+		}
+		goto beginMelee;
+	beginMelee:
+		TNT1 A 0 {
+			A_overlay(-400, "KickAnimationFast");
+			invoker.stopAttackingSound();
+			invoker.isMeleeAttack = true;
+			invoker.isFiring = 0;
+			S_ZOOMFACTOR(1.0);
+			invoker.isZooming = false;
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(2, 3, 2 , 9, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 3);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(2, 2, 2 , 4, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 2);
+					break;
+				default:
+					break;
+			}
+		}
+		FISS ACE 2 {
+			S_WeaponOffset(0, 5);
+			A_OverlayOffset(-400, -15, -5);
+			if(invoker.TargetInRange && invoker.weaponFrame > 0) { // Target in range? Lunge to the target!
+				A_ZoomFactor(invoker.currentZoomFactor);
+				A_Recoil(-15);
+				invoker.currentZoomFactor = invoker.currentZoomFactor - 0.02;		
+			}
+
+			if(invoker.weaponFrame < 5) {
+				invoker.weaponFrame++;
+			} else {
+				invoker.weaponFrame++;
+			}
+		}
+		TNT1 A 0 {
+			executeMeleeHits();
+		}
+		FISS EEEEEEEEE 1
+		{
+			A_OverlayOffset(-400, -15, -5);
+			S_WeaponOffset(0, 10);
+		}
+		FISS DCB 2 {
+			A_OverlayOffset(-400, -15, -5);
+			S_WeaponOffset(0, 5);
+			invoker.weaponFrame--;
+			if(invoker.TargetInRange) { // Target in range? Lunge to the target!
+				A_ZoomFactor(invoker.currentZoomFactor);
+				invoker.currentZoomFactor = invoker.currentZoomFactor + 0.02;		
+			}
+		}
+		TNT1 A 0 A_SetRoll(0);
+		TNT1 A 0 {
+			invoker.isMeleeAttack = false;
+			invoker.TargetInRange = false;
+		}
+		goto GoingToReady;
+	AltFire:
+	Fire:
+		TNT1 A 0 {
+			invoker.playerIsFiring();
+			if(countinv("MegaPowderAmount"))
+			{
+				SetWeaponState("UpperCut");
+				return;
+			}
+			invoker.comboCount++;
+			invoker.comboCooldown = 0;
+			A_PlaySound("weapons/fistmelee", CHAN_AUTO, pitch:frandom(0.8,1.1));
+			if(invoker.comboCount == 1) {SetWeaponState("Attack1");}
+			if(invoker.comboCount == 2) {SetWeaponState("Attack1");}
+			if(invoker.comboCount == 3) {SetWeaponState("Attack2");}
+			if(invoker.comboCount == 4) {SetWeaponState("UpperCut");}
+		}
+	
+	Attack1:
+		TNT1 A 0 {
+			prepareAttack();
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(1, 1, 1 , 5, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 3);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(1, 1, 1 , 2, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 3);
+					break;
+				default:
+					break;
+			}
+		}
+		FISA ABCE 1;
+		FISA F 2 {
+			punchAttack("WeaponMeleeFist");
+		}
+		FISA H 2;
+		FISA JL 2 {
+			S_WeaponReady();
+		}
+		Goto ReallyReady;
+	Attack2:
+		TNT1 A 0 {
+			prepareAttack();
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(1, 2, 2, 5, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 3);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(1, 1, 1 , 2, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 3);
+					break;
+				default:
+					break;
+			}
+		}
+		FISB ABCE 1;
+		FISB F 2 {
+			punchAttack("WeaponMeleeFist");
+		}
+		FISB H 2;
+		FISB JL 2 {
+			S_WeaponReady();
+		}
+		Goto ReallyReady;
+	UpperCut:
+		TNT1 A 0 {
+			invoker.comboCount = 0;
+		}
+		TNT1 A 0 {
+			prepareAttack(15.0);
+			A_PlaySound("weapons/fistmelee", CHAN_AUTO);
+		}
+		FISU ABC 1;
+		FISU E 1 {
+			A_PLAYSOUND("dawn/targetedmelee", CHAN_7, 0.75);
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(2, 3, 2 , 13, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 6);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(2, 2, 2 , 7, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 4);
+					break;
+				default:
+					break;
+			}
+			punchAttack("WeaponMeleeUppercut");
+		}
+		FISU G 2;
+		FISU IJKLMNO 2;
+		Goto ReallyReady;
+	}		
+
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		setPlainCrosshair('XH_FIST1');
+	}
+}
+
+class LiterallyNothing : SelacoWeapon {
+	default {
+		WeaponBase.AmmoUse1 0;
+		WeaponBase.AmmoGive1 5;
+		WeaponBase.AmmoUse2 0;
+		WeaponBase.AmmoGive2 0;
+		+WeaponBase.WIMPY_WEAPON
+		+WeaponBase.NOAUTOAIM
+		+WeaponBase.NOAUTOFIRE
+		+WeaponBase.NOALERT
+		+WeaponBase.NO_AUTO_SWITCH
+		+FLOORCLIP;
+		+NOGRAVITY;
+		+DONTGIB;
+		Obituary "l";
+		AttackSound "None";
+		Tag "Imaginary Rifle";
+		Inventory.Icon "";
+		Inventory.PickupSound "";
+		Scale 0.80;
+		SelacoWeapon.HideAmmo true;
+		SelacoWeapon.SlidingSprite "----";
+	}
+		states {
+			HandRemoved:
+			ReturnHands:
+			MeleeAttack:
+			AltFire:
+			Fire:
+				TNT1 A 1;
+			Select:
+			Ready3:
+			Ready2:
+			ReallyReady:
+			Ready:
+				TNT1 A 1 CheckPlayerStates();
+				loop;
+			Unequip:
+				TNT1 A 1;
+				TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+				TNT1 A 1;
+				wait;
+		}
+}

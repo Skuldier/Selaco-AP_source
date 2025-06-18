@@ -1,0 +1,536 @@
+
+class SparkParticleDefinition : ParticleDefinition
+{
+    override void Init()
+    {
+        super.Init();
+
+        self.Speed = 4;
+        //self.Height = 5;
+        self.RandomGravity(0.4,0.6);
+        self.DefaultRenderStyle = Style_Add;
+        self.SetBaseScaleXY(0.027, 0.067);
+        self.RandomBounceFactor(0.6,0.9);
+        self.SetDefaultParticleFlag(DPF_FULLBRIGHT);
+        self.SetDefaultParticleFlag(DPF_FLAT);
+        self.SetFlag(PDF_LIFESCALE);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_DIRFROMMOMENTUM);
+        self.SetFlag(PDF_VELOCITYFADE);
+        self.SetFlag(PDF_KILLSTOP);
+        self.SetFlag(PDF_NOSPAWNUNDERWATER);
+        self.SetLifespanMultipliers(0.5 , 1.0, 1.25, 1.5, 3.2);
+        self.FadeVelRange(0.2,3);
+        self.RandomLife(14, 65);
+        self.FadeLifeRange(5, 15);
+        self.StopSpeed = 2;
+
+        self.RandomAngle(-35, 35);
+        self.RandomPitch(-45, 25);
+        self.RandomSpeed(1, 4);
+        self.RandomScaleX(0.6, 2.2);
+        self.RandomScaleY(0.6, 0.9);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SPKS", "ABCDE");
+    }
+}
+
+class SparkParticleDefinitionFast: SparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomSpeed(1,11);
+    }
+}
+
+
+class SparkParticleDefinitionFastShotgunner : SparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomSpeed(1,11);
+        self.RandomLife(15,35);
+        self.RandomPitch(-15, 15);
+    }
+}
+
+class ShortSparkParticleDefinition : SparkParticleDefinition
+{
+    override void Init()
+    {
+        super.Init();
+
+        self.SetBaseScaleXY(0.034, 0.064);
+        self.SetGravity(0.38);
+        self.ScaleLifeRange(0.4,1);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+        self.SetFlag(PDF_DIRFROMMOMENTUM);
+        self.SetFlag(PDF_VELOCITYFADE);
+        self.SetFlag(PDF_KILLSTOP);
+        self.SetQualityChances(0, 0.5, 0.75, 1.0, 2.5);
+        self.SetLifespanMultipliers(0.5 , 1.0, 1.1, 1.2, 1.3);
+        self.RandomLife(15, 22);
+        self.FadeLifeRange(4, 12);
+        self.StopSpeed = 2;
+        self.Drag = 0.04;
+        self.RandomAngle(-90, 90);
+        self.RandomPitch(-55, 55);
+        self.RandomSpeed(2, 10);
+        self.RandomScaleX(0.6, 4.2);
+        self.RandomScaleY(0.6, 1.6);
+    }
+}
+
+class SparkParticleWildDefinition : SparkParticleDefinition
+{
+    override void Init()
+    {
+        super.Init();
+        self.RandomAngle(-85, 85);
+    }
+}
+
+
+class SparkParticleWilderDefinition : SparkParticleWildDefinition
+{
+    override void Init()
+    {
+        super.Init();
+        self.RandomLife(30,45);
+        self.RandomAngle(-60,60);
+        self.RandomPitch(-65,15);
+        self.RandomSpeed(2,8);
+        self.SetLifespanMultipliers(0.6, 1.0, 1.0, 1.0, 1.0);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.SetFlag(DPF_FULLBRIGHT);
+        particle.Texture = SelectRandomFrame("SPKS", "ABCDE");
+    }
+}
+
+class SparkParticleWilderLargeDefinition : SparkParticleWilderDefinition {
+    override void Init()
+    {
+        super.Init();
+        self.SetBaseScale(0.039);
+        self.RandomPitch(-65, 15);
+    }
+}
+
+
+class ShortSparkStraightDefinition : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomLife(12,14);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-45,-145);
+    }
+}
+
+class DroppedSparkWilderLarge360Definition : SparkParticleWilderDefinition {
+    override void init() {
+        super.init();
+        self.RandomPitch(-40,-130);
+    }
+}
+
+class ShortSparkParticleStraightDefintion : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomLife(12,19);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-45,-145);
+    }
+}
+
+
+class SparkParticlesSlowerShorterDefintion : SparkParticleDefinition {
+    Override void init() {
+        super.init();
+        self.SetLifespanMultipliers(0.5, 0.9, 1.0, 1.0, 1.0);
+        self.RandomLife(20,40);
+        self.RandomSpeed(1,2);
+        self.randomScaleX(0.4, 1.5);
+        self.RandomScaleY(0.4, 1.5);
+    }
+}
+
+
+class ShortSparkTinyParticleDefintion : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.011, 0.035);
+    }
+}
+
+class ShortSparkTinyBlueDefinition : ShortSparkTinyParticleDefintion {
+    override void init() {
+        super.init();
+        self.RandomLife(10,16);
+        self.RandomPitch(-70,-110);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.SetFlag(DPF_FULLBRIGHT);
+        particle.Texture = SelectRandomFrame("SPBL", "ABCDE");
+    }
+
+}
+
+class ShortSpark360ParticleDefinition : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomAngle(0,360);
+    }
+}
+
+class ShortSpark360SmallParticleDefinition : ShortSpark360ParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomAngle(0,360);
+        self.SetBaseScaleXY(0.008, 0.022);
+    }
+}
+
+class SparkOrbDefiniton : ParticleDefinition {
+
+    override void init() {
+        super.init();
+        SetDefaultParticleFlag(DPF_FULLBRIGHT);
+        self.SetGravity(0.45);
+        self.DefaultRenderStyle = STYLE_ADD;
+        self.SetBaseScale(0.015);
+        self.ClearFlag(PDF_KILLSTOP);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.ClearFlag(PDF_VELOCITYFADE);
+        self.SetFlag(PDF_NOSPAWNUNDERWATER);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.SetLifespanMultipliers(0.3, 1.0, 1.5, 1.7, 2.2);
+        self.ScaleLifeRange(0,1);
+        self.RandomLife(25,60);
+        self.StopSpeed = 2;
+        self.RandomScaleY(0.005, 5.005);
+        self.RandomScaleX(-0.005, 5.005);
+
+        self.RandomAngle(-35,35);
+        self.RandomPitch(-30,30);
+        self.RandomSpeed(0,5);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SPRK", "A");
+    }
+}
+
+class SparkOrbSlowDefiniton : SparkOrbDefiniton {
+    override void init() {
+        super.init();
+        self.RandomSpeed(0,1);
+        self.RandomScaleX(0.5, 1.5);
+        self.randomScaleY(0.5,1.5);
+    }
+}
+
+class SparkOrbWildDefinition : SparkOrbDefiniton {
+    override void init() {
+        super.init();
+        self.RandomAngle(-55,55);
+    }
+}
+
+class SparkOrbShorterDefinition : SparkOrbDefiniton {
+    override void init() {
+        super.init();
+        self.FadeVelRange(0.2 , 3);
+        self.FadeLifeRange(0   , 30);
+        self.RandomLife(15  , 25);
+        self.RandomScaleY(0.25, 1.5);
+        self.RandomScaleX(0.25, 1.5);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SPRK", "A");
+    }
+}
+
+
+class SparkParticleTinyDefintion : SparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.007, 0.004);
+        self.randomAngle(0,360);
+        self.randomSpeed(1,6);
+        self.randomLife(25,50);
+    }
+}
+
+class LongerSparkDefinition : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomLife(19,25);
+        self.RandomSpeed(2,6);
+    }
+} 
+
+class LongerSpark360 : LongerSparkDefinition {
+    override void init() {
+        super.init();
+        self.RandomAngle(0,360);
+    }
+}
+
+
+class SparkParticleSlowerDefinition : SparkOrbDefiniton {
+    override void init() {
+        super.init();
+        self.RandomSpeed(1,2);
+        self.RandomScaleX(0.6,0.9);
+        self.RandomScaleY(0.6,0.9);
+    }
+}
+
+class MuchLongerSparkDefinition : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.randomLife(35,45);
+        self.RandomSpeed(2,5);
+    }
+}
+
+class SparkParticleTiny : SparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.012, 0.008);
+        self.RandomANgle(0,360);
+        self.RandomSpeed(1,4);
+        self.RandomPitch(-45,-65);
+        self.RandomLife(12,16);
+    }
+}
+
+
+class ShortSparkParticleNarrowDefinition : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomAngle(-35,35);
+        self.RandomPitch(-35,35);
+        self.randomSpeed(2,8);
+    }
+}
+
+class SparkParticleActorDefinition : SparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomAngle(-35,35);
+        self.RandomPitch(-25,25);
+        self.randomSpeed(2,5);       
+    }
+}
+
+
+class BlueSparkShardTracerDefinition : SparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.023, 0.057);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ScaleLifeRange(0,1);
+        self.SetDefaultParticleFlag(DPF_FULLBRIGHT);
+        self.SetLifespanMultipliers(0.6, 0.9, 1.1,1.3,2.5);
+        self.RandomLife(8,12);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-10,-160);
+        self.RandomSpeed(8,23);
+        self.RandomScaleX(3,7);
+        self.RandomScaleY(3,7);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SPBL", "ABCDE");
+    }
+}
+
+class PlasmaPuffSparksWall : BlueSparkShardTracerDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.1);
+        self.drag = 0.06;
+        self.RandomLife(7,24);
+        self.SetBaseScaleXY(0.023, 0.057);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.ClearFlag(PDF_VELOCITYFADE);
+        self.SetFlag(PDF_LIFESCALE);
+        self.SetFlag(PDF_KILLSTOP);
+        self.RandomPitch(-60,-120);
+        self.ScaleLifeRange(0,1);     
+        self.RandomScaleX(1,7);
+        self.RandomSpeed(3,23);
+        self.RandomScaleY(1,7);
+        self.RandomAngle(-35,35);
+        self.FadeLifeRange(0, 0);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SPBL", "ABCDE");
+    }
+}
+
+class PlasmaPuffSparksFloor : BlueSparkShardTracerDefinition {
+    override void init() {
+        super.init();
+        self.drag = 0.04;
+        self.RandomSpeed(3,25);
+        self.RandomPitch(-20,-160);
+        self.RandomAngle(0,360);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SPBL", "ABCDE");
+    }
+}
+
+
+class BlueSparkDefinition : BlueSparkShardTracerDefinition {
+    override void init() {
+        super.init();
+        self.RandomScaleX(1.1, 3.1);
+        self.RandomScaleY(1.1, 3.1);
+        self.SetLifespanMultipliers(0.6, 0.9, 1.1, 1.3, 2.5);
+        self.RandomLife(30,50);
+        self.RandomAngle(-45,45);
+        self.RandomPitch(-75,-125);
+        self.RandomSpeed(3,7);
+    }
+}
+
+class HeadshotBlueSparkDefinition : BlueSparkDefinition {
+    override void init() {
+        super.init();
+        self.SetFlag(PDF_ISBLOOD);
+        self.SetFlag(PDF_LIFESCALE);
+        self.RandomLife(9,13);
+        self.SetLifespanMultipliers(0.5,1.1,1.1,1.1,1.1);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.RandomScaleX(1.1, 3.1);
+        self.RandomScaleY(1.1, 3.1);
+        self.RandomSpeed(3,7);
+    }
+}
+
+class HeadshotBlueSparkWildDefinition : HeadshotBlueSparkDefinition {
+    override void init() {
+        super.init();
+        self.RandomPitch(-55,-145);
+        self.RandomLife(19,25);
+    }
+}
+
+
+class HeadshotBlueSparkFastDefinition : BlueSparkDefinition {
+    override void init() {
+        super.init();
+        self.RandomLife(13,14);
+        self.SetFlag(PDF_ISBLOOD);
+        self.SetLifespanMultipliers(0.5,0.9, 1.1, 1.3, 2.5);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.RandomScaleX(2.1, 3.1);
+        self.RandomScaleY(2.1, 3.1);
+        self.RandomAngle(-45,45);
+        self.RandomPitch(-85,-135);
+        self.RandomSpeed(3,10);
+    }
+}
+
+class SparkBriefDefintion : ShortSparkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomPitch(-65,65);
+        self.SetBaseScaleXY(0.039, 0.074);
+        self.randomLife(8,13);
+        self.RandomSpeed(5,12);
+    }
+}
+
+class SparkBriefSmallDefintion : SparkBriefDefintion {
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.029, 0.054);
+    }
+}
+
+class SparkBriefSmallThinDefintion : SparkBriefDefintion {
+    override void init() {
+        super.init();
+        self.RandomPitch(-60,-120);
+        self.SetBaseScaleXY(0.019, 0.034);
+    }
+}
+
+
+class ShortSparkShrinkDefinition : ShortSparkParticleDefinition
+{
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.024, 0.046);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.ScaleLifeRange(0,1);        
+        self.RandomSpeed(2,8);
+        self.FadeLifeRange(2,8);
+        self.RandomPitch(-15,-45);
+        self.RandomLife(11,14);
+        self.RandomScaleX(1.6,3.2);
+        self.RandomScaleY(1.6,3.2);
+    }
+}
+
+class RobotImpactSparkDefinition : ShortSparkShrinkDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.5);
+    
+        self.RandomAngle(-120,120);
+        self.RandomPitch(-15,-75);
+        self.RandomSpeed(1,11);
+        self.RandomScaleX(1.0,3.2);
+        self.RandomScaleY(1.0,3.2);
+    }
+}
+
+class LongerSparkWildDefinition : LongerSparkDefinition {
+    override void init() {
+        super.init();
+        self.RandomPitch(-30 , -150);
+    }
+}
+
+
+// Oh my god this one is red!
+class ShortRedSpark : ShortSparkParticleDefinition
+{
+    
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SPRD", "ABCDE");
+    }
+
+    override void init() {
+        super.init();
+        self.RandomLife(10,18);
+        self.randomPitch(35,-55);
+        self.randomAngle(-35,35);
+    }
+}

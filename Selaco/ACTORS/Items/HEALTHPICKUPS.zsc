@@ -1,0 +1,294 @@
+class PortableMedkit  : FlaredPickup
+{
+    default {
+        -SelacoItem.ApplyScarcityMode
+        -SelacoItem.AlwaysAllowTouchMode;
+        tag "$PICKUP_PORTABLEMEDIT";
+        Inventory.Pickupsound "pickup/medkit";
+        FlaredPickup.FlareClass "health_flare";
+        FlaredPickup.IconClass "health_icon";
+        FlaredPickup.FlareOffset 15;
+        FlaredPickup.IconOffset 24;
+        SelacoItem.pickupCount 50;
+		SelacoItem.pickupIcon "P_MEDSA0";
+		SelacoItem.pickupTag "$PICKUPTAG_MEDKIT";
+        SelacoItem.randomizerSpawnChance 2.0;
+        SelacoItem.pickupCount 1;
+        SelacoItem.pickupIcon "p_MEDSA0";
+        SelacoItem.pickupTag "$PICKUP_PORTABLEMEDIT";
+        SelacoItem.pickupType "MedkitCount";  
+        scale 0.9;
+    }
+
+	States {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+        GiveItem:
+            TNT1 A 0 ACS_NamedExecute("medkitTip", 0);
+            goto pickupSuccess;
+        Check3:
+            TNT1 A 0;
+            stop;
+	}
+}
+
+class HealingItem : FlaredPickup
+{
+    const OVERHEALING_MAX = 100; // How much additional health above the Max Health do we allow for OverHealing items?
+    private int sHealingFlags;
+    flagdef AllowOverHealing      : sHealingFlags, 0;
+    
+
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        useIcon = TexMan.CheckForTexture("XH_HEAL");
+    }
+
+    virtual int getHealingLimit(Actor toucher)
+    {
+        int healLimit = toucher.getMaxHealth();
+        if(bAllowOverHealing)
+        {
+            healLimit+=OVERHEALING_MAX;
+        }
+        return healLimit;
+    }
+
+    override bool CheckPickupLimit(Actor toucher) {
+        if(!pickupType || bALWAYSPICKUP) return true;
+
+        int maxHealth = getHealingLimit(toucher);
+
+        int health = toucher.player ? toucher.player.health : toucher.health;
+        return health < maxHealth;
+    }
+
+    override void DoPickupSpecial(Actor toucher) 
+    {
+        int health = toucher.player ? toucher.player.health : toucher.health;
+        int maxHealth = getHealingLimit(toucher);
+
+        bool isDangerState; 
+        if(toucher is "Dawn" && health < Dawn(toucher).dangerStateHealth)
+        {
+            isDangerState = true;
+        }
+
+        // Adjust pickup count to avoid going over intended limits
+        pickupCount = min(pickupCount, maxHealth - health);
+
+        if(toucher.player) {
+            Stats.AddStat(STAT_HEALED, pickupCount, 0);
+            toucher.player.health += pickupCount;
+        } else toucher.health += pickupCount;
+
+
+        // Apply health.
+        toucher.A_SetHealth(health+pickupCount);
+
+        Stats.AddStat(STAT_ITEMS_PICKEDUP, 1, 0);
+
+        // Notify the player that an item is picked up
+        if(toucher is 'Dawn') {
+            Dawn dawn = dawn(toucher);
+            dawn.A_PLAYSOUND("misc/i_pkup", CHAN_BODY, 0.8);
+            dawn.onItemPickedUp(self, pickupCount);
+            dawn.HealTick(5);
+
+            // Was Dawn in a danger state? If so, notify her
+            if(toucher.health >= 35 && isDangerState)
+            {
+                dawn.validateHealthRelief();
+            }
+        }
+
+        // Animate the object flying towards the player
+        if(pickupTarget && bFlyAnimation) {
+            SetStateLabel("PickupFly");
+        }
+	}
+
+    default {
+        tag "$PICKUP_SMALLMEDKIT";
+        scale 0.5;
+        Inventory.Pickupsound "item/healpickup";
+        FlaredPickup.FlareClass "health_flare";
+        FlaredPickup.IconClass "health_icon";
+        FlaredPickup.FlareOffset 15;
+        FlaredPickup.IconOffset 24;
+        -SelacoItem.FlyAnimation;
+        SelacoItem.pickupCount 1;
+        SelacoItem.randomizerSpawnChance 0;
+        SelacoItem.pickupIcon "p_MEDSA0";
+        SelacoItem.pickupTag "$PICKUP_HEALTH";
+        SelacoItem.pickupType "HealthShardPickup";  // Just so there is an actual item to give
+    }   
+    
+    States
+    {
+		Spawn:
+			VOXE L -1;
+			loop;
+    }
+}
+
+class Stimpack : HealingItem
+{
+    default 
+    {
+        tag "$PICKUP_SMALLMEDKIT";
+        SelacoItem.pickupCount 10;
+        SelacoItem.randomizerSpawnChance 90;
+    }
+}
+
+class Medkit : Stimpack
+{
+    default {
+        tag "$PICKUP_LARGEMEDKIT";
+        scale 0.65;
+        SelacoItem.randomizerSpawnChance 80;
+        SelacoItem.pickupCount 25;
+        Inventory.Pickupsound "item/healpickuplarge";
+    }
+}
+
+// Exists just to tell the pickup code how to handle bonus health
+class BonusHealthDummy : SelacoItem {
+    default { 
+        Inventory.MaxAmount 0;
+        SelacoItem.pickupIcon "p_MEDSA0";
+        SelacoItem.pickupTag "$PICKUP_HEALTHBONUS";
+        SelacoItem.pickupType "BonusHealthDummy";  // Just so there is an actual item to give
+    }
+}
+
+
+class UltraHealth : Stimpack
+{
+    bool isPickedUp; // Temp 
+    override void tick() 
+    {
+        super.tick();
+        if(level.time % 25 == 0) {
+            a_playsound("MEDKIT/PULSE/ULTRAHEALTH", CHAN_AUTO, 0.8);
+            for(int x=0;x<=360;x+=10) {
+                A_SpawnParticle("red", SPF_FULLBRIGHT | SPF_RELATIVE  , 35, size:3, angle:x,xoff:15,velz:1, startalphaf: 0.4, fadestepf:0.015);
+            }            
+        }
+    }
+
+    default {
+        tag "$PICKUP_ULTRAMEDKIT";
+        scale 0.65;
+        SelacoItem.pickupCount 100;
+        SelacoItem.randomizerSpawnChance 1.25;
+        +HealingItem.AllowOverHealing;
+        Inventory.Pickupsound "MEDKIT/PICKUP/ULTRAHEALTH";
+    }
+}
+
+
+class HealthShardPickup : HealingItem
+{
+    default {
+        +SelacoItem.AlwaysAllowTouchMode;
+        +HealingItem.AllowOverHealing;
+        Tag "$PICKUP_HEALTHSHARD";
+        Height 16;
+        Inventory.pickupSound "item/healthbonus_pickup";
+		radius 15;
+        scale 1.0;
+        SelacoItem.randomizerSpawnChance 35;
+        FlaredPickup.IconDistance 0;
+        FlaredPickup.IconClass "";
+        FlaredPickup.FlareOffset 24;
+        FlaredPickup.IconOffset 0;
+        SelacoItem.pickupCount 2;
+        SelacoItem.pickupIcon "p_MEDSA0";
+        SelacoItem.pickupTag "$PICKUP_HEALTH";
+        SelacoItem.pickupType "HealthShardPickup";  // Just so there is an actual item to give
+    }
+
+	States  {
+        spawn:
+            VOXE L -1 bright;
+            loop;
+	}
+}
+
+class HealthShardPickup_FLAT : HealthShardPickup
+{
+	default {
+        -NOGRAVITY
+        -FLOAT
+        scale 1.0;
+    }
+}
+
+// Increase carry capacity of portable medkits by 1.
+class MedicalSatchel : SelacoItem
+{
+    override bool CanPickup(Actor toucher) 
+	{
+		Dawn d = Dawn(toucher);
+		if(!d) return false;	// Non dawns shouldn't pick this up
+		return true;            // This item can always be picked up.
+    }
+
+    override bool TryPickup (in out Actor other) {
+        let d = Dawn(other);
+        if(!d) return false;
+
+        bool gaveMedkit = false;
+
+        // Give a free Medkit, only give here if we have none as the item may not exist yet
+        if(d.countInv("medkitCount") == 0) {
+            d.A_GiveInventory("medkitCount", 1);
+            gaveMedkit = true;
+        }
+
+        // Find the medkit inventory item
+        Inventory medkitInv = d.FindInventory("medkitCount");
+
+        // Increase max medkits by 1
+        if(medkitInv)
+        {
+            medkitInv.maxAmount++;
+
+            // Give after maxamount increase if possible so we are full up
+            if(!gaveMedkit) {
+                d.A_GiveInventory("medkitCount", 1);
+            }
+
+            d.A_PLAYSOUND("item/levelup", CHAN_AUTO, 0.7);
+            A_PRINTBOLD(string.format("\c[OMNIBLUE] %s", stringTable.localize("$UPGRADE_MEDICALSATCHEL")), 3.0, "SEL21FONT");
+        }
+
+        GoAwayAndDie();
+        return true;
+    }
+
+
+	default
+	{
+        SelacoItem.randomizerSpawnChance 0.25;
+		inventory.pickupSound "PICKUP/BANDOLIER";
+		+Selacoitem.UpgradeItem;
+		tag "$OBJECT_MEDICALSATCHEL";
+		radius 15;
+		height 15;
+	}
+
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+		Pickup:
+			TNT1 A 1;
+			stop;
+	}
+}

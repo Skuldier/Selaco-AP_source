@@ -1,0 +1,143 @@
+extend class Dawn {
+    enum MedkitResponse {
+        Medkit_NoKits           = 0,
+        Medkit_FullHealth       = 1,
+        Medkit_AlreadyHealing   = 2,
+        Medkit_Success          = 99
+    };
+
+    bool medkitHealingActive;
+	int healTickThreshold;					// Current tick for the tickrate threshold.
+	int healPerCycle;						// How much HP per tick
+	int healingAmountLeft;					// Amount left to heal before depletion.
+	int healingAmountTarget;				// Total amount we're going to heal at the press of the heal button.
+    int medkitLastFailure;                  // TotalTime when last medkit use failed
+    MedkitResponse medkitFailureType;
+    int medkitHealCount;                    // Amount of HP healed during the active or last cycle
+
+    const MEDKIT_HEAL_AMOUNT = 50;			// Amount of HP for the medkit to heal
+	const MEDKIT_HEAL_RELIEF_CHANCE = 0;	// Chance for Dawn to get really happy.
+	const MEDKIT_HEAL_TICKRATE = 2;			// Time between each heal
+    const MEDKIT_FAIL_COOLDOWN = 15;        // Ticks until you can fail to use a medkit again after your last utter and complete failure
+
+	// Check medkit eligibility
+	MedkitResponse validateMedkit()
+	{   
+		// Does the player have a medkit
+		if(countinv("MedkitCount") == 0)
+		{
+			return Medkit_NoKits;
+        }
+
+		// Full health?
+		if(health >= getMaxHealth())
+		{
+			//COCKUI: Blink Medkit HUD indicator with text $HEALTH_FULL
+			return Medkit_FullHealth;
+		}	
+
+		// Are we already healing? Are we even alive?
+		if(medkitHealingActive || health <= 0)
+		{
+			return Medkit_AlreadyHealing;
+		}
+
+		// Trips setupHealing()
+		return Medkit_Success;
+	}
+
+
+	void setuphealing()
+	{
+		// Adjust heal speed depending on difficulty
+		healPerCycle = (skill <= 3) ? 1 : 2;
+
+		// Apply heal target
+		healingAmountTarget = min(GetMaxHealth() - health, MEDKIT_HEAL_AMOUNT);
+		healingAmountLeft = healingAmountTarget;
+
+		// Visual / Audio
+		A_PLAYSOUND("item/healstart", CHAN_AUTO);
+		A_PLAYSOUND("item/healloop", CHAN_6, 0.7, 1);
+
+		// Remove medkit
+		A_TakeInventory("MedkitCount", 1);
+
+		// Satisfy Playerthink
+		medkitHealingActive = true;
+	}
+
+
+	void handleMedkitHealing()
+	{
+		if (!medkitHealingActive || health <= 0)
+		{
+			return;
+		}
+
+		healTickThreshold++;
+		if (healTickThreshold < MEDKIT_HEAL_TICKRATE)
+		{
+			return; // No need to continue if the threshold is not reached
+		}
+
+		// Apply the heal
+		if(healTickThreshold >= MEDKIT_HEAL_TICKRATE)
+		{
+			if(healingAmountLeft > 0 && health < getMaxHealth())
+			{
+				// Screen effect
+				HealTick(2);
+
+				// Apply heal tick, dont go over the max
+				int newHealth = min(health + healPerCycle, GetMaxHealth());
+
+				Stats.AddStat(STAT_HEALED, max(0, newHealth - health), 0);
+
+				A_Sethealth(newHealth);
+		
+				healingAmountLeft-=healPerCycle;
+
+				// Gives Green Screentint
+				GiveInventory("healActive", 1);
+			}
+			else
+			{	
+				completeHealing();
+			}
+		}
+	}
+
+
+	void completeHealing()
+	{
+
+		// Inform the game we are no longer healing.
+		medkitHealingActive = false;
+
+		// Kill screen effect
+		HealTick(0);
+
+		// Stop sounds
+		A_STOPSOUND(CHAN_6);
+		A_PLAYSOUND("item/healdone", CHAN_6, 0.8);
+
+		// Relief Sound Effect. We dont really use this anymore, but keeping it here in case voice revisions end up better.
+		int shouldPlayReliefSound = random(0,100);
+		if(shouldPlayReliefSound <= MEDKIT_HEAL_RELIEF_CHANCE)
+		{
+			A_PLAYSOUND("player/healing", CHAN_VOICE);
+		}
+	}
+
+
+	void rejectHealing(MedkitResponse type)
+	{
+		if(!medkitHealingActive && (medkitLastFailure == 0 || level.totalTime - medkitLastFailure > MEDKIT_FAIL_COOLDOWN || type != medkitFailureType)) {
+            medkitLastFailure = level.totalTime;    // Also informs HUD to draw a "No Heal" icon
+            medkitFailureType = type;
+
+		    A_PLAYSOUND("item/healreject", CHAN_AUTO, 0.8);
+        }
+	}
+}

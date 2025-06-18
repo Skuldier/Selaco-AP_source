@@ -1,0 +1,410 @@
+extend class RandomizerHandler
+{
+    // -- ENEMY RANDOMIZER --
+    // Finds a node for spawning an enemy soldier
+    const NODE_MAX_DIST = 1800 * 1800;
+    const NODE_MIN_DIST = 1200 * 1200;
+    const NODE_HEIGHT_DIFF = 90.0;   
+    const SPAWN_DELAY = 90;
+    const EVENT_WAVE_CHANCE = 5; // Chance for special waves (Invasion, Crawler Mine)
+    const ZOMBIE_SWARM_COUNT = 9;
+    const DESPAWN_TIME = 15;
+    array<Actor> cluster;           // The current cluster of enemies spawned. Once they are active we forget about them.
+    array<int> wallDistance, wallAngle;  
+    int clusterTimer;
+
+    array<string> enemyPool;
+    array<string> zombiePool;
+    array<string> robotPool;
+
+
+    const INVASION_CHANCE = 3;
+
+    void createEnemyPool()
+    {
+        if(allowRobotSpawns) {
+            robotPool.push("CrawlerMine");
+        }
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // FIND ALL ENEMIES
+            if(AllClasses[x] is 'SelacoEnemy') 
+            {
+                // Get Class Info
+                let def = SelacoEnemy(GetDefaultByType((class<SelacoEnemy>)(AllClasses[x])));
+
+                // No soldiers in 06C
+                if(level.mapName ~== "SE_06C" && (def is "EnemySoldier" || def.enemyType == ENEMY_ROBOT)) {
+                    continue;
+                }
+
+                // No squad leaders if disabled
+                if(!allowSquadLeaders && def.getClassName() == "SOLDIER_SQUADLEADER")
+                {
+                    continue;
+                }
+
+                // No infected if disabled
+                if(!allowZombieSpawns && def.enemyType == ENEMY_INFECTED)
+                {
+                    continue;
+                }
+
+                // No robots if disabled
+                if(!allowRobotSpawns && def.enemyType == ENEMY_ROBOT)
+                {
+                    continue;
+                }
+
+                // No Crawler Queens if disabled
+                if(!allowCrawlermineQueen && def.getClassName() == "CrawlerMineQueen")
+                {
+                    continue;
+                }
+
+                // Add only if randomizer chance
+                if(def.randomizerSpawnChance > 0 && def.bIsMonster)
+                {
+                    enemyPool.push(def.getClassName());
+                }
+            }
+
+            // FIND ALL ZOMBIES
+            if(AllClasses[x] is 'Zombie_Grunt') 
+            {
+                // Get Class Info
+                let def = Zombie_Grunt(GetDefaultByType((class<Zombie_Grunt>)(AllClasses[x])));
+
+                // Add only if randomizer chance
+                if(def.randomizerSpawnChance > 0)
+                {
+                    zombiePool.push(def.getClassName());
+                }
+            }
+        }
+        for(int x=0;x<enemyPool.size();x++) {
+            console.printf("POOL: %s", enemyPool[x]);
+        }
+    } 
+    
+    string retrieveEnemyFromPool(array<String> spawnList = null)
+    {
+        array<string> potentialSpawns;
+        if(spawnList.size() > 0)
+        {
+            for(int x=0;x<spawnList.size();x++)
+            {
+                int dice = random(0,99);
+                class<Actor> cls = spawnList[x];
+                int spawnChance = SelacoEnemy(GetDefaultByType(cls)).randomizerSpawnChance;   
+                if(dice <= spawnChance)
+                {
+                    potentialSpawns.push(cls.getClassName());
+                }         
+            }
+        }
+        // return random potentialSpawn
+        if(potentialSpawns.size() == 0) {
+            return "";
+        }
+        return potentialSpawns[random(0,potentialSpawns.size()-1)];
+    }
+
+    void randomEncounters()
+    {
+        if(menuActive) {
+            return;
+        }
+
+        clusterTimer--;
+        if(clusterTimer == 0) 
+        {
+            // Before spawning a cluster, make sure we don't have an active squad already
+            // Also prevent spawning if inside the safe room
+            if( players[0].mo.countInv('InsideSafeRoomItem') || 
+                (level.totalTime - BattleOverseer.Instance().checkLastPlayerSight() < TICRATE * 25) ) {
+                clusterTimer = 15;  // Reset timer and we will try again later
+                return;
+            }
+
+            PathNode spawnNode;
+            int lookCount;
+            bool activeEventWave;
+            array<String> spawnList;
+
+            [spawnNode, lookCount] = findNodeForSpawning();
+            if(spawnNode) {
+                int numSpawn = random(2, random(3, 4));
+                if(allowZombieInvasion && random(0,99) <= EVENT_WAVE_CHANCE)
+                {
+                    spawnList.copy(zombiePool);
+                    numSpawn = ZOMBIE_SWARM_COUNT;
+                    activeEventWave = true;
+                } else {
+                    spawnList.copy(enemyPool);
+                }
+                
+                BattleOverseer overseer = BattleOverseer.Instance();
+                BattleSquad newSquad;
+
+                // Areas with tall ceilings are more likely to spawn Juggernaut or Siegers
+                // Jugg +8%  Sieger +5%
+                bool tallCeiling = spawnNode.ceilingZ - spawnNode.floorZ > 200;
+                for(int x = 0; x < numSpawn; x++) {
+                    Actor spawned = null;
+
+                    int typeSpawn = random(0, 100);
+                    bool is06C = level.mapName ~== "SE_06C";
+                    if(!is06C && !activeEventWave && numSpawn == 1 && typeSpawn > 98 || (tallCeiling && numSpawn == 1 && typeSpawn > 90)) {
+                        spawned = SpawnNear("Juggernaut", spawnNode, x);
+                    } else if(!is06C && !activeEventWave &&  typeSpawn > 50 && typeSpawn < 80) {
+                        spawned = SpawnNear("Engineer", spawnNode, x);
+                    } else if(!is06C && !activeEventWave &&  typeSpawn > 93 && typeSpawn < 98 || (tallCeiling && typeSpawn > 84 && typeSpawn <= 94)) {
+                        spawned = SpawnNear("Sieger", spawnNode, x);
+                        if(spawned) {
+                            // Position sieger closer to the ceiling
+                            Vector3 pos = spawned.pos;
+                            pos.z = max(spawned.ceilingZ - 40 - spawned.height, spawned.floorZ + 20);
+                            spawned.SetXYZ(pos);
+                        }
+                    } else {
+                        // Must spawn the actual class directly, because we need to track the enemies in the cluster
+                        if(spawnList.size())
+                        {
+                            spawned = SpawnNear(retrieveEnemyFromPool(spawnList), spawnNode, x);
+                        }
+                    }
+
+                    if(spawned) {
+                        cluster.push(spawned);
+                        spawned.bLOOKALLAROUND = true;
+                        spawned.angle = random(0, 360);
+
+                        EnemySoldier es = EnemySoldier(spawned);
+                        if(es) {
+                            if(!newSquad) {
+                                newSquad = overseer.createNewBattleSquad(es);
+                                newSquad.squadStatus = SQUAD_Return;    //SQUAD_Patrol;  // Patrol currently has a bug where enemies reaching the goal will immediately target a pathnode and start shooting the player
+                                newSquad.patrolStartTime = level.time;
+                            } else {
+                                overseer.assignSquad(es, newSquad);
+                            }
+
+                            // Set a home node for the soldier near the player and activate return-to-home
+                            let ph = PathHandler.Instance();
+                            if(ph.playerVisibleNodes.size() > 0) {
+                                // Pick a random node for now
+                                es.homeNode = ph.playerVisibleNodes[random(0, ph.playerVisibleNodes.size() - 1)];
+                                es.lostPlayerReturnHome();
+
+                                if(es.squad && es.squad.members.size() && random(1, 1) == 1) {
+                                    es.squad.assignCalloutToSquadmate(SOLDIER_SEARCH, urgent:true, ignoreSizeRequirement:false, delayOffset:3);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if(developer) console.printf("SPAWNING AT LEVEL TIME %d REQUIREMENT IS %d", level.time, randomEncounterFrequency);
+            }
+        } else if(clusterTimer < 0) {
+            // Check our active cluster to see if we can reset the timer
+            // or if we need to try to spawn a new cluster and hope the player finds them
+            bool clusterActive = checkClusterActive();
+            // Just because they haven't seen the player doesn't mean we should despawn. That looks awful.
+            if(!clusterActive && (cluster.size() == 0 || (clusterTimer < -(TICRATE * DESPAWN_TIME)))) {
+                // Make sure the player can't see the enemies
+                PlayerPawn p = players[0].mo;
+                if(p) {
+                    for(int x = 0; x < cluster.size(); x++) {
+                        if(p.CheckSight(cluster[x], SF_SEEPASTBLOCKEVERYTHING | SF_SEEPASTSHOOTABLELINES | SF_IGNOREVISIBILITY)) {
+                            return; // Stop checking, player can see at least one enemy
+                        }
+                    }
+                }
+
+                if(developer) {
+                    if(cluster.size() && cluster[0]) cluster[0].A_PrintBold(String.Format("Despawning %d Enemies: Timed Out", cluster.size()));
+                    else Console.Printf(String.Format("Despawning %d Enemies: Timed Out", cluster.size()));
+                }
+
+                for(int x = 0; x < cluster.size(); x++) {
+                    if(cluster[x]) cluster[x].destroy();
+                }
+                cluster.clear();
+                clusterTimer = 2;
+            } else if(clusterActive) {
+                clusterTimer = random(0, 10) * TICRATE + randomEncounterFrequency;
+                cluster.clear();
+            }
+        }        
+    }
+
+    void spawnRandomEvent(PathNode spawnNode)
+    {
+        for(int x=0;x<ZOMBIE_SWARM_COUNT;x++)
+        {
+            string chosenZombie = zombiePool[random(0, zombiePool.size()-1)];
+            actor spawned = null;
+            spawned = SpawnNear(chosenZombie, spawnNode, x);
+        }
+    }
+
+    PathNode, int findNodeForSpawning() {
+        // Find a node close to Dawn
+        // @Cockatrice: No longer using this approach because it potentially picks nodes that are unreachable
+        // Instead we can use the cache that already exists in the pathfinding class which keeps track of attack nodes around Dawn
+
+        Dawn d = Dawn(players[consolePlayer].mo);
+        let ph = PathHandler.Instance();
+
+        // Just pick a random one for now
+        PathNode a = ph.playerVisibleNodes.size() ? ph.playerVisibleNodes[random(0, ph.playerVisibleNodes.size() - 1)] :  null;
+
+        if(a) {
+            int cnt = 0, iterations = 0;
+            Map<Int, PathNode> visitedNodes;
+            return findFirstInvisibleNode(null, PathNode(a), d, cnt, iterations, 0, visitedNodes), cnt;
+        }
+
+        return null, 0;
+    }
+
+    Actor SpawnNear(Class<Actor> cls, PathNode spawnNode, int checkIndex, int radius = 48) {
+        // Make sure we can spawn here and we aren't spawning inside another object
+        // Try up to 5 times
+        if(spawnNode.links.size() == 0) {
+            if(developer) {
+                Console.Printf("\c[YELLOW]Warning: Random encounter spawn attempted on an orphaned PathNode!");
+            }
+            return null;
+        }
+
+        Vector3 basePos = (spawnNode.pos.xy, spawnNode.floorz);
+        for(int x = 0; x < 8; x++) {
+            // Pick a random direction based on connections to the node
+            Vector3 dir;
+            double maxDist = 320;
+
+            // Determine offset direction based on surrounding links, or a random dir if there are none
+            PathNode randomLink = spawnNode.links[random(0, spawnNode.links.size() - 1)].node;
+            dir = ((randomLink.pos.xy, randomLink.floorz) - basePos).unit();
+            maxDist = (randomLink.pos.xy - basePos.xy).length() - GetDefaultByType(cls).radius;
+
+            Vector3 offset = dir * min(maxDist, ((checkIndex + x + 1) * radius));
+            Vector3 pos = basePos + offset;
+
+            // Check if there is an enemy in this spot
+            BlockThingsIterator it = BlockThingsIterator.CreateFromPos(pos.x, pos.y, pos.z, 64, radius, false);
+            bool found;
+            while (it.Next()) {
+                SelacoActor a = SelacoActor(it.thing);
+                if(a && !(a is 'SelacoItem') && (a is 'SelacoEnemy' || a.bIsHazard || (a.bSolid && !a.bDecorativeActor))) {
+                    if((a.pos.xy - pos.xy).length() < 28) found = true;
+                    break;
+                }
+            }
+
+            if(!found) {
+                // Spawn the actor
+                Actor a = Actor.Spawn(cls, pos);
+
+                // Weaken this spawn
+                if(a && weakenRandomEncounters)
+                {
+                    if(a is "SelacoEnemy")
+                    {
+                        SelacoEnemy(a).weaponDamage*=0.75;
+                    }
+                    a.health*=0.75;
+                }
+
+                // If the new actor can see the player, cancel this
+                if(a.CheckSight(players[consolePlayer].mo, SF_SEEPASTBLOCKEVERYTHING | SF_SEEPASTSHOOTABLELINES | SF_IGNOREVISIBILITY)) {
+                    a.destroy();
+                    if(developer) Console.Printf("Destroying new spawn due to being in sight of the player");
+                } else {
+                    // Make sure there is enough room here, ceiling wise
+                    a.FindFloorCeiling(FFCF_SAMESECTOR);
+                    if((a.ceilingZ - a.floorZ <= a.height || a.checkBlock(xofs: a.radius)) && a.checkSight(spawnNode) ) {
+                        a.destroy();
+                        if(developer) Console.Printf("Destroying new spawn due to blocking or low ceiling");
+                    } else {
+                        return a;
+                    }
+                }
+            }
+        }
+
+        if(developer) {
+            Console.Printf("Could not negotiate a spawn after 8 attempts!");
+        }
+        return null;
+    }
+
+    const MINIMUM_DISTANCE_FROM_PLAYER_SQUARED = 600.0 * 600.0;
+    const MAX_NODE_ITERATIONS = 80;
+    const MAX_CHECKSIGHT_ITERATIONS = 32;
+    PathNode findFirstInvisibleNode(PathNode prevNode, PathNode fromNode, Dawn d, out int checksightCount, out int iterations, double distLast, out Map<Int, PathNode> visitedNodes) {
+        //Console.Printf("(%d) findFirstInvisibleNode: %d - cs:%d : it:%d : dist:%f", level.totalTime, fromNode.user_nodeid, checksightCount, iterations, sqrt(distLast));
+        if(prevNode) {
+            let link = prevNode.linkTo(fromNode);
+            if(!link || link.blocked) {
+                // This link blocks the chain, we can't proceed forward on this path
+                return null;
+            }
+        }
+
+        double dDist = fromNode.Distance2DSquared(d);
+        if(dDist >= MINIMUM_DISTANCE_FROM_PLAYER_SQUARED) {
+            checksightCount++;    // Only count up if we did an expensive checkSight
+
+            if(!(fromNode is 'DoorNode') && !fromNode.CheckSight(d, SF_SEEPASTBLOCKEVERYTHING | SF_SEEPASTSHOOTABLELINES | SF_IGNOREVISIBILITY))
+                return fromNode;
+        }
+
+        // First, favour nodes that head away from the player, this helps prevent recursive looping through the same nodes
+        foreach(l : fromNode.links) {
+            PathNode n = l.node;
+            if(checksightCount > MAX_CHECKSIGHT_ITERATIONS || iterations > MAX_NODE_ITERATIONS) return null; // Limit search time and stack depth
+            double distCur = n.Distance2DSquared(d);
+            if(n != prevNode && (distCur > dDist || distCur > distLast)) {
+                if(!visitedNodes.checkKey(n.user_nodeid)) {
+                    visitedNodes.Insert(n.user_nodeid, n);
+                    n = findFirstInvisibleNode(fromNode, n, d, checksightCount, ++iterations, dDist, visitedNodes);
+                    if(n) return n;
+                }
+            }
+        }
+
+        // Now try the opposite direction, favoring nodes that are closer to the player
+        foreach(l : fromNode.links) {
+            PathNode n = l.node;
+            if(checksightCount > MAX_CHECKSIGHT_ITERATIONS || iterations > MAX_NODE_ITERATIONS) return null; // Limit search time and stack depth
+            double distCur = n.Distance2DSquared(d);
+            if(n != prevNode && distCur <= dDist) {
+                if(!visitedNodes.checkKey(n.user_nodeid)) {
+                    visitedNodes.Insert(n.user_nodeid, n);
+                    n = findFirstInvisibleNode(fromNode, n, d, checksightCount, ++iterations, dDist, visitedNodes);
+                    if(n) return n;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    bool checkClusterActive() {
+        for(int x = 0; x < cluster.size(); x++) {
+            if(cluster[x] != null) {
+                if(cluster[x].target && !cluster[x].bDormant) {
+                    // At least one of our cluster is active, so lets reset the timer so the next cluster can be spawned
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+}

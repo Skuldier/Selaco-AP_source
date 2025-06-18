@@ -1,0 +1,626 @@
+// Master class for vehicle hitboxes, used in the AI node connection to detect obstacles
+class VehicleHitbox : SelacoActor {
+
+    mixin DangerIndicatorHandler;
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+
+        if(master && CivilianCar(master).isDestructible)
+        {
+            master.wake();
+            int damageTotal = damage;
+
+            // More damage for Enemy attacks 
+            if(source && source is "SelacoEnemy")
+            {
+                damageTotal*=2;
+            }
+            // Double damage for Shotgun Masterkey upgrade
+            if(source)
+            {
+                let shotgunWeapon = SelacoWeapon(source.FindInventory('shot_gun'));
+                if(master && shotgunWeapon && shotgunWeapon.hasUpgradeClass('UpgradeShotgunMasterkey'))
+                {
+                    CivilianCar(master).burningTicks = int(CivilianCar(master).EXPLOSION_TICKS_THRESHOLD*0.75);
+                    damageTotal*=2;
+                }
+            }
+
+            // Insta explode for the railgun.
+            if(damageType == "RailAttack")
+            {
+                CivilianCar(master).detonate();
+            }
+            
+            CivilianCar(master).fireHealth -= damageTotal;
+        }
+
+        // If car is burning, burn quicker!
+        if(master && civilianCar(master).isOnFire)
+        {
+            master.wake();
+            CivilianCar(master).burningTicks += damage*0.25;
+        }
+        return res;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        // If master is gone, we no longer need the hitbox
+        /*if(!master)
+        {
+            destroy();
+        }*/
+        bWakeNearPlayer = false;
+        bWakeOnPain = false;
+        bWakeOnTouch = false;
+        sleepIndefinite();
+    }
+
+
+    // If we are alarmed, set off the alarm when Dawn steps on the vehicle
+    // This wasn't as easy as I expected, because adding +SPECIAL fucks up the hitbox >:(
+    /*override void touch(actor toucher) {
+        Super.touch(toucher);
+
+        if(toucher is 'Dawn' && toucher.bOnMobj && toucher.pos.z ~== pos.z + height) {
+            let mast = CivilianCar(master);
+            if(mast && !mast.isSmoking && mast.isParked) {   
+                mast.wake();
+                mast.alarmTriggered = true;
+            }
+        }
+    }*/
+
+
+    default
+    {
+        +BUDDHA;
+        +SHOOTABLE;
+        +DONTTHRUST;
+        +NOGRAVITY;
+        +BLOCKLOF;
+        +SELACOACTOR.DisallowGravityManipulation;
+        DamageFactor "ExplosiveImpact", 0.2;
+        RenderStyle "none";
+        painchance 255;
+        height 45;
+        radius 25;
+        Species "Vehicle";
+        PainSound "IMPACT/VEHICLEHIT"; 
+    }
+}
+
+
+// Used for the front bumper
+class CARHITBOX_LOW : VehicleHitbox
+{
+    mixin MEDIUM_METAL_PROP;
+    default
+    {
+        painchance "fire", 0;
+        DamageFactor "fire", 0;
+        +BUDDHA;
+        +SHOOTABLE;
+        RenderStyle "none";
+        height 45;
+        radius 25;
+        //PainSound "IMPACT/VEHICLEHIT"; 
+    }
+    states
+    {
+        Spawn:
+            TNT1 A -1;
+            stop;
+        Pain:
+            TNT1 A 0 
+            {
+                A_PLAYSOUND("IMPACT/VEHICLEHIT", CHAN_AUTO, 0.7, pitch:frandom(1.0,1.3));
+                // Trigger alarm is car is parked
+                if(master && CivilianCar(master) && !CivilianCar(master).isSmoking)
+                {   
+                    master.wake();
+                    CivilianCar(master).alarmTriggered = true;
+                }
+            }
+            goto spawn;
+    }
+} 
+
+class CARHITBOX_LOW_BROKEN : CARHITBOX_LOW
+{
+    default
+    {
+        height 35;
+    }
+}
+
+
+// Body
+class CARHITBOX_HIGH : CARHITBOX_LOW
+{
+    default
+    {
+        height 58;
+        radius 25;
+    }    
+}
+class CARHITBOX_HIGH_TRUCK : CARHITBOX_LOW
+{
+    default
+    {
+        height 67;
+        radius 25;
+    }    
+}
+class CARHITBOX_HIGH_BROKEN : CARHITBOX_HIGH
+{
+    default
+    {
+        height 42;
+    }
+}
+
+class CivilianCar : SelacoActor
+{
+    mixin DangerIndicatorHandler;
+
+    private int selacoCarFlags;
+    flagdef DestructibleCar                : selacoCarFlags, 0;  
+    // Used for when the car is burning
+    actor fire1, fire2, fire3, shadow;
+    Vector3 fire1Pos;
+    string destroyedCarModel;
+    bool alarmTriggered, isNormalcar;
+    bool isParked, isSmoking, isOnFire, isExploded, isDestructible;
+    const ALARM_DELAY = 45;
+    int alarmDelayTick;
+    int totalAlarmCycles;
+    int fireHealth;
+    int burningTicks;
+    const ALARM_CHANCE = 15;
+    const ALARM_COUNT = 5;
+    const SMOKE_INTERVAL = 7; // How often does smoke spawn?
+    const ON_FIRE_DANGER_TIME = 80; // When is the car about to explode and considered Dangerous?
+    const EXPLOSION_TICKS_THRESHOLD = 170; // If the dangertick reaches this value, IT FREAKING EXPLODES!
+    const EXPLOSION_RADIUS = 255;
+    property IsNormalCar : isNormalCar;
+    property DestroyedCarModel : destroyedCarModel;
+
+
+    // Custom handle sleep to prevent sleep during critical states
+    override void handleSleep() {
+        if(alarmTriggered && isParked && totalAlarmCycles < ALARM_COUNT) return;
+        if(isOnFire || isSmoking) return;
+        Super.handleSleep();
+    }
+
+
+    override void tick()
+    {
+        super.tick();
+        if(isFrozen())
+        {
+            return;
+        }
+        
+        if (isNormalCar)
+        {
+            // Car alarm logic
+            if (alarmTriggered && isParked && totalAlarmCycles < ALARM_COUNT)
+            {
+                alarmDelayTick++;
+                if (alarmDelayTick >= ALARM_DELAY)
+                {
+                    totalAlarmCycles++;
+                    A_PLAYSOUND("script/caralarm", CHAN_AUTO, 0.6, pitch: 1.1);
+                    alarmDelayTick = 0;
+                }
+            }
+
+            // Smoking logic
+            if (isSmoking && level.time % SMOKE_INTERVAL == 0 && !isOnFire)
+            {
+                spawnSmokeStacks();
+            }
+
+            // Fire logic
+            if (fireHealth <= 0 && !isOnFire)
+            {
+                isOnFire = true;
+                bPreventSleep = true;
+                if (random(0, 4) == 0)
+                {
+                    A_PLAYSOUND("SCRIPT/CAREXPLODE/ALARM", CHAN_5, 0.7, 1);
+                }
+                spawnCarFire();
+            }
+
+            if(fireHealth <= 35)
+            {
+                isSmoking = true;
+            }
+
+            // Fire burning logic
+            if (isOnFire)
+            {
+                bPreventSleep = true;
+                burningTicks++;
+                bool dawnClose = players[consolePlayer].mo && Distance3DSquared(players[consolePlayer].mo) < 1048576;
+                
+                if (level.time % 2 == 0 && !isExploded && dawnClose)
+                {
+                    spawnCarSmoke();
+                }
+                if (burningTicks >= ON_FIRE_DANGER_TIME && dawnClose)
+                {
+                    spawnDangerIndicator();
+                }
+                if(burningTicks >= EXPLOSION_TICKS_THRESHOLD*0.25 && level.time % 3)
+                {
+                    spawnBlackSmoke();
+                }
+                if (burningTicks >= EXPLOSION_TICKS_THRESHOLD)
+                {
+                    explodeVehicle();
+                }
+                if(level.time % 8 == 0)
+                {
+                    A_PLAYSOUND("ui/dangerwarning", CHAN_AUTO, 1.0, 0, 1.5, 0, pitch:1+(burningTicks*0.005));
+                    A_PLAYSOUND("ui/dangerwarning", CHAN_AUTO, 1.0, 0, 1.5, 0, pitch:1+(burningTicks*0.005));
+                }
+            }
+
+            // This car cannot be interacted with, so sleep it completely
+            if(!isParked && !isSmoking) {
+                bWakeNearPlayer = false;
+                bSleepWhenIdle = true;
+                // Let SelacoActor handle sleeping, this causes problems when we need to wake for physics
+                //sleepIndefinite();
+            }
+        }
+
+        // Fire1 follows body
+        if(fire1) fire1.WARP(self, fire1Pos.x, fire1Pos.y, fire1Pos.z, flags: WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE);
+        
+        // Fire2 and Fire3 must be on the ground or they get snuffed
+        if(fire2) {
+            fire2.destroy();
+            fire2 = NULL;
+        }
+
+        if(fire3 && fire3.pos.z - floorz > 5) {
+            fire3.destroy();
+            fire3 = NULL;
+        }
+    }
+
+    // Destroys the vehicle right away
+    void detonate()
+    {
+        burningTicks = 9000;
+    }
+
+    void spawnDangerIndicator()
+    {
+        if (level.time % 8 == 0)
+        {
+            blinkDangerIndicator(EXPLOSION_RADIUS);
+        }
+        bDangerousActor = true;
+    }
+
+    void spawnSmokeStacks()
+    {
+        A_SPAWNITEMEX("CarSmoke", 60, 0, 30, 0, 0, 1);
+        if (random(0, 2) == 0)
+        {
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", frandom(50, 60), frandom(-10, 10), 36);
+        }
+    }
+
+    // Spawn a stack of smoke when the car is damaged
+    void spawnCarSmoke()
+    {
+        A_SPAWNITEMEX("CarSmoke", frandom(40, 60), frandom(-15, 15), 45, frandom(-0.2, -1.6), frandom(-0.4, 0.4), 2);
+        A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", frandom(40, 60), frandom(-35, 35), frandom(30, 46));
+        A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", frandom(40, 60), frandom(-35, 35), frandom(30, 46));
+    }
+
+    void spawnBlackSmoke()
+    {
+        actor blackSmokeSpawn;
+        bool blackSmokeSuccess;
+        [blackSmokeSuccess,blackSmokeSpawn] = A_SPAWNITEMEX("BlackSmokeFire", frandom(47,48), frandom(-2,2), 0, frandom(-0.2, -1.1), frandom(-0.4, 0.4), 1.7, flags:SXF_SETMASTER);
+        BlackSmokeFire blackSmokeActor = BlackSmokeFire(blackSmokeSpawn);
+        if(blackSmokeActor)
+        {
+            blackSmokeActor.smokeSize = 3;
+            blackSmokeActor.expansionSpeed = 6;
+            blackSmokeActor.windSpeed = 5;
+            blackSmokeActor.fadeoutSpeed = 25;
+        }
+    }
+
+    void spawnCarFire()
+    {
+        bool fire1success, fire2success, fire3success;
+        
+        fire1Pos = (52, 0, 25);
+
+        [fire1success, fire1] = A_SPAWNITEMEX("CarFire", fire1Pos.x, fire1Pos.y, fire1Pos.z);
+        [fire2success, fire2] = A_SPAWNITEMEX("CarFire", frandom(40, -50), -58, 0);
+        [fire3success, fire3] = A_SPAWNITEMEX("CarFire", frandom(40, -50), 58, 0);
+    }
+
+    void explodeVehicle()
+    {
+        Stats.AddStat(STAT_CARS_DESTROYED, 1, 0);
+        alarmTriggered = false; // Stop alarm
+        totalAlarmCycles = 100;
+        isExploded = true;
+        fire1.destroy();
+        A_STOPSOUND(CHAN_5);
+        A_PLAYSOUND("SCRIPT/CARRUBBLE", CHAN_AUTO, 0.8, 0, 0.7, pitch: frandom(0.7, 1.0));
+        A_SPAWNITEMEX("bigScorchMarkPermanent");
+        A_SPAWNITEMEX("ExplosionWithLotsOfSparks", 52);
+
+        // Pop some glass TODO: Do this in another tick
+        GlassHandler.GlassExplosion(self, 650 * 1.25, 25);
+
+        Actor deadCar;
+        bool dontcare;
+        [dontcare, deadCar] = A_SPAWNITEMEX(destroyedCarModel, 0, 0, 0, -3.7, 0, 4.7, 0);
+        EmitDefinition('GlassParticleSmallWallDefintion', 1.0, 40, angle: 110, speed: 2, offset: (0, 30, 32));
+        EmitDefinition('GlassParticleSmallWallDefintion', 1.0, 40, angle: 250, speed: 2, offset: (0, -30, 32));
+        EmitDefinition('GlassParticleSmallWallDefintion', 1.0, 40, angle: 0, speed: 2, offset: (32, 0, 32));
+        A_Explode(650, EXPLOSION_RADIUS);
+        destroyHitboxes();
+        if(shadow) shadow.destroy();
+
+        // Give fires to the dead car
+        if(fire2) {
+            fire2.master = deadCar;
+            CivilianCar(deadCar).fire2 = fire2;
+        }
+
+        if(fire3) {
+            fire3.master = deadCar;
+            CivilianCar(deadCar).fire3 = fire3;
+        }
+
+        destroy();
+    }
+
+    default {
+        painchance "fire", 0;
+        DamageFactor "fire", 0;
+        DamageType "ExplosiveImpact";
+        Painthreshold 5;
+        radius 25;
+        +THRUACTORS;
+        +DONTTHRUST;
+        CivilianCar.isNormalCar true;
+        CivilianCar.DestroyedCarModel "CivilianCarDestroyed";
+        radius 30;
+        height 60;
+        Species "Vehicle";
+        +BLOCKLOF;     // Cars should block sightlines to the player
+    }
+
+    states {
+        spawn:
+            TNT1 A 0;
+            VOXE A -1
+            {
+                frame = random(0,2);
+            }
+            stop;
+    }
+
+    override void BeginPlay() {
+        Super.BeginPlay();
+        fireHealth = 125; // Health before catching fire
+        isDestructible = true;
+        if(random(0,100) <= ALARM_CHANCE || args[0] == 1)
+        {
+            isParked = true;
+        }
+        if(args[1] == 2)
+        {
+            isDestructible = false;
+            isSmoking = false;
+        }
+        if(args[0] == 2)
+        {
+            isParked = false;
+        }
+
+        Sector s = Level.PointInSector((pos.x, pos.y));
+        if (s)
+        {
+            if (level.rainymap && TexMan.GetName(s.GetTexture(s.ceiling)) ~== "F_SKY1")
+            {
+                A_SpawnItemEX("CarRainSoundEmitter");
+            }
+        }
+        alarmDelayTick = 35;
+    }
+
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        if(isNormalcar)
+        {
+            A_SPAWNITEMEX("CARHITBOX_LOW", 40, -15, 0, flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("CARHITBOX_LOW", 40, 15, flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("CARHITBOX_HIGH", 10, -15, flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("CARHITBOX_HIGH", 10, 15, flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("CARHITBOX_HIGH", -40, -15, flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("CARHITBOX_HIGH", -40, 15, flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("CARHITBOX_HIGH", -50, -15, flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("CARHITBOX_HIGH", -50, 15, flags:SXF_SETMASTER);
+            bool dontcare;
+            [dontcare, shadow] = A_SPAWNITEMEX("CivilianCarShadow", 0, 0, flags:SXF_SETMASTER);
+        }
+
+        if(isSmoking) {
+            // Increase sleep distance so we can still see the smoke effect from a way away
+            sleepDist = 1024;
+        }
+    }
+
+    void destroyHitboxes() {
+        // Destroy all hitboxes associated with this actor
+        let it = ThinkerIterator.Create('VehicleHitbox');
+		Actor mo;
+        Array<Actor> mos;
+		while ((mo = Actor(it.Next()))) {
+			if (mo.master == self) mos.push(mo);
+		}
+
+        for(int x = 0; x < mos.size(); x++) mos[x].destroy();
+    }
+}
+
+Class CivilianCarB : CivilianCar
+{
+    override void postbeginPlay()
+    {
+        isNormalCar = false;    // Temporarily clear isnormalcar so we don't spawn hitboxes in parent function
+        Super.postbeginPlay();
+
+        AlignToPlane(self, checkZ: false);
+        A_SPAWNITEMEX("CARHITBOX_LOW", 60, -15, 0, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_LOW", 60, 15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_LOW", 40, -15, 0, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_LOW", 40, 15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH", 5, -15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH", 5, 15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH", -40, -15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH", -40, 15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_LOW", -45, -15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_LOW", -45, 15, flags:SXF_SETMASTER);
+
+        bool dontcare;
+        [dontcare, shadow] = A_SPAWNITEMEX("CivilianCarShadow", 0, 0, flags:SXF_SETMASTER);
+
+        //frameID = random(0,4);      
+        isNormalCar = true;
+    }
+
+    default
+    {
+        +DONTTHRUST
+        +SelacoActor.SlopeAlignment;
+        CivilianCar.DestroyedCarModel "CivilianCarB_DESTROYED";
+    }
+
+    states {
+        spawn:
+            TNT1 A 0;
+            VOXE A -1
+            {
+                frame = random(0,4);
+            }
+            stop;
+    }    
+}
+
+class CivilianCarDestroyed : CivilianCar
+{
+    int angleLimit;
+    int angleShifts;
+    int pitchShifts;
+    bool hitboxesSpawned;
+
+    override void postbeginPlay()
+    {
+        AlignToPlane(self, checkZ: false);
+        super.postbeginPlay();
+        
+        // Prevent animating if spawning in with the level
+        if(level.maptime > 1) { 
+            angleLimit = random(11,18);
+            pitch = -10;
+        }
+        
+        A_SETROLL(frandom(-5,5));
+        if(shadow) SelacoActor(shadow).bPreventSleep = true;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        
+        // Spin around for a bit
+        if(angleShifts < angleLimit)
+        {
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", 50, 40, 0);
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", 50, -40, 0);
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", -50, 40, 0);
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", -50, -40, 0);
+            A_SETANGLE(angle+1);
+            angleShifts++;
+        }
+
+        if(pitch < 0 && level.time % 3 == 0)
+        {
+            pitch+=1;
+        }
+
+        // When finished spinning, spawn Hitboxes
+        if(angleShifts >= angleLimit && vel == (0,0,0))
+        {
+            if(!hitboxesSpawned)
+            {
+                spawnHitBoxes();
+                bWakeNearPlayer = false;
+                bWakeOnPain = false;
+                bSleepWhenIdle = true;
+                // SelacoActor will sleep us correctly when we come to rest
+                //sleepindefinite();
+                if(shadow) SelacoActor(shadow).bPreventSleep = false;
+            }
+        }
+    }
+
+    virtual void spawnHitboxes()
+    {
+        hitboxesSpawned  = true;
+        bNoInteraction = false;
+        A_SPAWNITEMEX("CARHITBOX_LOW_BROKEN", 40, -15, 0, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_LOW_BROKEN", 40, 15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH_BROKEN", 10, -15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH_BROKEN", 10, 15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH_BROKEN", -40, -15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH_BROKEN", -40, 15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH_BROKEN", -50, -15, flags:SXF_SETMASTER);
+        A_SPAWNITEMEX("CARHITBOX_HIGH_BROKEN", -50, 15, flags:SXF_SETMASTER);
+    }
+
+    default
+    {
+        -NOINTERACTION;
+        +THRUACTORS;
+        -SelacoACtor.SlopeAlignment;
+        CivilianCar.isNormalCar false;
+        Selacoactor.SleepDistance 0;
+        -SelacoActor.WakeOnPain;
+        radius 30;
+        height 60;
+    }
+
+    states
+    {
+        spawn:
+            TNT1 A 0;
+            VOXE A -1
+            {
+                frame = 0;
+            }
+            stop;
+    }
+}

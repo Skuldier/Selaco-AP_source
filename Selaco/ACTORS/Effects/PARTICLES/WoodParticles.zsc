@@ -1,0 +1,139 @@
+class SawdustShortDefinition : SawdustDefinition
+{
+    override void Init()
+    {
+        super.Init();
+
+        self.SetBaseScaleXY(0.18, 0.19);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetGravity(0.3);
+        self.ScaleLifeRange(0, 0.8);
+        self.SetQualityChances(0, 0.5, 0.75, 1.0, 2.5);
+        self.SetLifespanMultipliers(0, 0.5, 1, 1.05, 1.15);
+        self.RandomLife(16, 20);
+        self.FadeLifeRange(2, 5);
+        self.Drag = 0.04;
+        self.RandomAngle(-35, 35);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-25, 25);
+
+        self.RandomPitch(-25, 25);
+    }
+}
+
+class WoodParticleDefinition : ParticleDefinition {
+    override void Init() {
+        super.Init();
+        self.speed = 5;
+        self.SetGravity(0.65);
+        self.SetBaseScale(0.88);
+        self.BounceFactor(0.6);
+        
+        self.SetFlag(PDF_SLEEPSTOP);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_DIRFROMMOMENTUM);
+
+        self.SetLifespanMultipliers(0.5, 0.7, 1.0, 3.0, 5.0);
+        self.FadeLifeRange(0, 30);
+        self.randomLife(45,90);
+        self.StopSpeed = 2;
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-25,25);
+        self.BounceSound = "bounce/wood";
+
+        self.RandomAngle(-25,25);
+        self.RandomPitch(-35,35);
+        self.RandomSpeed(2,10);
+        self.RandomScaleX(0.2, 0.5);
+        self.RandomScaleY(0.2, 0.5);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("WOOD", "ABCD");
+    }
+}
+
+
+class WoodParticleUpwardDefinition : WoodParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.8);
+        self.SetLifespanMultipliers(0, 1.0, 1.5, 5.0, 10.0);
+        self.RandomLife(45,75);
+        self.StopSpeed = 2;
+        self.RandomSpeed(3,15);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-60,-120);
+        self.RandomRoll(-30,30);
+        self.RandomRollSpeed(-5,5);
+        self.BounceSound = "Bounce/wood";
+        self.RandomScaleX(0.5, 1.0);
+        self.RandomScaleY(0.5, 1.0);
+    }
+}
+
+class SawdustFastBriefDefinition : SawdustDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.22, 0.25);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ScaleLifeRange(0,1);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.RandomLife(16,20);
+        self.FadeLifeRange(2,5);
+        self.SetLifespanMultipliers(0, 1, 1, 1, 1);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-60,60);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-35,35);
+        self.RandomSpeed(3,11);
+        self.RandomScaleX(0.5,4);
+        self.RandomScaleY(0.5,4);
+    }
+}
+
+
+class WoodParticleUpwardBriefDefinition : WoodParticleUpwardDefinition {
+    override void init() {
+        super.init();
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_LIFESCALE);
+        self.RandomPitch(-60,-120);
+        self.RandomLife(9,12);
+        self.FadeLifeRange(5,10);
+        self.ScaleLifeRange(0,1);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.RandomScaleX(0.5, 1.0);
+        self.RandomScaleY(0.5, 1.0);
+    }
+}
+
+
+class WoodParticleSmallDefinition : WoodParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.25);
+        self.randomScaleX(0,2.8);
+        self.randomScaleY(0,2.8);
+    }
+}
+
+
+class WoodParticleSmallGreyDefinition : WoodParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(1.51);
+        self.SetLifespanMultipliers(2.5,2.7,2.0,7.0,15.0);
+        self.RandomAngle(-45,45);
+        self.RandomPitch(-45,45);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.Texture = SelectRandomFrame("WOOD", "ABCD");
+        particle.Color = "DARKGRAY";
+    }
+
+}

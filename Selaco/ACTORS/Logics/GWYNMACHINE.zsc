@@ -1,0 +1,188 @@
+class GwynMachine : SelacoActor {
+
+    bool seenPlayer;
+    bool boughtItem;
+    int soundID;
+    bool isFound;
+    bool duckMusic;
+    int audioDuckTimer;
+    int playerGwynCounter;
+    const SIGHT_RANGE = 500;
+    const FAIL_RANGE = 700;
+
+    // SIGHT SOUND
+    static const string SIGHT_SOUND_REFERENCE[] = {
+        "gwyn/sight1", "gwyn/sight3", "gwyn/sight2", "gwyn/sight4", "gwyn/sight5",
+        "gwyn/sight6", "gwyn/sight7", "gwyn/sight8", "gwyn/sight9", "gwyn/sight10",
+        "gwyn/sight11", "gwyn/sight12", "gwyn/sight13", "gwyn/sight14", "gwyn/sight15",
+        "gwyn/sight16", "gwyn/sight17"
+    };
+
+    static const string SIGHT_SOUND_SUBTITLE[] = {
+        "$GWYN_SEE_1","$GWYN_SEE_3", "$GWYN_SEE_2", "$GWYN_SEE_4", "$GWYN_SEE_5",
+        "$GWYN_SEE_6", "$GWYN_SEE_7", "$GWYN_SEE_7", "$GWYN_SEE_9", "$GWYN_SEE_10",
+        "$GWYN_SEE_11", "$GWYN_SEE_12", "$GWYN_SEE_13", "$GWYN_SEE_14", "$GWYN_SEE_15",
+        "$GWYN_SEE_16", "$GWYN_SEE_17"
+    };
+
+    // FAIL SOUNDS
+    static const string FAIL_SOUND_REFERENCE[] = {
+        "gwyn/fail1", "gwyn/fail3", "gwyn/fail2", "gwyn/fail4", "gwyn/fail5",
+        "gwyn/fail6", "gwyn/fail7", "gwyn/fail8", "gwyn/fail9", "gwyn/fail10",
+        "gwyn/fail11", "gwyn/fail12", "gwyn/fail13", "gwyn/fail14", "gwyn/fail15",
+        "gwyn/fail16", "gwyn/fail17"
+    };
+
+    static const string FAIL_SUBTITLE_REFERENCE[] = {
+        "$GWYN_FAIL_1", "$GWYN_FAIL_3", "$GWYN_FAIL_2", "$GWYN_FAIL_4", "$GWYN_FAIL_5",
+        "$GWYN_FAIL_6", "$GWYN_FAIL_7", "$GWYN_FAIL_8", "$GWYN_FAIL_9", "$GWYN_FAIL_10",
+        "$GWYN_FAIL_11", "$GWYN_FAIL_12", "$GWYN_FAIL_13", "$GWYN_FAIL_14", "$GWYN_FAIL_15",
+        "$GWYN_FAIL_16", "$GWYN_FAIL_17"
+    };
+
+    // BUY SOUNDS
+    static const string BUY_SOUND_REFERENCE[] = {
+        "gwyn/buy3", "gwyn/buy1", "gwyn/buy2", "gwyn/buy4", "gwyn/buy5",
+        "gwyn/buy6", "gwyn/buy7", "gwyn/buy8", "gwyn/buy9", "gwyn/buy10",
+        "gwyn/buy11", "gwyn/buy12", "gwyn/buy13", "gwyn/buy14", "gwyn/buy15",
+        "gwyn/buy16", "gwyn/buy17", "gwyn/buy18", "gwyn/buy19", "gwyn/buy20",
+        "gwyn/buy21"
+    };
+
+    static const string BUY_SUBTITLE_REFERENCE[] = {
+        "$GWYN_BUY_3", "$GWYN_BUY_1", "$GWYN_BUY_2", "$GWYN_BUY_4", "$GWYN_BUY_5",
+        "$GWYN_BUY_6", "$GWYN_BUY_7", "$GWYN_BUY_8", "$GWYN_BUY_9", "$GWYN_BUY_10",
+        "$GWYN_BUY_11", "$GWYN_BUY_12", "$GWYN_BUY_13", "$GWYN_BUY_14", "$GWYN_BUY_15",
+        "$GWYN_BUY_16", "$GWYN_BUY_17", "$GWYN_BUY_18", "$GWYN_BUY_19", "$GWYN_BUY_20",
+        "$GWYN_BUY_21"
+    };
+
+
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+        soundID = level.levelnum; // Gywn Machines are introduced in the third level of the game, so we deduct 2 so we can start at ``1``
+    }
+
+    // HEADS UP
+    // For External Demo reasons the values are temporarily hardcoded.
+
+    // Somehow, the volume is low? Playing it twice for now, will investigate later.
+    void playPurchaseSound()
+    {
+        duckMusic = true;
+        boughtItem = true;
+        int idx = min(playerGwynCounter, BUY_SOUND_REFERENCE.size()-1);
+        A_PlaySound(BUY_SOUND_REFERENCE[idx], CHAN_5, 0.9, 0, 0.5);
+        //A_PlaySound(BUY_SOUND_REFERENCE[soundID], CHAN_6, 0.3, 0, 0.5);
+        Notification.Subtitle("Gwyn", BUY_SUBTITLE_REFERENCE[idx], 10.0);       
+    }
+
+    void playSightSound()
+    {
+        duckMusic = true;
+        seenPlayer = true;
+        int idx = min(playerGwynCounter, SIGHT_SOUND_REFERENCE.size()-1);
+        A_PlaySound(SIGHT_SOUND_REFERENCE[idx], CHAN_5, 0.9, 0, 0.5);
+        Notification.Subtitle("Gwyn", SIGHT_SOUND_SUBTITLE[idx], 10.0);
+    }
+
+    void playFailSound()
+    {
+        duckMusic = true;
+        seenPlayer = false;
+        int idx = min(playerGwynCounter, FAIL_SOUND_REFERENCE.size()-1);
+        A_PlaySound("script/comp3", CHAN_AUTO, 0.9, 0, 0.5);
+        A_PlaySound(FAIL_SOUND_REFERENCE[idx], CHAN_5, 1.0, 0, 0.5);
+        Notification.Subtitle("Gwyn", FAIL_SUBTITLE_REFERENCE[idx], 10.0);
+    }
+
+    override void tick()
+    {
+        super.tick();
+
+        // Gwyn saw the player, but the player left without buying a thing.
+        if((seenPlayer && target && !boughtItem) && level.time % 35 == 0 && distance2DSquared(target) > FAIL_RANGE*FAIL_RANGE)
+        {
+            playFailSound();
+        }
+
+/*         // Duck audio, if the player has that setting enabled.
+        if(duckMusic)
+        {
+            MusicHandler hander = MusicHandler.Instance();
+
+            // Fade out first
+            if(audioDuckTimer <= 35*4)
+            {
+                hander.fadeOutToVolume(0.1);
+                audioDuckTimer++;
+            }
+
+            // Timer expired, fade back in.
+            else
+            {
+                hander.fadeInToVolume(1.0);
+            }
+
+            // Go back to normal
+            if(hander.getMusicVolume() == 1.0)
+            {
+                audioDuckTimer = 0;
+                duckMusic = false;
+            }
+
+        } */
+
+    }
+
+    // Called by GwynHandler when the menu is closed after making a purchase
+    void buySuccess() {
+        playPurchaseSound();
+    }
+
+    // Called by GwynHandler when the menu is closed and no purchase was made
+    void buyFail() {
+        // Nothing yet
+    }
+
+    default
+    {
+        Tag "$OBJECT_GWYNMACHINE";
+        renderstyle "none";
+        radius 20;
+        height 20;
+        +NOGRAVITY;
+        +NOINTERACTION;
+        SelacoActor.SleepDistance 2048;     // Make sure we can still detect the player at distance
+        -SOLID
+    }
+
+	States 
+    {
+		Spawn: 
+			GWYN Z 0;
+			TNT1 A 10 A_LookEx(LOF_NOSOUNDCHECK, 0, SIGHT_RANGE, 0, 360, "SpawnIconGoIdle");
+			loop;
+		SpawnIconGoIdle:
+			TNT1 A 1 A_SpawnItemEx("GwynIcon");
+			goto PlayIdle;
+		PlayIdle:
+            TNT1 A 0
+            {
+                invoker.playerGwynCounter = players[consolePlayer].mo.countInv("GwynCounter");
+                if(!IsFound)
+                {   
+                    isFound = true;
+                    players[consoleplayer].mo.A_GiveInventory("GwynCounter", 1);
+                }
+            }
+			TNT1 A 70 A_PlaySound("script/medsta", CHAN_6);
+			TNT1 A 0 playSightSound();
+			TNT1 A -1;
+        PlayBuySound:
+			TNT1 A 0 playPurchaseSound();
+            TNT1 A -1;
+            stop;
+	}
+}

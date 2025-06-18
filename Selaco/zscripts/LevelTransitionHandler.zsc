@@ -1,0 +1,493 @@
+class LevelTransitionHandler : StaticEventHandler
+{
+    mixin UIDrawer;
+	mixin ScreenSizeChecker;
+	mixin HUDScaleChecker;
+	mixin HudDrawer;
+
+    int levelNumArg;				// The level number to traverse to.
+    int intermissionScreenArg;		// Show the Intermission Screen. Can be automated, but we may not always want to show this after level completion.
+    int playerSpawnArg;				// The Player Spawn arg[0] we want to spawn at after transitioning to a new area.
+    int stayScriptArg;				// The ACS script to run when players stay in the map.
+	int ignoreErrorsArg;			// Ignore any errors (excluding a non-existant level). 
+    int activateTick;               // Tick when the last transition line was activated
+    string targetMapName;			// The levelNumArg converted into a ``level.Mapname``
+	array<String> errorsFound; 		// Dumps errors into the console when errors were found after loading.
+    
+    int transitionTicks;            // Level.totalTime when transition happens
+
+    const ANIM_LEAD_TICKS = 0;
+    const ANIM_TAIL_TICKS = 15;
+    const ANIM_HOLD_TICKS = 10;
+    const ANIM_TOTAL_TICKS = ANIM_LEAD_TICKS + ANIM_TAIL_TICKS + ANIM_HOLD_TICKS;
+    //const UNFREEZE_TICKS = ANIM_TOTAL_TICKS + 5;
+
+    // Trigger
+    override void WorldLinePreActivated(WorldEvent e)
+    {
+        if (e.Thing is "Dawn" && e.Thing.Health > 0 && e.ActivatedLine && e.ActivatedLine.special == 256)
+        {
+            e.ShouldActivate = false;
+            if(!isChangingLevels()) {
+                activateTick = level.totalTime;
+                setTransitionArguments(e);
+                prepareLevelTransition();
+            }
+        }
+    }
+
+    // Need to clear arguments when not used so external scripts can detect a pending level transition
+    void clearTransitionArguments() {
+        levelNumArg = 0;
+        intermissionScreenArg = 0;
+        playerSpawnArg = 0;
+        stayScriptArg = 0;
+        ignoreErrorsArg = 0;
+        activateTick = -1;
+    }
+
+    void setTransitionArguments(WorldEvent e)
+    {
+        
+        // Set up linedef arguments
+        levelNumArg = e.ActivatedLine.args[0];
+        intermissionScreenArg = e.ActivatedLine.args[1];
+        playerSpawnArg = e.ActivatedLine.args[2];
+        stayScriptArg = e.ActivatedLine.args[3];
+		ignoreErrorsArg = e.ActivatedLine.args[4];
+    }
+
+    // Initialize and validate level traversal
+    void prepareLevelTransition()
+    {
+
+        // Check HalfLike mutator
+        bool isHalfLikeMode = g_halflikemode;
+
+        // Check randomizer
+        bool isRandomizer = g_randomizer;
+        
+        // Seek for the level name to transition to.
+        if(!targetMapName)
+        {
+            targetMapName = getLevelNameFromNum();
+        }
+
+		// Checks for errors and outputs them into the console. 
+		// Exception is thrown when no level is found.
+		checkForErrors();
+        
+        bool isFullyComplete = Stats.HasFullyCompletedLevelGroup(level.levelGroup);
+        Dawn d = Dawn(players[consolePlayer].mo);
+        bool hasPreviouslyCompleted = d && d.hasCompletedLevelGroup(level.levelGroup);
+
+        // Show intermission first.
+        bool isEpisodeEnd = intermissionScreenArg == 2;
+        if ((!isHalfLikeMode || isEpisodeEnd) && intermissionScreenArg && (!Stats.HasVisitedLevel(levelNumArg) || (isFullyComplete && !hasPreviouslyCompleted)))
+        {
+            if(d && isFullyComplete) {
+                // Store completion!
+                d.setCompletedLevelGroup(level.levelGroup);
+            }
+            
+            if(isEpisodeEnd) showEpisodeEnding();
+            else showIntermission();
+        }
+            // No intermission needed, go now.
+        else
+            {
+                startLevelTransition();
+            }
+        }
+
+    // Show an intermission screen. Often done when the level is fully completed.
+    void showIntermission()
+    {
+
+        // Bail on intermission if we are deadders or using Half-Like mutator
+        if(!players[consolePlayer].mo || players[consolePlayer].mo.health <= 0 || players[consolePlayer].health <= 0) {
+            return;
+        }
+        
+        // Cancel bomb timer in 06B
+        if(level.MapName ~== "SE_06B")
+        {
+            players[consolePlayer].mo.ACS_NamedExecute("StopFinalCountdown", 0);
+            players[consolePlayer].mo.A_TakeInventory("BombTimer06", 9999);
+        }
+
+        MusicHandler musicHandler = MusicHandler.instance();
+        musicHandler.fadeToNewTrack("INTERMIS", "", true);
+        musicHandler.fadeOverride = 0.15;
+
+        StatsHandler.Instance().clockLevelTime();   // Save level time so it is correct in the intermission screen
+        LevelEventHandler.Intermission(stayScriptArg);
+    }
+
+
+    void showEpisodeEnding()
+    {
+
+        // Bail on episode end if we are deadders
+        if(!players[consolePlayer].mo || players[consolePlayer].mo.health <= 0 || players[consolePlayer].health <= 0) {
+            return;
+        }
+
+        /*MusicHandler musicHandler = MusicHandler.instance();
+        musicHandler.fadeToNewTrack("INTERMIS", "", true);      // TODO: Unique track for episode end?
+        musicHandler.fadeOverride = 0.15;*/
+        setMusicVolume(Level.MusicVolume);
+        S_ChangeMusic("INTRSTAR", looping: false, force: true);
+
+        StatsHandler.Instance().clockLevelTime();               // Save level time so it is correct in the intermission screen
+        LevelEventHandler.Intermission(stayScriptArg, endEpisode: true);
+    }
+
+    // Transition to the new map
+    void startLevelTransition(bool immediate = false)
+    {
+        // Bail on level transition if we are deadders
+        if(!players[consolePlayer].mo || players[consolePlayer].mo.health <= 0 || players[consolePlayer].health <= 0) {
+            return;
+        }
+
+        // Special case for safe room, Dawn cannot bring objects to the safe room
+        // TODO: If the delayed version of travel is ever implemented, this code will need to run
+        // at the time of level change
+        if(targetMapName ~== "SE_SAFE") {
+            Dawn d = Dawn(players[consolePlayer].mo);
+            if(d.holdingObject) d.dropObject();
+        }
+
+        if(immediate) {
+            level.ChangeLevel(targetMapName, playerSpawnArg, CHANGELEVEL_NOINTERMISSION | CHANGELEVEL_PRERAISEWEAPON);
+        } else {
+            transitionTicks = level.totalTime;
+            level.ChangeLevel(targetMapName, playerSpawnArg, CHANGELEVEL_NOINTERMISSION | CHANGELEVEL_PRERAISEWEAPON);
+            //level.setFrozen(true);
+            //players[consolePlayer].cheats |= CF_TOTALLYFROZEN;
+        }
+    }
+
+    // Convert the levelNum into a mapName string
+    string getLevelNameFromNum()
+    {
+        let li = LevelInfo.FindLevelByNum(levelNumArg);
+        if(li) return li.mapName;
+        return "";
+    }
+
+	int getLevelGroupFromNum()
+	{
+        let li = LevelInfo.FindLevelByNum(levelNumArg);
+        if(li) return li.levelGroup;
+        return -1;
+	}
+
+    // Returns true if we are in the wait period before a level change happens
+    bool isChangingLevels() {
+        return level.totalTime == activateTick; //transitionTicks > level.totalTime - ANIM_LEAD_TICKS;
+    }
+
+    // Transition levels after the required wait for transition animation
+    //override void WorldTick() {
+        /*if(transitionTicks == level.totalTime - ANIM_LEAD_TICKS) {
+            // Unfreeze before we leave the world
+            //level.setFrozen(false);
+            //players[consolePlayer].cheats &= ~CF_TOTALLYFROZEN;
+
+            // Change maps
+            level.ChangeLevel(targetMapName, playerSpawnArg, CHANGELEVEL_NOINTERMISSION | CHANGELEVEL_PRERAISEWEAPON);
+        }*/
+        /* else if(transitionTicks == level.totalTime - UNFREEZE_TICKS) {
+            level.setFrozen(false);
+            players[consolePlayer].cheats &= ~CF_TOTALLYFROZEN;
+            Console.Printf("%d Unfroze", level.totalTime);
+        }*/
+    //}
+
+    static LevelTransitionHandler Instance() {
+        return LevelTransitionHandler(StaticEventHandler.Find('LevelTransitionHandler'));
+    }
+
+
+	// After loading a new map, check if we have errors to report.
+	override void WorldLoaded(WorldEvent e)
+	{
+        targetMapName = "";
+		if(errorsFound.size())
+		{
+			dumpErrors();
+		}
+
+        if(e.isSaveGame) {
+            transitionTicks = -99999;
+        }
+
+        clearTransitionArguments();
+	}
+
+    override void NewGame() {
+        transitionTicks = -9999;
+        clearTransitionArguments();
+        clearTravelList();
+    }
+
+    void checkForErrors()
+    {
+        // No map found.
+		// Abort may be too drastic, but not sure what else to do when a map doesn't exist.
+        if (!targetMapName)
+        {
+            ThrowAbortException("\n\n\n==============================\c[orange]\nNo level has been found. Blame whoever made this level!\c-\n==============================\n\n\n");
+        }
+
+		// In case warning conditions were intentional, we skip any non-fatal error. 
+		if(ignoreErrorsArg)
+		{
+			return;
+		}
+
+        // Intermission without a 'Go Back' script.
+        if (stayScriptArg == 0 && intermissionScreenArg)
+        {
+            addError("No StayScript has been found despite usage of an Intermission screen. This may cause problems if players click on 'Stay'");
+        }
+
+		// No player argument is provided
+		if (playerSpawnArg == 0)
+		{
+            addError("for Map Transitions, avoid using Player Starts where arg[0] is 0. Argument 0 is reserved for fresh starts.");		
+		}
+
+		// Entered a new Level Group without an intermission.
+		if(level.levelGroup < getLevelGroupFromNum() && !intermissionScreenArg)
+		{
+			addError("It is highly recommended to use Intermission Screens when entering a new Level Group.");	
+		}
+
+		// Player is somehow sent to Canada
+		if(targetMapName == "Canada")
+		{
+			addError("What's this all aboot? Consider using another level.");
+		}
+    }
+
+	void addError(string errorString)
+	{
+		errorsFound.push(errorString);
+	}
+
+	void dumpErrors()
+	{
+		players[consoleplayer].mo.A_PRINTBOLD("\c[red]WARNING: Errors were found when loading a new area, please check the console.");
+		console.printf("\n\c[red]MAP TRANSITION ERRORS:\n==============================\c-");
+		for(int x=0;x<errorsFound.size();x++)
+		{
+			console.printf("\c[yellow]%d.\c[orange] %s", x+1, errorsFound[x]);
+		}
+		console.printf("\n\c[orange]Enable 'Ignore Errors' if these errors are intentional.\n\c[red]==============================\n\n");
+		errorsFound.clear();
+	}
+
+
+    // Rendering loading screen to transition between levels ==============
+    override void RenderOverlay(RenderEvent e) {
+        if(level.totalTime <= transitionTicks + ANIM_TOTAL_TICKS) {
+            if(level.totalTime == transitionTicks || virtualScreenSize.x == 0) {
+                // We should only have to do this once every time an animation starts
+                getScreenScale(screenSize, virtualScreenSize);
+            }
+
+            double ticks = double(level.totalTime - transitionTicks) + e.FracTic;
+
+            Font fnt = "SEL46FONT";
+
+            double dimtm = ticks <= ANIM_LEAD_TICKS ? UIMath.EaseInQuadF(ticks / double(ANIM_LEAD_TICKS)) : 
+                           (ticks > ANIM_LEAD_TICKS && ticks <= ANIM_LEAD_TICKS + ANIM_HOLD_TICKS ? 1.0 : 
+                           1.0 - UIMath.EaseOutCubicf((ticks - (ANIM_LEAD_TICKS + ANIM_HOLD_TICKS)) / double(ANIM_TAIL_TICKS)) );
+
+            // Dark background
+            Screen.Dim(0xFF000000, dimtm * 0.76, 0,0, Screen.GetWidth(), Screen.GetHeight());
+
+            // Middle bar
+            //Dim(0xFF000000, dimtm * 0.25, 0, -60 * min(1.0, dimtm * 3.0), ceil(virtualScreenSize.x), 120.0 * min(1.0, dimtm * 3.0), flags: DR_SCREEN_VCENTER);
+
+            // Loading Text
+            if(ticks <= ANIM_LEAD_TICKS + ANIM_HOLD_TICKS)
+                DrawStr(fnt, "LOADING", (0,0), DR_SCREEN_CENTER | DR_TEXT_CENTER, a: dimtm, monospace: false);
+        }
+    }
+
+    // ACS Version
+	static void LevelTransition(int acslevelNumArg, int acsIntermissionScreenArg, int acsPlayerSpawnArg, int acsStayScriptArg, int acsIgnoreErrorsArg)
+	{
+        LevelTransitionHandler handler = LevelTransitionHandler.Instance();
+
+        // Set up linedef arguments
+        handler.levelNumArg = acslevelNumArg;
+        handler.intermissionScreenArg = acsIntermissionScreenArg;
+        handler.playerSpawnArg = acsPlayerSpawnArg;
+        handler.stayScriptArg = acsStayScriptArg;
+		handler.ignoreErrorsArg = acsIgnoreErrorsArg;
+        handler.prepareLevelTransition();
+	}
+
+    // Zscript version
+	void LevelTransitionName(string zScriptlevelNameArg, int zScriptintermissionScreenArg, int zScriptPlayerSpawnArg, int zScriptStayScriptArg, int zScriptIgnoreErrorsArg)
+	{
+        // Set up linedef arguments
+        targetMapName = zScriptlevelNameArg;
+        intermissionScreenArg = zScriptintermissionScreenArg;
+        playerSpawnArg = zScriptPlayerSpawnArg;
+        stayScriptArg = zScriptStayScriptArg;
+		ignoreErrorsArg = zScriptIgnoreErrorsArg;
+        prepareLevelTransition();
+	}
+    
+
+    // Object travel code ==============================================================
+    // =================================================================================
+    Array<SelacoActor> travellers;
+
+    // Called by the player, finishes all unconnected objects that are travelling
+    void finishTravelling(Dawn d, DawnLevelTransitioner transitioner) {
+        if(developer) Console.Printf("Finishing travel...");
+
+        // Remove dead references
+        for(int x = travellers.size() - 1; x >= 0; x--) {
+            if(!travellers[x]) {
+                travellers.delete(x);
+            }
+        }
+
+        // Travel each actor
+        for(int x = 0; x < travellers.size(); x++) {
+            if(!d || !d.holdingObject || d.holdingObject != travellers[x]) {
+                travellers[x].finishedTravel(d, transitioner);
+            }
+        }
+
+        for(int x = 0; x < travellers.size(); x++) {
+            travellers[x].fullyTravelled();
+        }
+
+        clearTravelList();
+    }
+
+    override void PlayerEntered(PlayerEvent e) {
+        if(e.playerNumber == consolePlayer) {
+            let d = Dawn(players[e.playernumber].mo);
+            if(d) {
+                d.fullyTravelled();
+            }
+        }
+    }
+
+    override void WorldUnloaded(WorldEvent e) {
+        if(e.NextMap ~== "TITLEMAP") {
+            clearTravelList();
+        }
+    }
+
+    void clearTravelList() {
+        travellers.clear();
+    }
+}
+
+// Corrects angles and position when transitioning maps. 
+class DawnLevelTransitioner : Actor {
+	Default {
+		-SOLID;
+		+SPECIAL;
+		+NOGRAVITY;
+		+NOTONAUTOMAP;
+        -SHOOTABLE;
+        +NONSHOOTABLE;
+        -MOVEWITHSECTOR;
+        -RELATIVETOFLOOR;
+        +NOCLIP;
+        scale 0.5;
+
+		RenderStyle "None";
+	}
+
+    States {
+        Spawn:
+            PLYS C -1 bright;
+            stop;
+    }
+
+	LevelSwitchIcon levelSwitchActor;
+
+	override void BeginPlay() {
+		Super.BeginPlay();
+        if(developer > 1) A_SetRenderStyle(1.0, STYLE_Normal);
+		A_SetSize(args[0] > 0 ? args[0] : 512, args[1] > 0 ? args[1] : 128);
+		sleepIndefinite();
+	}
+
+	// When Dawn touches the transition area, try to spawn a level switch icon
+	override void Touch(Actor toucher) {
+        if(toucher is 'Dawn') {
+			if(!levelSwitchActor) {
+				// Add a level switch icon so the player can find this transition on the map again
+				// Find level transition wall if exists
+				bool found = false;
+				Vector2 wallpos;
+
+				if(found) levelSwitchActor = LevelSwitchIcon(Spawn("LevelSwitchIcon", (wallpos.x, wallpos.y, pos.z), ALLOW_REPLACE));
+				else levelSwitchActor = LevelSwitchIcon(Spawn("LevelSwitchIcon", pos, ALLOW_REPLACE));
+				levelSwitchActor.transitionZone = self;
+			}
+        }
+    }
+
+	
+	bool posInside(Vector2 checkPos) {
+		return(	checkPos.x > pos.x - radius &&
+				checkPos.x < pos.x + radius &&
+				checkPos.y > pos.y - radius && 
+				checkPos.y < pos.y + radius );
+	}
+
+
+    void travelTaggedSectors() {
+        if(args[3] != 0) {
+			Array<int> sectors;
+            Array<SelacoActor> actors;
+
+            LevelTransitionHandler handler = LevelTransitionHandler.Instance();
+            handler.clearTravelList();
+
+            // Find sectors
+			SectorTagIterator st = Level.CreateSectorTagIterator(args[3]);
+			int secID = st.Next();
+			while(secID >= 0) {
+				sectors.push(secID);
+				secID = st.Next();
+			}
+
+            // Find actors in those sectors
+			ThinkerIterator it = ThinkerIterator.Create("SelacoActor");
+			SelacoActor sa = SelacoActor(it.Next());
+            let sl = sectors.size();
+
+            // Create an array of travellers, because prepareForTravel could break the iterator chain
+			for (; sa; sa = SelacoActor(it.Next())) {
+                if(sa.bTravelAllowed && sectors.find(sa.CurSector.index()) != sl) {
+                    actors.push(sa);
+                }
+			}
+            
+            for(int x = 0; x < actors.size(); x++) {
+                sa = actors[x];
+                if(sa.preparedForTravel) {
+                    continue;
+                }
+                sa.prepareForTravel(self);
+                handler.travellers.push(sa);
+            }
+		}
+    }
+}

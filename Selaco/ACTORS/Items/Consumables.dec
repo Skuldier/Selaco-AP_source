@@ -1,0 +1,91 @@
+ACTOR CabinetCardCount : inventory
+{
+   Inventory.Amount 1
+   Inventory.MaxAmount 6
+   // Inventory.Icon PGRND0
+   Scale 0.3
+   States
+   {
+   Spawn:	
+      TNT1 D -1
+      Stop
+   }
+}
+
+ACTOR OMNI_PURPLECARD : Inventory {
+	Inventory.amount 1
+	Inventory.maxAmount 1
+}
+
+ACTOR OMNI_BLUECARD : Inventory {
+	Inventory.amount 1
+	Inventory.maxAmount 1
+}
+
+ACTOR OMNI_YELLOWCARD : Inventory {
+	Inventory.amount 1
+	Inventory.maxAmount 1
+}
+
+ACTOR ClearenceLevel1 : inventory
+{
+   Inventory.Amount 1
+   Inventory.MaxAmount 7
+   // Inventory.Icon PGRND0
+   Scale 0.3
+   States
+   {
+   Spawn:
+      TNT1 D -1
+      Stop
+   }
+}
+
+ACTOR MedkitCount : Inventory
+{
+   Inventory.Amount 1
+   Inventory.MaxAmount 3
+   +Inventory.KeepDepleted
+   // Inventory.Icon PGRND0
+   Scale 0.3
+   States
+   {
+   Spawn:
+      TNT1 D -1
+      Stop
+   }
+}
+
+ACTOR CreditsCount : inventory
+{
+   Inventory.Amount 1
+   Inventory.MaxAmount 99999999
+   // Inventory.Icon PGRND0
+   Scale 0.3
+   States
+   {
+   Spawn:
+      TNT1 D -1
+      Stop
+   }
+}
+
+ACTOR WeaponParts : inventory
+{
+   Inventory.Amount 1
+   Inventory.MaxAmount 99999999
+   // Inventory.Icon PGRND0
+   Scale 0.3
+   States
+   {
+   Spawn:
+      TNT1 D -1 BRIGHT
+      Stop
+   }
+}
+
+ACTOR WorkshopTierItem : inventory
+{
+   Inventory.Amount 1
+   Inventory.MaxAmount 6
+}

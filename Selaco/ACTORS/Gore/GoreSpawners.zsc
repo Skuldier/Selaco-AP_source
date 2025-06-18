@@ -1,0 +1,694 @@
+class ArmorSmokePurple : actor
+{
+	int purpleSmokeCount;
+	override void PostBeginPlay() {
+		super.postbeginPlay();
+		switch(getCvar("r_bloodquality")) {
+			case 1:
+				purpleSmokeCount = 0;
+				break;
+			case 2:
+			case 3:
+				purpleSmokeCount = 1;
+			case 4:
+				purpleSmokeCount = 2;
+				break;
+			case 5:
+				purpleSmokeCount = 3;
+		}
+	}
+    default {
+
+        Radius 4;
+        Height 4;
+        Speed 7;
+
+        +NOBLOCKMAP
+        +NOTELEPORT
+        +EXPLODEONWATER
+        +THRUGHOST
+        +DOOMBOUNCE   
+        +thruactors
+        +MISSILE
+        RenderStyle "Add";
+        bouncefactor 0.3;
+        Gravity 0.9;
+    }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 {
+			if (getCvar("r_bloodquality") <= 1) {
+				SetStateLabel("Death");
+			}
+            for(int x=0;x<=purpleSmokeCount;x++) {
+                A_SpawnItemEx("SmokeTrailPieceArmorPurple", 0, 0, 0, 0, frandom(-2,2), frandom(-2,2));
+            }
+        }
+		stop;
+	Death:
+		Stop;
+	}
+}
+
+class Selaco_PurpleBlood_Armor : SelacoBlood
+{
+	const SPARK_CHANCE = 7;
+	
+	override void spawnHeadshotEffects() {
+		int angleOffset = random(80,90);
+		if(random(0,1) == 1)
+		{
+			angleOffset*=-1;
+		}
+		EmitDefinition('HeadshotBlueSparkFastDefinition', chance: 0.75, numTries:65, angle:180+angleOffset, pitch:45);
+		EmitDefinition('HeadshotBlueSparkDefinition', chance: 0.75, numTries: 45, angle:180+angleOffset, pitch:45);
+	}
+
+	void doBloodEffects() {
+		if(random(0,100) <= 5) {
+			A_SPAWNITEMEX("BodyShotCloud", 5, frandom(-15,15), frandom(-15,15));
+		}
+		//A_SpawnDefinedParticle("PurpleSplatterSpreaderDefinition");
+		if(isArmored)
+		{
+			actor meleeEffect;
+			bool succ;
+			[succ, meleeEffect] = A_SpawnItemEx("MeleeImpactEffectLSmall");
+			if(meleeEffect)
+			{
+				meleeEffect.scale*=1.25;
+			}
+			return;
+		}
+
+		for(int x=0;x<2;x++)
+		{
+			angle = random(0,360);
+			vector3 sprayDirection = vecFromAngle(angle, pitch);
+			A_SprayDecal("OminousPurpleSplat", 60, offset:(0,0,frandom(0,20)), direction:sprayDirection);
+		}
+/* 				if(bloodQuality >= 3) {
+			A_SpawnDefinedParticleProjectile("PurpleBloodMissileSmallDefinition", frandom(-5,5),frandom(-5,5), 0, 2, random (0,-10));
+			A_SpawnProjectile ("PurpleBloodChunkFading", frandom(-5,5),frandom(-5,5), random (0, 360), 2, random (0, -10));
+		} */
+		if(bloodQuality >= 4) {
+			A_SpawnDefinedParticleProjectile("PurpleBloodMissileSmallDefinition", frandom(-5,5),frandom(-5,5), 0, 2, random (-20, -120));
+		}
+
+		// If Magnum or DMR
+		if (damageCause == "MagnumBullet") 
+		{
+			A_SPAWNITEMEX("BiggerPurpleSplatter", -3);
+		}
+		// If Magnum or DMR
+		if (damageCause == "SniperBullet") 
+		{
+			A_SpawnProjectile ("ArmorSmokePurple", 0);
+			A_SpawnProjectile ("ArmorSmokePurple", 0);
+			A_SpawnProjectile ("ArmorSmokePurple", 0);
+			A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2, frandom(-10,10),frandom(-10,10));
+			A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2);
+			A_PlaySound("DMR/BODYIMPACT", chan_auto, 0.9, 0, 0.7);
+		}
+		// If Shotgun
+		if (!isArmored && damageCause == "Shotgun") 
+		{
+			
+			// More gore if the player has AUTO-9 Shells
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			let shotgunWeapon = SelacoWeapon(pawn.FindInventory('shot_gun'));
+			if(shotgunWeapon && shotgunWeapon.hasUpgradeClass('UpgradeShotgunGore'))
+			{
+				for(int x=5;x>0;x--)
+				{
+					A_SpawnDefinedParticleProjectile("PurpleBloodMissileDefinition", frandom(0,25),frandom(-5,5), frandom(-80,80),  0, CMF_AIMDIRECTION, random (-160, -200));
+				}
+				A_SpawnProjectile ("ArmorSmokePurple", 0);
+				A_SpawnProjectile ("ArmorSmokePurple", 0);
+				A_SpawnProjectile ("ArmorSmokePurple", 0);
+				A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2, frandom(-10,10),frandom(-10,10));
+				A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2);
+			}
+			A_SpawnProjectile ("ArmorSmokePurple", frandom(-5,5),frandom(-5,5) , random (-80, 80), CMF_AIMDIRECTION, random (-10, -90));
+		}
+		
+		// If Nailgun
+		if (!isArmored && damageCause == "NailDamage") 
+		{
+			A_SpawnProjectile ("ArmorSmokePurple", frandom(-5,5),frandom(-5,5) , random (-80, 80), 2, random (-10, 40));
+			A_PlaySound("impact/flesh", chan_auto, 0.7, 0, 0.8);
+		}
+		if(!isArmored && bloodQuality >= 4)
+		{
+			for(int x=3;x>=0;x--)
+			{
+				A_SPAWNITEMEX("PurpleGoreSmokeEffectTransparant", 0, frandom(-10,10), frandom(-10,10), frandom(-0.2,-0.4), frandom(-0.8,0.8), frandom(-0.8,0.8));
+			}
+		}
+	}
+
+	override void spawnGoreChunks() {
+		A_PLAYSOUND("GORE/SLIMEYSPLAT", CHAN_AUTO, 1.0, pitch:frandom(1.4,1.3));
+		A_SpawnDefinedParticle("SuperGoreMistPurpleSmallDefinition");
+		for(int x=0;x<4;x++)
+		{
+			A_SpawnProjectile ("AlienBrainPieceSlow", frandom(-5,5),frandom(-5,5) , random (-80, 80), CMF_AIMDIRECTION, random (-10, -20));
+		}
+	}
+
+
+	default
+	{
+		decal "OminousPurpleSplat";
+	}
+
+	states	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				bloodQuality = getCvar("r_BloodQuality");
+			}
+
+			TNT1 A 0 {
+				doBloodEffects();
+			}
+			TNT1 A 1;
+			TNT1 A 0 
+			{	
+				if(isArmored)
+					return;
+				A_SPAWNITEMEX("PurpleGoreSmokeEffect", 0, 0, 0, frandom(-0.2,-0.4), frandom(-0.2,0.2), frandom(-0.2,0.2));
+			}
+			TNT1 A 0 A_JUMP(72, "ShootSparks");
+			stop;
+		ShootSparks:
+			TNT1 A 0
+			{
+				if(isArmored)
+					return;
+				A_SpawnDefinedParticle("PurpleSplatterEffectSmallDefinition", 0, 0, 0, random(-2,2),random(-2,2));
+			}
+			stop;
+	}
+}
+
+
+class Selaco_Blood_MECHANICAL : Selaco_Blood
+{
+	default {
+		+thruactors
+		-solid
+	}
+ 	states	{
+  		Spawn:
+			TNT1 A 0;
+			//TNT1 A 0 ACS_NamedExecuteAlways("Hitmarker", 0, 0);
+			TNT1 A 0 A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition");
+			TNT1 A 0 A_SpawnProjectile ("SparkEmbers", random(-2, 2), 0, random (0, 60), 2, random (0, 40));
+			TNT1 A 0 A_JUMP(6, "ShootSparks");
+			stop;
+		ShootSparks:
+			TNT1 A 0 A_SpawnItemEx("Stacked_Sparks_lite", 0, 7);
+			stop;
+ 	}
+}
+
+class SELACO_BLOOD_MEDIUMARMOR : Selaco_PurpleBlood_Armor
+{
+	
+	default {
+		SelacoBlood.bloodParticleMultiplier 0.35;
+	}
+
+	override void spawnGoreChunks()
+	{
+		A_PLAYSOUND("GORE/SLIMEYSPLAT", CHAN_AUTO, 1.0, pitch:frandom(1.4,1.3));
+		A_SpawnDefinedParticle("SuperGoreMistPurpleSmallDefinition");
+	}
+
+
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				bloodQuality = getCvar("r_BloodQuality");
+				// LIGHT CHANCE
+				if(random(0,100) <= 10 || (random(0,100) <= 50 && damageCause == "SniperBullet"))
+				{
+					A_SpawnDefinedParticle("BulletImpactEffectMediumArmorDefinition", 4, 0, 0, 4, frandom(-4,4), frandom(0.5,2));
+					A_SpawnDefinedParticle("BulletImpactEffectMediumArmorDefinition", 4, 0, 0, 4, frandom(-4,4), frandom(0.5,2));
+					A_SpawnDefinedParticle("BulletImpactEffectMediumArmorDefinition", 4, 0, 0, 4, frandom(-4,4), frandom(0.5,2));
+					spawnLight(rColor:214, gColor:147, bColor:37, frandom(80,90), 0, shadowRequirement:-1, overbright: 0, divisionSpeed:1.3, alwaysShow:0);
+					EmitDefinition('SparkParticleWilderDefinition', chance: 0.75, numTries: 40);
+				}
+				// WALL DECAL
+				for(int x=0;x<2;x++)
+				{
+					angle = random(0,360);
+					vector3 sprayDirection = vecFromAngle(angle, pitch);
+					A_SprayDecal("OminousPurpleSplat", 90, offset:(0,0,frandom(0,20)), direction:sprayDirection);
+				}
+			}
+			TNT1 A 0 {
+				if(bloodQuality>= 4) {
+					A_SpawnProjectile ("ArmorSmokePurple", frandom(-5,5),frandom(-5,5), 0, 2, random (-10, 40));
+				}
+			}
+			TNT1 A 0 {
+				if(bloodQuality) {
+					A_SPAWNITEMEX("PurpleGoreSmokeEffectSmaller", 0, 0, 0, 0, frandom(-0.5,0.5), frandom(-0.5,0.5));
+				}
+			}
+			TNT1 A 0 {
+				// If Magnum
+				if (damageCause == "MagnumBullet") 
+				{
+					A_SPAWNITEMEX("BiggerPurpleSplatter", 5);
+				}
+				// If DMR
+				if (damageCause == "SniperBullet") 
+				{
+					A_SpawnProjectile ("ArmorSmokePurple", 0);
+					A_SpawnProjectile ("ArmorSmokePurple", 0);
+					A_SpawnProjectile ("ArmorSmokePurple", 0);
+					A_SPAWNITEMEX("EvenBiggerPurpleSplatter", 5);
+					A_PlaySound("DMR/BODYIMPACT", chan_auto, 0.9, 0, 0.7);
+				}
+				// If Shotgun
+				if (damageCause == "Shotgun") 
+				{
+					
+					// More gore if the player has AUTO-9 Shells
+					PlayerPawn pawn=players[0].mo;
+					let d = Dawn(pawn);
+					let shotgunWeapon = SelacoWeapon(pawn.FindInventory('shot_gun'));
+					if(shotgunWeapon && shotgunWeapon.hasUpgradeClass('UpgradeShotgunGore'))
+					{
+						for(int x=5;x>0;x--)
+						{
+							A_SpawnDefinedParticleProjectile("PurpleBloodMissileDefinition", frandom(-5,5),frandom(-5,5), 0, 2, random (-160, -200));
+						}
+						A_SpawnProjectile ("ArmorSmokePurple", 0);
+						A_SpawnProjectile ("ArmorSmokePurple", 0);
+						A_SpawnProjectile ("ArmorSmokePurple", 0);
+						A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2, frandom(-10,10),frandom(-10,10));
+						A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2);
+					}
+					A_SpawnProjectile ("ArmorSmokePurple", frandom(-5,5),frandom(-5,5) , random (-80, 80), 2, random (-10, 40));
+				}
+				// If Nailgun
+				if (damageCause == "NailDamage") 
+				{
+					A_SpawnProjectile ("ArmorSmokePurple", frandom(-5,5),frandom(-5,5) , random (-80, 80), 2, random (-10, 40));
+					A_PlaySound("impact/flesh", chan_auto, 0.7, 0, 0.8);
+				}
+			}
+			TNT1 A 0 A_SpawnItemEx("BulletImpactEffectMetalSmallArmor");
+			//TNT1 A 0 A_SpawnProjectile ("PurpleSplatterEffectSmall", 0, 0, random (0, 360), 2, random (0, 90));
+			TNT1 A 0;
+			TNT1 A 0 A_JUMP(3, "ShootSparks");
+			stop;
+		ShootSparks:
+			TNT1 A 0 A_SpawnItemEx("Stacked_Sparks_lite", 0, 7);
+			stop;
+	}
+}
+
+class Selaco_Blood_HEAVYARMOR : SELACO_BLOOD_MEDIUMARMOR
+{
+ 	states	
+	{
+ 		 Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				if(damageCause == "RailAttack" || damageCause == "SniperBullet" || damageCause == "MagnumBullet")
+				{
+					spawnHeadshotEffects();
+					A_SpawnProjectile ("ArmorSmokePurple", 0);
+					A_SpawnProjectile ("ArmorSmokePurple", 0);
+					A_SpawnProjectile ("ArmorSmokePurple", 0);
+					A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2, frandom(-10,10),frandom(-10,10));
+					A_SPAWNITEMEX("EvenBiggerPurpleSplatter", -2);
+					spawnLight(rColor:214, gColor:147, bColor:37, frandom(80,90), 0, shadowRequirement:-1, overbright: 0, divisionSpeed:1.3, alwaysShow:0);
+				}
+				if(damageCause == "RailAttack")
+				{
+					for(int x=0;x<10;x++)
+					{
+						A_SpawnDefinedParticle("PurpleSplatterEffectDefinition", -2, frandom(-25,25),frandom(-25,25), 1, frandom(-4,4), frandom(-4,4));
+						A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", 4, frandom(-20,20), frandom(-20,20), 4, frandom(-4,4), frandom(0.5,2));
+					}
+				}
+			}
+			
+			TNT1 AAA 0 A_SPAWNITEMEX("PurpleGoreSmokeEffect", 5, 0, 0, frandom(-0.2,-0.4), frandom(-0.2,0.2), frandom(-0.2,0.2));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactEffectMetalSmallReallyFuckingTinylol");
+			TNT1 AA 0 A_SpawnProjectile ("ArmorSmokePurple", 0, 0, random (-80, 80), 2, random (-10, 40));
+			TNT1 A 0 A_SpawnProjectile ("SparkEmbers", random(-2, 2), 0, random (0, 60), 2, random (0, 40));
+			//TNT1 A 0 A_SpawnProjectile ("PurpleBloodChunkFading", 0, 0, random (0, 360), 2, random (0, 90));
+			TNT1 A 0 A_SpawnProjectile ("PurpleBloodHit", 0, 0, random (0, 360), 2, random (0, 90));
+			//TNT1 A 0 A_SpawnDefinedParticle("PurpleSplatterEffectSmallDefinition", 0, 0, 0, random(-2,2),random(-2,2));
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Splash");
+			TNT1 A 0 A_JUMP(3, "ShootSparks");
+			stop;
+		ShootSparks:
+			TNT1 A 0 A_SpawnItemEx("Stacked_Sparks_lite", 0, 7);
+			stop;
+ 	}
+}
+
+// Chunky bits of of gore.
+class PurpleBloodChunk2 : Blood {
+    states
+    {
+   		 Spawn:
+		 	TNT1 A 0;
+            TNT1 A 0 A_playsound("GORECHUNK", pitch:frandom(0.9,1.1));
+            TNT1 AAAAAAAAA 0 A_SpawnProjectile ("PurpleBloodMissileTrail", 0, 0, random (0, 360), 2, random (0, -180));
+            TNT1 AAAAAAAAA 0 A_SpawnProjectile("PurpleBloodMissileTrail", 0, 0, 180);
+            TNT1 AAA 0 A_SpawnProjectile ("PurpleBloodHitGravity", 0, 0, random (0, 360), 2, random (0, -160));
+            BLOD BCD 0;
+            stop;
+    }
+}
+
+class PurpleBloodChunk3 : Blood {
+	states	{
+		Spawn:
+			TNT1 A 0;
+            TNT1 A 0 A_playsound("GORECHUNK", pitch:frandom(0.9,1.1));
+			TNT1 AAAAAAAAA 0 A_SpawnProjectile ("PurpleBloodMissileTrail", 0, 0, random (0, 360), 2, random (0, -180));
+			TNT1 AAAAAAAAA 0 A_SpawnProjectile("PurpleBloodMissileTrail", 0, 0, 180);
+			TNT1 AAA 0 A_SpawnProjectile ("PurpleBloodHitGravity", 0, 0, random (0, 360), 2, random (0, 160));
+			TNT1 AAAAA 0 A_SpawnDefinedParticleProjectile("PurpleSplatterEffectBigDefinition", 20, 0, random (0, 360), 2, random (30, -160));
+			BLOD BCD 0;
+			stop;
+		}
+}
+
+// Slimey cluster that spawns more effects when it hits the floor
+class XDeath1Alien : GoreMaster
+{
+	override void tick()
+	{
+		super.tick();
+		if(waterlevel > 0)
+		{
+			destroy();
+		}
+	}
+
+	default {
+		+NOBLOCKMAP
+		+MISSILE
+		+NOTELEPORT
+		+MOVEWITHSECTOR
+		+CLIENTSIDEONLY
+		+THRUACTORS
+		+FLOORCLIP
+        -ACTIVATEIMPACT;
+        -ACTIVATEMCROSS;
+        -ACTIVATEPCROSS;
+		SelfLighting "471344";
+		Radius 4;
+		Height 4;
+		Speed 4;
+		Scale 0.12;
+		Mass 1;
+		//Decal "OminousPurpleSplat";
+		DeathSound "misc/xdeath1";
+		SelacoActor.sleepDistance 2048;
+	}
+    States
+    {
+    Spawn:
+        PDT1 A 4 {
+            //A_SpawnProjectile ("SmokeTrailPieceArmorPurpleLess", 0, 0, random (0, 360), 2, random (0, 90));
+        }
+        Loop;
+    Death:
+        TNT1 A 0 A_SpawnItem ("OMINOUS_PurpleSpot", 0, 1);
+        TNT1 AA 0 A_SpawnItemEx("PurpleBloodMissileNoDecal", frandom(-4, 4), frandom(-4, 4),frandom(0, 2), frandom(-4, 4), frandom(-4, 4), frandom(2, 14), random(0,360));
+		PDT1 EFGH 3;
+		TNT1 A 0
+		{
+			A_SETSCALE(0.4);
+		}
+		TNT1 A 0 A_JUMP(256, "Death2", "Death3");
+		goto Death1;
+	Death1:
+		TNT1 A 0
+		{
+			bPreventSleep = true;
+		}
+		PDT1 L 150;
+		PDT1 LLLLLLLLLLLLLLLLLLLL 1
+		{
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}
+		stop;
+	Death2:
+		TNT1 A 0
+		{
+			bPreventSleep = true;
+		}
+		PDT1 K 150;
+		PDT1 KKKKKKKKKKKKKKKKKKKK 1
+		{
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}	
+        Stop;
+	Death3:
+		TNT1 A 0
+		{
+			bPreventSleep = true;
+		}
+		PDT1 I 150;
+		PDT1 IIIIIIIIIIIIIIIIII 1
+		{
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}	
+        Stop;		
+    }
+}
+
+class XDeath2Alien: XDeath1Alien {
+	default {
+		speed 3;
+	}
+}
+
+class XDeath2Alienb: XDeath2Alien
+{
+	default {
+		speed 5;
+	}
+}
+
+class MeatDeathSmallPurple : actor
+{
+    States
+    {
+    Spawn:
+		 TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 5, 0, random (0, 360), 2, random (0, 160));
+		 TNT1 A 0 A_SpawnProjectile ("XDeath2Alien", 5, 0, random (0, 360), 2, random (0, 160));
+		 TNT1 A 0 A_SpawnProjectile ("XDeath3Alien", 5, 0, random (0, 360), 2, random (0, 160));
+		 TNT1 AAAA 0 A_SpawnProjectile ("PurpleBloodHitGravity", 10, 0, random (0, 360), 2, random (40, 90));
+		 TNT1 AAAA 0 A_SpawnProjectile ("PurpleSplatterEffectSmall", 35, 0, random (0, 360), 2, random (40, 90));
+		 Stop;
+    }
+}
+
+// Quite a party! Spawns a whole heap of effects
+class AlienXDeath : actor
+{
+	default {
+		Radius 5;
+		Height 5;
+		Scale 0.8;
+		Speed 0;
+		Mass 1;
+		Decal "BloodSuper";
+		BounceFactor 0.5;
+		+DOOMBOUNCE
+		+MISSILE
+		+NOBLOCKMAP
+		+NOTELEPORT
+		+MOVEWITHSECTOR
+		+NOGRAVITY
+		+NOCLIP
+		+DONTSPLASH
+	}
+    States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_FaceTarget();
+			TNT1 A 0 A_SpawnProjectile ("XDeathAlienHead", 32, 0, random (0, 360), 2, random (0, 160));
+			TNT1 AA 0 A_SpawnProjectile ("CutoffArmRight", 32, 0, random (0, 360), 2, random (0, 160));
+			TNT1 AA 0 A_SpawnProjectile ("XDeath1Alien", 32, 0, random (0, 360), 2, random (0, 160));
+			TNT1 AAA 0 A_SpawnProjectile ("XDeath2alien", 15, 0, random (0, 360), 2, random (0, 160));
+			TNT1 AAA 0 A_SpawnProjectile ("XDeath3Alien", 15, 0, random (0, 360), 2, random (0, 160));
+			TNT1 A 0 A_SpawnProjectile ("Cutoffleg", 32, 0, random (0, 360), 2, random (0, 160));
+			Stop;
+    }
+}
+
+class XDeath3Alien : limbs {
+
+	default {
+		SelfLighting "471344";
+		-DOOMBOUNCE;
+		+INTERPOLATEANGLES
+		+NOBLOODDECALS;
+		+DONTTHRUST
+		BounceCount 0;
+		BounceFactor 0;
+		speed 5;
+		scale 0.17;
+	}
+	States {
+		Spawn:
+            TNT1 A 0;
+			TNT1 A 0 {
+				A_SETSCALE(scale.x + frandom(0.06, 0.16));
+			}
+            TNT1 A 0 A_JUMP(128, "prepare");
+            TNT1 A 0 A_SpawnItemEx("XDeath3Alien_b",0,0,0,frandom(3,5), 0, frandom(2,5));
+			stop;
+    	prepare:
+			TNT1 A 0 A_ChangeVelocity(frandom(2, 5), 0, frandom(2,6), CVF_REPLACE);
+			goto Looper;
+		Looper:
+			PME2 AAABBBCCCDDDEEEFFF 1  {
+                if (bloodQuality >= 4) {
+					A_SpawnProjectile ("PurpleBloodChunkFading", 0, 0, random (0, 360), 2, random (0, 90));
+                }
+
+				// Limit age
+				limitLifetime();
+            }
+    	KeepLooping:
+            PME2 E 1 A_SetRoll(roll + 10,  SPF_INTERPOLATE);
+            loop;
+		Death:
+            TNT1 A 0 A_SpawnItemEx("OMINOUS_PurpleSpot");
+			TNT1 A 0
+			{
+                if(level.maptime > 90)
+				{
+					A_PLAYSOUND("impact/bloodsplash", CHAN_AUTO);
+				}
+			}
+            TNT1 A 0;
+            PME2 FG 2;
+		WaitForWipe:
+			PME2 L 1 {
+                A_SETROLL(0);
+            }
+        FadeOut:
+			PME2 L 1 {
+                A_SPAWNITEMEX("ThickGoreSplatter");
+            }			
+            PME2 LLLLLLLLLL 1 A_FADEOUT(0.1);
+            stop;
+		VACBOTCleaning:
+			PME2 LLLLLLLLLLL 1 A_FADEOUT(0.2);
+			stop;
+	}
+}
+
+class XDeath3Alien_b : XDeath3Alien {
+	default {
+		SelfLighting "471344";
+	}
+	States {
+		Spawn:
+            TNT1 A 0;
+			TNT1 A 0 {
+				A_SETSCALE(scale.x + frandom(0.1, 0.3));
+			}
+		Looper:
+			PME4 AAABBBCCCDDDEEEFFF 1  {
+                if (getCvar("r_bloodquality") == 4) {
+                    A_SpawnProjectile ("PurpleBloodChunkFading", 0, 0, random (0, 360), 2, random (0, 90));
+                }
+				limitLifetime();
+            }
+        KeepLooping:
+            PME4 E 3 A_SetRoll(roll + 15, SPF_INTERPOLATE);
+            loop;
+		Death:
+            TNT1 A 0 A_SpawnItemEx("OMINOUS_PurpleSpot");
+            TNT1 A 0 
+			{
+				if(level.maptime > 120)
+				{
+					A_PLAYSOUND("impact/bloodsplash", CHAN_AUTO);
+				}
+			}
+            PME4 FG 2;
+		WaitForWipe:
+        FadeOut:
+			PME4 L 1 {
+                A_SPAWNITEMEX("ThickGoreSplatter");
+            }	
+            PME4 LLLLLLLLLL 1 A_FADEOUT(0.1);
+            stop;
+        VACBOTCleaning:
+            PME4 LLLLLLLLLLL 1 A_FADEOUT(0.2);
+            stop;
+	}
+}
+
+class Selaco_RedBlood_Armor : actor {
+	default
+    {
+		Decal "BloodSplat";
+        +NOINTERACTION;
+    }
+	States {
+		spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_PlaySound("impact/flesh", chan_auto, 0.6, 0, 0.8);
+            TNT1 A 0 A_SpawnItemex("ZombieImpactEffect");
+            TNT1 AA 0 A_SpawnProjectile ("BloodSplatterEffect", 0, 0, random(0,360), 2, frandom (-30,-89));
+            //TNT1 AAA 0 A_SpawnProjectile ("RedBloodMissile", frandom(-4,4), frandom(-4,4), random(0,360), 2, frandom (120,-120));
+			stop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class BodybagBlood : actor
+{
+	mixin ParticleDefinitionEmitter;
+	default
+    {
+		Decal "";
+        +NOINTERACTION;
+    }	
+	States {
+		spawn:
+            TNT1 A 0;
+			TNT1 A 0 {
+				EmitDefinition('TrashbagChunkSmallDefinition', 1.0, 8, particleSpawnOffsets:1);
+			}
+			TNT1 A 0 A_SpawnProjectile("BrownCloudSmall", 0, 0, random (0, 120), 2, random (0, 60));
+     		TNT1 AAAA 0 A_SPAWNITEMEX("PaperDustEffectShorter", frandom(-20,20), frandom(-20,20), 0);
+      		TNT1 A 0 A_SPAWNITEMEX("bulletImpactEffectWoodSmall");
+            TNT1 A 0 A_PlaySound("impact/flesh", chan_auto, 0.9, 0, 0.8);
+            TNT1 A 0 A_SpawnItemex("ZombieImpactEffect");
+            TNT1 AA 0 A_SpawnProjectile ("BloodSplatterEffect", 0, 0, random(0,360), 2, frandom (-30,-89));
+			stop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}

@@ -1,0 +1,125 @@
+
+class PaintSplatterBaseDefinition : ParticleDefinition {
+    override void Init()
+    {
+        super.Init();
+        self.SetGravity(0.05);
+        self.BouncesRange(0,0);
+        Self.ClearFlag(DPF_LOOPANIMATION);
+        Self.ClearFlag(PDF_VELOCITYFADE);
+        Self.DefaultRenderStyle = STYLE_TRANSLUCENT;
+        AddAnimationSequence();
+        AddAnimationFrames(0, "PSPL", "ABCDEFGHIJKLMN", 3);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Alpha = 1.0;
+        particle.AlphaStep = -0.02;
+        particle.Roll = random(0, 360);
+        particle.SetScale(0.34);
+        particle.SetScaleStep(1.002);
+        particle.InitLife(GetAnimationLengthInTicks(0)+25);
+        PlayAnimationSequence(particle, 0, 0);
+    }
+}
+
+class RedPaintDefinition : PaintSplatterBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "ff0d00";
+    }    
+}
+class YellowPaintDefinition : PaintSplatterBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "f07f16";
+    }    
+}
+class BluePaintDefinition : PaintSplatterBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "4b3bff";
+    }    
+}
+class WhitePaintDefinition : PaintSplatterBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "white";
+    }    
+}
+class GreenPaintDefinition : PaintSplatterBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "056e1c";
+    }    
+}
+class PurplePaintDefinition : PaintSplatterBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "580070";
+    }    
+}
+
+// PAINT TRAILS
+class PaintSplatterTrailBaseDefinition : PaintSplatterBaseDefinition {
+    override void init() {
+        super.init();
+        AddAnimationSequence();
+        AddAnimationFrames(0, "PSPL", "ABCDEFGHIJKLMN", 1);
+    }
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.SetScale(0.2);
+        particle.AlphaStep = -0.05;
+    }       
+}
+class YellowPaintDefinitionTrail  : PaintSplatterTrailBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "f07f16";
+    }    
+}
+class BluePaintDefinitionTrail  : PaintSplatterTrailBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "4b3bff";
+    }    
+}
+class WhitePaintDefinitionTrail  : PaintSplatterTrailBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "white";
+    }    
+}
+class GreenPaintDefinitionTrail  : PaintSplatterTrailBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "056e1c";
+    }    
+}
+class PurplePaintDefinitionTrail  : PaintSplatterTrailBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "580070";
+    }    
+}
+class RedPaintDefinitionTrail : PaintSplatterTrailBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "c70e0e";
+    }      
+}

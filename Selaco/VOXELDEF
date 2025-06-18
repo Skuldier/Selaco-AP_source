@@ -1,0 +1,79 @@
+// EXTINQUISHER
+EXTTA="voxels/FIREEXT_CLOSED.kvx" {
+	Scale = 1.1
+}
+
+EXTCD="voxels/FIREEXT_OPEN.kvx" {
+	Scale = 1.1
+}
+
+EXTCE="voxels/FIREEXT_REDLED.kvx" {
+	Scale = 1.1
+}
+
+EXTCG="voxels/FIREEXT_GREENLED.kvx" {
+	Scale = 1.1
+}
+
+EXTCF="voxels/FIREEXT_LED.kvx" {
+	Scale = 1.1
+}
+DDMGA="voxels/DBLDMG.kvx" {
+	Scale = 0.3
+	Spin = 100
+}
+GWYYA="voxels/GWYNBOT.kvx" {
+	Scale = 1.0
+}
+GWYYB="voxels/GWYNBOT2.kvx" {
+	Scale = 1.0
+}
+GWYYC="voxels/GWYNBOT3.kvx" {
+	Scale = 1.0
+}
+GWYYD="voxels/GWYNBOT4.kvx" {
+	Scale = 1.0
+}
+GWYYE="voxels/GWYNBOT5.kvx" {
+	Scale = 1.0
+}
+
+SWI1A="voxels/SWITCH1A.kvx" {
+	Scale = 0.6
+}
+SWI1B="voxels/SWITCH1B.kvx" {
+	Scale = 0.6
+}
+SWI1C="voxels/SWITCH1C.kvx" {
+	Scale = 0.6
+}
+SWI1D="voxels/SWITCH1D.kvx" {
+	Scale = 0.6
+}
+SWI1E="voxels/SWITCH1E.kvx" {
+	Scale = 0.6
+}
+
+SWI2A="voxels/SWITCH2A.kvx" {
+	Scale = 0.6
+}
+SWI2B="voxels/SWITCH2B.kvx" {
+	Scale = 0.6
+}
+SWI2C="voxels/SWITCH2C.kvx" {
+	Scale = 0.6
+}
+SWI2D="voxels/SWITCH2D.kvx" {
+	Scale = 0.6
+}
+SWI2E="voxels/SWITCH2E.kvx" {
+	Scale = 0.6
+}
+
+SQDLA="voxels/Squad_Voxel.kvx" {
+	Scale = 0.8
+}
+
+SQDLB="voxels/Squadmate_Voxel.kvx" {
+	Scale = 0.8
+}

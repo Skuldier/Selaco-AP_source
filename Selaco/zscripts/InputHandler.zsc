@@ -1,0 +1,337 @@
+// Simple storage for feedback playback on gamepads
+class FeedbackFX {
+    Array<float> pulses;      // Each pulse lasts a frame
+    
+    void init(Array<float> source) {
+        pulses.clear();
+        pulses.append(source);
+    }
+
+    Vector2, bool popFrame() {
+        if(pulses.size() <= 1) return (0,0), false;
+
+        Vector2 r = (pulses[0], pulses[1]);
+        pulses.delete(0, 2);
+        return r, true;
+    }
+
+    clearscope Vector2, bool getFrame() {
+        if(pulses.size() <= 1) return (0,0), false;
+        return (pulses[0], pulses[1]), true;
+    }
+}
+
+
+// Read all incoming inputs to determine if the player is using a gamepad, keyboard or mouse
+class InputHandler : StaticEventHandler {
+    mixin CVARBuddy;
+
+    enum InputType {
+        INPUT_Keyboard      = 1,
+        INPUT_Mouse         = 2,
+        INPUT_Gamepad       = 4
+    }
+
+    enum ActionType {
+        ACTION_Move     = 0,
+        ACTION_Interact = 1,
+        ACTION_Attack   = 2,
+        ACTION_Count
+    }
+
+    ui uint inputCount, kbCount, mouseCount, gamepadCount;
+    ui uint menuInputCount, menuKBCount, menuMouseCount;
+
+    bool isUsingGamepad, isPrimarilyUsingGamepad, isUsingMouse;
+    ui bool isMenuUsingKeyboard, isMenuPrimarilyUsingKeyboard;
+    ui bool isMenuUsingGamepad;
+
+    // Force feedback for button selection
+    Array<float> buttonFeedback;
+    Array<float> navFeedback;
+    Array<float> reverseButtonFeedback;
+    Array<float> heartbeatFeedback;
+
+    ui Array<FeedbackFX> uiFeedback;
+    Array<FeedbackFX> worldFeedback;
+
+    int heartbeatTimer;
+
+    override void OnRegister() {
+        buttonFeedback.push(0.2); buttonFeedback.push(1.0);
+        buttonFeedback.push(0.1); buttonFeedback.push(1.0);
+        buttonFeedback.push(0); buttonFeedback.push(0.5);
+
+        reverseButtonFeedback.push(1); reverseButtonFeedback.push(0.2);
+        reverseButtonFeedback.push(0.6); reverseButtonFeedback.push(0.2);
+
+        navFeedback.push(0); navFeedback.push(0.1);
+        navFeedback.push(0); navFeedback.push(0.4);
+
+        heartbeatFeedback.push(0.5);    heartbeatFeedback.push(0.15);
+        heartbeatFeedback.push(1);      heartbeatFeedback.push(0.2);
+        heartbeatFeedback.push(0.1);    heartbeatFeedback.push(0);
+        heartbeatFeedback.push(0);      heartbeatFeedback.push(0);
+        heartbeatFeedback.push(0.5);    heartbeatFeedback.push(0.15);
+        heartbeatFeedback.push(1);      heartbeatFeedback.push(0.2);
+        heartbeatFeedback.push(0.1);    heartbeatFeedback.push(0.1);
+    }
+
+    static clearscope InputHandler Instance() {
+        let evt = InputHandler(StaticEventHandler.Find("InputHandler"));
+        return evt;
+    }
+
+    override void NetworkProcess(ConsoleEvent e) {
+        if(e.Name == "ihuc") {
+            isUsingGamepad = e.args[0];
+            isPrimarilyUsingGamepad = e.args[1];
+            isUsingMouse = e.args[2];
+        }
+    }
+
+    override void WorldTick() {
+        // Process feedback
+        for(int x = worldFeedback.size() - 1; x >= 0; x--) {
+            Vector2 useless;
+            bool succ = false;
+
+            [useless, succ] = worldFeedback[x].popFrame();
+            if(!succ) { worldFeedback.delete(x); }
+        }
+
+        // If we have a Dawn and she is in danger state, update heartbeat
+        let d = Dawn(players[consolePlayer].mo);
+        if(d && d.isDangerState) {
+            heartbeatTimer++;
+
+            if(heartbeatTimer % 24 == 0) {
+                AddWorldFeedback(heartbeatFeedback);
+            }
+        } else {
+            heartbeatTimer = 0;
+        }
+    }
+
+    override void UITick() {
+        // Process feedback and play it
+        Vector2 feed;
+        Vector2 f;
+        bool succ = false;
+
+        // Always play ui feedback
+        for(int x = uiFeedback.size() - 1; x >= 0; x--) {
+            [f, succ] = uiFeedback[x].popFrame();
+            if(!succ) { uiFeedback.delete(x); }
+            else { feed += f; }
+        }
+
+        // Only playback world feedback if we are not paused
+        if(!paused && menuActive != Menu.On && menuActive != Menu.WaitKey) {
+            for(int x = worldFeedback.size() - 1; x >= 0; x--) {
+                [f, succ] = worldFeedback[x].getFrame();
+                if(succ) { feed += f; }
+            }
+
+            // Add shake force from player
+            let d = Dawn(players[consolePlayer].mo);
+            if(d) {
+                let shakeLen = (d.shakeForceX, d.shakeForceY).length();
+                feed.x += clamp((shakeLen - 3.0) / 4.0, 0.0, 1.0);
+                feed.y += clamp(shakeLen / 4.0, 0.0, 1.0);
+            }
+        }
+        
+        // Try to only vibrate when actually using the gamepad
+        if(isUsingGamepad) JoystickConfig.SetVibe(feed.x, feed.y);
+
+        // TODO: Add a momentary value as well
+        // TODO: Add a fading value as well
+    }
+
+    ui void AddUIFeedback(Array<float> pulses) {
+        let f = new('FeedbackFX');
+        f.init(pulses);
+        uiFeedback.push(f);
+    }
+
+    void AddWorldFeedback(Array<float> pulses) {
+        let f = new('FeedbackFX');
+        f.init(pulses);
+        worldFeedback.push(f);
+    }
+
+    ui void AddUIFeedback2(
+        Vector2 f1,
+        Vector2 f2 = (0,0),
+        Vector2 f3 = (0,0),
+        Vector2 f4 = (0,0),
+        Vector2 f5 = (0,0),
+        Vector2 f6 = (0,0),
+        Vector2 f7 = (0,0),
+        Vector2 f8 = (0,0),
+        Vector2 f9 = (0,0),
+        Vector2 f10 = (0,0)
+    ) {
+        // Determine how many of these are valid
+        Vector2 ar[10];
+        ar[0] = f1; ar[1] = f2; ar[2] = f3;  ar[3] = f4;  ar[4] = f5;  ar[5] = f6; ar[6] = f7; ar[7] = f8; ar[8] = f9; ar[9] = f10;
+        int lastAr = 1;
+        for(int x = 9; x > 0; x--) if(ar[x] != (0,0)) { lastAr = x; break; }
+
+        // Push the effect
+        let f = new('FeedbackFX');
+        for(int x = 0; x <= lastAr; x++) {
+            f.pulses.push(ar[x].x);
+            f.pulses.push(ar[x].y);
+        }
+        uiFeedback.push(f);
+    }
+
+    void AddWorldFeedback2(
+        Vector2 f1,
+        Vector2 f2 = (0,0),
+        Vector2 f3 = (0,0),
+        Vector2 f4 = (0,0),
+        Vector2 f5 = (0,0),
+        Vector2 f6 = (0,0),
+        Vector2 f7 = (0,0),
+        Vector2 f8 = (0,0),
+        Vector2 f9 = (0,0),
+        Vector2 f10 = (0,0)
+    ) {
+        // Determine how many of these are valid
+        Vector2 ar[10];
+        ar[0] = f1; ar[1] = f2; ar[2] = f3;  ar[3] = f4;  ar[4] = f5;  ar[5] = f6; ar[6] = f7; ar[7] = f8; ar[8] = f9; ar[9] = f10;
+        int lastAr = 1;
+        for(int x = 9; x > 0; x--) if(ar[x] != (0,0)) { lastAr = x; break; }
+
+        // Push the effect
+        let f = new('FeedbackFX');
+        for(int x = 0; x <= lastAr; x++) {
+            f.pulses.push(ar[x].x);
+            f.pulses.push(ar[x].y);
+        }
+        worldFeedback.push(f);
+    }
+
+    // Input process will not always (almost never) receive mouse events while a menu is open
+    // So we need to capture that in UIProcess
+    override bool InputProcess (InputEvent e) {
+        if(e.Type >= InputEvent.Type_Mouse) { return false; }
+
+        int key = e.KeyScan;
+
+        bool isGC = isUsingGamepad;
+
+        // Track menu input for some things differently..
+        if(menuActive == Menu.Off) {
+            if( (key >= InputEvent.Key_Mouse1 && key <= InputEvent.Key_Mouse8) || 
+                (key >= InputEvent.Key_MWheelUp && key <= InputEvent.Key_MWheelDown) ) {
+                mouseCount += 100;
+                eventHandler.SendNetworkEvent("ihuc", isGC, gamepadCount > kbCount, mouseCount > 0);
+            } else if(  (key >= InputEvent.Key_Pad_LThumb_Right && key <= InputEvent.Key_Pad_Y) ||
+                        (key >= InputEvent.Key_FirstJoyButton && key <= InputEvent.Key_JoyPOV4_Up) ||
+                        (key >= InputEvent.Key_JoyAxis1Plus && key <= InputEvent.Key_Pad_Y) ) {
+                gamepadCount++;
+
+                if(!isGC) {
+                    EventHandler.SendNetworkEvent("ihuc", 1, gamepadCount > kbCount, mouseCount > 0);
+                }
+            } else {
+                kbCount++;
+                
+                // If we thought the controller was active, swap over to keyboard
+                if(isGC) {
+                    EventHandler.SendNetworkEvent("ihuc", 0, gamepadCount > kbCount, mouseCount > 0);
+                }
+            }
+
+            inputCount++;
+        } else {
+            if((key >= InputEvent.Key_Mouse1 && key <= InputEvent.Key_Mouse8) || (key >= InputEvent.Key_MWheelUp && key <= InputEvent.Key_MWheelDown)) {
+                menuMouseCount++;
+                menuInputCount++;
+            } else if(key >= InputEvent.Key_Pad_LThumb_Right && key <= InputEvent.Key_Pad_Y) {
+                gamepadCount++;
+                inputCount++;
+            } else {
+                menuKBCount++;
+                menuInputCount++;
+            }
+        }
+        
+        // TODO: Completely rethink this, it was a terrible idea. 
+        // For now just toggling between gamepad and keyboard on last input is effective enough
+        // In the future just time when the last input was to determine if the control method is still being used
+        // Count down inputs
+        if(inputCount % 10 == 0) {
+            kbCount = kbCount > 0 ? kbCount - 1 : 0;
+            gamepadCount = gamepadCount > 0 ? gamepadCount - 1 : 0;
+            mouseCount = mouseCount > 0 ? mouseCount - 1 : 0;
+        }
+
+        stepMenuInput();        
+
+        return false;
+    }
+
+    // Won't be called without IsUIProcessor, and we can't know to turn that on as a menu is being opened
+    override bool UiProcess(UiEvent e) {
+
+        if(menuActive != Menu.Off && e.type > UIEvent.Type_MouseMove && e.type < UIEvent.Type_LastMouseEvent) {
+            menuMouseCount++;
+            menuInputCount++;
+
+            stepMenuInput();
+        }
+
+        return false;
+    }
+
+    // TODO: Find a way to actually gather menu input, currently it's impossible to turn on 
+    // IsUiProcessor when a menu is opened
+    ui void stepMenuInput() {
+        if(menuInputCount % 10 == 0) {
+            menuKBCount = kbCount > 0 ? kbCount - 1 : 0;
+            menuMouseCount = mouseCount > 0 ? mouseCount - 1 : 0;
+
+            // Currently we are never considered to be primarily using keyboard, because we can't reliably gather mouse input data
+            //EventHandler.SendNetworkEvent("ihub", menuKBCount >= 1, false);//menuKBCount > menuMouseCount);
+            isMenuUsingKeyboard = menuKBCount >= 1;
+            isMenuPrimarilyUsingKeyboard = false;
+        }
+    }
+}
+
+mixin class UIInputHandlerAccess {
+    clearscope bool isUsingGamepad() {
+        let i = InputHandler.Instance();
+        return i ? i.isUsingGamepad : false;
+    }
+
+    clearscope bool isPrimarilyUsingGamepad() {
+        let i = InputHandler.Instance();
+        return i ? i.isPrimarilyUsingGamepad : false;
+    }
+
+    ui bool isMenuUsingKeyboard() {
+        let i = InputHandler.Instance();
+        return i ? i.isMenuUsingKeyboard : true;    // Assume true by default
+    }
+
+    ui bool isMenuPrimarilyUsingKeyboard() {
+        let i = InputHandler.Instance();
+        return i ? i.isMenuPrimarilyUsingKeyboard : false;
+    }
+
+    ui void setMenuUsingGamepad(bool isUsing = true) {
+        let i = InputHandler.Instance();
+        if(i) i.isMenuUsingGamepad = isUsing;
+    }
+
+    ui bool isMenuUsingGamepad() {
+        let i = InputHandler.Instance();
+        return i ? i.isMenuUsingGamepad : false;
+    }
+}

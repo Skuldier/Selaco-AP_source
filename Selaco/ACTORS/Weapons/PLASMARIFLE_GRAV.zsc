@@ -1,0 +1,697 @@
+// Additional functionality for plasma rifle
+// Specifically for the telekenesis/gravgun ability
+extend class PLASMARIFLE {
+    Array< class<Actor> > telekTargetTypes;     // What can be telekeneticizederized
+    Array<PlasmaLinkParticle> telekParticles;   // Particles used for telek effect
+    Actor telekTarget;                          // Current telekenesis target
+    double telekAngle;                          // The angle we picked up the object at
+    double telekPitch;                          // Pitch that we picked up the object at
+    bool telekInRange;                          // Object has reached player and should be held tighter
+    bool telekTargetHasNoTouchy;                // Remember telek target THRUACTORS value
+    int telekInteract;                          // Was the telektarget interactable?
+
+    int telekDeltaCnt;
+    int stuckTics;
+
+    const TELEK_DELTA_LENGTH = 4;
+
+    Vector3 telekDeltaPos[TELEK_DELTA_LENGTH];                   // Use an average of the changes over time
+
+
+    const TELEK_HOLD_DIST   = 80.0;
+    const TELEK_STUCK_DIST  = 24;
+    const TELEK_GRACE_DIST = TELEK_HOLD_DIST + TELEK_STUCK_DIST + 25;
+    const TELEK_HOLD_HEIGHT = -5.0;
+    const MAX_STUCK_TICS    = 28;
+
+    States {
+        StartTelekinesis:
+            TNT1 A 0 {
+                invoker.stuckTics = 0;
+                invoker.findTelekTarget();
+
+                if(!invoker.telekTarget) {  // No target? Go back to ready
+                    SetWeaponState("ReallyReady");
+                    return;
+                }
+
+                S_StartSound("PLASMARIFLE/GRAB", CHAN_BODY);           
+                invoker.startTelekEffect();
+
+                let a = SelacoActor(invoker.telekTarget);
+                if(a) {
+                    // SelacoActor has the opportunity to swap out the grabbed actor here
+                    invoker.telekTarget = a.prepareForTelek(invoker.owner);
+                }
+            }
+            // Animate
+            PLGE BBCCDD 1 A_FireProjectile("BlueFlareMedium",0,0,frandom(-6,6),0);
+
+            // Start looping sound after animation so GRAB sound can finish properly.
+            TNT1 A 0 S_StartSound("PLASMARIFLE/LOOP", CHAN_WEAPON, CHANF_LOOP, volume: 0.4, pitch:1.12);
+        Telekinesis:
+            PLGR AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTT 1 {
+                S_WeaponReady();
+
+                // First person effects to make the effect more convincing
+                S_WeaponOffset(1, frandom(3,4));
+                A_FireProjectile("BlueFlareMedium",0,0,frandom(-6,6),0);
+                A_QuakeEx(frandom(0.3, 0.3), frandom(0.3,0.3), frandom(0.3, 0.3), 2, 0, 290, 0, 0, frandom(0.1,0.2), frandom(0.1,0.2), frandom(0.1,0.2), Frandom(0.1,0.2), Frandom(0.1,0.2), Frandom(0.1,0.2)); 
+                
+                if(!invoker.telekTarget) {
+                    S_STOPSOUND(CHAN_WEAPON);   // stop loop
+                    SetWeaponState("Ready3");
+                    return;
+                }
+
+                // Make sure we aren't standing on the object
+                bool standingOn = invoker.checkTelekForStandon();
+                bool stuck = !invoker.adjustTelek();
+                if(standingOn || stuck) {
+                    let tko = invoker.telekTarget;
+                    invoker.dropTelek();
+
+                    // Add downward force if it's not on the ground, more anti-riding measures
+                    if(standingOn && tko && tko.pos.z > tko.floorz) { tko.vel.z = MIN(tko.vel.z - 7, -7); }
+
+                    SetWeaponState("DropTelekinesis");
+                }
+            }
+            loop;
+        DropTelekinesis:
+            // Release before the animation plays.
+            TNT1 A 0 {
+                invoker.dropTelek();
+                invoker.stopTelekEffect();
+            }
+            PLGE CCBBAA 1 A_FireProjectile("BlueFlareMedium",0,0,frandom(-6,6),0);
+            TNT1 A 0 { 
+                SetWeaponState("Ready3");
+            }
+        TossTelekinesis:    
+            // Used when trying to throw, but out of ammo
+            // TODO: Crosshair flash or something to indicate out of ammo
+            TNT1 A 0 {
+                S_StartSound("PLASMARIFLE/TOSS", CHAN_BODY);
+
+                let pd = PickupableDecoration(invoker.telekTarget);
+                if(pd) {
+                    pd.throw();
+                    
+                    invoker.throwTelek(0.1);
+                    invoker.stopTelekEffect();
+                } else {
+                    SetWeaponState("DropTelekinesis");
+                }
+            }
+            PLGE CCBBAA 1 A_FireProjectile("BlueFlareMedium",0,0,frandom(-6,6),0);
+            TNT1 A 0 { 
+                SetWeaponState("Ready3");
+            }
+        ThrowTelekinesis:
+            // Runs before we throw 
+            TNT1 A 0
+            {
+                int reserveAmmo = countinv("PlasmaReserve");
+                int loadedAmmo = countInv("PlasmaRifleAmmo");
+                // Reject if the player has no ammo.
+                if (reserveAmmo < telekAmmoRequirement && loadedAmmo < telekAmmoRequirement) 
+                {
+                    if(invoker.activeCrosshair) { invoker.activeCrosshair.dryFire(); }
+                    SetWeaponState("DropTelekinesis");
+                    return;
+                } 
+                // Player has ammo. Deplete
+                else 
+                {
+                    // Take from reserve first, if available.
+                    if (reserveAmmo >= telekAmmoRequirement) 
+                    {
+                        TakeInventory("PlasmaReserve", telekAmmoRequirement);
+                    }
+                    // Not enough in reserve, take from Loaded Ammo instead 
+                    else 
+                    {
+                        TakeInventory("PlasmaRifleAmmo", telekAmmoRequirement);
+                    }
+                }
+
+                // Viewmodel stuff
+                invoker.flashFrame = 0;
+                invoker.throwTelek();
+                invoker.stopTelekEffect();
+
+                if(invoker.activeCrosshair) { invoker.activeCrosshair.weaponFire(); }
+                
+                // Apply some oomph
+                S_StartSound("PLASMARIFLE/THROW", CHAN_BODY);
+                A_QuakeEx(frandom(2.3, 2.3), frandom(2.3, 123), frandom(1.3, 1.3), 11, 0, 290, 0, 0, 3, 3, 3, 2, 2, 2); 
+            }
+            PLGT ABBCCDDEEGGHHIIJJ 1 {
+                // Spawn muzzleflash until no more frames
+                if(invoker.flashNumber <= 4) {
+                   S_SelacoMuzzleFlash(invoker.plasmaFlashes[invoker.flashFrame], invoker.flashNumber, 0.55);
+                    invoker.flashNumber++;
+                }
+                S_WEAPONOFFSET(5);
+                A_FireProjectile("BlueFlareMedium",0,0,frandom(-6,6),0);
+            }
+            TNT1 A 0 { 
+                SetWeaponState("Ready3");
+            }
+    }
+
+
+    virtual Actor searchForTelekTarget() {
+        if(Owner == null) return null;
+
+        let dPlayer = Dawn(Owner.Player ? Owner.Player.mo : null);
+        if(dPlayer == null) return null;
+
+        // Load up type array
+        if(telekTargetTypes.Size() == 0) {
+            // Go through all actor classes and find ones that are a: SelacoActor and b: Have bAllowGravityManipulation set
+            for(int x = 0; x < AllClasses.Size(); x++) {
+                if( AllClasses[x] is 'SelacoActor') {
+                    let def = SelacoActor(GetDefaultByType((class<Actor>)(AllClasses[x])) );
+                    
+                    if((def.radius < 30 && !def.bDisallowGravityManipulation && def.bShootable && !def.bTHRUACTORS && !def.bIsMonster) || def.bAllowGravityManipulation)  {
+                        telekTargetTypes.push((class<Actor>)(AllClasses[x]));
+                    }
+                }
+            }
+        }
+
+        Actor targ = dPlayer.FindAutoAimTarget(telekTargetTypes, 20, 400, gravityTargets: true);
+        let stelekTarget = SelacoActor(targ);
+
+        if(targ && !(stelekTarget && !stelekTarget.bAllowGravityManipulation && stelekTarget.bDisallowGravityManipulation && targ != dPlayer.holdingObject)) {
+            return targ;
+        }
+
+        return NULL;
+    }
+
+
+    virtual bool findTelekTarget() {
+        let dPlayer = Dawn(Owner.Player ? Owner.Player.mo : null);
+        if(dPlayer == null) return false;
+
+        telekTarget = searchForTelekTarget();
+
+        let stelekTarget = SelacoActor(telekTarget);
+
+        if(telekTarget && !(stelekTarget && !stelekTarget.bAllowGravityManipulation && stelekTarget.bDisallowGravityManipulation)) {
+            telekAngle = normA(telekTarget.angle - dPlayer.angle);
+            telekPitch = normA(telekTarget.pitch - dPlayer.pitch);
+            telekInRange = false;
+            telekInteract = telekTarget.ActivationType;
+            telekTargetHasNoTouchy = telekTarget.bTHRUACTORS;
+            telekDeltaCnt = 0;
+
+            for(int x = 0; x < TELEK_DELTA_LENGTH; x++) {
+                telekDeltaPos[x] = telekTarget.pos;
+            }
+
+            if(telekTarget is 'EnvironmentalHazard') {
+                telekTarget.A_SetTranslucent(0.5, 0);
+            }
+
+            telekTarget.Wake();
+        } else {
+            if(stelekTarget) {
+                if(developer > 1) A_PRINTBOLD(String.Format("Failed %s  (%d, %d)", stelekTarget.getClassName(), stelekTarget.bAllowGravityManipulation, stelekTarget.bDisallowGravityManipulation));
+            }
+            telekTarget = null;
+            return null;
+        }
+
+        if(telekTarget is "SelacoActor")
+        {
+            SelacoActor(telekTarget).grabbedTelek(); // In case we want to run a function on the actor to detect grabbing
+        }
+
+        return telekTarget;
+    }
+
+    // Each tick we move the telek target into position
+    virtual bool adjustTelek() {
+        let pawn = Owner && Owner.Player ? Owner.Player.mo : null;
+        if(!pawn) { return false; }
+
+        let player = Owner.Player;
+
+        Vector3 oldPos = telekTarget.pos;
+
+        Vector3 vProj = PickupableDecoration.vecFromAngle(pawn.angle, CLAMP(pawn.pitch, -70, 70), MAX(TELEK_HOLD_DIST, telekTarget.radius + 5));
+        Vector3 viewPos = (pawn.pos.x, pawn.pos.y, player.viewz + TELEK_HOLD_HEIGHT - (telekTarget.height * 0.5));
+        Vector3 newPos = vProj + viewPos + player.vel;
+
+        // Vibrate newPos for funsies
+        newPos.y += cos(level.time * 70) * 2;
+        newPos.x += cos(level.time * 30) * 0.5;
+        newPos.z += cos(level.time * 40) * 0.5;
+
+        // Move towards the target instead of directly to the target
+        newPos = telekTarget.pos + ((newPos - telekTarget.pos) * (telekInRange ? 0.85 : 0.45));
+
+// ===
+        let pvel = player.vel.length();
+        let maxVel = max(pvel, 40);
+        let dir = newPos - telekTarget.pos;
+        let dvel = !(dir ~== (0,0,0)) ? dir.length() : 0;
+        
+        telekTarget.vel = !(dir ~== (0,0,0)) ? dir.unit() * min(dvel, maxVel) : (0,0,0);
+        telekTarget.A_SetAngle(owner.angle, SPF_INTERPOLATE);
+// ===
+
+        // Check move distance
+        Vector3 np = newPos;
+        //np.z = telekTarget.pos.z;
+        let delta = np - telekTarget.pos;
+        let dist = delta.Length();
+
+        telekTarget.bTHRUACTORS = telekTarget.Default.bThruActors || (dist > 15 && !telekInRange);
+
+        // Check for stuck and drop
+        if(owner.distance3Dsquared(telekTarget) > (TELEK_GRACE_DIST * TELEK_GRACE_DIST)) {
+            if(++stuckTics > MAX_STUCK_TICS) {
+                return false;   // Return false to indicate we are stuck
+            }
+        } else if(level.totalTime % 3 == 0) {
+            // Last check, do a quick hitscan every so often to check if we have lost sight of the target via wall/floor etc
+            let poffset = player.mo.height * 0.5 - player.mo.floorclip + player.mo.AttackZOffset*player.crouchFactor;
+            Vector3 cpos = player.mo.pos;
+            cpos.z += poffset;
+			Vector3 dir = telekTarget.pos - cpos;
+			double dist = dir.length();
+            dir = dir.unit();
+            let dangle = atan2(dir.y, dir.x); // Convert to angle
+            let dpitch = -asin(dir.z);
+
+            if(player.mo.LineTrace(dangle, dist, dpitch, TRF_THRUACTORS, poffset)) {
+                stuckTics += 6;
+                if(stuckTics > MAX_STUCK_TICS) {
+                    return false;
+                }
+            } else {
+                stuckTics = 0;
+            }
+        }
+
+        // Make sure that our target is not interactable while being telekinesisesedeedded
+        let tk = Interactable(telekTarget);
+        if(tk) {
+            telekTarget.activationtype = AF_Default;
+        }
+
+        if(dist < 5) {
+            telekInRange = true;
+        }
+
+        // Rotate for funsies
+        double distScale = CLAMP( (25 - dist) / 25.0, 0.0, 1.0);
+        telekTarget.angle += cos(level.time * 30) * 3 * distScale;
+        telekTarget.pitch = cos(level.time * 25) * 1.5 * distScale;
+        telekTarget.roll = cos(level.time * 15) * 1.5 * distScale;
+
+        telekDeltaCnt++;
+        telekDeltaPos[telekDeltaCnt % TELEK_DELTA_LENGTH] = telekInRange ? oldPos : telekTarget.pos;
+
+        
+
+        return true;
+    }
+
+    // Check the telekinesis target to see if the player is riding or standing on it
+    // Obviously we don't want to control it's position and allow the player to ride it
+    virtual bool checkTelekForStandon() {
+        if(!Owner || !telekTarget) {
+            return false;
+        }
+
+        // If the player is on an object, and the telektarget is below the player, 
+        // and the player is within the radius of the telek target
+        // let's assume the player is riding the object and drop it
+        if( Owner.bOnMObj && 
+            (telekTarget.pos.z + telekTarget.height - 0.15) <= Owner.pos.z && 
+            ((Owner.pos.XY - telekTarget.pos.XY).Length() - Owner.radius <= telekTarget.radius)) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    virtual Vector3 calcTossForce() {
+        Vector3 tossForce = (0,0,0);
+        for(int x = telekDeltaCnt; x > telekDeltaCnt - (TELEK_DELTA_LENGTH - 1) && x > 0; x--) {
+            tossForce += telekDeltaPos[x % TELEK_DELTA_LENGTH] - telekDeltaPos[(x - 1) % TELEK_DELTA_LENGTH];
+        }
+
+        tossForce /= double(TELEK_DELTA_LENGTH - 1);
+        //Console.Printf("TossForce: %f %f %f %f", tossForce.x, tossForce.y, tossForce.z, double(TELEK_DELTA_LENGTH - 1));
+
+        double maxForce = MAX(5, 40 * (1 - telekTarget.mass / 500.0));
+        double force = MIN(tossForce.length(), maxForce);
+        tossForce = force > 0.01 ? tossForce.unit() * force : (0,0,0);
+
+        return tossForce;
+    }
+
+
+    virtual void throwTelek(double force = 1.0, bool projectile = true) {
+        if(!Owner || !telekTarget) {
+            return;
+        }
+
+        if(telekTarget is 'EnvironmentalHazard') {
+            telekTarget.A_SetRenderStyle(1.0, STYLE_NORMAL);
+        }
+
+        // Restore activation
+        telekTarget.ActivationType = telekInteract;
+        S_STOPSOUND(CHAN_WEAPON);
+        A_PLAYSOUND("PICKUP/THROW", CHAN_AUTO, 1.0, 0, 1.0, 0, frandom(0.9,1.1));
+        telekTarget.vel = (Owner.vel * 0.5) + PickupableDecoration.vecFromAngle(Owner.angle, Owner.pitch, 60 * force);
+        telekTarget.vel += calcTossForce();
+
+        let sa = SelacoActor(telekTarget);
+        let pd = PickupableDecoration(telekTarget);
+        let tvel = pd ? pd.projectileSpeed : 20;
+        let pvel = pd ? pd.vel.length() : 0; // I fixed Cock's VM abort.
+
+        if(sa) {
+            sa.convertToProjectile(!projectile);
+        } else {
+            if(developer) A_PRINTBOLD("This shouldn't happen.");
+            telekTarget.bMissile = true;    // Convert the object to a missile, make sure it explodes on collision
+            telekTarget.bBOUNCEONWALLS = false;
+            telekTarget.bBounceOnActors = false;
+            telekTarget.bBounceOnCeilings = false;
+            telekTarget.bBounceOnFloors = false;
+            telekTarget.bEXPLODEONWATER = true;
+            telekTarget.bSKYEXPLODE = true;
+            telekTarget.bSKULLFLY = true;
+            telekTarget.bTHRUACTORS = false;
+            if(!telektarget.DamageType) telektarget.DamageType = "MeleeImpact";
+            telekTarget.A_ChangeLinkFlags(false);   // Can't be shot now
+        }
+
+        // Set damage done based on the size of the object.
+        // This is crude, so most objects *could* define their own damage
+        if(telekTarget.damage == 0) telekTarget.SetDamage(telekTarget.radius * 2);
+
+        if(sa) {
+            sa.throwTelek(projectile); // In case we want to run a function on the actor to detect grabbing
+            sa.telekOwner = null;
+        }
+
+        telekTarget = null;
+    }
+
+
+    virtual void dropTelek() {
+        if(!Owner || !telekTarget) {
+            return;
+        }
+        
+        let sa = SelacoActor(telekTarget);
+        
+        if(sa)
+        {
+            sa.releaseTelek(); // In case we want to run a function on the actor to detect grabbing
+            sa.telekOwner = null;
+        }
+
+        S_StartSound("PLASMARIFLE/RELEASE", CHAN_BODY);
+        S_STOPSOUND(CHAN_WEAPON);
+
+        // Restore activation
+        telekTarget.ActivationType = telekInteract;
+        
+        // Average the movement force
+        Vector3 tossForce = calcTossForce();
+        
+        /*= (0,0,0);
+        for(int x = telekDeltaCnt; x > telekDeltaCnt - (TELEK_DELTA_LENGTH - 1) && x > 0; x--) {
+            tossForce += telekDeltaPos[x % TELEK_DELTA_LENGTH] - telekDeltaPos[(x - 1) % TELEK_DELTA_LENGTH];
+        }
+
+        tossForce /= double(TELEK_DELTA_LENGTH - 1);
+        //Console.Printf("TossForce: %f %f %f %f", tossForce.x, tossForce.y, tossForce.z, double(TELEK_DELTA_LENGTH - 1));
+
+        double maxForce = MAX(5, 40 * (1 - telekTarget.mass / 500.0));
+        double force = MIN(tossForce.length(), maxForce);
+        tossForce = force > 0.01 ? tossForce.unit() * force : (0,0,0);*/
+
+        if(telekTarget is 'EnvironmentalHazard') {
+            telekTarget.A_SetRenderStyle(1.0, STYLE_NORMAL);
+        }
+
+        telekTarget.pitch = 0;
+        telekTarget.roll = 0;
+        telekTarget.vel = tossForce;
+        telekTarget.bTHRUACTORS = telekTargetHasNoTouchy;
+        telekTarget = null;
+    }
+
+    virtual void startTelekEffect() {
+        if(!telekTarget) return;
+
+        // Remove any existing particles
+        stopTelekEffect();
+
+        /*let p = PlasmaLinkParticle(Spawn('PlasmaLinkParticle', pos));
+        p.source = Owner.Player.mo;
+        p.target = telekTarget;
+        p.holdPos = 1;
+        p.phase = 0;//x * 5;
+        p.alpha = 0.25;
+        telekParticles.push(p);*/
+
+        Array<SelacoParticle> ps;
+
+        for(int x = 0; x < 14; x++) {
+            ps.push(PlasmaLinkParticle(Spawn('PlasmaLinkParticle', pos)));
+        }
+        
+        for(int x = 0; x < ps.size(); x++) {
+            let p = PlasmaLinkParticle(ps[x]);
+            p.source = Owner.Player.mo;
+            p.target = telekTarget;
+            p.holdPos = easeInCubicF( float(x) / float(ps.size() - 1) );
+            p.phase = x * 5;
+            p.alpha = p.holdPos > 0.99 ? 0.25 : 0.5 * (1.0 - p.holdPos);
+            telekParticles.push(p);
+        }
+    }
+
+    virtual float easeInCubicF(float num) {
+        return num * num * num;
+    }
+
+    virtual void stopTelekEffect() {
+        for(int x =0; x < telekParticles.size(); x++) {
+            if(telekParticles[x]) telekParticles[x].finishEffect();
+        }
+
+        telekParticles.clear();
+
+        if(targetMarker) {
+            targetMarker.SetStateLabel("Death");
+            targetMarker = NULL;
+        }
+    }
+
+    virtual double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+
+    GravityTargetMarker targetMarker;
+    bool hasTelek;
+    
+    override void tick() {
+        Super.tick();
+
+        if(Owner && Owner.player && Owner.player.ReadyWeapon == self) {
+            let dplayer = Dawn(Owner);
+
+            // Check for a new possible target every 2 ticks
+            if(hasTelek && !telekTarget && level.mapTime % 2 == 0 && !(dplayer && dplayer.holdingObject)) {
+                let targ = searchForTelekTarget();
+
+                // Add new target marker
+                if(targ && (!targetMarker || targetMarker.target != targ)) {
+                    if(targetMarker) {
+                        targetMarker.setStateLabel("Death");
+                    }
+
+                    targetMarker = GravityTargetMarker(Spawn('GravityTargetMarker', targ.pos + (0,0,targ.height / 2)));
+                    targetMarker.target = targ;
+                } else if(!targ && targetMarker) {
+                    targetMarker.setStateLabel("Death");
+                    targetMarker = NULL;
+                }
+            } else if(dplayer && dplayer.holdingObject) {
+                telekTarget = null;
+                if(targetMarker) {
+                    targetMarker.setStateLabel("Death");
+                    targetMarker = NULL;
+                }
+            }
+
+            /*if(telekTarget && targetMarker) {
+                targetMarker.setStateLabel("Death");
+                targetMarker = NULL;
+            }*/
+            
+            if(level.maptime % 15 == 0) {
+                hasTelek = altFireCheck("AltFirePlasmaRifleGravityManipulatorTraditional");
+            }
+        } else if(targetMarker) {
+            targetMarker.destroy();
+            targetMarker = NULL;
+        }
+    }
+}
+
+
+class PlasmaLinkParticle : SelacoParticle {
+    Actor source, target;
+    float holdPos, phase;
+
+    default {
+        renderstyle "add";
+        radius 5;
+        height 5;
+        scale 0.845;
+        alpha 0.4;
+
+        +NOINTERACTION;
+        +NOBLOCKMAP;
+        +ROLLSPRITE;
+    }
+
+
+    states {
+        spawn:
+            PLPR AB 1 BRIGHT;
+            loop;
+        despawn:
+            IPP2 ABCDEFG 6 BRIGHT;
+            stop;
+    }
+
+    void finishEffect() {
+        source = null;
+        target = null;
+        setState(findState("despawn"));
+    }
+
+    override void tick() {
+        // If we have no guide objects
+        if(!source || !target) {
+            // Move with vel
+            SetOrigin(pos + vel, true);
+
+            // Fade out
+            alpha -= 0.05;
+
+            if(alpha < 0) {
+                destroy();
+            }
+            return;
+        }
+        
+        if(!bHasTicked) {
+            Actor.tick();
+            ClearInterpolation();
+
+            if(holdPos > 0.99) {
+                A_SetScale(MAX(1, target.radius * 0.065), target.radius * 0.065);
+            } else {
+                A_SetSize((target.radius < 8 ? 7 : 10) * (holdPos + 0.25));
+                A_SetScale(scale.x * (radius * 0.05), scale.x * (radius * 0.05));
+            }
+        }
+
+        Vector3 oldPos = pos;
+
+        // Determine new pos based on time and angles
+        Vector3 vProj = PickupableDecoration.vecFromAngle(source.angle, clamp(source.pitch, -80, 90), 18);
+        Vector3 viewPos = (source.pos.x, source.pos.y, source.player.viewz - 5);
+        Vector3 newPos = vProj + viewPos;
+        
+        Vector3 sOffset = source.Vec3Angle(3, source.angle - 90) - source.pos;
+
+
+        Vector3 tPos = (target.pos + (0,0,target.height / 2.0));
+        Vector3 sPos = newPos + sOffset;
+        Vector3 dir = (tPos) - (sPos);
+        dir = dir.unit() * (dir.length() - target.radius);
+        Vector3 targetPos = sPos + (dir * holdPos);
+
+        // Offset targetPos with a sine wave
+        // TODO: Reduce amplitude of the wave based on distance to target
+        if(holdPos < 0.99) targetPos.z += sin((SpawnTime - level.totalTime + phase) * 25) * (radius * 0.25);
+
+        SetOrigin(targetPos, true);
+
+        // Update our drawing sector periodically
+        /*if((level.totaltime - SpawnTime) % 10 == 0) {
+            LinkContext ctx;
+            UnlinkFromWorld(ctx);
+            SetOrigin(pos);
+            LinkToWorld(ctx);
+        }*/
+
+        vel = pos - oldPos;
+        roll = frandom(0, 360);
+
+        if(!bHasTicked) {
+            prev = pos - (0,0,2);
+            bHasTicked = true;
+        }
+    }
+}
+
+
+class GravityTargetMarker : Actor {
+    default {
+        radius 5;
+        height 5;
+        scale 0.35;
+        alpha 0.8;
+
+        +NOINTERACTION;
+        +NOBLOCKMAP;
+        +ROLLSPRITE;
+    }
+
+    states {
+        Spawn:
+            GRVM A 0;
+            GRVM A 1 BRIGHT;
+        TargetLoop:
+            GRVM A 1 BRIGHT{
+                // Expand to target radius
+                if(target) {
+                    let targScale = (target.radius / 20.0) * 0.5;
+                    A_SetScale(scale.x + ((targScale - scale.x) / 2.0), (target.height / 40.0) * 0.5);
+
+                    A_Warp(AAPTR_TARGET, 0, 0, target.height * 0.5, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+                } else {
+                    setStateLabel("Death");
+                }
+            }
+            loop;
+        Death:
+            GRVM AAAAAA 1 BRIGHT A_FADEOUT(0.15);
+            stop;
+    }
+}

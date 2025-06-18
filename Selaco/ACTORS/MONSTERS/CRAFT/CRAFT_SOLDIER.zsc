@@ -1,0 +1,43 @@
+class CRAFT_SOLDIER : SelacoEnemy
+{
+    default
+    {
+        -SelacoEnemy.AllowStealthKill;
+        health 250;
+        radius 14;
+        height 30;
+        monster;
+        mass 700;
+        speed 6;
+        scale 0.4;
+        yscale 0.34;
+        Bloodtype "ZombieSplatter";
+    }
+    states
+    {
+        Spawn:
+        Idle:
+            CRSI ABCDEEEDCBA 3
+            {
+                A_LOOK();
+            }
+            loop;
+        See:
+            CRSR ABCDEFGHIJ 3
+            {
+                A_CHASE();
+            }
+            loop;
+        Missile:
+            CRSF ABCD 3;
+        FireWeapon:
+            CRSF DDDDD 5
+            {
+                A_FACETARGET();
+                A_SPAWNPROJECTILE("AlienTracer", 24);
+                A_SPAWNITEMEX("AlienMuzzle", 5, 9, 24);
+                A_Playsound("rifle/testshot", chan_auto);
+            }
+            goto see;
+    }
+} 

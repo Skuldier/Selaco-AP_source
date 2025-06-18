@@ -1,0 +1,65 @@
+
+// TO-DO: Proberly move the sprite over
+class BonePartDefinition : ParticleDefinition
+{
+    static const String BoneSprites[] = {"BONE", "BON2", "BON3"};
+    actor bonePart;
+    override void Init()
+    {
+        super.Init();
+        self.SetGravity(0.6);
+        self.randomRoll(0,360);
+        self.RandomRollSpeed(-5,5);
+        self.BounceFactor(0.3);
+        self.SetFlag(PDF_KILLSTOP);
+        Self.BounceSound = "bonepart/bounce";
+
+        for (int i = 0; i < BoneSprites.Size(); i++)
+        {
+            int sequence = AddAnimationSequence();
+            AddAnimationFrames(sequence, BoneSprites[i], "ABCDEFG", 2);
+        }
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        int sequence = random(0, GetAnimationSequenceCount() - 1);
+        particle.InitLife(-1);
+        particle.AnimFrame = GetAnimationStartFrame(sequence);
+        
+        particle.vel.x +=frandom(-2,2);
+        particle.vel.y +=frandom(-2,2);
+        particle.vel.z +=frandom(2,9);
+        particle.Roll = frandom(0, 360);
+        particle.SetScale(0.19 + frandom(-0.04, 0.04));
+    }
+
+    override bool OnParticleDeath(in out ParticleData particle)
+    {
+        bonePart = particle.SpawnActor('BonePiece');
+        if(bonePart) {
+            BonePiece(bonePart).scale = particle.scale;
+        }
+        return 1;
+    }
+
+}
+
+
+class BonePartLargeDefinition : BonePartDefinition  {
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.SetScale(0.3 + frandom(-0.04, 0.04));
+    }
+
+    override bool OnParticleDeath(in out ParticleData particle)
+    {
+        bonePart = particle.SpawnActor('BonePieceLarge');
+        if(bonePart) {
+            BonePiece(bonePart).scale = particle.scale;
+        }
+        return 1;
+    }
+}

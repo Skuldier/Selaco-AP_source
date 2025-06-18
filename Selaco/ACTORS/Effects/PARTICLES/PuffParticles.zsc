@@ -1,0 +1,351 @@
+
+class BulletImpactPuffSmokeDefinition : ParticleDefinition
+{
+    override void Init()
+    {
+        super.Init();
+        self.ClearFlag(PDF_KILLSTOP);
+        AddAnimationSequence();
+        AddAnimationFrames(0, "SMOK", "ABCDEFGHIJKLMNOPQ", 1);
+        
+        self.SetLife(GetAnimationLengthInTicks(0));
+        self.DefaultRenderStyle = STYLE_ADD;
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Alpha = 0.4;
+        particle.AlphaStep = -0.025;
+        particle.Roll = random(0, 360);
+        particle.SetScale(0.53);
+    }
+}
+
+
+class BulletImpactEffectPlasticDefinition : ParticleDefinition
+{
+    static const String SmokeEffects[] = {"PLH1", "PLH2"};
+
+    override void Init()
+    {
+        super.Init();
+
+        self.DefaultRenderStyle = Style_Add;
+
+        for (int i = 0; i < SmokeEffects.Size(); i++)
+        {
+            int sequence = AddAnimationSequence();
+            AddAnimationFrames(sequence, SmokeEffects[i], "ABCDEFGHIJKLMNOPQRSUVWXYZ", 1);
+        }
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        int sequence = random(0, GetAnimationSequenceCount() - 1);
+        particle.InitLife(GetAnimationLengthInTicks(sequence));
+        particle.AnimFrame = GetAnimationStartFrame(sequence);
+        
+        particle.Roll = frandom(0, 360);
+        particle.SetScale(0.25 + frandom(-0.1, 0.3));
+        particle.SetScaleStep(1.01);
+        particle.AlphaStep = -0.05;
+    }
+}
+
+class BulletImpactEffectPlasticSmallDefinition : BulletImpactEffectPlasticDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.SetScale(0.15 + frandom(-0.1, 0.3));
+        particle.SetScaleStep(1.001);
+    }
+}
+
+class BulletImpactEffectPlasticStationaryDefinition : BulletImpactEffectPlasticDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+		particle.vel.x = 0;
+		particle.vel.y = 0;
+		particle.vel.z = 0;
+    }
+}
+
+class BulletImpactEffectConcreteDefinition : ParticleDefinition
+{
+    static const String SmokeEffects[] = {"HDE1", "HDE2", "HDE3", "HDE4"};
+
+    override void Init()
+    {
+        super.Init();
+
+        self.DefaultRenderStyle = STYLE_Normal;
+
+        for (int i = 0; i < SmokeEffects.Size(); i++)
+        {
+            int sequence = AddAnimationSequence();
+            AddAnimationFrames(sequence, SmokeEffects[i], "ABCDEFGHIJKLMNOPQRSUV", 1);
+        }
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        int sequence = random(0, GetAnimationSequenceCount() - 1);
+        particle.InitLife(GetAnimationLengthInTicks(sequence));
+        
+        particle.AnimFrame = GetAnimationStartFrame(sequence);
+        particle.Roll = frandom(0, 360);
+        particle.SetScale(0.25 + frandom(-0.1, 0.3));
+        particle.SetScaleStep(1.01);
+        particle.AlphaStep = -0.05;
+    }
+}
+
+class CrawlerMineSparkDefinition : ParticleDefinition {
+    static const String SmokeEffects[] = {"MEX1", "MEX2", "MEX3"};
+
+    override void Init()
+    {
+        super.Init();
+        self.SetDefaultParticleFlag(DPF_FULLBRIGHT);
+        self.DefaultRenderStyle = STYLE_Normal;
+
+        for (int i = 0; i < SmokeEffects.Size(); i++)
+        {
+            int sequence = AddAnimationSequence();
+            AddAnimationFrames(sequence, SmokeEffects[i], "ABCDEFGHIJKLMNOPQRSUV", 1);
+        }
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        int sequence = random(0, GetAnimationSequenceCount() - 1);
+        particle.InitLife(GetAnimationLengthInTicks(sequence));
+            
+        particle.AnimFrame = GetAnimationStartFrame(sequence);
+        particle.Roll = frandom(-15, 15);
+        particle.SetScale(0.25 + frandom(-0.13, 0.13));
+        particle.SetScaleStep(1.01);
+        particle.scale.x*= random(0,1) ? -1 : 1;
+        particle.AlphaStep = -0.05;
+    }    
+}
+
+class CrawlerMineSparkSmallDefinition : CrawlerMineSparkDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.SetScale(0.12 + frandom(-0.13, 0.13));
+    }    	
+}
+
+
+class BulletCasePuffDefinition : BulletImpactEffectConcreteDefinition {
+    override void init() {
+        super.init();
+    
+    }
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.SetScale(0.11);
+        particle.alpha = 0.85;
+        particle.vel.z+=0.5;
+    }
+}
+
+
+class BulletImpactEffectWoodDefinition : ParticleDefinition {
+    static const String SmokeEffects[] = {"HWD1", "HWD2", "HWD3"};
+
+    override void Init()
+    {
+        super.Init();
+        self.ClearFlag(DPF_LOOPANIMATION);
+        self.SetDefaultParticleFlag(DPF_FULLBRIGHT);
+        self.DefaultRenderStyle = STYLE_Normal;
+
+        for (int i = 0; i < SmokeEffects.Size(); i++)
+        {
+            int sequence = AddAnimationSequence();
+            AddAnimationFrames(sequence, SmokeEffects[i], "ABCDEFGHIJKLMNOPQRSUV", 1);
+        }
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        int sequence = random(0, GetAnimationSequenceCount() - 1);
+        particle.InitLife(GetAnimationLengthInTicks(sequence));
+            
+        PlayAnimationSequence(particle, sequence, 0);
+        particle.Roll = frandom(-15, 15);
+        particle.Alpha = 0.85;
+        particle.SetScale(0.53 + frandom(-0.13, 0.13));
+        particle.SetScaleStep(1.01);
+        particle.scale.x*= random(0,1) ? -1 : 1;
+        particle.scale.y*= random(0,1) ? -1 : 1;
+        particle.AlphaStep = -0.025;
+    }    
+}
+
+
+class SawdustDefinition : ParticleDefinition
+{
+    override void Init()
+    {
+        super.Init();
+
+        self.SetBaseScaleXY(0.13, 0.17);
+        self.SetGravity(0.65);
+
+        self.SetFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_DIRFROMMOMENTUM);
+
+        self.RandomLife(300, 600);
+        self.FadeLifeRange(5, 30);
+        self.StopSpeed = 2;
+        self.Drag = 0.02;
+        self.RandomAngle(-60, 60);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-60, 60);
+
+        self.RandomPitch(-45, 45);
+        self.RandomSpeed(3, 12);
+        self.RandomScaleX(0.6, 3.2);
+        self.RandomScaleY(0.6, 3.6);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SAWD", "ABCDEFGHI");
+    }
+}
+
+
+
+class SawDustUpwardDefinition : SawdustDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.65);
+        //self.DefaultRenderStyle = STYLE_Translucent;
+        self.SetLifespanMultipliers(0.2, 1.0, 2.0, 3.0, 8.0);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+        self.SetFlag(PDF_LIFEFADE);
+        self.FadeLifeRange(5, 90);
+        self.RandomPitch(-60, -120);
+        self.RandomLife(90,120);
+        self.StopSpeed = 2;
+        self.RandomSpeed(2,11);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-60,60);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("SAWD", "ABCDEFGHI");
+    }
+
+}
+
+
+
+class SawDust360Definition : SawdustDefinition {
+    override void init() {
+        super.init();
+        self.RandomAngle(0,360);
+        self.RandomPitch(0,180);
+        self.RandomSpeed(1,5);
+
+        self.SetBaseScaleXY(0.13, 0.17);
+    }
+}
+
+
+
+class BulletImpactEffectMetalDefinition : ParticleDefinition {
+    static const String SmokeEffects[] = {"HCR1", "HCR2", "HCR3"};
+
+    override void Init()
+    {
+        super.Init();
+        self.SetDefaultParticleFlag(DPF_FULLBRIGHT);
+        self.DefaultRenderStyle = STYLE_ADD;
+
+        for (int i = 0; i < SmokeEffects.Size(); i++)
+        {
+            int sequence = AddAnimationSequence();
+            AddAnimationFrames(sequence, SmokeEffects[i], "ABCDEFGHIJKLMNOPQRSUV", 1);
+        }
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        int sequence = random(0, GetAnimationSequenceCount() - 1);
+        particle.InitLife(GetAnimationLengthInTicks(sequence)-1);
+        particle.vel.x += frandom(-0.6,-1.1);
+        particle.vel.z += 1;
+        particle.AnimFrame = GetAnimationStartFrame(sequence);
+        particle.Roll = frandom(0,360);
+        particle.Alpha = 0.85;
+        particle.SetScale(0.53 + frandom(-0.13, 0.13));
+        particle.SetScaleStep(1.01);
+        particle.scale.x*= random(0,1) ? -1 : 1;
+        particle.scale.y*= random(0,1) ? -1 : 1;
+        particle.AlphaStep = -0.025;
+    }    
+}
+
+class BulletImpactEffectMetalSmallDefinition : BulletImpactEffectMetalDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.SetScale(0.4 + frandom(-0.13, 0.13));
+        particle.vel.x = 0;
+        particle.vel.y = 0;
+        particle.vel.z = 0;
+    }  
+}
+
+class BulletImpactEffectMetalSmallerDefinition : BulletImpactEffectMetalSmallDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.SetScale(0.3 + frandom(-0.13, 0.13));
+    }  
+}
+
+class BulletImpactEffectMetalBabyDefinition : BulletImpactEffectMetalSmallDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.SetScale(0.1 + frandom(-0.13, 0.13));
+    }  
+}
+
+
+class BulletImpactEffectMediumArmorDefinition : BulletImpactEffectMetalDefinition {
+    static const String SmokeEffects[] = {"HCR1", "HCR2", "HCR3"};
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.SetScale(0.23 + frandom(-0.06, 0.06));
+    }    
+}
+
+class BulletImpactEffectMetalZpuffDefinied : BulletImpactEffectMetalDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.SetScale(0.37 + frandom(-0.06, 0.06));
+    }        
+}
+
+class BulletImpactEffectMetalZpuffTransparantSmallDefinition : BulletImpactEffectMetalZpuffDefinied {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.SetScale(0.25 + frandom(-0.06, 0.06));
+    }      
+}

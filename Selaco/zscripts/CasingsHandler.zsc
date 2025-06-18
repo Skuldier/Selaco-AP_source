@@ -1,0 +1,91 @@
+class CasingHandler : EventHandler
+{
+    mixin CVARBuddy;
+    const MAX_BRASS = 550; // Once reached, despawns the oldest one.
+
+    bool hasExtendedBrassSetting;
+    bool oldExtendedBrassSetting;
+
+    Array<BrassBase> spawnedBrass;
+    class<BrassBase> bbRef;
+
+    int cvSmokeQuality, cvParticleLifespan;
+    
+    override void OnRegister() {
+        bbRef = 'BrassBase';
+        hasExtendedBrassSetting = iGetCVAR("g_extendedbrass", 0);
+        cvSmokeQuality = iGetCVAR("r_smokequality", 3);
+        cvParticleLifespan = iGetCVAR("r_particleLifespan", 2);
+    }
+
+    override void WorldTick()
+    {
+        // Update CVAR
+        if(level.time % 34 == 0)
+        {
+            // Remember old
+            oldExtendedBrassSetting = hasExtendedBrassSetting;
+
+            // Update the CVAR
+            hasExtendedBrassSetting = iGetCVAR("g_extendedbrass", 0);
+
+            // If the player turned off Extended brass, despawn all 'extended' brass casings
+            if(!hasExtendedBrassSetting && oldExtendedBrassSetting != hasExtendedBrassSetting)
+            {
+                wipeAllCasings();
+            }
+
+            // Update settings
+            cvSmokeQuality = iGetCVAR("r_smokequality", 3);
+            cvParticleLifespan = iGetCVAR("r_particleLifespan", 2);
+        }
+    }
+
+    void storeCasingActor(BrassBase brass)
+    {
+        spawnedBrass.push(brass);
+    }
+
+    // Force oldest casings to die when a threshold is reached
+    void checkCleanup() {
+        int toRemove = spawnedBrass.size() - MAX_BRASS;
+        int toDelete = 0;
+
+		for(int x = 0; x < spawnedBrass.size() && toRemove > 0; x++) 
+		{
+            // Mark for death
+			if(spawnedBrass[x]) 
+			{
+                spawnedbrass[x].wake();
+                spawnedBrass[x].bPreventSleep = true;
+				spawnedBrass[x].setStateLabel("FadeAway");
+				toRemove--;
+			}
+			toDelete++;
+
+			if (toRemove == 0) 
+			{
+				break;
+			}
+		}
+        spawnedBrass.delete(0, toDelete);
+    }
+
+    // Wipe every single case from the map
+    void wipeAllCasings() 
+	{
+        for(int x=spawnedBrass.size()-1;x>=0;x--) 
+		{
+            if(spawnedBrass[x]) 
+			{
+                spawnedBrass[x].destroy();
+            }
+        }
+        spawnedBrass.clear();
+    }
+
+    static clearscope CasingHandler Instance() {
+        return CasingHandler(EventHandler.Find("CasingHandler"));
+    }
+
+}

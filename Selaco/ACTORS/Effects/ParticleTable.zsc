@@ -1,0 +1,171 @@
+// ParticleLookupTable implements a basic hashmap for caching particles based on class
+// However it turns out that there is little benefit to caching particles in this way
+// and this work may need to be done in the engine to achieve memory and performance 
+// improvements. Leaving this class here in case we need it, or for a hashmap reference.
+// @Cockatrice
+
+class PTEntry {
+    uint key;
+    class<SelacoParticle> cls;
+    Array<SelacoParticle> cache;
+}
+
+
+class ParticleLookupTable play {
+    private uint count;
+    private uint capacity;   // Stay in power of 2
+    private Array<PTEntry> entries;
+
+    const MAX_CACHE = 100;
+    const HOLD_STAT_NUM = Thinker.STAT_FIRST_THINKING - 2;
+
+    ParticleLookupTable init() {
+        capacity = 256;
+        count = 0;
+        entries.resize(capacity);
+
+        return self;
+    }
+
+    uint size() {
+        return count;
+    }
+
+    PTEntry get(class<SelacoParticle> cls) {
+        uint key = uint(cls.GetClassName());  // God I hope this works
+        uint index = key & uint(capacity - 1);
+        
+        PTEntry e = entries[index];
+        while(e != null) {
+            if(e.key == key) {
+                return e;
+            }
+
+            if(index >= capacity - 1) { 
+                index = 0;
+            } else {
+                e = entries[++index];
+            }
+        }
+        return null;
+    }
+
+    SelacoParticle dequeue(class<SelacoParticle> cls) {
+        let e = get(cls);
+        if(e) {
+            let p = e.cache.size() > 0 ? e.cache[e.cache.size() - 1] : null;
+            e.cache.pop();
+            return p;
+        }
+        return null;
+    }
+
+    void cache(SelacoParticle p) {
+        uint key = uint(p.GetClassName());
+        if(count >= capacity / 2) {
+            expand();
+        }
+
+        uint index = key & uint(capacity - 1);
+        
+        PTEntry e = entries[index];
+        while(e != null) {
+            if(e.key == key) {
+                if(e.cache.size() < MAX_CACHE) {
+                    p.changeStatNum(HOLD_STAT_NUM);
+                    p.bInvisible = true;
+                    e.cache.push(p);
+                } else {
+                    p.destroy();    // I hope this is a valid way to destroy an actor
+                }
+                return;
+            }
+
+            if(index >= capacity - 1) { 
+                index = 0;
+            } else {
+                e = entries[++index];
+            }
+        }
+
+        // Didn't set it, create an entry
+        entries[index] = new("PTEntry");
+        entries[index].key = key;
+        entries[index].cls = p.GetClass();
+        count++;
+    }
+
+    private void readd(PTEntry old) {
+        uint key = uint(old.cls.GetClassName());
+        uint index = key & uint(capacity - 1);
+        
+        PTEntry e = entries[index];
+        while(e != null) {
+            if(e.key == key) {
+                Console.Printf("\c[RED]ParticleLookupTable: Tried to re-add an existing entry! This is pretty messed up.");
+                return;
+            }
+
+            if(index >= capacity - 1) { 
+                index = 0;
+            } else {
+                e = entries[++index];
+            }
+        }
+
+        entries[index] = old;
+        count++;
+    }
+
+    private void expand() {
+        // Expand capacity in a power of 2 fashion
+        capacity *= 2;
+
+        // This is dumb and expensive, hopefully it rarely has to be done
+        Array<PTEntry> dupe;
+        dupe.copy(entries);
+
+        entries.clear();
+        entries.resize(capacity);
+
+        count = 0;
+        for(int x = 0; x < dupe.size(); x++) {
+            if(dupe[x] != null) readd(dupe[x]);
+        }
+    }
+
+    void empty() {
+        capacity = 256;
+        count = 0;
+        entries.resize(capacity);
+    }
+}
+
+
+// The particle handler contains a buffer of particle actors
+class ParticleHandler : EventHandler {
+    ParticleLookupTable table;
+
+    override void OnRegister() {
+		table = new('ParticleLookupTable').init();
+	}
+
+    override void OnUnregister() {
+        table.empty();
+    }
+
+    // A particle is ready to be reused
+    // This function may delete the particle if there are too many cached already
+    // Never assume the particle has not been destroyed after this func is called
+    void cache(SelacoParticle p) {
+        table.cache(p);
+    }
+
+    SelacoParticle dequeue(class<SelacoParticle> cls) {
+        return table.dequeue(cls);
+    }
+
+    static clearscope ParticleHandler Instance() {
+        return ParticleHandler(EventHandler.Find("ParticleHandler"));
+    }
+}

@@ -1,0 +1,869 @@
+class CrateObject : PickupableDecoration {
+    string droppingClass;
+    bool isNoItemCrate;
+    int velocityX, velocityY, velocityZ;
+
+    private int crateFlags;
+    flagdef EmptyCrate                : crateFlags, 0;    
+    bool RNGRolled;
+
+    override void PostBeginPlay() 
+    {
+        droppingClass = "masterCrateItemDropper";
+        super.PostBeginPlay();
+        if(args[0] == 1 || bEmptyCrate) 
+        {
+            isNoItemCrate = true;
+        }
+    }
+    default {
+        +shootable;
+        -BloodSplatter;
+        +NOBLOODDECALS;
+        +USESPECIAL;
+        +Canpass;
+        +SelacoActor.SpecialPushable
+        +PUSHABLE
+        +SelacoActor.SpecialPushable2
+        SelacoActor.collisionSound "PUSH/CRATE";
+        -NOBLOOD;
+        mass 500;
+        Activation THINGSPEC_Switch;
+        PickupableDecoration.grabSound "PICKUP/CRATE";
+        PickupableDecoration.landingSound "impact/crate";
+        PickupableDecoration.FallDamageThreshold FALLTHRESHOLD_CRATE;
+        pushfactor 0.3;
+        scale 0.8;
+        radius 20;
+        Health 55;
+        MaxStepHeight 6;
+        PainChance 255;
+        damagefactor "MeleeImpact", 15.5;
+        PainChance "MeleeImpact", 255;
+    	DamageFactor "BulletAlien", 0.2;
+        height 33;
+        Mass 500;
+        PainSound "impact/crate";
+        BloodType "BrownCloudParticles", "BrownCloudParticles", "BrownCloudParticles";
+        Tag "$OBJECT_CRATE";
+    }
+
+    void deathNormal() {
+        velocityX = frandom(1, 3);
+        velocityY = frandom(1, 3);
+        velocityZ = frandom(1, 4);
+    }
+
+    void deathExplosion() {
+        velocityX = frandom(4, 7);
+        velocityY = frandom(4, 7);
+        velocityZ = frandom(10, 18);       
+    }
+
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		// Stat tracking
+        if(!isNoItemCrate) {
+		    Stats.AddStat(STAT_CRATES_DESTROYED, 1, 0);
+        }
+        if(MeansOfDeath == "Railgun")
+        {
+            Stats.AddStat(STAT_RAILGUNCRATE, 1, 0);
+        }
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+  states
+  {
+	Spawn:
+        TNT1 A 0;
+        TNT1 A 0 {
+            if(!RNGRolled && !isNoItemCrate) {
+                RNGRolled = true;
+                int rand = random(0,25);
+                if(rand == 0) {
+                    A_SpawnItem("CrateObjectAmmo");
+                    SetStateLabel("Destroy");
+                }
+                if(rand == 1) {
+                    A_SpawnItem("CrateObjectArmor");
+                    SetStateLabel("Destroy");
+                }
+                if(rand == 2) {
+                    A_SpawnItem("CrateObjectHealth");
+                    SetStateLabel("Destroy");
+                }
+            }
+        }
+        goto Idle;
+    Idle:
+        VOXE L 0 A_SetPitch(0);
+		VOXE L -1;
+		loop;
+    IdleReset:
+        TNT1 A 0 {
+            bthruactors = false;
+            A_SetAngle(0);
+            A_SetPitch(0);
+            A_SetRoll(0);
+        }
+		goto Idle;
+	Pain:
+        TNT1 A 0 A_PAIN();
+		goto Idle;  
+    Death.explosiveimpact:
+        TNT1 A 0 deathExplosion();
+        goto DestroyCrate;
+    Death.MeleeImpact:
+        TNT1 A 0 A_PLAYSOUND("IMPACT/CRATE/melee", CHAN_AUTO, 0.2);
+	Death:
+        TNT1 A 0 deathNormal();
+    DestroyCrate:
+        TNT1 A 0 {
+            A_SPAWNITEMEX("BrownCloudParticles");
+            bSolid = false;
+            bthruactors = true;
+        }
+		TNT1 A 0 A_PlaySound("dest/crate", CHAN_AUTO, 0.75, pitch: frandom(1.0,1.2));
+		TNT1 AAAA 0 A_SpawnItemEx("BrownCloud", frandom(-15,15), frandom(-15,15), frandom(0,15));
+        TNT1 A 0 {
+            EmitDefinition('SawDust360Definition', chance: 1.0, numTries: 80,pitch: frandom(-10,-180),speed:3, offset: (0, frandom(-5,5), frandom(-5,5)));
+            A_SPAWNITEMEX("CrateObjectPiece_1", -12, 12, frandom(3, 8), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(0,80));
+            A_SPAWNITEMEX("CrateObjectPiece_2", 12, 12, frandom(3, 8), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(90,170));
+            A_SPAWNITEMEX("CrateObjectPiece_3", -12, 12, frandom(6, 12), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(180,270));
+            A_SPAWNITEMEX("CrateObjectPiece_4", -12, -12,frandom(6, 12), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(280,360));
+            for(int i = 0; i<2;i++) {
+                A_SPAWNITEMEX("CrateObjectPiece_5", frandom(-5, 5), frandom(-5,5), frandom(0, 2), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(0,360));
+            }
+            for(int i=0;i<4;i++)
+            {
+                A_SPawnItemEx("BulletImpactEffectWoodMotionAlpha", frandom(-10,10), frandom(-15,15), frandom(16,24));
+            }
+            if(!isNoItemCrate) {
+                A_SpawnItemEx(droppingClass);
+            }
+        }
+        TNT1 A 0 
+        {
+            for(int x=0;x<=5;x++)
+            {
+                A_SpawnProjectile("PlankSpawnerSlow", frandom(5,18), frandom(-10,10), random (0, 360), 3, random (-170, -190));  
+            }
+            for(int i; i<random(5,8);i++) {
+                A_SPAWNITEMEX("JunkLauncher", 0, 0, 0, random(1,3), random(1,3), 2, random(0,360), 0, 180);
+            }
+        }
+
+		stop;
+
+        Destroy:
+            TNT1 A 0;
+            stop;
+	}
+}
+
+class CrateObjectBoobytrap : CrateObjectMedium
+{
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        if(args[0])
+        {
+            sightRange = args[0];
+        }
+        sleepDist = sightRange;
+    }
+
+    // Spawn a surprise
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        bThruActors = true;
+        actor crawlerMineActor;
+        bool success;
+        [success, crawlerMineActor] = A_SPAWNITEMEX("CrawlerMine", 0, 0, 4, 0.5, 0, 2);
+        CrawlerMine crawler = CrawlerMine(CrawlerMineActor);
+        if(crawler)
+        {
+            crawler.setStateLabel("Unburrow.noDelay");
+        }
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    int sightRange;
+    property SightRange : sightRange;
+
+    default
+    {
+        +SelacoActor.Trap
+        SelacoActor.SleepDistance 1024;
+        +CrateObject.EmptyCrate
+        CrateObjectBoobyTrap.SightRange 350;
+        +SELACOACTOR.WakeNearPlayer;
+        +SelacoActor.SleepWhenFar
+    }
+    states
+    {
+        Spawn:
+        Idle:
+            VOXE L 0;
+            VOXE L 5 A_LookEx(LOF_NOSOUNDCHECK, 0, SightRange, 0, 360, "Ambush");
+            loop;
+        Ambush:
+            TNT1 A 0
+            {
+                die(self,self);
+            }
+            stop;
+    }
+}
+
+class masterCrateItemDropper : actor {
+
+    default {
+        +NOINTERACTION;
+    }
+
+	Array<String> ItemList;
+    const particleEffects = 250;
+
+    override void PostBeginPlay() {
+        createItemList();
+    }
+
+     void createItemList() {
+         bool droppedItem;
+         int randomNum = random(0, 50);
+         int chance = random(1,100);
+         if(randomNum == 0) {
+             // Just Money
+                for(int i; i<random(3,6);i++) {
+                    ItemList.push("creditsflat");
+                }
+         }
+
+            // Ammo shards for DMR
+         if(randomNum == 1 && ACS_NamedExecuteWithResult("hasRifle")) {
+            for(int i; i<random(3,16);i++) {
+                ItemList.push("AmmoMachinegunTiny");
+            }
+         }
+
+            // Ammo shards for Shotgun
+         if(randomNum == 2 && ACS_NamedExecuteWithResult("hasShotgun")) {
+            for(int i; i<random(1,3);i++) {
+                ItemList.push("AmmoShotgunTiny");
+            }
+         }
+
+            // Healing Items
+         if(randomNum == 3) {
+            for(int i; i<random(3,4);i++) {
+                ItemList.push("HealthShardPickup_FLAT");
+            }
+            if (chance > 90) {
+                ItemList.push("Stimpack");
+            }
+         }
+
+         if(randomNum == 4) {
+            for(int i; i<random(3,4);i++) {
+                ItemList.push("ArmorShardPickup_Flat");
+            }
+         }
+
+           // Cricket Clip
+         if(randomNum == 5  && ACS_NamedExecuteWithResult("hasCricket")) {
+            for(int i; i<random(3,4);i++) {
+                 ItemList.push("AmmoCricketTiny");
+            }
+         }
+
+        // ARMOR AND HEALTH
+         if(randomNum == 6) {
+            for(int i; i<random(3,4);i++) {
+                 ItemList.push("HealthShardPickup_FLAT");
+            }
+            for(int i; i<random(3,4);i++) {
+                ItemList.push("ArmorShardPickup_Flat");
+            }
+         }
+        
+        // Frag Grenade
+        if (randomNum == 7 && ACS_NamedExecuteWithResult("hadFragGenades")) {
+            if(chance > 40) {
+                ItemList.push("Handgrenade");
+            }
+        }
+
+        // Ice Grenade
+        if (randomNum == 8 && ACS_NamedExecuteWithResult("hadIceGenades")) {
+            if(chance > 40) {
+                ItemList.push("IceGrenade");
+            }
+        }
+
+        // NAILGUN AMMO
+        if (randomNum == 9 && ACS_NamedExecuteWithResult("hasNailgun")) {
+            for(int i; i<random(3,4);i++) {
+                 ItemList.push("AmmoNailgunSmall");
+            }
+        }
+
+        // Landmine
+        if (randomNum == 13 && ACS_NamedExecuteWithResult("hadMines")) {
+            if(random(0,5) == 4) {
+                ItemList.push("MineAmmoPickupLarge");
+            }
+        }
+
+        // Money, Armor and health.
+         if(randomNum == 10) {
+            for(int i; i<random(3,4);i++) {
+                 ItemList.push("HealthShardPickup_FLAT");
+            }
+            for(int i; i<random(3,4);i++) {
+                ItemList.push("ArmorShardPickup_Flat");
+            }
+            for(int i; i<random(3,4);i++) {
+                ItemList.push("creditsflat");
+            }
+         }
+
+         // Ammo shards for DMR
+         if(randomNum == 11 && ACS_NamedExecuteWithResult("hasRifle")) {
+            for(int i; i<random(3,7);i++) {
+                ItemList.push("AmmoMachinegunTiny");
+            }
+            ItemList.push("AmmoMachinegunMedium");
+         }
+
+        if (randomNum >= 25) {
+             for(int i; i<random(3,12);i++) {
+                ItemList.push("creditsflat");
+             }
+        }
+        if (randomNum == 17) {
+            ItemList.push("Teddybear");
+        }
+     }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                bool success;
+                actor pushedItem;
+                for(int i; i < invoker.ItemList.size(); i++) {
+                    [success, pushedItem] = A_SpawnItemEx(invoker.ItemList[i], frandom(-15,15), frandom(-15,15), frandom(6,3), frandom(0.5, 3), 0, frandom(2,4), angle:(random(0,360)));
+                    if(SelacoItem(pushedItem))
+                    {
+                        pushedItem.angle = random(0,359);
+                        pushedItem.friction = 0.8;
+                        let d = SelacoItem(pushedItem);
+                        d.bCANNOTPUSH = true;
+                        d.bAlwaysAllowTouchMode = true;
+                    }
+                }
+            }
+            stop;
+    }
+}
+
+class HealthCrateDropper : masterCrateItemDropper {
+
+     override void PostBeginPlay() {
+        super.PostBeginPlay();
+        createItemList();
+    }
+
+     void createItemList() {
+         ItemList.clear();
+         bool droppedItem;
+         int randomNum = random(0, 16);
+         int chance = random(1,100);
+            // Armor Shards
+         if(randomNum == 0 && randomNum < 14) {
+            for(int i; i<random(6,13);i++) {
+                ItemList.push("Healthshardpickup_Flat");
+            }
+         }
+
+            // Bigger health pickups
+         if(randomNum == 15) {
+            if (chance > 60) {
+                ItemList.push("Medkit");
+            } else {
+                ItemList.push("Stimpack");
+            }
+            for(int i; i<random(3,5);i++) {
+                ItemList.push("Healthshardpickup_Flat");
+            }  
+         }
+
+         if(randomNum == 16) {
+            if (chance > 80) {
+                ItemList.push("Portablemedkit");
+            } else {
+                for(int i; i<random(3,6);i++) {
+                    ItemList.push("Healthshardpickup_Flat");
+                }  
+            }
+         }
+
+         // Nothing found? Run it again.
+         if(ItemList.size() == 0) {
+             createItemList();
+         } else {
+             A_Playsound("item/tpitem", CHAN_AUTO, 0.6);
+			for(int i = 0; i <=particleEffects;i++) {
+				A_SpawnParticle("red", SPF_FULLBRIGHT, 20, frandom(2,4), frandom(0,360), frandom(-10,10), frandom(-10,10), frandom(0,10), frandom(-4,4), frandom(-4,4), frandom(-4,4));
+			}
+         }  
+    }
+}
+
+class ArmorCrateDropper : masterCrateItemDropper {
+
+     override void PostBeginPlay() {
+        super.PostBeginPlay();
+        createItemList();
+    }
+
+     void createItemList() {
+         ItemList.clear();
+         bool droppedItem;
+         int randomNum = random(0, 15);
+         int chance = random(1,100);
+            // Armor Shards
+         if(randomNum == 0 && randomNum < 14) {
+            for(int i; i<random(3,6);i++) {
+                ItemList.push("ArmorShardPickup_Flat");
+            }
+         }
+
+            // Armor (Common / Rare))
+         if(randomNum == 15) {
+            if (chance > 90) {
+                ItemList.push("RareArmor");
+            } else {
+                for(int i; i<random(10,15);i++) {
+                    ItemList.push("Armorshardpickup_Flat");
+                }  
+            }
+         }
+
+
+         // Nothing found? Run it again.
+         if(ItemList.size() == 0) {
+             createItemList();
+         } else {
+			for(int i = 0; i <=particleEffects;i++) {
+				A_SpawnParticle("green", SPF_FULLBRIGHT, 20, frandom(2,4), frandom(0,360), frandom(-10,10), frandom(-10,10), frandom(0,10), frandom(-4,4), frandom(-4,4), frandom(-4,4));
+			}
+             A_Playsound("item/tpitem", CHAN_AUTO, 0.6);
+         }  
+    }
+}
+
+class AmmoCrateDropper : masterCrateItemDropper {
+
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        ItemList.clear();
+        createItemList();
+    }
+
+
+     void createItemList() {
+         bool droppedItem;
+         int randomNum = random(0, 18);
+         int chance = random(1,100);
+
+            // Ammo shards for DMR
+         if(randomNum == 1) {
+            ItemList.push("AmmoMachinegunMedium");
+         }
+
+            // Ammo shards for Shotgun
+         if(randomNum == 2 && ACS_NamedExecuteWithResult("hasShotgun")) {
+            for(int i; i<random(1,3);i++) {
+                ItemList.push("AmmoShotgunTiny");
+            }
+         }
+
+
+           // Cricket Clip
+         if(randomNum == 5  && ACS_NamedExecuteWithResult("hasCricket")) {
+            ItemList.push("AmmoCricketMedium");
+         }
+        
+        // Frag Grenade
+        if (randomNum == 7 && ACS_NamedExecuteWithResult("hadFragGenades")) {
+            if(chance > 40) {
+                ItemList.push("Handgrenade");
+            }
+        }
+
+        // Ice Grenade
+        if (randomNum == 8 && ACS_NamedExecuteWithResult("hadIceGenades")) {
+            if(chance > 40) {
+                ItemList.push("IceGrenade");
+            }
+        }
+
+        // NAILGUN AMMO
+        if (randomNum == 9 && ACS_NamedExecuteWithResult("hasNailgun")) {
+           ItemList.push("AmmoNailgunMedium");
+        }
+
+         // Ammo shards for DMR
+         if(randomNum == 11 && ACS_NamedExecuteWithResult("hasRifle")) {
+            for(int i; i<random(3,7);i++) {
+                ItemList.push("AmmoMachinegunTiny");
+            }
+            ItemList.push("AmmoMachinegunMedium");
+         }
+         
+         // Nothing found? Run it again.
+         if(ItemList.size() == 0) {
+             createItemList();
+         } else {
+			for(int i = 0; i <=particleEffects;i++) {
+				A_SpawnParticle("yellow", SPF_FULLBRIGHT, 20, frandom(2,4), frandom(0,360), frandom(-10,10), frandom(-10,10), frandom(0,10), frandom(-4,4), frandom(-4,4), frandom(-4,4));
+			}
+             A_Playsound("item/tpitem", CHAN_AUTO, 0.6);
+         }
+     }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 createItemList();
+        spawnItems:
+            TNT1 A 0 {
+                for(int i; i < invoker.ItemList.size(); i++) {
+                    A_SpawnItemEx(invoker.ItemList[i], frandom(1.5,2), frandom(1.5,2), frandom(1,2), frandom(1, 2), frandom(1,2), frandom(4,5), angle:random(0,360));
+                }
+            }
+            stop;
+    }
+}
+
+class CrateDebris : actor {
+	mixin particleCvarCheck;
+    mixin ParticleDefinitionEmitter;
+	int watercount, lifespan, spawnChance;
+    default {
+        +missile
+        +rollsprite;
+        +doombounce;
+        +THRUACTORS;
+        +USEBOUNCESTATE;
+        +MOVEWITHSECTOR;
+        radius 3;
+        height 3;
+        scale 0.8;
+        gravity 0.7;
+        BounceFactor 0.4;
+        BounceCount 2;
+    }
+
+    void initalizeCrate() {
+        A_ChangeVelocity(frandom(-2, 2), frandom(-2, 2), frandom(2,8)); 
+    }
+
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+			    giveLivespan();
+                initalizeCrate();
+            }
+        Looper:
+            VOXE L 3 {
+                A_SETANGLE(angle+frandom(30,40));
+                A_SETPITCH(pitch+frandom(5,10));
+            }
+            loop;
+        Death:
+            TNT1 A 0 A_JUMP(256, "SIDEWAYS_UP", "STRAIGHT_UP");
+        STRAIGHT_UP:
+            VOXE L 0 {
+                roll = 0;
+                pitch = 0;
+            }
+            goto WaitForFloor;
+        SIDEWAYS_UP:
+            VOXE L 0 {
+                roll = 90;
+                pitch = 0;
+            }
+            goto WaitForFloor;
+        WaitForFloor:
+            VOXE L 2 {
+                if(GetAge() > lifespan * 20 || pos.z <= floorz && vel.length() < 0.001) {
+                    setStateLabel("Finale");
+                }
+            }
+            loop;
+        Finale:
+            VOXE L 1 {
+                sleep(400);
+                if(getCvar("g_permanentDestruction") == 1)
+                {
+                    sleepindefinite();
+                }
+            }
+            VOXE LLLLLLLLLLLLLLLLLLLLLLLLL 2 {
+                A_FADEOUT(0.05);
+            }
+            stop;
+    }
+
+}
+
+// Crates
+class CrateObjectSmall : CrateObject { 
+    default {
+        height 16;
+        radius 18;
+        scale 1.0;
+    }
+}
+class CrateObjectMedium : CrateObject { 
+    default {
+        radius 20;
+        height 18;
+        scale 1.0;
+    }
+}
+class CrateObjectLarge : CrateObject {
+    default {
+        radius 26;
+        height 23;
+        scale 1.0;
+    }
+}
+
+class CratePainted : CrateObjectMedium 
+{
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) 
+    {
+        for(int x=-30;x<30;x+=10)
+        {
+            bool succ;
+            actor paintBucket;
+            [succ, paintBucket] = A_SPAWNITEMEX("Paintbucket", x, random(-20,20), 0, frandom(-3,3), frandom(-3,3), frandom(1,5));
+            if(paintBucket)
+            {
+                paintBucket.angle = random(0,359);
+                PaintBucket(paintBucket).args[0] = 4;
+                paintBucket.A_SETSIZE(7, -1);
+            }
+        }
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    states
+    {
+        spawn:
+            Idle:
+            VOXE L 0 A_SetPitch(0);
+            VOXE L -1;
+            loop;
+    }
+}
+
+// Destroys when touched. Used for scripted events like landing on top of crates after dropping from the shaft in 2-1
+class CrateMediumBreakOnTouch : CrateObject { 
+    override void PostBeginPlay() {
+        super.postbeginPlay();
+        isNoItemCrate = true;
+    }
+
+    override bool CanCollideWith(Actor other, bool passive) {
+        if(other is 'PlayerPawn') {
+            A_DAMAGESELF(500);
+        }
+        return Super.CanCollideWith(other, passive);
+    }
+
+    default {
+        radius 35;
+        height 15;
+        scale 1.0;
+    }
+    states {
+    Spawn:
+        VOXE L -1;
+        stop;
+	Death:
+        TNT1 A 0 deathExplosion();
+    DestroyCrate:
+        TNT1 A 0 {
+            bSolid = false;
+            bthruactors = true;
+        }
+		TNT1 A 0 A_PlaySound("dest/crate", CHAN_AUTO, 0.6, pitch: 1.0);
+		TNT1 A 0 A_SpawnItemEx("BrownCloud", 10);
+        TNT1 A 0 {
+            A_SPAWNITEMEX("CrateObjectPiece_1", -4, 4, frandom(0, 2), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(0,360));
+            A_SPAWNITEMEX("CrateObjectPiece_2", 4, 4, frandom(0, 2), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(0,360));
+            A_SPAWNITEMEX("CrateObjectPiece_3", -4, 4, frandom(0, 2), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(0,360));
+            A_SPAWNITEMEX("CrateObjectPiece_4", -4, -4,frandom(0, 2), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(0,360));
+            for(int i = 0; i<4;i++) {
+                A_SPAWNITEMEX("CrateObjectPiece_5", frandom(-5, 5), frandom(-5,5), frandom(0, 2), invoker.velocityX, invoker.velocityY, invoker.velocityZ, random(0,360));
+            }
+            for(int i; i<random(15,25);i++) {
+                A_SPAWNITEMEX("JunkLauncher", 0, 0, 0, random(1,3), random(1,3), 2, random(0,360), 0, 180);
+            }
+        }
+        //TNT1 A 0 A_SpawnItemEx(droppingClass);
+        TNT1 AAAAAAAA 0 A_SpawnProjectile("PlankSpawner", frandom(0,35), 0, random (0, 360), 2, random (0, 180));  
+        TNT1 A 30 {
+            if(getCvar("g_Screenshake") >= 1) {
+                A_QuakeEx(3, 3, 2, 6, 0, 40, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+            }
+        }
+		stop;
+        Destroy:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class ResourceCrateBase : CrateObjectMedium {
+
+}
+
+class CrateObjectHealth : ResourceCrateBase {
+    default {
+        Tag "$OBJECT_HEALTHCRATE";
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        droppingClass = "HealthCrateDropper";
+    }
+    states {
+        Spawn:
+        Idle:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class CrateObjectArmor : ResourceCrateBase {
+    default {
+        Tag "$OBJECT_ARMORCRATE";
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        droppingClass = "ArmorCrateDropper";
+    }
+    states {
+        Spawn:
+        Idle:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class CrateObjectAmmo : ResourceCrateBase {
+    default {
+        Tag "$OBJECT_AMMOCRATE";
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        droppingClass = "AmmoCrateDropper";
+    }
+    states {
+        Spawn:
+        Idle:
+            VOXE L -1;
+            loop;
+    }
+
+}
+
+
+class CrateObjectOpen : CrateObjectMedium {
+
+	override void PostBeginPlay() {
+        super.PostBeginPlay();
+        isNoItemCrate = true;
+    }
+
+    default {
+
+    }   
+    states {
+        Death:
+		TNT1 A 0 A_PlaySound("dest/crate", 21);
+		TNT1 A 0 A_SpawnItemEx("BrownCloud", 10);
+        TNT1 A 0 {
+            A_SPAWNITEMEX("CrateObjectPiece_1", -4, 4, frandom(0, 2));
+            A_SPAWNITEMEX("CrateObjectPiece_2", 4, 4, frandom(0, 2));
+            A_SPAWNITEMEX("CrateObjectPiece_3", -4, 4, frandom(0, 2));
+            A_SPAWNITEMEX("CrateObjectPiece_4", -4, -4,frandom(0, 2));
+            for(int i = 0; i<4;i++) {
+                A_SPAWNITEMEX("CrateObjectPiece_5", frandom(-5, 5), frandom(-5,5), frandom(0, 2));
+            }
+        }
+        stop;
+    }
+}
+class CrateObjectLit : CrateObjectMedium {
+
+	override void PostBeginPlay() {
+        super.PostBeginPlay();
+        isNoItemCrate = true;
+    }
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+    
+    default {
+        height 6;
+    }
+    states {
+        Death:
+		TNT1 A 0 A_PlaySound("dest/crate", 21);
+		TNT1 A 0 A_SpawnItemEx("BrownCloud", 10);
+        TNT1 A 0 {
+            for(int x=0;x<=5;x++)
+            {
+                A_SpawnProjectile("PlankSpawnerSlow", frandom(0,10), 0, random (0, 360), 2, random (0, 180));  
+                A_SpawnProjectile("PlankSpawnerSlow", frandom(0,10), 0, random (0, 360), 2, random (0, 180));  
+            }
+        }
+        stop;
+    }
+}
+
+// Chunks
+class CrateObjectPiece_1 : CrateDebris { }
+class CrateObjectPiece_2 : CrateDebris { }
+class CrateObjectPiece_3 : CrateDebris { }
+class CrateObjectPiece_4 : CrateDebris { }
+
+// METAL HINGE
+class CrateObjectPiece_5 : CrateDebris { 
+    states {
+        Bounce:
+            TNT1 A 0 {
+                EmitDefinition('SparkBriefSmallThinDefintion', 0.75, 30, pitch:frandom(-60,-120), flags:PE_ABSOLUTE_PITCH);
+                A_PlaySound("impact/metalsmall", CHAN_AUTO, 0.2);
+                SetStateLabel("Looper");
+            }
+        Death:
+            TNT1 A 0 {
+                EmitDefinition('SparkBriefSmallThinDefintion', 0.75, 30, pitch:frandom(-60,-120), flags:PE_ABSOLUTE_PITCH);
+            }
+            TNT1 A 0 A_PlaySound("impact/metalsmall", CHAN_AUTO, 0.2);
+            goto Super::Death;
+    }
+}

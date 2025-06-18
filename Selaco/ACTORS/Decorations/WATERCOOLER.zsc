@@ -1,0 +1,272 @@
+class WaterCoolerBase : Interactable
+{
+
+	int waterSupply;
+	Property WaterSupply : waterSupply;
+	default
+	{
+        +SOLID
+        -NOBLOOD
+        +SHOOTABLE
+        +UseSpecial
+        +PUSHABLE
+		mass 500;
+        PushFactor 0.5;
+        health 10;
+        height 55;
+        radius 14;
+        gravity 0.7;
+        PainChance 255;
+        BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        PainSound "impact/hardmetal";
+
+		+SELACOACTOR.SleepWhenIdle;
+		-SELACOACTOR.WakeNearPlayer;
+	}
+}
+
+class WaterCooler : WaterCoolerBase {
+
+	// Lowers when the player presses Use on the Watercooler.
+
+	// Spray more water based on the Particle Intensity
+	int sprayAmount;
+
+	// Used to control the spawned water jug and give him the watersupply
+	actor spawnedJug;
+	bool success;
+
+	virtual void setWaterSupply(int newSupply) {
+		waterSupply = newSupply;
+	}
+
+	void explodeWaterTank() {
+		switch(GetCVar("r_particleintensity")) {
+			case 1:
+				sprayAmount +=5;
+			case 2:
+				sprayAmount +=6;
+			case 3:
+				sprayAmount +=10;
+			case 4:
+				sprayAmount +=14;
+			case 5:
+				sprayAmount +=14;
+		}
+        A_STOPSOUND(CHAN_5);
+        A_STOPSOUND(CHAN_6);
+        ActivationType = THINGSPEC_Switch;
+        bUseSpecial = true;			
+		if(waterSupply) {
+			A_PlaySound("script/watersplash", CHAN_AUTO, 1.0, 0, 0.6);
+			// Spray water depending on the amount of water remaining in the tank
+			for(int i=0; i<waterSupply;i++) {
+				for(int j=0;j<sprayAmount;j++) {
+					actor particleEffect;
+					bool particleSucc;
+					A_SpawnDefinedParticle("waterParticleXDefinition", frandom(-3, 3), frandom(-3,3), random(40,60), frandom(-2,2), frandom(-2,2), frandom(2,6));
+				}
+			}
+		}
+    }
+
+    default {
+		+SelacoActor.DecorativeActor;
+		+SelacoActor.AllowGravityManipulation
+        // Property
+        tag "$OBJECT_WATERCOOLER";
+		WaterCoolerBase.WaterSupply 3;
+        Activation THINGSPEC_Switch;
+		MaxStepHeight 8;
+    }
+	states {
+		active:
+		inactive:
+            TNT1 A 0 {
+				wake();
+				bPreventSleep = true;
+				if(waterSupply) {
+					waterSupply--;
+					A_PlaySound("script/waterdrip", CHAN_5, 1.0, 0, 0.6);
+                	A_PlaySound("script/waterdrip", CHAN_6, 1.0, 0, 0.6);
+				} else {
+					setStateLabel("Spawn");
+				}
+                bUseSpecial = false;
+                ActivationType = THINGSPEC_default;
+            }
+			VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 {
+				A_SPAWNITEMEX("WaterParticleXSmall", 7, -0.4, 29, 2, 0);
+            }
+            TNT1 A 0 {
+                A_STOPSOUND(CHAN_5);
+                A_STOPSOUND(CHAN_6);
+				if(waterSupply) {
+                	ActivationType = THINGSPEC_Switch;
+                	bUseSpecial = true;
+				}
+
+				bPreventSleep = false;
+            }
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_PLAYSOUND("watercooler/hum", CHAN_BODY, 1.0, 1, 1.2);
+			}
+			VOXE L -1;
+			stop;
+		Xdeath:
+		Death:
+            TNT1 A 0 explodeWaterTank();
+			TNT1 A 0 {
+				[success, spawnedJug] = A_SpawnItemEx("WaterCooler_DetachedJug", 0, 0, 45, random(5, 9), 0, 9,flags: SXF_SETMASTER);
+				if(spawnedJug)
+				{
+					WaterCooler_DetachedJug(spawnedJug).waterSupply = waterSupply*15;
+				}
+				A_SpawnItemEx("WaterCooler_Broken1", 0, 0, 0, frandom(-2, -4), frandom(-3,3));
+			}
+			TNT1 A 3;
+			stop;
+		Death.SniperBullet:
+		Death.magnumbullet:
+           	TNT1 A 0 explodeWaterTank();
+			TNT1 A 0 A_SpawnItemEx("WaterCooler_Broken1", 0, 0, 0, frandom(-2, -4), frandom(-3,3));
+			TNT1 A 0 {
+				[success, spawnedJug] = A_SpawnItemEx("WaterCooler_DetachedJug", 0, 0, 45, random(5, 9), 0, 9,flags: SXF_SETMASTER);
+				if(spawnedJug)
+				{
+					WaterCooler_DetachedJug(spawnedJug).waterSupply = waterSupply*15;
+				}
+			}
+			stop;
+	}
+}
+
+class WaterMissile : actor {
+    default {
+        +MISSILE;
+        gravity 0.8;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE LLLLLLLLLLLLLL 2 {
+                A_SPAWNITEMEX("WaterSplashBase2", 20, 0, 20, 1);
+            }
+            stop;
+    }
+}
+
+
+class WaterCooler_Broken1 : WaterCoolerBase  {
+    default {
+        // PROPERTIES
+		+BUDDHA;
+		height 45;
+		HEALTH 900000;
+		mass 280;
+        Activation THINGSPEC_Default;
+    }
+	states {
+		Active:
+		Inactive:
+		Spawn:
+			TNT1 A 0;
+			VOXE LLLLLLLLLLLLLLLLLLLLL 2 {
+				A_SPAWNITEMEX("WaterSplashBase2", random(-3, 3), random(-10,10), 40);
+				A_SetAngle(angle + frandom(2,4));
+			}
+		Looper:
+			VOXE L -1;
+			stop;
+		Pain:
+			TNT1 A 0 A_SetAngle(angle + random(5,8));
+			goto Looper;
+		Death:
+			stop;
+	}
+}
+
+class WaterCooler_Broken1_pitched : WaterCoolerBase  {
+    default {
+        // FLAGS
+        +INVULNERABLE;
+        +NOGRAVITY;
+        -SOLID;
+		-SHOOTABLE
+        // PROPERTIES
+		+BUDDHA;
+        height 45;
+        Activation THINGSPEC_Default;
+        mass 150;
+    }
+
+	states {
+        Spawn:
+            TNT1 A 0;
+            VOXE LLLLLLLL 2 {
+                A_SetPitch(pitch + 10);
+                ThrustThingZ(0,1,0,1);
+            }
+            VOXE L -1;
+            stop;
+	}
+}
+
+class WaterCooler_DetachedJug : WaterCoolerBase  {
+
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+	}
+
+    default {
+        // FLAGS
+		+DOOMBOUNCE
+		-SHOOTABLE
+        // PROPERTIES
+		radius 12;
+		height 9;
+		mass 300;
+		+missile;
+		SeeSound "bounce/jug";
+		BounceCount 4;
+		gravity 0.8;
+		BounceFactor 0.5;
+		Activation THINGSPEC_Default;
+    }
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			VOXE L 1 {
+				A_SetPitch(Pitch + 10);
+				if(watersupply > 0) {
+					bPreventSleep = true;
+					A_PlaySound("script/waterdrip", CHAN_5, 1.0, 1.0);
+					A_SPAWNITEMEX("WaterParticleXSmall", frandom(-1, 1), random(-3,3));
+				}
+			}
+			loop;
+		Death: 
+			TNT1 A 0 A_SetPitch(0);
+			TNT1 A 0 A_SetRoll(0);
+		DripWater:
+			TNT1 A 0 {
+				//console.printf("%d", waterSupply);
+				if(watersupply <= 0) {
+					bPreventSleep = false;
+					setStateLabel("DeathReal");
+				}
+				watersupply--;
+			}
+			VOXE L 5 A_SPAWNITEMEX("WaterParticleXSmall", frandom(12,14), frandom(-3,3), 1);
+			loop;
+		DeathReal:
+			TNT1 A 0 A_StopSound(CHAN_5);
+			VOXE L -1;
+			stop;
+	}
+}

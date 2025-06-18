@@ -1,0 +1,50 @@
+
+class PopcornParticleDefinition : ParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.45);
+        self.DefaultRenderStyle = STYLE_Translucent;
+        self.SetBaseScale(0.09);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+        self.SetFlag(PDF_LIFEFADE);
+        self.FadeLifeRange(0,30);
+        self.SetLifespanMultipliers(0.6, 1.0, 2.0, 3.0, 5.0);
+        self.RandomLife(60,90);
+        self.StopSpeed = 2;
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-60,60);
+        self.BounceSound = "chunk/impact";
+
+        self.RandomAngle(-90,90);
+        self.RandomPitch(-55,25);
+        self.RandomSpeed(0.4,7);
+        self.RandomScaleX(0.9, 4.5);
+        self.RandomScaleY(0.9,4.5);
+    }
+
+    override void ThinkParticle(in out ParticleData particle) {
+        particle.pitch+=10;
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.Texture = SelectRandomFrame("POPC", "ABCD");
+    }
+}
+
+class PopcornParticle360Definition : PopcornParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomAngle(0,360);
+        self.RandomPitch(-10,-176); 
+    }
+}
+
+class PopcornParticle360Fallover : PopcornParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomSpeed(0, 2);
+        self.RandomAngle(-45,45);
+        self.RandomPitch(-35,-65);
+    }
+}

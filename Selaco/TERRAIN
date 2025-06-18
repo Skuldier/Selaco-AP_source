@@ -1,0 +1,22 @@
+splash 	Waterr
+{
+ smallclass 	WaterFoam
+ smallclip		0
+ smallsound	world/lavasizzlesmall
+
+ baseclass		WaterParticleX
+ chunkclass	    WaterParticleX
+ chunkxvelshift	8
+ chunkyvelshift	8
+ chunkzvelshift	6
+ chunkbasezvel	2
+ sound		world/lavasizzle
+ NoAlert
+}
+
+terrain	 MuddyWaterDeep
+{
+    splash 	Waterr
+    footclip	 24
+    liquid
+}

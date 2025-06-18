@@ -1,0 +1,78 @@
+// TODO:
+// - Cleanup
+// - Smoother up and down movement
+// - Consider target height
+mixin class AI_AltitudeCorrection {
+    int preferredFloorOffset;
+    int preferredCeilingOffset;
+    bool switchAltitude;
+
+    property PreferredFloorOffset : preferredFloorOffset;
+
+    void setOffsetInfo() {
+        preferredFloorOffset = FloorZ + random(35,45);
+        preferredCeilingOffset = CeilingZ - random(60,135);
+    }
+
+	void checkAltitude() {
+        if(target && !isFrozen && shockRemainder == 0) {
+            if(level.time % random(10,15) == 0 || !switchAltitude) {
+                // Avoid colission
+                if(!CheckIfwallClear(90) && !CheckIfwallClear(270)) {
+                    if(!CheckIfwallClear(90)) {
+                        vel = (0,0,0);
+                        A_CHANGEVELOCITY(0, 4.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+                        A_CHANGEVELOCITY(0, 0, frandom(-0.3,0.3));
+                    }
+                    if(!CheckIfwallClear(270)) {
+                        vel = (0,0,0);
+                        A_CHANGEVELOCITY(0, -4.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+			            A_CHANGEVELOCITY(0, 0, frandom(-0.3,0.3));
+                    }
+                }
+            
+                // TOO CLOSE TO FLOOR, GO UP.
+                if(pos.z < preferredFloorOffset) {
+                    switchAltitude = true;
+                    adjustFloorAltitude(1.1);
+                }
+            }
+        
+            if(level.time % Frandom(60,100) == 0) {
+                preferredFloorOffset = FloorZ + random(25,65);
+                preferredCeilingOffset = CeilingZ - random(65,125);
+            }
+        }
+
+        // TO-DO: This must depend on the size of the room.
+        // If too low to the floor, go up until we break the threshold
+        if(pos.z - floorz < 55) {
+            A_CHANGEVELOCITY(0,0, 1, CVF_RELATIVE);
+        }
+
+        // If too close to ceiling, go down.
+        if(ceilingz - pos.z < 100) {
+            vel.z = -0.1;
+            A_CHANGEVELOCITY(0,0, -1, CVF_RELATIVE);
+        }
+
+	}
+
+    // Adjust altitude until actor is above the floor offset preference
+    void adjustFloorAltitude(float zSpeed) {
+        Vel.z =zspeed;
+        if(pos.z > (FloorZ + preferredFloorOffset)) {
+            switchAltitude = false;
+            Vel.z = 1.0;
+        }
+    }
+
+    // Adjust altitude until actor is above the floor offset preference
+    void adjustCeilingAltitude(float zSpeed) {
+        Vel.z =zspeed;
+        if(pos.z > (CeilingZ - preferredCeilingOffset)) {
+            switchAltitude = false;
+            Vel.z = -1.0;
+        }
+    }
+}

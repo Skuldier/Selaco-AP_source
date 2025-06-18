@@ -1,0 +1,27 @@
+GameInfo
+{
+	AddEventHandlers = "TutorialHandler", "NewGameHandler", "LevelEventHandler", "LookAt", "InputHandler", "PromptHandler", "GwynHandler", "GlobalStatHandler", "CreditsHandler"
+	StatusBarClass = "HUD"
+}
+
+// TODO: Remove these Test maps before release!
+
+MAP "DEV MAPS/TRANS1" "Transition Test 1" {
+	cluster = 1
+	areaNum = 1
+	skyfog = 112
+	clipmidtextures
+	NoInfighting
+	sky1 = "SKY5"
+	levelNum = 127
+}
+
+MAP "DEV MAPS/TRANS2" "Transition Test 1" {
+	cluster = 1
+	areaNum = 1
+	skyfog = 112
+	clipmidtextures
+	NoInfighting
+	sky1 = "SKY5"
+	levelNum = 128
+}

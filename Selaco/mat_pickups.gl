@@ -1,0 +1,429 @@
+// Note: disablefullbright does not seem to work
+
+
+// WEAPONRY
+material texture "MD/UC-36/uc36.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.51
+}
+material texture "MD/SHOTGUN/SHOTGUN.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.51
+}
+
+material texture "md/poolcue/poolcue.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.2
+}
+
+material texture "SPRITES/DECORATIONS/CRAKZ0.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.2
+}
+
+material texture "SPRITES/DECORATIONS/BLUEPRINTS_MECH.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/GASMASK/GASMASK.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/AMMODECORATION/MAGAZINE_DECORATION.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/mine/MINEPICKUPLARGE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/mine/MINEPICKUPSMALL.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/GRENADEBANDOLIER/GRENADEBANDOLIER.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/RAILGUNAMMO/RAILGUNAMMO.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/RAILGUNAMMO/RAILGUNAMMO_SINGLE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+
+material texture "MD/PROTEINSHAKE/PROTEINSHAKE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/KEYCARDS/STARLIGHT_COLORKEY_BLUE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/KEYCARDS/STARLIGHT_COLORKEY_RED.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/KEYCARDS/STARLIGHT_COLORKEY_GREEN.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/KEYCARDS/STARLIGHT_COLORKEY_PURPLE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/KEYCARDS/STARLIGHT_EMPLOYEE_PASS.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+
+
+material texture "MD/HEALINGITEMS/ULTRAHEALTH.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/cricket/RoaringCricket.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/DMR/MARKSMAN_RIFLE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/SMG/SMG.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+
+material texture "MD/UPGRADE/ALTFIREKIT1.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/UPGRADE/WEAPONCAPACITY.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/GRENADELAUNCHER/GRENADELAUNCHER.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/DMR/MARKSMAN_RIFLE_AMMO.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+
+material texture "MD/plasmarifle/plasmarifle.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+
+material texture "MD/KEY/GOLDKEY.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+
+material texture "MD/railgun/railgun.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+
+material texture "MD/GRENADELAUNCHER/SHELL_FRAG.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/GRENADELAUNCHER/SHELL_ICE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/GRENADELAUNCHER/SHELL_ACID.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/GRENADELAUNCHER/SHELL_ACID.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/nailgun/nailgun.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+material texture "MD/nailgun/nail_drum.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+
+// DemolitionCharges
+material texture "MD/DEMOLITIONCHARGE/DEMOLITIONCHARGE_PICKUP.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+// Health Pickups
+material texture "MD/HEALINGITEMS/MEDKIT.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/HEALINGITEMS/PortableMedkit.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/HEALINGITEMS/MedicalSatchel.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/clearancecard/clearancecard.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/HEALINGITEMS/STIMPAK.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/DETONATOR/DETONATOR.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/Creditsbag/Creditsbag.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/Creditsbag/creditsbagsmall.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/Creditsbag/creditsbagMedium.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/Credits/Credits2.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/PLASMARIFLE/AMMOPLASMALARGE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/PLASMARIFLE/AMMOPLASMASMALL.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/CRICKET/RoaringCricket.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.50
+}
+
+material texture "MD/WEAPONPART/weaponupgrade1.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/WEAPONPART/weaponupgrade2.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/WEAPONPART/weaponupgrade_overlay1.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/WEAPONPART/weaponupgrade_overlay2.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+// CHRISTMAS /////////////////////////
+material texture "MD/XMASEVENT/GIFT_LARGE_BLUE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/XMASEVENT/GIFT_LARGE_YELLOW.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/XMASEVENT/GIFT_MEDIUM_BLUE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/XMASEVENT/GIFT_MEDIUM_YELLOW.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/XMASEVENT/GIFT_SHOEBOX_BLUE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/XMASEVENT/GIFT_SHOEBOX_RED.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/XMASEVENT/GIFT_SMALL_YELLOW.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/XMASEVENT/GIFT_SMALL_BLUE.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+///////////////////////// 
+
+// ARMOR
+material texture "MD/Armors/GREENARMOR.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/Armors/BLUEARMOR.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/Armors/PURPLEARMOR.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}material texture "MD/Armors/ORANGEARMOR.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+// Grenades and Throwables
+material texture "MD/GRENADE/grenade_pickup.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+material texture "MD/GRENADE/grenade_pickup_ice.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+
+// UC36 CLIPS
+material texture "MD/clip/clip.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/clip/clipbig.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+material texture "MD/clip/clipsmall.png" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+    define selfbright = 0.5
+}
+
+// SHOTGUN SHELLS
+material texture "MD/SHELLS/SHELLSMALL.PNG" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+	define selfbright = 0.5
+}
+
+material texture "MD/SHELLS/SHELLTINY.PNG" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+	define selfbright = 0.5
+}
+
+material texture "MD/SHELLS/SHELLMEDIUM.PNG" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+	define selfbright = 0.5
+}
+
+material texture "MD/SHELLS/SHELLLARGE.PNG" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+	define selfbright = 0.5
+}
+
+
+// CRICKET AMMO
+material texture "MD/Cricket/CRICKET_AMMO_SMALL.PNG" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+	define selfbright = 0.5
+}
+
+material texture "MD/Cricket/CRICKET_AMMO_Large.PNG" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+	define selfbright = 0.5
+}
+
+material texture "MD/Cricket/CRICKET_AMMO_Tiny.PNG" {
+	shader "SHADERS/highlight.glsl"
+	disablefullbright
+	define selfbright = 0.5
+}

@@ -1,0 +1,98 @@
+// @Cockatrice - Moved all of the setdefault definitions here, since UDB cannot parse them correctly
+setdefault g_iniexists = true;
+
+// Default values for standard CVARS
+// These re-define engine level defaults so we don't have to recompile the game when making changes to defaults
+// This also allows us to not rely on an INI file for default settings
+setdefault playerclass = Dawn;
+setdefault wbobfire = 0.66875;
+setdefault wbobspeed = 1.1875;
+setdefault stillbob = 0.040625;
+setdefault movebob = 0.0126;
+setdefault gender = female;
+
+setdefault autosavecount = 16;
+setdefault autosavenum = 0;
+setdefault quicksaverotation = true;
+setdefault quicksaverotationcount = 3;
+setdefault chase_dist = 90;
+setdefault chase_height = "-4";
+setdefault cl_capfps = false;
+setdefault cL_run = true;
+setdefault disableautosave = 1;
+
+setdefault vid_activeinbackground = true;
+
+// Audio
+setdefault snd_samplerate = 48000;
+
+//r_actorspriteshadow no longer used. In Selaco gl_light_shadowmap determines actor sprite shadows
+//setdefault r_actorspriteshadow = 2;
+setdefault gl_fxaa = 0;
+setdefault gl_shadowmap_quality = 512;
+setdefault r_shadowQuality = 3;
+setdefault gl_selflighting = true;
+setdefault gl_menu_blur = 0;
+setdefault gl_ssao_strength = 0.85;
+setdefault gl_ssao = 2;
+setdefault gl_lens = true;
+setdefault gl_exposure_scale = 1.20344;
+setdefault gl_bloom = true;
+setdefault gl_light_shadowmap = true;
+setdefault gl_shadowmap_filter = 3;
+setdefault gl_texture_filter = 6;
+setdefault gl_texture_filter_anisotropic = 16;
+setdefault vid_contrast = 0.99;
+setdefault r_mirror_recursions = 2;
+setdefault vid_cropaspect = true;
+setdefault vid_scale_linear = true;
+setdefault vid_preferbackend = 1;
+setdefault vid_maxfps = 200;
+setdefault crosshairfilter = true;
+setdefault crosshairgrow = true;
+setdefault crosshairscale = 0.89;
+setdefault crosshairhealth = 0;
+setdefault crosshaircolor = "76 81 98";
+setdefault m_show_backbutton = "-1";
+setdefault m_use_mouse = 1;
+setdefault snd_menuvolume = 1;
+setdefault r_drawfuzz = 0;
+setdefault gl_texture_hqresizemode = 6;
+setdefault showendoom = 0;
+setdefault timidity_config = gzdoom;
+setdefault midi_config = gzdoom;
+setdefault fluid_chorus_level = 1;
+setdefault fluid_patchset = gzdoom;
+setdefault snd_musicvolume = 1;
+setdefault snd_channels = 256;
+setdefault snd_mastervolume = 0.501282;
+setdefault dimcolor = "00 00 00";
+setdefault dimamount = 0.25;
+setdefault pickup_fade_scalar = 0.7;
+setdefault blood_fade_scalar = 0.7;
+setdefault hud_scalefactor = 0.36;
+setdefault i_pauseinbackground = false;
+setdefault i_soundinbackground = true;
+setdefault autosavenum = 1;
+setdefault cl_maxdecals = 1000;
+
+setdefault i_discordrpc = true;
+setdefault wipetype = 0;
+setdefault show_messages = false;
+setdefault sv_cheats = false;
+setdefault am_gridcolor = "13 16 18";
+setdefault am_efwallcolor = "1f 23 2f";
+setdefault am_cdwallcolor = "1f 23 2f";
+setdefault am_fdwallcolor = "2b 2d 3e";
+setdefault am_wallcolor = "b9 b7 c6";
+setdefault am_backcolor = "1f 23 2f";
+setdefault am_showmonsters = false;
+setdefault am_rotate = 2;
+setdefault am_playerScale = 0.3;
+setdefault am_linethickness = 2;
+setdefault am_showtime = false;
+setdefault am_showmaplabel = false;
+setdefault am_showsecrets = false;
+setdefault gl_particles_style = 0;
+setdefault queryiwad_key = "shift";
+setdefault joy_dinput = false;

@@ -1,0 +1,126 @@
+extend class SelacoActor {
+    protected int spawnLevelNum;        // Level (Map) ID we were spawned on, only retains TID when inside that map
+    protected int travelTID;            // Save the original TID of this actor before travelling to a new map
+    protected Vector3 travelOffset;     // Offset when we travel
+    protected double travelRefAngle;
+    bool preparedForTravel;             // Should only ever be set between levels
+    int travelCount;                    // How many times we've travelled between maps
+
+    virtual void prepareForTravel(DawnLevelTransitioner trans) {
+        wake(); // This will also change our statnum, but we just want to clear any sleep flags just in case
+        travelOffset = trans ? pos - trans.pos : (0,0,0);
+        travelRefAngle = trans ? trans.angle : 0;
+
+        UnlinkFromWorld();
+        if(tid != 0) travelTID = tid;
+        ChangeTid(0);
+        
+        // Move object into the stat num for travelling objects
+        ChangeStatNum(STAT_TRAVELLING);
+
+        // Remove all attached lights, they should be recreated on the other side
+        DeleteAttachedLights();
+
+        preparedForTravel = true;
+        travelCount++;
+    }
+
+    // We are on the new map, let's get into position for the player
+    virtual void finishedTravel(PlayerPawn newPP, DawnLevelTransitioner transitioner) {
+        // Move back to a standard stat num
+        ChangeStatNum(STAT_DEFAULT);
+
+        // Relink to world with new TID
+        if(level.levelnum == spawnLevelNum) {
+            ChangeTid(travelTID);
+        }
+        LinkToWorld();
+
+        finishTravelSetPosition(transitioner);
+
+        preparedForTravel = false;
+    }
+
+    virtual void finishTravelSetPosition(DawnLevelTransitioner transitioner) {
+        if(transitioner) {
+            travelOffset.xy = Actor.RotateVector(travelOffset.xy, transitioner.angle - travelRefAngle);
+            vel.xy = Actor.RotateVector(vel.xy, transitioner.angle - travelRefAngle);
+            Vector3 newPos = transitioner.pos + travelOffset;
+            angle -= travelRefAngle - transitioner.angle;
+            
+            // Try moving from spawn point to the new position, and stop if we hit something
+            Vector3 lastPos = transitioner.pos;
+
+            if(transitioner.args[4] == 1) {
+                // Just accept the position blindly with no collision check, caution should be used with this one
+                lastPos = newPos;
+            } else {
+                // Try moving from spawn point to the new position, and stop if we hit something
+                double travelDist = (newPos - lastPos).length();
+                Vector3 dir = (newPos - lastPos).unit();
+                int numChecks = clamp(travelDist / radius, 1, 100);
+                double unit = travelDist / double(numChecks);
+
+                for(int x = 0; x < numChecks; x++) {
+                    Vector3 nextPos = lastPos + (dir * unit);
+
+                    if(!checkMove(nextPos.xy, PCM_NOACTORS)) {
+                        if(developer > 1) Console.Printf("Offset pos (%.2f  %.2f) is invalid!", nextPos.x, nextPos.y);
+                        break;
+                    } else {
+                        lastPos = nextPos;
+                    }
+                }
+            }
+            
+            
+            SetOrigin(lastPos, false);
+            prev = pos;
+        } else {
+            Console.Printf("Finished %s with no transition object!!", getClassName());
+        }
+    }
+
+    virtual void fullyTravelled() {
+		prev = pos;
+	}
+
+
+    // Helper function so SelacoActors can transition attached effect actors that do not inherit SelacoActor
+    int prepareAttachedForTravel(Actor attachedActor) {
+		if(attachedActor) {
+			int oldTID = attachedActor.tid == 0 ? attachedActor.DesignatedTeam : attachedActor.tid;
+
+            attachedActor.wake();
+			attachedActor.UnlinkFromWorld();
+            attachedActor.ChangeTid(0);
+            
+            // Move object into the stat num for travelling objects
+            attachedActor.ChangeStatNum(STAT_TRAVELLING);
+
+            // Remove all attached lights, they should be recreated on the other side
+            attachedActor.DeleteAttachedLights();
+
+            // Reusing this field because it has no purpose in Selaco
+            attachedActor.DesignatedTeam = oldTID;
+
+            // Increment travel count
+            let sa = SelacoActor(attachedActor);
+            if(sa) sa.travelCount++;
+
+			return oldTID;
+		}
+
+		return 0;
+	}
+
+    void restoreAttachedFromTravel(Actor attachedActor) {
+		attachedActor.ChangeStatNum(STAT_DEFAULT);
+		if(spawnLevelNum == level.levelnum) attachedActor.ChangeTid(attachedActor.DesignatedTeam);
+		attachedActor.LinkToWorld();
+	}
+
+    int getSpawnedLevelNum() {
+        return spawnLevelNum;
+    }
+}

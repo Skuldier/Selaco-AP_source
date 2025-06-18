@@ -1,0 +1,54 @@
+// This handler stores all throwables into a list and allows cycling / detection.
+class EquipmentHandler : StaticEventHandler {
+    array<class<SelacoAmmo> > allThrowables; 
+
+    override void NewGame() {
+        getAllThrowables();
+    }
+
+	void getAllThrowables()
+	{
+		if(allThrowables.size() > 0)
+		{
+			return;
+		}
+		
+		// Scan through classes and store all throwables in a list
+		int totalClasses = AllClasses.size();
+		Array< class<SelacoAmmo> > foundEquipment;
+		for (int x = 0; x < totalClasses; x++) {
+			if (AllClasses[x] is 'SelacoAmmo' && AllClasses[x]) {
+				let cls = (class<SelacoAmmo>)(AllClasses[x]);
+				foundEquipment.push(cls);
+			}
+		}
+		
+		// Seek list for ammo types marked as Throwables.
+		for (int x = 0; x < foundEquipment.size(); x++) {
+			class<SelacoAmmo> ammoClass = foundEquipment[x];
+			let ammoType = GetDefaultByType(ammoClass);
+			if (ammoType.bEquipment) {
+				// Insert in order, to save us lookup time later when cycling throwables or adding to the grenade wheel
+				if(allThrowables.size() == 0 || GetDefaultByType(allThrowables[allThrowables.size() - 1]).grenadeOrder <= ammoType.grenadeOrder) {
+					allThrowables.push(ammoClass);
+				} else {
+					for(int i = 0; i < allThrowables.size(); i++) {
+						if(GetDefaultByType(allThrowables[i]).grenadeOrder > ammoType.grenadeOrder) {
+							allThrowables.insert(i, ammoClass);
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		for(int x = 0; x < allThrowables.size(); x++) {
+			Console.Printf("\c[GREEN]All throwables:\c- %d = %s (%d)", x, allThrowables[x].getClassName(), GetDefaultByType(allThrowables[x]).grenadeOrder);
+		}
+	}
+
+    static clearscope EquipmentHandler Instance() {
+        return EquipmentHandler(StaticEventHandler.Find('EquipmentHandler'));
+    }
+
+}

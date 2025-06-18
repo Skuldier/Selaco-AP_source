@@ -1,0 +1,390 @@
+#include "ACTORS/AI/AI_Controllers/SOLDIERSPEECH/Speech_LOCALIZATION.zsc"
+#include "ACTORS/AI/AI_Controllers/SOLDIERSPEECH/Speech_RESPONSEOPTIONS.zsc"
+#include "ACTORS/AI/AI_Controllers/SOLDIERSPEECH/Speech_SOUNDFILES.zsc"
+#include "ACTORS/AI/AI_Controllers/SOLDIERSPEECH/Speech_SUBTITLELENGTH.zsc"
+#include "ACTORS/AI/AI_Controllers/SOLDIERSPEECH/Speech_INITIALIZER.zsc"
+
+enum SpeechTypes
+{
+    SOLDIER_SIGHT = 1,
+    SOLDIER_SQUADLOST = 2,
+    SOLDIER_ARMORCUT = 3,
+    SOLDIER_PUSH = 4,
+    SOLDIER_PURSUIT = 5,
+    SOLDIER_ATTACK = 6,
+    SOLDIER_GRENADEWARNING = 7,
+    SOLDIER_THROWGRENADE = 8,
+    SOLDIER_TARGETHIT = 9,
+    SOLDIER_PAIN = 10,
+    SOLDIER_MANDOWN = 11,
+    SOLDIER_RELOAD = 12,
+    SOLDIER_RETREAT = 13,
+    SOLDIER_SEARCH = 14,
+    SOLDIER_SEARCH_RESPONSE = 15,
+    SOLDIER_ACKNOWLEDGE = 16,
+    SOLDIER_ACKNOWLEDGE_SIMPLE = 17,
+    SOLDIER_NEGATIVE = 18,
+    SOLDIER_NEGATIVE_SIMPLE = 19,
+    SOLDIER_MANDOWN_RESPONSE = 20,
+    SOLDIER_GIVINGCOVER = 21,
+    SOLDIER_DISTANCE = 22,
+    SOLDIER_PUSHRESPONSE = 23,
+    SOLDIER_DEPLOYTURRET = 24,
+    SOLDIER_DEPLOYSHIELD = 25,
+    SOLDIER_DEPLOYShockDroid = 26,
+    SOLDIER_SQUADLEADERDOWN = 27,
+    SOLDIER_SHIELDING = 28,
+    SOLDIER_KILL = 29,
+    SOLDIER_CALLOUTSHOTGUN = 30,
+    SOLDIER_CALLOUTGRENADELAUNCHER = 31,
+    SOLDIER_CALLOUTTARGETAMMO = 32,
+    SOLDIER_CALLOUTSNIPER = 33,
+    SOLDIER_SMOKE = 34,
+    SOLDIER_HEAR = 35,
+    SOLDIER_FLASHLIGHT = 36,
+
+    // ENFORCER CATEGORY
+    // Not as much for budget reasons :( More in Ch2!
+    ENFORCER_SIGHT = 1001,
+    ENFORCER_ATTACK = 1006,
+    ENFORCER_GRENADEWARNING = 1007,
+    ENFORCER_TARGETHIT = 1009,
+    ENFORCER_PAIN = 1010,
+    ENFORCER_RETREAT = 1013,
+    ENFORCER_MANDOWN = 1011,
+    SOLDIER_ALL = 1037
+};
+
+// TO-DO: With every save game, the amount of lines added to the SpeechContainers multiple :Dawn_Scream:
+class SpeechHandler : EventHandler
+{
+    const SPEECH_VERSION = 1;       // Update this if we change speech arrays. It will signal to old saves that they need to re-initialize speech
+    const WALKY_WALKY_DELAY = 20; // We play a Walky Talky sound before the sound plays. How long should it take for the voice line to be played after the walky talky?
+    int walkyDelayTicks;
+    int speechVersion;
+
+    int sType;
+    int soundResponse, soundFileID, walkyTalkyDelay;
+    string soundFile, soundSubtitle, character;
+    float soundLength, voicePitch;
+    
+    EnemySoldier speaker;                   // Who's talkin?
+    
+    int speechCooldown;                     // We dont want multiple soldiers to talk at once. What are we, Deep Rock Galactic?
+    SpeechContainer speechLists[SOLDIER_ALL];
+    array<String> speechList;
+
+    int totalSounds;                        // debugging
+
+    array<String>   soundArray;             // Sound Reference
+    array<String>   localizationArray;      // Localization Reference
+    array<float>    lengthArray;            // Length Reference
+    array<int>      responseArray;          // Responses
+
+    static SpeechHandler Instance() {
+        return SpeechHandler(EventHandler.Find('SpeechHandler'));
+    }
+
+    // Prepare things, wait for walky talky to finish
+    void prepareVO(EnemySoldier soldier_, string character_ = "$CHARACTER_SOLDIER", string soundFile_ = "", string soundSubtitle_ = "", float soundLength_ = 0, int responseNum = -1, float voicePitch_ = 1.0, int speechNum_ = 0, int delayOffset = 0, bool urgent = 0)
+    {
+        soundFileID = speechNum_;
+
+        // Roll a die. Do we want the dude to talk?
+        if(random(0,100) >= getChance(soundFileID) || (walkyTalkyDelay > 0 && !urgent))
+        {
+            return;
+        }
+        speaker = soldier_;
+        walkyTalkyDelay = delayoffset;
+        soundFile = soundFile_;
+        soundSubtitle = soundSubtitle_;
+        soundLength = soundLength_;
+        voicePitch = voicePitch_;
+        character = character_;
+        speaker = soldier_;
+        walkyDelayTicks = 1;
+        soundResponse = responseNum;
+        speechCooldown = soundLength*35+10;
+    }
+
+    // Play the voice line and display subtitle
+    void PlayVO()
+    {
+        if (!speaker) return; // Early exit if speaker is null
+
+        speaker.A_PlaySound(soundFile, CHAN_VOICE, CVar.FindCVar("snd_dialogvolume").GetFloat(), 0, 0.4, 0, pitch:voicePitch);  
+
+        // Format character label (make orange if enemy)
+        string characterLabel = (speaker is "SelacoEnemy") 
+            ? string.format("\c[orange]%s", stringTable.localize(character)) 
+            : stringTable.localize(character);
+
+        Notification.Subtitle(characterLabel, soundSubtitle, soundLength + 1.0);
+
+        // Handle response ping
+        if (soundResponse > 0) {
+            pingResponse(soundResponse, speaker, soundFileID);
+        }
+    }
+    
+    // Some voice lines can be responded to. Find a suitable dude using the Battleoverseer
+    void pingResponse (int response, EnemySoldier caller, int soundID)
+    {
+        EnemySoldier selectedResponder; 
+        int diceRoll = random(0,100);
+
+        //BattleOverseer overseer = BattleOverseer.Instance();
+        BattleSquad squad = caller.squad;
+
+        //console.printf("\c[Yellow]Speech System (PING):\c- %s is waiting for a response from someone.", caller.alienName);
+        // What is the size of the squad? We dont need a response when the soldier is on it's own.
+        if(!squad || squad.size() < 2)
+        {
+            console.printf("\c[Yellow]Speech System: \c-Respond denied, squad is too small.");
+            return;
+        }
+
+        // Roll a chance for response. 
+        if(diceRoll >= getResponseChance(soundID))
+        {
+            //console.printf("\c[Yellow]Speech System: \c-Respond denied, nobody felt like the message was important enough. (dice: %d, chance: %d", diceRoll, getResponseChance(soundID) );
+            return;
+        }
+
+        // Get a responder
+        selectedResponder = squad.pingResponse_GetSquadmate(response, caller);
+
+        // Let the responder know to respond once the message is finished.
+        if(selectedResponder)
+        {
+            selectedResponder.responseID = response;
+            selectedResponder.respondToPingWhenReady();
+        }
+    }
+
+    override void onRegister()
+    {
+        if(totalSounds == 0 || speechVersion != SPEECH_VERSION)
+        {
+            if(developer && speechVersion != SPEECH_VERSION && totalSounds > 0) Console.Printf("Rebuilding Speech due to version mismatch: %d vs %d", speechVersion, SPEECH_VERSION);
+            speechVersion = SPEECH_VERSION;
+            initSpeech();
+        }
+    }
+
+    // Chance for this thing to be said.
+    const DEFAULT_CHANCE = 45;
+    int getChance(int soundID)
+{   
+    switch (soundID) {
+        case ENFORCER_SIGHT:
+        case SOLDIER_SIGHT:
+        case SOLDIER_HEAR:
+            return 100;
+        case SOLDIER_TARGETHIT:
+        case ENFORCER_TARGETHIT:
+        case ENFORCER_MANDOWN:
+            return 100;
+        case SOLDIER_MANDOWN:
+            return 35;
+        case SOLDIER_SEARCH:
+            return 100;
+        case SOLDIER_PUSH:
+            return 25;
+        case SOLDIER_SQUADLOST:
+        case SOLDIER_ARMORCUT:
+            return 10;
+        case SOLDIER_RETREAT:
+            return 65;
+        case SOLDIER_FLASHLIGHT:
+        case SOLDIER_GRENADEWARNING:
+            return 100;
+        case SOLDIER_DISTANCE:
+        case SOLDIER_DEPLOYSHIELD:
+        case SOLDIER_DEPLOYTURRET:
+        case SOLDIER_SEARCH_RESPONSE:
+        case SOLDIER_ACKNOWLEDGE:
+        case SOLDIER_ACKNOWLEDGE_SIMPLE:
+        case SOLDIER_NEGATIVE:
+        case SOLDIER_NEGATIVE_SIMPLE:
+        case SOLDIER_SQUADLEADERDOWN:
+        case SOLDIER_MANDOWN_RESPONSE:
+        case SOLDIER_PUSHRESPONSE:
+        case SOLDIER_SHIELDING:
+        case SOLDIER_KILL:
+        case SOLDIER_CALLOUTSHOTGUN:
+        case SOLDIER_CALLOUTGRENADELAUNCHER:
+        case SOLDIER_CALLOUTTARGETAMMO:
+        case SOLDIER_DEPLOYShockDroid:
+        case SOLDIER_SMOKE:
+            return 75;
+        default:
+            return DEFAULT_CHANCE;
+    }
+}
+
+    // Chance for a response to the above thing being given
+    int getResponseChance(int soundID)
+    {
+        switch (soundID) {
+            case SOLDIER_SIGHT:
+                return 65;
+            case SOLDIER_MANDOWN:
+                return 60;
+            case SOLDIER_DISTANCE:
+                return 50;
+            case SOLDIER_SEARCH:
+                return 100;
+            case SOLDIER_PUSH:
+                return 60;
+            default:
+                return DEFAULT_CHANCE;
+        }
+    }
+
+
+    int getSpeechCooldown()
+    {
+        return speechCooldown;
+    }
+
+    override void worldTick()
+    {
+        // Decrement speech cooldown
+        if (speechCooldown > 0) {
+            speechCooldown--;
+        }
+
+        if (walkyDelayTicks > 0 && walkyDelayTicks < (WALKY_WALKY_DELAY + walkyTalkyDelay)) {
+            walkyDelayTicks++;
+        }
+
+        // Play walky talky sound right before speaking
+        if (speaker && walkyDelayTicks == (WALKY_WALKY_DELAY + walkyTalkyDelay - 15)) {
+            speaker.A_PLAYSOUND("script/walky", CHAN_AUTO, 1.0, 0, 0.6, pitch: frandom(0.9, 1.2));
+        }
+        
+        // Play the VO!
+        if (walkyDelayTicks >= (WALKY_WALKY_DELAY + walkyTalkyDelay)) {
+            walkyDelayTicks = 0;
+            walkyTalkyDelay = 0;
+            PlayVO();
+        }
+    }
+}
+
+class SpeechContainer
+{
+    array<string> speechSound;
+    array<float> speechLength;
+    array<string> speechSubtitle;
+    array<int> speechResponse;
+    int listSize;
+
+    static SpeechContainer Create(Class<SpeechContainer> cls, array<string> file, array<string> subtitle, array<float> length, array<int> response) {
+        let sh = SpeechContainer(new(cls));
+        sh.speechSound.copy(file);
+        sh.speechLength.copy(length);
+        sh.speechResponse.copy(response);
+        sh.speechSubtitle.copy(subtitle);
+        sh.listSize = sh.speechSound.size()-1;
+        sh.init();
+
+        //console.printf("%s", getSound());
+        return sh;
+    }   
+   
+    // dummy
+    virtual void init()
+    {
+       
+    }
+
+    int getSize()
+    {
+        if(speechSound.size()>0)
+        {
+            return speechSound.size()-1;
+        }
+        return 0;
+    }
+
+    string getSound(int index)
+    {
+        return speechSound[index];
+    }
+    string getSubtitle(int index)
+    {
+        return speechSubtitle[index];
+    }
+    int getLength(float index)
+    {
+        return speechLength[index];
+    }
+    int getResponse(int index)
+    {
+        return speechResponse[index];
+    }
+
+}
+ 
+// The Speech Handler allows for EnemySoldier classes to communicate and respond to eachother.
+extend class EnemySoldier
+{
+    
+    int responseID; // Used to memorize what the response to a ping
+
+	// Function that checks if soldiers should speak or not
+	virtual bool allowSpeech(bool ignoreSizeRequirement = false, bool urgent = false)
+	{
+        handler = SpeechHandler.Instance();
+        //overseer = BattleOverseer.Instance();
+    
+		if(frostTimer==0 && !isLayingDown && !mayNotTalk && speechDelay == 0 && !bDontSpeak && shockRemainder==0 && (handler.getSpeechCooldown() == 0 || urgent) && (ignoreSizeRequirement || squad && squad.size() > 1))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+    // If occupied, keep looping until the Speech Handler is free for a new message
+    void respondToPingWhenReady()
+    {
+        handler = SpeechHandler.Instance();
+        if(handler.speechCooldown == 0)
+        {
+            //console.printf("\c[Yellow]Speech System (RESPONSE-Execute): Seems like you are done talking. Now I, %s, shall respond", alienName);
+            talk(responseID);
+            responseID = 0 ;
+        }
+    }
+
+
+	// Performs serveral checks to see whether or not it makes sense for the soldier to talk
+	virtual void talk(int speech = 0, bool urgent = false, bool ignoreSizeRequirement = false, int delay = 0) {
+        if(!bCommunicator)
+        {
+            return;
+        }
+        if(developer) console.printf("CALLING: %d", speech);
+        handler = SpeechHandler.Instance();
+        overseer = BattleOverseer.Instance();
+        speech+=speechOffset;
+		if (handler && overseer && allowSpeech(ignoreSizeRequirement, urgent)) 
+        {
+            if(developer) console.printf("Searching for speechID: %d", speech);
+            if(handler.speechLists[speech])
+            {
+                int speechNum = random(0,handler.speechLists[speech].getSize());
+                handler.PrepareVO(self, displayName, handler.speechLists[speech].getSound(speechNum), handler.speechLists[speech].getSubtitle(speechNum), handler.speechLists[speech].getLength(speechNum), handler.speechLists[speech].getResponse(speechNum), voicePitch, speech, delay, urgent);
+            }
+            else if(developer) 
+            {
+                console.printf("Prevented a crash for speech ID: %d", speech);
+            }
+
+		} 
+	}
+}

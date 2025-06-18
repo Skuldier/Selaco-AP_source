@@ -1,0 +1,919 @@
+#include "mat_pickups.gl"
+#include "mat_effects.gl"
+
+// Keyboard
+material texture "md/KEYBOARD/keyboard.png" {
+	brightmap "md/KEYBOARD/keyboard_BW.png"
+}
+material texture "md/KEYBOARD/keyboardgreen.png" {
+	brightmap "md/KEYBOARD/keyboard_BW.png"
+}
+material texture "md/FIREHYDRANT/FIREHYDRANT.png" {
+	brightmap "md/FIREHYDRANT/FIREHYDRANT_BW.png"
+}
+material texture "md/ROTATING_STAND/ROTATING_STAND_FEET.png" {
+	brightmap "md/ROTATING_STAND/ROTATING_STAND_FEET_BW.png"
+}
+// MONITOR
+material texture "md/screens/MONITOR_A.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/screens/MONITOR_B.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/screens/MONITOR_C.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/screens/MONITOR_D.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/wire/WIRELEDGE2.png" {
+	brightmap "md/wire/WIRELEDGE2_BW.png"
+}
+material texture "md/screens/MONITOR_E.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/screens/MONITOR_F.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/screens/MONITOR_G.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/screens/MONITOR_H.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/screens/MONITOR_Z.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+material texture "md/crate/CRATECRANE.png" {
+	brightmap "md/crate/CRATECRANE_BW.png"
+}
+
+
+material texture "md/clothes/CLOTHES_TROLLEY.png" {
+	brightmap "md/clothes/CLOTHES_TROLLEY_BW.png"
+}
+material texture "md/clothes/CLOTHES_TROLLEY_PINK.png" {
+	brightmap "md/clothes/CLOTHES_TROLLEY_BW.png"
+}
+material texture "md/clothes/CLOTH_HANGER.png" {
+	brightmap "md/clothes/CLOTH_HANGER_BW.png"
+}
+material texture "md/clothes/CLOTH_HANGER_LAYING.png" {
+	brightmap "md/clothes/CLOTH_HANGER_LAYING_BW.png"
+}
+
+material texture "md/REINFORCEDCASE/REINFORCEDCASE_CYAN.png" {
+	brightmap "md/REINFORCEDCASE/REINFORCEDCASE_BASE_BW.png"
+}
+material texture "md/REINFORCEDCASE/REINFORCEDCASE_GREEN.png" {
+	brightmap "md/REINFORCEDCASE/REINFORCEDCASE_BASE_BW.png"
+}
+material texture "md/REINFORCEDCASE/REINFORCEDCASE_PURPLE.png" {
+	brightmap "md/REINFORCEDCASE/REINFORCEDCASE_BASE_BW.png"
+}
+material texture "md/REINFORCEDCASE/REINFORCEDCASE_YELLOW.png" {
+	brightmap "md/REINFORCEDCASE/REINFORCEDCASE_BASE_BW.png"
+}
+
+// VEHICLES
+material texture "md/VEHICLES/CivilianCarB1.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMB.png"
+}
+material texture "md/VEHICLES/CivilianCarB2.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMB.png"
+}
+material texture "md/VEHICLES/CivilianCarB3.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMB.png"
+}
+material texture "md/VEHICLES/CivilianCarB4.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMB.png"
+}
+material texture "md/VEHICLES/CivilianCarB5.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMB.png"
+}
+material texture "md/VEHICLES/CivilianCar.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMA.png"
+}
+material texture "md/VEHICLES/CivilianCar2.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMA.png"
+}
+material texture "md/VEHICLES/CivilianCar3.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/CivilianCarBMA.png"
+}
+material texture "md/VEHICLES/Vehicle_truck_grey.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/Vehicle_truck_greyBM.png"
+}
+material texture "md/VEHICLES/Vehicle_truck_grey.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/Vehicle_truck_greyBM.png"
+}
+material texture "md/VEHICLES/Vehicle_truck_pizza.png" {
+	brightmap "md/VEHICLES/BRIGHTMAP/Vehicle_truck_pizzaBM.png"
+}
+
+// STEEL CONTAINERS
+material texture "MD/StorageContainer/STORAGE_CONTAINER_A_BLUE.png" {
+	brightmap "MD/StorageContainer/STORAGE_CONTAINER_A_BASE_BW.png"
+}
+material texture "MD/StorageContainer/STORAGE_CONTAINER_B_BLUE.png" {
+	brightmap "MD/StorageContainer/STORAGE_CONTAINER_B_BASE_BW.png"
+}
+material texture "MD/StorageContainer/STORAGE_CONTAINER_A_ORANGE.png" {
+	brightmap "MD/StorageContainer/STORAGE_CONTAINER_A_BASE_BW.png"
+}
+material texture "MD/StorageContainer/STORAGE_CONTAINER_B_ORANGE.png" {
+	brightmap "MD/StorageContainer/STORAGE_CONTAINER_B_BASE_BW.png"
+}
+material texture "md/screens/MONITOR_B.png" {
+	brightmap "md/screens/MONITOR_A_BW.png"
+}
+
+// FOOD
+material texture "md/food/Foodplate_Future.png" {
+	brightmap "md/food/Foodplate_Future_BW.png"
+}
+
+material texture "md/food/Foodplate_Future_PLUTO.png" {
+	brightmap "md/food/Foodplate_Future_BW.png"
+}
+
+
+material texture "MD/BUTTONS/BUTTON_GREEN.png" {
+	brightmap "MD/BUTTONS/BUTTON_BW.png"
+}
+material texture "MD/BUTTONS/BUTTON_BLUE.png" {
+	brightmap "MD/BUTTONS/BUTTON_BLUE_BW.png"
+}
+material texture "MD/STOOL/STOOL.png" {
+	brightmap "MD/STOOL/STOOL_BW.png"
+}
+
+material texture "md/barrel/Reagent_idle.png" {
+	brightmap "md/barrel/Reagent_idle_BW.png"
+}
+material texture "md/barrel/Reagent_pressed.png" {
+	brightmap "md/barrel/Reagent_pressed_BW.png"
+}
+
+// EXPLOSIVE BARRELS
+material texture "md/barrel/explosivebarrel.png" {
+	brightmap "md/barrel/explosivebarrel_BW.png"
+}
+
+// METAL BARRELS
+material texture "md/metalbar/metalbar.png" {
+	brightmap "md/metalbar/METALBARBW.png"
+}
+
+// SENTRY GUN
+material texture "md/SENTRYTURRET/TURRETBASE.png" {
+	brightmap "md/SENTRYTURRET/TURRETBASEBW.png"
+}
+
+// VENDINGMACHINE
+material texture "md/VENDINGMACHINE/ARACHMACHINE.png" {
+	brightmap "md/VENDINGMACHINE/ARACHMACHINEBW.png"
+}
+
+// HOSPITAL
+material texture "md/MEDICALPUMP/medicalequipment1.png" {
+	brightmap "md/MEDICALPUMP/medicalequipment1_BW.png"
+}
+
+material texture "md/STRETCHBED/STRETCHBED.png" {
+	brightmap "md/STRETCHBED/STRETCHBEDBW.png"
+}
+
+// TRASHBIN
+material texture "md/trash/trashbin_close.png" {
+	brightmap "md/trash/trashbin_close_bw.png"
+}
+
+// OM_01A KICKABLE
+material texture "md/effects/DOORVOXELKICKER.png" {
+	brightmap "md/effects/DOORVOXELKICKER_BW.png"
+}
+
+//OTHER KICKABLE DOORS
+material texture "md/effects/DOORVOXELKICKERFAST.png" {
+	brightmap "md/effects/DOORVOXELKICKERFAST_BW.png"
+}
+material texture "SPRITES/DECORATIONS/FAMILYPORTRAIT8.png" {
+	brightmap "BRIGHTMAPS/TEXTURES/FamiliyPortrait8.png"
+}
+material texture "MD/MEDSTATION/MEDSTATION.png" {
+	brightmap "BRIGHTMAPS/AUTO/MED STATION.png"
+}
+material texture "MD/MEDSTATION/MEDSTATION_LOW.png" {
+	brightmap "BRIGHTMAPS/AUTO/MED STATION.png"
+}
+material texture "MD/MEDSTATION/MEDSTATION_EMPTY.png" {
+	brightmap "BRIGHTMAPS/AUTO/MED STATION OFF.png"
+}
+material texture "MD/MEDSTATION/MEDSTATION_OFF.png" {
+	brightmap "BRIGHTMAPS/AUTO/MED STATION OFF.png"
+}
+
+// HEALING ITEMS
+//material texture "md/HEALINGITEMS/MEDKIT.png" {
+//	brightmap "md/HEALINGITEMS/MEDKITBW.png"
+//}
+
+
+// PAINTINGS
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR1A0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR1B0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR1C0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR1D0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR1E0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1F0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1G0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1H0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1I0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1J0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1K0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1L0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1M0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1N0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1O0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1P0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1Q0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1R0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1S0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1T0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1U0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1V0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1W0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1X0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1Y0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR1Z0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2A0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2B0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2C0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2D0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2E0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2F0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2G0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2H0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2I0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2J0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2K0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2L0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2M0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2N0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2O0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2P0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2Q0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2R0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2S0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2T0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2U0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2V0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR2W0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2X0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2Y0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR2Z0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR3A0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR3B0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR3C0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR3D0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR3E0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}material texture "SPRITES/DECORATIONS/PAINTINGS/POR3F0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR3G0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR3H0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR3I0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR3J0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR3K0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR3L0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/POR3M0.png" {
+	brightmap "Brightmaps/textures/PORTLIGH2.png"
+}
+
+// TRIPLE PAINTING
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLA0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLB0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLC0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLA0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLB0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLC0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLA0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLB0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "SPRITES/DECORATIONS/PAINTINGS/PORLC0.png" {
+	brightmap "Brightmaps/AUTO/BR_TPAIN.png"
+}
+material texture "md/JUNCTIONBOX/JUNCTIONBOXCLOSED.png" {
+	brightmap "md/JUNCTIONBOX/JUNCTIONBOXCLOSEDBW.png"
+}
+material texture "md/JUNCTIONBOX/JUNCTIONBOXOPEN.png" {
+	brightmap "md/JUNCTIONBOX/JUNCTIONBOXOPENBW.png"
+}
+material texture "md/mine/mine.png" {
+	brightmap "md/mine/minebw.png"
+}
+// Voxel lamp
+material texture "MD/LAMPVOXELS/FLUOLIGHT.png" {
+	brightmap "MD/LAMPVOXELS/FLUOLIGHT_BW.png"
+}
+
+material texture "MD/faucetS/faucet_BLUE.png" {
+	brightmap "MD/faucetS/faucet_LIGHT.png"
+}
+material texture "MD/ACIDCONTAINER/ACIDCONTAINER.png" {
+	brightmap "MD/ACIDCONTAINER/ACIDCONTAINER_bw.png"
+}
+material texture "MD/FORSALE/FORSALE_SIGN.png" {
+	brightmap "MD/FORSALE/FORSALE_SIGN_BW.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2A.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2B.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2C.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2D.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2E.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2F.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2G.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2H.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2I.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2J.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2K.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2L.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2M.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2N.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+material texture "MD/ALARMCLOCK/ALACLO2O.png" {
+	brightmap "MD/ALARMCLOCK/ALACLOBR.png"
+}
+
+material texture "MD/STORAGECONTAINER/LED_Container_Small.png" {
+	brightmap "MD/STORAGECONTAINER/LED_Container_Small_BW.png"
+}
+material texture "MD/STORAGECONTAINER/LED_Container_Medium.png" {
+	brightmap "MD/STORAGECONTAINER/LED_Container_Medium_BW.png"
+}
+material texture "MD/STORAGECONTAINER/LED_Container_Large.png" {
+	brightmap "MD/STORAGECONTAINER/LED_Container_Large_BW.png"
+}
+material texture "MD/STORAGECONTAINER/LED_Container_Large_RED.png" {
+	brightmap "MD/STORAGECONTAINER/LED_Container_Large_BW.png"
+}
+material texture "MD/KEYPAD/KEYPAD_IDLE.png" {
+	brightmap "MD/KEYPAD/KEYPAD_BW.png"
+}
+material texture "MD/KEYPAD/KEYPAD_SUCCESS.png" {
+	brightmap "MD/KEYPAD/KEYPAD_BW.png"
+}
+material texture "MD/DEMOLITIONCHARGE/DEMOLITIONCHARGE_B.png" {
+	brightmap "MD/DEMOLITIONCHARGE/DEMOLITIONCHARGE_B_BW.png"
+}
+material texture "MD/DEMOLITIONCHARGE/DEMOLITIONCHARGE_A.png" {
+	brightmap "MD/DEMOLITIONCHARGE/DEMOLITIONCHARGE_A_BW.png"
+}
+material texture "MD/ENEMYGRENADE/ENEMYGRENADE.png" {
+	brightmap "MD/ENEMYGRENADE/ENEMYGRENADE_BW.png"
+}
+material texture "MD/GRENADE/grenade_pickup_ice.png" {
+	brightmap "MD/GRENADE/GRENADE_PICKUP_ICE_BW.png"
+}
+
+
+material texture "SPRITES/ELEVATOR/ELEVA0.png" {
+	brightmap "BRIGHTMAPS/AUTO/ELEVA0.png"
+}
+
+material texture "MD/ARMORS/GREENARMOR.png" {
+	brightmap "MD/ARMORS/BASEARMOR_BW.png"
+}
+material texture "MD/ARMORS/BLUEARMOR.png" {
+	brightmap "MD/ARMORS/BASEARMOR_BW.png"
+}
+material texture "MD/ARMORS/PURPLEARMOR.png" {
+	brightmap "MD/ARMORS/BASEARMOR_BW.png"
+}
+material texture "MD/ARMORS/ORANGEARMOR.png" {
+	brightmap "MD/ARMORS/BASEARMOR_BW.png"
+}
+material texture "MD/Palette/PALETTE_1.png" {
+	brightmap "MD/Palette/PALETTE_1_BW.png"
+}
+material texture "MD/Palette/PALETTE_2.png" {
+	brightmap "MD/Palette/PALETTE_2_BW.png"
+}
+material texture "MD/Palette/PALETTE_3.png" {
+	brightmap "MD/Palette/PALETTE_3_BW.png"
+}
+material texture "MD/Palette/PALETTE_4.png" {
+	brightmap "MD/Palette/PALETTE_4_BW.png"
+}
+material texture "MD/Palette/PALETTE_5.png" {
+	brightmap "MD/Palette/PALETTE_5_BW.png"
+}
+material texture "MD/Palette/PALETTE_6.png" {
+	brightmap "MD/Palette/PALETTE_6_BW.png"
+}
+material texture "MD/WIREROLL/WIREROLL.png" {
+	brightmap "MD/WIREROLL/WIREROLL_BW.png"
+}
+material texture "MD/keyboard/HOLOKEYBOARD_PROJECTOR_ON.png" {
+	brightmap "MD/keyboard/HOLOKEYBOARD_PROJECTOR_BW.png"
+}
+material texture "MD/mouse/MOUSE.png" {
+	brightmap "MD/mouse/MOUSE_BW.png"
+}
+material texture "MD/PADLOCK/PADLOCK1A.png" {
+	brightmap "MD/PADLOCK/PADLOCK1L.png"
+}
+material texture "SPRITES/DONKMONK1.PNG" {
+	brightmap "BRIGHTMAPS/TEXTURES/DONKMONKBW.png"
+}
+material texture "SPRITES/DONKMONK2.PNG" {
+	brightmap "BRIGHTMAPS/TEXTURES/DONKMONKBW.png"
+}
+material texture "SPRITES/DONKMONK3.PNG" {
+	brightmap "BRIGHTMAPS/TEXTURES/DONKMONKBW.png"
+}
+material texture "MD/KNOCKOVERDOOR/DOOR_KNOCKOVER.PNG" {
+	brightmap "MD/KNOCKOVERDOOR/DOOR_KNOCKOVER_BW.png"
+}
+material texture "SPRITES/DONKMONK4.PNG" {
+	brightmap "BRIGHTMAPS/TEXTURES/DONKMONKBW.png"
+}
+material texture "SPRITES/DONKMONK5.PNG" {
+	brightmap "BRIGHTMAPS/TEXTURES/DONKMONKBW.png"
+}
+material texture "SPRITES/DONKMONK6.PNG" {
+	brightmap "BRIGHTMAPS/TEXTURES/DONKMONKBW.png"
+}
+material texture "SPRITES/DONKMONK7.PNG" {
+	brightmap "BRIGHTMAPS/TEXTURES/DONKMONKBW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_A.png" {
+	brightmap "MD/PRINTER/OFFICEPRINTER_bw.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_B.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_C.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_D.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_E.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_F.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_G.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_H.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_I.png" {
+	brightmap "MD/PRINTER/Union_69_BW.png"
+}
+material texture "MD/PRINTER/OFFICEPRINTER_J.png" {
+	brightmap "MD/PRINTER/Union_69_BW2.png"
+}
+
+material texture "MD/PRINTER/OFFICEPRINTER_CLOSED.png" {
+	brightmap "MD/PRINTER/OFFICEPRINTER_closed_bw.png"
+}
+material texture "MD/WHITEBOARD/WHITEBOARD_1.png" {
+	brightmap "MD/WHITEBOARD/WHITEBOARD_BW.png"
+}
+material texture "MD/WHITEBOARD/WHITEBOARD_2.png" {
+	brightmap "MD/WHITEBOARD/WHITEBOARD_BW.png"
+}
+material texture "MD/WHITEBOARD/WHITEBOARD_3.png" {
+	brightmap "MD/WHITEBOARD/WHITEBOARD_BW.png"
+}
+
+material texture "MD/BARBER/Scissors.png" {
+	brightmap "MD/BARBER/Scissors_BW.png"
+}
+material texture "MD/BARBER/CurlingIron.png" {
+	brightmap "MD/BARBER/CurlingIron_BW.png"
+}
+material texture "MD/BARBER/Hairdryer.png" {
+	brightmap "MD/BARBER/Hairdryer_BW.png"
+}
+material texture "MD/WEIGHTS/KETTLEBELL_GREEN.png" {
+	brightmap "MD/WEIGHTS/KETTLEBELL_BW.png"
+}
+material texture "MD/WEIGHTS/KETTLEBELL_YELLOW.png" {
+	brightmap "MD/WEIGHTS/KETTLEBELL_BW.png"
+}
+material texture "MD/WEIGHTS/KETTLEBELL_PURPLE.png" {
+	brightmap "MD/WEIGHTS/KETTLEBELL_BW.png"
+}
+
+material texture "textures/PATHFINDER/FLATS/LITE1.png" {
+	brightmap "BRIGHTMAPS/AUTO/lite1.png"
+}
+
+// BUILDINGS UGH
+
+
+
+material texture "textures/BUILDINGS/SKYS1F.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS1F.png"
+}
+material texture "textures/BUILDINGS/SKYS5C.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS5C.png"
+}
+material texture "textures/BUILDINGS/SKYS9B.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS9B.png"
+}
+material texture "textures/BUILDINGS/SKYS9A.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS9A.png"
+}
+material texture "textures/BUILDINGS/SKYS8F.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS8F.png"
+}
+material texture "textures/BUILDINGS/SKYS1F.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS1F.png"
+}
+material texture "textures/BUILDINGS/SKYS7B.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS7B.png"
+}
+material texture "textures/BUILDINGS/SKYS5A.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS5A.png"
+}
+material texture "textures/BUILDINGS/SKYS5B.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS5B.png"
+}
+material texture "textures/BUILDINGS/SKYS3C.png" {
+	brightmap "BRIGHTMAPS/textures/SKYS3C.png"
+}
+material texture "textures/BUILDINGS/SKYS6C.png" {
+	brightmap "BRIGHTMAPS/AUTO/SKYS6C.png"
+}
+material texture "textures/BUILDINGS/SKYS3D.png" {
+	brightmap "BRIGHTMAPS/textures/SKYS3C.png"
+}
+material texture "textures/BUILDINGS/SKYR2A.png" {
+	brightmap "BRIGHTMAPS/auto/SKYR2A.png"
+}
+material texture "MD/SENTRYTURRET/ALIENTURRET_BASE.png" {
+	brightmap "MD/SENTRYTURRET/ALIENTURRET_BASE_BW.png"
+}
+
+material texture "MD/faucetS/faucet_BLUE_DAMAGED.png" {
+	brightmap "MD/faucetS/faucet_BLUE_DAMAGED_LIGHT.png"
+}
+material texture "MD/ITEMCHEST/ItemChestLidBlue.png" {
+	brightmap "MD/ITEMCHEST/ItemChestLid_BW.png"
+}
+material texture "MD/ITEMCHEST/ItemChestLid.png" {
+	brightmap "MD/ITEMCHEST/ItemChestLid_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_1.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_1_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_2.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_2_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_3.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_3_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_4.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_4_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_5.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_5_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_6.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_6_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_7.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_7_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_8.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_8_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_9.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_9_BW.png"
+}
+material texture "MD/LABEQUIPMENT/Wrench_2.png" {
+	brightmap "MD/LABEQUIPMENT/Wrench_2_BW.png"
+}
+material texture "MD/LABEQUIPMENT/Wrench.png" {
+	brightmap "MD/LABEQUIPMENT/Wrench_BW.png"
+}
+material texture "MD/LABEQUIPMENT/PLIER.png" {
+	brightmap "MD/LABEQUIPMENT/PLIER_BW.png"
+}
+material texture "MD/LABEQUIPMENT/DRILL.png" {
+	brightmap "MD/LABEQUIPMENT/DRILL_BW.png"
+}
+material texture "MD/LABEQUIPMENT/MULTIFUNCTIONMETER_B.png" {
+	brightmap "MD/LABEQUIPMENT/MULTIFUNCTIONMETER_B_BW.png"
+}
+material texture "MD/LABEQUIPMENT/MULTIFUNCTIONMETER_A.png" {
+	brightmap "MD/LABEQUIPMENT/MULTIFUNCTIONMETER_A_BW.png"
+}
+material texture "MD/BREACHINGCHARGE/BREACHINGCHARGE.png" {
+	brightmap "MD/BREACHINGCHARGE/BREACHINGCHARGE_BW.png"
+}
+material texture "MD/BREACHINGCHARGE/BREACHINGCHARGE_BEEP.png" {
+	brightmap "MD/BREACHINGCHARGE/BREACHINGCHARGE_BW.png"
+}
+material texture "MD/LABEQUIPMENT/BIOANALYSER_CONTAINERS.png" {
+	brightmap "MD/LABEQUIPMENT/BIOANALYSER_CONTAINERS_BW.png"
+}
+material texture "MD/LABEQUIPMENT/BIOANALYSER_MACHINE.png" {
+	brightmap "MD/LABEQUIPMENT/BIOANALYSER_MACHINE_BW.png"
+}
+material texture "MD/LABEQUIPMENT/HAMMER.png" {
+	brightmap "MD/LABEQUIPMENT/HAMMER_BW.png"
+}
+material texture "MD/LABEQUIPMENT/SAW.png" {
+	brightmap "MD/LABEQUIPMENT/SAW_BW.png"
+}
+material texture "MD/LABEQUIPMENT/LAB_EQUIPMENT_10.png" {
+	brightmap "MD/LABEQUIPMENT/LAB_EQUIPMENT_10_BW.png"
+}
+//material texture "MD/SPEAKER/WOOD_SPEAKER.png" {
+//	brightmap "MD/SPEAKER/WOOD_SPEAKER_BW.png"
+//}
+
+material texture "MD/DETONATOR/DETONATOR.png" {
+	brightmap "MD/DETONATOR/DETONATOR_BW.png"
+}
+material texture "MD/TECHPLATFORM/TECH_PLATFORM_RAISED.png" {
+	brightmap "MD/TECHPLATFORM/TECH_PLATFORM_RAISED_BW.png"
+}
+material texture "MD/TECHPLATFORM/TECH_PLATFORM_LOWERED.png" {
+	brightmap "MD/TECHPLATFORM/TECH_PLATFORM_LOWERED_BW.png"
+}
+material texture "MD/WIREROLL/WIREROLL_BIG.png" {
+	brightmap "MD/WIREROLL/WIREROLL_BIG_BW.png"
+}
+
+// Capacity
+material texture "MD/upgrade/WEAPONCAPACITY.png" {
+	brightmap "MD/upgrade/ALTFIREKIT_BW.png"
+}
+
+// Weapon Kits
+material texture "MD/upgrade/ALTFIREKIT1.png" {
+	brightmap "MD/upgrade/ALTFIREKIT_BW.png"
+}
+material texture "MD/upgrade/ALTFIREKIT2.png" {
+	brightmap "MD/upgrade/ALTFIREKIT_BW.png"
+}
+material texture "MD/upgrade/ALTFIREKIT3.png" {
+	brightmap "MD/upgrade/ALTFIREKIT_BW.png"
+}
+material texture "MD/upgrade/ALTFIREKIT4.png" {
+	brightmap "MD/upgrade/ALTFIREKIT_BW.png"
+}
+material texture "MD/upgrade/ALTFIREKIT5.png" {
+	brightmap "MD/upgrade/ALTFIREKIT_BW.png"
+}
+material texture "MD/upgrade/ALTFIREKIT6.png" {
+	brightmap "MD/upgrade/ALTFIREKIT_BW.png"
+}
+
+
+material texture "MD/JUKEBOX/JUKEBOX.png" {
+	brightmap "MD/JUKEBOX/JUKEBOX_BW.png"
+}
+
+// Joe's fancy Ceiling
+material texture "TEXTURES/STARLIGHT/STARST1A.png" {
+	brightmap "brightmaps/textures/STARST1A.png"
+}
+
+material texture "MD/ENERGYCELL/ENERGYCELL.png" {
+	brightmap "MD/ENERGYCELL/ENERGYCELL_BW.png"
+}
+material texture "MD/ENERGYCELL/ENERGYCELL_ACTIVE.png" {
+	brightmap "MD/ENERGYCELL/ENERGYCELL_BW.png"
+}
+material texture "MD/PASTEBOARD/PASTEBOARD.png" {
+	brightmap "MD/PASTEBOARD/PASTEBOARD_BW.png"
+}
+material texture "MD/PASTEBOARD/PASTEBOARD_SHOT.png" {
+	brightmap "MD/PASTEBOARD/PASTEBOARD_SHOT_BW.png"
+}
+
+material texture "MD/buttons/BUTTONBLUE_HAND.png" {
+	brightmap "MD/buttons/BUTTONBLUE_HAND_BW.png" 
+}
+material texture "MD/generator/GENERATOR_1.png" {
+	brightmap "MD/generator/GENERATOR_1.png" 
+}
+material texture "MD/generator/GENERATOR_2.png" {
+	brightmap "MD/generator/GENERATOR_2.png" 
+}
+
+
+material texture "MD/buttons/BUTTONGREEN_HAND.png" {
+	brightmap "MD/buttons/BUTTONGREEN_HAND_BW.png" 
+}
+
+material texture "MD/ITEMCHEST/ItemChestLidGreen.png" {
+	brightmap "MD/ITEMCHEST/ItemChestLid_BW.png"
+}
+material texture "MD/faucetS/Faucet_hybrid.png" {
+	brightmap "MD/faucetS/Faucet_hybrid_LIGHT.png"
+}
+material texture "MD/faucetS/Faucet_hybrid_DAMAGED.png" {
+	brightmap "MD/faucetS/Faucet_hybrid_DAMAGED_LIGHT.png"
+}
+material texture "MD/GRENADELAUNCHER/GRENADELAUNCHER.png" {
+	brightmap "MD/GRENADELAUNCHER/GRENADELAUNCHER_bw.png"
+}
+material texture "MD/GRENADELAUNCHER/GRENADELAUNCHERModel.png" {
+	brightmap "MD/GRENADELAUNCHER/GRENADELAUNCHER_bw.png"
+}
+material texture "MD/PLASMARIFLE/PLASMARIFLE.png" {
+	brightmap "MD/PLASMARIFLE/PLASMARIFLE_bw.png"
+}
+material texture "MD/PLASMARIFLE/PLASMARIFLEMODEL.png" {
+	brightmap "MD/PLASMARIFLE/PLASMARIFLE_bw.png"
+}
+material texture "MD/DMR/MARKSMAN_RIFLE.png" {
+	brightmap "MD/DMR/MARKSMAN_RIFLE_BW.png"
+}
+material texture "MD/DMR/MARKSMAN_RIFLEModel.png" {
+	brightmap "MD/DMR/MARKSMAN_RIFLE_BW.png"
+}
+material texture "MD/DMR/MARKSMAN_RIFLE_AMMO.png" {
+	brightmap "MD/DMR/MARKSMAN_RIFLE_AMMO_BW.png"
+}
+material texture "MD/OfficeChair/OfficeChair2/CHAIR2.png" {
+	brightmap "MD/OfficeChair/OfficeChair2/CHAIR2_BW.png"
+}
+material texture "MD/TOILET/URINAL.png" {
+	brightmap "MD/TOILET/Urinal_bw.png"
+}
+material texture "MD/ENEMYMINE/ENEMYMINE.png" {
+	brightmap "MD/ENEMYMINE/ENEMYMINE_BW.png"
+}
+material texture "MD/PLASMARIFLE/AMMOPLASMALARGE.png" {
+	brightmap "MD/PLASMARIFLE/AMMOPLASMALARGE_BW.png"
+}
+material texture "MD/PLASMARIFLE/AMMOPLASMASMALL.png" {
+	brightmap "MD/PLASMARIFLE/AMMOPLASMASMALL_BW.png"
+}
+material texture "MD/ISAAC/ISAAC_FRAME_1.png" {
+	brightmap "MD/ISAAC/ISAAC_BW.png"
+}
+material texture "MD/ISAAC/ISAAC_FRAME_2.png" {
+	brightmap "MD/ISAAC/ISAAC_BW.png"
+}
+material texture "MD/ISAAC/ISAAC_FRAME_3.png" {
+	brightmap "MD/ISAAC/ISAAC_BW.png"
+}
+material texture "MD/ISAAC/ISAAC_FRAME_4.png" {
+	brightmap "MD/ISAAC/ISAAC_BW.png"
+}
+
+
+material texture "MD/KITCHEN/KNIFEMEDIUM.png" {
+	brightmap "MD/KITCHEN/KNIFEMEDIUM_bw.png" 
+}
+material texture "MD/KITCHEN/KNIFEBIG.png" {
+	brightmap "MD/KITCHEN/KNIFEBIG_bw.png" 
+}
+material texture "MD/KITCHEN/KNIFESMALL.png" {
+	brightmap "MD/KITCHEN/KNIFESMALL_bw.png" 
+}
+material texture "MD/MICROWAVE/MICROWAVE_IDLE.png" {
+	brightmap "MD/MICROWAVE/MICROWAVE_IDLE_BW.png" 
+}
+material texture "MD/MICROWAVE/MICROWAVE_ACTIVE.png" {
+	brightmap "MD/MICROWAVE/MICROWAVE_ACTIVE_BW.png" 
+}
+material texture "MD/Paperdispenser/Paperdispenser.png" {
+	brightmap "MD/Paperdispenser/Paperdispenser_bw.png" 
+}
+
+material texture "MD/RAILGUNAMMO/RAILGUNAMMO.png" {
+	brightmap "MD/RAILGUNAMMO/RAILGUNAMMO_BW.png" 
+}
+material texture "MD/RAILGUNAMMO/RAILGUNAMMO_SINGLE.png" {
+	brightmap "MD/RAILGUNAMMO/RAILGUNAMMO_SINGLE_BW.png" 
+}

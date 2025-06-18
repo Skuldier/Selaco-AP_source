@@ -1,0 +1,1838 @@
+//TODO: We currently use EnemySoldier and SelacoEnemy which both have the exact same meaning. We have to merge these together.
+#include "ACTORS/AI/AI_Controllers/TargetTracker.zsc"
+
+enum Strafedirection 
+{
+	STRAFE_LEFT = 0,
+	STRAFE_RIGHT = 1
+};
+
+enum BehaviorTypes
+{
+	BEHAVIOR_RANDOM                = 0,
+	BEHAVIOR_AGGRESSIVE            = 1,
+	BEHAVIOR_DEFENDER              = 2,
+	BEHAVIOR_LONGRANGE_DEFENDER    = 3,
+	BEHAVIOR_ATTACKER              = 4,
+	BEHAVIOR_FLANKER               = 5,
+	BEHAVIOR_STRAFER               = 6,
+	BEHAVIOR_NEUTRAL               = 7,
+};
+
+mixin class SelacoEnemyFuncs {
+    int lastHitSoundFrame;
+    int activeTime; // How long has the AI been active?
+    bool everSeenPlayer;
+    bool headshotHit;
+    actor firstTarget; // The first target the actor has ever laid eyes on.
+    void showPlayerHitmarker(bool isHeadshot = false, bool playSound = true) {
+        float hitMarkerVolume = getCvar('snd_hitmarkervolume');
+		if(getCvar('g_damagemarkers') > 1) Dawn.ShowHitmarker(players[consolePlayer].mo, isHeadshot ? HIT_MARK_HEADSHOT : HIT_MARK_DAMAGE);
+		if(playSound && lastHitSoundFrame != Level.time && getCvar('snd_hitmarkersound') > 1) {
+            lastHitSoundFrame = Level.time;
+            players[consolePlayer].mo.A_StartSound("ui/hitmarker", CHAN_AUTO , volume:hitMarkerVolume);
+        }
+	}
+
+    void showPlayerKillmarker(bool isHeadshot = false, bool playSound = true) {
+		let plr = players[consolePlayer].mo;
+        float hitMarkerVolume = getCvar('snd_hitmarkervolume');
+		if(getCvar('g_damagemarkers') > 0) Dawn.ShowHitmarker(players[consolePlayer].mo, isHeadshot ? HIT_MARK_KILL_HEADSHOT : HIT_MARK_KILL);
+
+		if(playSound && getCvar('snd_hitmarkersound') > 0) {
+			if(isHeadshot) {
+				plr.A_StartSound("script/chirphs", CHAN_ITEM, hitMarkerVolume);
+			} else {
+				let inv = plr.findInventory('PowerDoubleDamage');
+				if(inv && inv.amount == 1) {
+					plr.A_StartSound("IMPACT/HEADSHOT", CHAN_ITEM, pitch:0.6);
+				} else { 
+					plr.A_StartSound("script/chirp", CHAN_ITEM, hitMarkerVolume, pitch:frandom(0.95,1.05));
+				}
+			}
+		}
+	}
+
+    
+    void updateSelfLighting() {
+        if(getCvar('r_brighter_enemies') > 0) {
+            // Enable/disable brightness
+        }
+    }
+    
+
+    void SetTargetToPlayer()
+    {
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+        if(d && d.health > 0)
+        {
+            target = d;
+            setSeenPlayer();
+        }
+    }
+
+	// Action to perform whena node is reached. Differs per enemy, in most cases this does nothing.
+	virtual void performNodeAction() {
+        // Stuff here
+	}
+
+    int doDamageChecks(Actor inflictor, Actor source, int damage, Name damagetype, bool isHeadshot = false) {
+
+        headshotHit = false;
+        if(isHeadshot)
+        {
+            headshotHit = true;
+        }
+
+        if(source && inflictor) {
+            if((source is 'Dawn' || source.master is 'Dawn' || source.poisoner is 'Dawn' || inflictor is 'MeleeImpactSplash') && (damagetype != 'explosiveimpact') && damagetype != "Fire") {
+                showPlayerHitmarker(isHeadshot, health - damage > 0);
+            }
+        } else if(damageType == 'ExplosiveImpact' || damageType == 'MeleeImpact') {
+            // Explosives often have to source identifier, so just assume it was the player
+            showPlayerHitmarker(false, health - damage > 0);
+        }
+
+        return damage;
+    }
+
+    void doDeathChecks(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath, bool isHeadshot = false) {
+        if(source) {
+			if(source is 'Dawn' || (source.master && source.master is 'Dawn') || (source.poisoner && source.poisoner is 'Dawn') || source.bFriendly || inflictor is 'MeleeImpactSplash' || MeansOfDeath == 'StealthKill') {
+				showPlayerKillmarker(isHeadshot);
+			}
+		} else if(MeansOfDeath == 'ExplosiveImpact' || damageType == 'MeleeImpact') {
+			showPlayerKillmarker(false);
+		}
+    }
+
+    // Simple function to detect if the character has ever seen the player. 
+	void setSeenPlayer() {
+		if(!everSeenPlayer) {
+			A_STOPSOUND(CHAN_VOICE);
+			A_STOPSOUND(CHAN_5);
+			firstTarget = target;
+		}
+		everSeenPlayer = true;
+	}
+
+    void clearSeenPlayer() {
+        everSeenPlayer = false;
+    }
+
+	bool getSeenPlayer(void) {
+		return everSeenPlayer;
+	}
+}
+
+
+enum Enemy_Types {
+    ENEMY_Soldier = 1,
+    ENEMY_Robot = 2,
+    ENEMY_Infected = 4,
+    ENEMY_Human = 8
+};
+
+
+class SelacoEnemy : SelacoActor {
+    mixin SelacoEnemyFuncs;
+    mixin Footsteps;
+    mixin BasicTargetTracker;
+
+    
+    // Move the enemy and search for targets to attack
+    // Default enemies simply use A_CHASE()
+	virtual void MoveAndAttack(int flags = 0) {
+        bThruActors = false;
+        A_CHASE();
+	}
+
+
+    const SHOTGUN_GIBBING_CHANCE = 15; // Chance for enemies to get a Shotgun Gib from point blank attacks 
+    const SHOTGUN_GIBBING_DISTANCE = 145; // Distance required in order to allow for a shotgun gib
+    const CEILING_BLOOD_CHANCE = 35;
+    
+    const HARDBOILED_HEALTH_MULT                = 1.2;
+    const HARDBOILED_GADGETCHANCE_MULTI         = 1.5;
+    const HARDBOILED_STRAFECHANCE_MULTI         = 1.75;
+    const HARDBOILED_SPEED_ADDITION                = 1;
+    const HARDBOILED_PROJECTILEVELOCITY_MULTI   = 1.75;
+    const HARDBOILED_STAGGERCHANCE_MULTI        = 0.4;
+    const HARDBOILED_MIN_CREDITS                = 3;
+    const HARDBOILED_MAX_CREDITS                = 12;
+    const HARDBOILED_MAX_WEAPONPARTS            = 2;
+    const SMF_HEALTHBOOST_CHANCE = 5;
+    const ARMOR_PAINCHANCE = 5;
+    const STUMBLE_CHANCE = 15;
+
+    Actor frostIcon;
+    Actor allyIcon;
+
+	// We cannot check for the headshot item in Die() because the item has been destroyed at that point :gzdoom:
+	// We also can't use a boolean because takeSpecialDamage is often called more than once at death
+	// This will be updated by the headshot system
+    bool isFrozen, shockAmplified;
+    float randomizerSpawnChance;
+    string ConstrastModeColor, ColorTranslation;
+	string ENEMY_IdentifierTag;	// Used to easily detect sub-classes like Plasma Troopers, since they share the same actor class.
+
+    string recentDamageCause;
+    int lastHeadshotTime, headPainChance, headPainAdjustment, painChanceAdjustment, enemyType, shockLength, shockRemainder, shockAmplifier;
+    actor mountedShieldActor;
+    bool arg1Triggered;
+    bool wasHitByMelee;
+    name receivedDamageType;
+
+    const STEALTH_KILL_TIME = 6; // Time in ticks after alerting before stealth kills are denied.
+    int soldierWeapon;
+    int stumbleCooldown; // We dont want enemies to constantly stumble.
+
+    int stealthKillTimer;
+    int PathfindingTargetRangeThreshold;
+    int rarity;
+    int seenByEnemySaveValidation;
+	int dawnNearbyCooldown; 
+    int concussiveRoundCooldown;
+    int forwardRushCooldown;
+    int losRejectCooldown;      // When weapon cannot see player, add a slight cooldown before firing again to ensure the soldier walks.
+	vector2 tempScale;
+    int grenadeChance;          // Chance to throw a grenade instead of attacking (0-256)
+    int smokeChance;            // Chance to throw a Smoke Grenade instead of attacking
+	int rifleReadyCooldown;     // Used to add a short cooldown before the Rifle Ready sound plays again
+	int maxburstLength;         // How many shots should be fired per burst?; 
+	int fallingHeight;          // Used to get fall damage
+	int currentAmmo;            // How much ammo does a soldier have in his magazine?
+	int burstLength;            // Current Burst length
+    // Shock stuff
+    int shockFrame;
+    int shockTicks;
+    int flankingChance, mountedShieldAngle, mountedShieldSightThreshold, forcedHealth;
+    int armorShredding, armorPenetration;
+    int conductivity;
+    float airResistance, airSpeedCap;
+    int frostLength, frostTimer;
+    int overkill;               // Used to accumulate damage during multiple-trace kills to determine which death or gib to play
+    int headshotDmg, takenDmg;  // Track headshot vs normal damage in one frame to determine shotgun kill type
+    int lastHitTime;            // Level.time when last taking damage, 
+    protected int seProps;
+    bool user_nosquad; // Actor ignores squadleader
+	bool isStrafing;
+    bool isHardboiled;
+    int weaponDamage;
+    int weaponDamageOffset;
+    int armorHealth;
+
+    meta float headSize, headshotMult, headshotHitscanMult;
+    meta float legSize, legShotPainChance;
+    LookExParams EnemyLineOfSight;
+    LookExParams mountedShieldLineOfSight;
+    string roleTag; 			// Used for debugging
+
+    property Role                       : roleTag;
+    property GrenadeChance              : grenadeChance;
+    property smokeChance              : smokeChance;
+    property ColorTranslation           : ColorTranslation;
+    property ConstrastModeColor         : ConstrastModeColor;
+    property HeadPainChance             : headPainChance;
+    property HeadSize                   : headSize;
+    property legSize                    : legSize;
+    property LegShotPainChance          : legShotPainChance;
+    property HeadshotMultiplier         : headshotMult;
+    property EnemyType                  : enemyType;
+    property HeadshotHitscanMultiplier  : headshotHitscanMult;
+    property AirResistance              : airResistance;                    // Air Resistance slows down enemy movement overtime. Higher means a faster stop
+    property airSpeedCap                : airSpeedCap;                      // Ensures flying enemies dont go over their speed limit. 
+    property ShockLength                : shockLength;                      // How long does the actor stay shocked when hit by a taser;
+    property HeadPainAdjustment         : headPainAdjustment;               // Decrease headshot pain chance per difficulty by this amount
+    property PainChanceAdjustment       : painChanceAdjustment;             // Decrease general pain chance per difficulty by this amount
+    property FlankingChance             : flankingChance;                   
+    property FrostLength                : frostLength;                      // How long do we freeze the enemy in place
+    property conductivity               : conductivity;                     // How many units chain lightning is allowed to traverse when hit by a Taser
+    property ForcedHealth               : forcedHealth;                     // What health should we use regardless of difficulty?
+    property PathfindingTargetRangeThreshold : PathfindingTargetRangeThreshold;    // Required target distance before we stop pathfinding. Keep 0 for default behavior.
+    property WeaponDamage           : weaponDamage;                         // Amount of damage dealt by this Soldier's weapon
+    property WeaponDamageOffset     : weaponDamageOffset;                    // Random offset applied per shot of the Soldier's weapon
+    property ArmorShredding : armorShredding;                                // Percentage additional damage dealt to armor
+    property ArmorPenetration : armorPenetration;                            // Percentage additional damage ignored by Armor Absorption
+    property ENEMY_IdentifierTag        : ENEMY_IdentifierTag;
+    property Weapon                 :   soldierWeapon;    
+    property randomizerSpawnChance      : randomizerSpawnChance;
+
+    property ArmorHealth            : armorHealth;
+
+    flagdef AllowHeadshots              : seProps, 0;
+    flagdef AllowStealthKill            : seProps, 1;
+    flagdef FleeFromExplosions          : seProps, 2; 
+    flagdef AllowSquadleaderBuffs       : seProps, 3;  
+    flagdef AllowKnifeKill              : seProps, 4;  
+    flagdef AlwaysTryFlanking           : seProps, 5;
+    flagdef allowShieldMounting         : seProps, 6;
+	flagdef AllowGrenadeDodging         : seProps, 7;
+    flagdef AllowFreezing               : seProps, 8;
+    flagdef CountKill                   : seProps, 9;
+    flagdef HasHeadshotPainAnimation    : seProps, 10;
+    flagdef FlyingEnemy                 : seProps, 11;
+    flagdef HasKnockoverState           : seProps, 12;
+    flagdef SlowWhenFrozen              : seProps, 13;
+    flagdef AllowRandomizerTier         : seProps, 14;
+    flagdef LastAlertWasSound           : seProps, 15;
+
+
+    default {
+        SelacoEnemy.Weapon                      AWPN_ASSAULTRIFLE;
+        SelacoEnemy.WeaponDamage                4;
+        SelacoEnemy.weaponDamageOffset          1;
+        SelacoEnemy.grenadeChance               11;
+        SelacoEnemy.smokeChance 8;
+        SelacoEnemy.FlankingChance              35;
+        SelacoEnemy.HeadSize                    0.15; // Percentage relative to character size
+        SelacoEnemy.LegSize                    25; // In units
+        SelacoEnemy.LegShotPainChance           85; // In Percentage
+        SelacoEnemy.HeadshotMultiplier          1.4;
+        SelacoEnemy.HeadshotHitscanMultiplier   1.3;
+        SelacoEnemy.conductivity                 150;
+        SelacoEnemy.EnemyType ENEMY_SOLDIER;
+        SelacoEnemy.HeadPainChance              90;
+        SelacoEnemy.ShockLength 40;
+        SelacoEnemy.HeadPainAdjustment          7;
+        SelacoEnemy.PainChanceAdjustment        15;
+        SelacoEnemy.FrostLength                 250;
+        SelacoActor.SleepDistance                  0;
+        SelacoEnemy.ConstrastModeColor "CONTRASTMODE_RIFLEMAN"; // Currently unused because of major VRAM issues, but this is an accessbility feature I'd like to explore
+        SelacoEnemy.ForcedHealth 0;     
+        SelacoEnemy.AirResistance 0.5;
+        SelacoEnemy.AirSpeedCap 10;
+        SelacoEnemy.randomizerSpawnChance 0;
+        damageFactor "ice", 20;
+        SelacoEnemy.PathfindingTargetRangeThreshold 0;
+        MaxDropOffHeight 80;
+        +SelacoEnemy.AllowRandomizerTier;
+        -SelacoEnemy.HasKnockoverState
+        +SelacoEnemy.AllowHeadshots;
+        +SelacoEnemy.AllowFreezing;
+        +SelacoEnemy.CountKill
+        +SelacoEnemy.FleeFromExplosions
+        +SelacoEnemy.AllowKnifeKill;
+        +SelacoEnemy.AllowStealthKill;
+        +SelacoEnemy.HasHeadshotPainAnimation
+        +SelacoActor.AimAssist;
+        -SelacoEnemy.SlowWhenFrozen;
+        -SelacoACtor.EnemyProjectilePassThru;
+        -SelacoEnemy.AllowSquadleaderBuffs
+
+        -SelacoActor.TravelAllowed;     // Enemies should not travel between maps until we have code to handle this (Squads/scripts will totally break)
+
+        PainChance "fire", 0;
+        PainChance "ShockDart", 0;
+        damageFactor "Water", 0.01;
+    }
+
+    override void tick() {
+        resetTargetVisibility(); // Reset target tracking info
+
+        super.tick();
+        if (frostTimer > 0 && bSlowWhenFrozen && level.time % 4 == 0) {
+            A_SETTICS(3);
+            return;
+        }
+        if(stumbleCooldown > 0)
+		{
+			stumbleCooldown--;
+		}
+
+        if(target && stealthKillTimer < STEALTH_KILL_TIME)
+        {
+            stealthKillTimer++;
+        }
+
+        if (losRejectCooldown > 0) {
+            losRejectCooldown--;
+        }
+
+        if (concussiveRoundCooldown > 0) {
+            concussiveRoundCooldown--;
+        }
+
+        // Periodic checks
+        int currentTime = level.time;
+        bool check5 = (currentTime % 5 == 0);
+        bool check3 = (currentTime % 3 == 0);
+        bool check35 = (currentTime % 35 == 0);
+
+        if (check5) {
+            if (target is "SentryGunTurret" && target.master) {
+                target = target.master; // Target the base instead of the cannon
+            }
+        }
+
+        if (check35 && lastheard) {
+            activeTime++;
+        }
+
+        if (lastHeard && args[1] && !arg1Triggered) {
+            arg1Triggered = true;
+            ACS_Execute(args[1], 0);
+        }
+
+        if (check3 && waterLevel == 1) {
+            actor waterFoamActor;
+            bool waterFoamSuccess;
+            [waterFoamSuccess, waterFoamActor] = A_SpawnItemEx("WaterFoamSlow");
+            if (waterFoamActor) {
+                SelacoActor(waterFoamActor).moveToWaterSurface();
+            }
+        }
+
+        if (mountedShieldActor && distance2D(mountedShieldActor) > 70) {
+            mountedShieldActor = null;
+        }
+
+        if (frostTimer) {
+            handleFrost();
+        }
+
+        if (target && seenByEnemySaveValidation > 0) {
+            seenByEnemySaveValidation--;
+        }
+
+        if (bFlyingEnemy) {
+            handleAirResistance();
+        }
+    }
+
+    virtual actor A_FireEnemyWeapon(class<Actor> missiletype, double spawnheight = 32, double spawnofs_xy = 0, double angle = 0, int flags = 0, double pitch = 0, int ptr = AAPTR_TARGET)
+    {
+        int shotDamage = Max(1, weaponDamage + random(-1*weaponDamageOffset, weaponDamageOffset));
+        // Fire a projectile
+        actor projectileActor;
+        projectileActor = A_SpawnProjectile(missiletype, spawnheight, spawnofs_xy, angle, flags, pitch, ptr);
+
+        // Adjust projectile damage to use the SelacoEnemy damage instead
+        if(projectileActor)
+        {
+            if(skill >= SKILL_ADMIRAL && skill < SKILL_STORYONLY && random(0,100) <= 10 && !(self is "Engineer"))
+            {
+                shotDamage*=1.25;
+            }
+            projectileActor.SetDamage(projectileActor.damage + shotDamage);
+
+            // Increase damage by 1 for Rifleman if the invasion tier is unlocked.
+            if(projectileActor && self is "soldier" && CheckInvasionTier(INVTIER_RIFLEMANDAMAGE))
+            {
+                projectileActor.SetDamage(projectileActor.damage+1);
+            }
+            
+            // Faster projectiles when playing Hard-boiled
+            if(isHardboiled && self is "EnemySoldier")
+            {
+                projectileActor.A_ScaleVelocity(HARDBOILED_PROJECTILEVELOCITY_MULTI);
+            }
+
+            if(self is "EnemySoldier" && EnemySoldier(self).squadLeaderBuff)
+            {
+                projectileActor.A_ScaleVelocity(1.5);
+            }
+        }
+        return projectileActor;
+    }
+
+    // Check if the soldier's weapon can see the player
+    virtual bool checkWeaponLineOfSight(int xMuzzleLocation, int zMuzzleLocation, int yMuzzleLocation)
+    {
+        if(!target || losRejectCooldown) {
+            return false;
+        }
+
+        actor weaponLineOfSight;
+        bool succ;
+        [succ, weaponLineOfSight] = A_SPAWNITEMEX("SelacoEnemyWeaponSight", xMuzzleLocation, yMuzzleLocation, zMuzzleLocation);
+        if(weaponLineOfSight && weaponLineOfSight.checksight(target))
+        {
+            weaponLineOfSight.destroy();
+            return true;
+        }
+        losRejectCooldown = 10;
+        return false;
+    }
+
+    // Look around the area to find something that's potentially deadly. Like barrels that are about to explode.
+	virtual void lookForHazard()
+	{
+		if(bAllowGrenadeDodging && random(0,3) == 3)
+		{
+            // Create the iterator
+            actor hazardActor;
+            BlockThingsIterator it = BlockThingsIterator.Create(self, 300);
+
+			while (it.Next()) 
+			{
+				hazardActor = it.thing; // Get the Actor it's currently on
+				if (SelacoActor(hazardActor) && SelacoActor(hazardActor).bDangerousActor && distance2DSquared(hazardActor) < 175*175 && checkSight(hazardActor))
+				{
+					tempScale = scale;
+					bThruActors = true;
+					A_FACE(hazardActor);
+					// Change angle
+					A_SETANGLE(angle+180);
+					setStateLabel("DodgeGrenade");
+				}
+			}	
+		}	
+	}
+
+
+    virtual bool targetWithinPathfindingThreshold()
+    {
+        if(!target) return false;
+
+        if(!pathfindingTargetRangeThreshold || pos.z - target.pos.z >= maxDropOffHeight)
+        {
+            return true;
+        }
+
+        return (abs(pos.z - target.pos.z) <= maxStepHeight) && distance3D(target) <= pathfindingTargetRangeThreshold;
+    }
+    
+
+	// TODO: We have something similar, a bunch even, that should all be replaced with this one.
+	// The advantage of this one is that it checks for velocity rather than angle.
+    virtual bool checkGeometryCollision(int overrideAngle = -1, int distance = 70, int pitchOffset = 0, bool floorOnly = false) {
+        int newAngle = (overrideAngle == -1) ? atan2(vel.y, vel.x) : overrideAngle;
+        int zOffset = floorOnly ? 16 : maxStepHeight;
+        int sidewaysVelocity = 0;
+        int forwardVelocity = 0;
+
+        if (floorOnly) {
+            sidewaysVelocity = 2 * (Cos(angle) * vel.y) - (Sin(angle) * vel.x);
+            forwardVelocity = (Sin(angle) * vel.y) + (Cos(angle) * vel.x);
+        }
+
+        FLineTraceData RemoteRay;
+        LineTrace(newAngle, distance, pitchOffset, offsetz: zOffset, offsetforward: forwardVelocity, offsetside: sidewaysVelocity, data: RemoteRay);
+
+        if (floorOnly) {
+            return RemoteRay.HitType != TRACE_HitFloor;
+        } else {
+            return RemoteRay.HitType == TRACE_HitWall;
+        }
+    }
+
+    virtual void denyPlayerSaving()
+    {
+        if(target && target is "dawn")
+        {
+            dawn(target).seenByEnemySaveValidation = dawn(target).SAVEVALIDATION_THRESHOLD;
+        }
+    }
+
+	// Check to see if its 'safe' for the soldier to strafe in a direction without bumping into the wall.
+	virtual bool CheckIfwallClear(int direction, int range = 80) {
+	// 90 = left
+	// 270 = right
+		int depth = 20;
+		String hittex;
+		FLineTraceData RemoteRay;
+		for(int x=depth*-1;x<=depth;x+=10)
+		{
+			lineTrace(angle + direction, range, pitch,offsetz: maxStepHeight,offsetforward:x,data: RemoteRay);
+			if (RemoteRay.HitType == TRACE_HitWall)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+    virtual void handleAirResistance()
+    {
+         // Calculate the current speed
+        float currentSpeed = vel.Length();
+
+        // Check if the actor is moving faster than the speed cap. Reduce speed if true.
+        if (currentSpeed > airSpeedCap)
+        {
+            float reductionRatio = airSpeedCap / currentSpeed;
+
+            // Apply the reduction to the velocity
+            vel *= reductionRatio;
+        }
+        
+        // Reduce speed depending on airResistance
+        vel -= vel * (airResistance*0.1);      
+    }
+
+	virtual void shockEffects(int zHeight = -1) {
+        if(zHeight == -1) {
+            zheight = height;
+        }
+        for(int i = 0; i < 4; i++) {
+            EmitDefinition("SparkOrbSlowDefiniton", 1.0, random(1,2), pitch:-90, offset:(frandom(-25,25), frandom(-25,25), frandom(0,height)), particleSpawnOffsets:25);
+        }
+		shockticks++;
+		if (shockticks > 2) {
+			A_SpawnDefinedParticle("BulletImpactEffectMetalZpuffTransparantSmallDefinition", frandom(-16, 16),frandom(-24, 24),frandom(3, zHeight));
+			A_SpawnItemEx("PlasmaPuffTaser", frandom(-16, 16),frandom(-24, 24),frandom(3, zHeight));
+			A_PLAYSOUND("Sparks/Spawn", CHAN_AUTO);
+			shockticks = 0;
+		}
+	}
+
+    // Actor is frozen,
+    virtual void handleFrost()
+    {
+
+        //A_setTranslation("Ice"); // TO-DO: Translations confuse me, so we're gonna use the default ICE translation for now.
+
+        // Loop frost effects
+		if(ApplyFallDamage()) {
+		 setStateLabel("death.frostexplosion");
+		}
+
+        if(level.time % 4 == 0) {
+            A_SPAWNITEMEX("FrostSmokeTexture", frandom(-1*radius, radius), frandom(-1*radius, radius) , frandom(10,height+10), frandom(0.5,1), frandom(-0.5,0.5), angle:random(0,360));
+        }
+
+        for(int x=0;x<=24;x++) {
+           A_SpawnParticle("white", SPF_FULLBRIGHT, 15, frandom(2,4), frandom(0,360), frandom(-26,26), frandom(-26,26), frandom(10,70), frandom(-5,5), frandom(-3,3), frandom(-2,2));
+        }
+
+        frostTimer--;
+
+        // End Frost
+        if(frostTimer == 0)
+        {
+            //A_SetTranslation(skin_color);
+            bNoPain = false;
+            isFrozen = false;
+        }
+    }
+
+	// Simple version for AI
+	virtual bool ApplyFallDamage(int requiredFallHeight = 90) {
+		if((fallingHeight - pos.z > requiredFallHeight && vel.z == 0) && WaterLevel <= 2) {
+			return true;
+		}
+		return false;
+	}
+
+    virtual void takenHeadShotDamage()
+    {
+
+    }
+
+    virtual void applyHardboiled()
+    {
+        isHardboiled = true;
+
+        // Bonus HP
+        health*= HARDBOILED_HEALTH_MULT;
+
+        // Less likely to stagger
+        if(getCvar("g_hardboiled_painchances")) {
+            painChance*=HARDBOILED_STAGGERCHANCE_MULTI;
+            headPainChance*=HARDBOILED_STAGGERCHANCE_MULTI;
+        }
+    }
+
+    void handleRandomization()
+    {
+        if (!randomizerHandler || !randomizerHandler.randomizerMode || !randomizerHandler.allowTieredEnemies || bFriendly || !bAllowRandomizerTier)
+        {
+            return;
+        }
+        
+		rarityID = randomizerHandler.assignActorRarity(randomizationMultiplier:5.7);
+        rarity = rarityID;
+
+        // Apply stat boosts
+        float valueRangeMin, valueRangeMax;
+		switch(rarity)
+		{
+            painchance = 5;
+			case RARITY_UNCOMMON:
+				valueRangeMin = 1.2;
+				valueRangeMax = 1.75;
+				break;
+			case RARITY_RARE:
+				valueRangeMin = 2.0;
+				valueRangeMax = 2.5;
+				break;
+            case RARITY_EPIC:
+				valueRangeMin = 2.6;
+				valueRangeMax = 3.5;
+				break;
+			case RARITY_LEGENDARY:
+				valueRangeMin = 3.6;
+				valueRangeMax = 4.4;
+				break;
+		}
+        if(valueRangeMin)
+        {
+            health*=frandom(valueRangeMin,valueRangemax)*0.75;
+            weaponDamage*=(frandom(valueRangeMin,valueRangemax));
+        }
+
+        // Assign visible colors
+        if(rarityID > 0)
+        {
+            A_SPAWNITEMEX("RarityEmblemFloor", flags:SXF_SETMASTER);
+            A_SPAWNITEMEX("RarityEmblemOverhead", flags:SXF_SETMASTER);
+            selflighting = "000000"; // Lighting from the Rarity Color will provide enough
+        }
+    }
+
+    override void beginPlay()
+    {
+        super.beginPlay();
+
+        // Corrected scale because v4.9
+        scale.y*=1.1;
+
+        // Use the randomizerhandler to get a rarity type
+        randomizerHandler = RandomizerHandler.instance();
+
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        handleRandomization();
+
+        if(!allyIcon && bFriendly) {
+            bool succ;
+            [succ, allyIcon] = A_SPAWNITEMEX("allyIcon", flags:SXF_SETMASTER);
+        }
+
+        // Set health to the forcedhealth to ignore difficulty health increases. Currently used for Crawlermines to keep them weak across the board
+        if(forcedHealth > 0 && randomizerHandler && randomizerHandler.rarityID == 0)
+        {
+            health = forcedHealth;
+        }
+
+        // Mark the enemy as a hardboiled enemy.
+        if(getCvar("g_hardboiled"))
+        {
+            applyHardboiled();
+        }
+
+        if(random(0,100) <= flankingChance)
+        {
+            bAlwaysTryFlanking = true;
+        }
+
+        // We dont want this actor to count towards the 100% kills, since they aren't tracked.
+        if(bCountKill)
+        {
+            Stats.AddStat(STAT_KILLS, 0, 1);
+        }
+
+        // Add chance for 50% more HP
+        if(skill == SKILL_SMF && random(0,99) <= SMF_HEALTHBOOST_CHANCE && !(self is "Juggernaut"))
+        {
+            health*=1.5;
+        }
+
+        // Set LOS props
+		EnemyLineOfSight.minDist = 0;
+    	EnemyLineOfSight.maxDist = 2500;
+        EnemyLineOfSight.fov = 230;
+
+        // Mounted Shield props 
+        MountedShieldLineOfSight.minDist = 0;
+        MountedShieldLineOfSight.maxDist = 5000;
+        MountedShieldLineOfSight.fov = 170;
+        MountedShieldLineOfSight.flags |= LOF_DONTCHASEGOAL;
+
+		// Ensign must be easier. Increment pain chance instead.
+		if(Skill == SKILL_ENSIGN) {
+			painChance+=50;
+		}
+
+    }
+
+    virtual bool checkIfTargetSliding()
+    {
+        if(target is "dawn")
+        {
+            let d = Dawn(target);
+            let w = SelacoWeapon(d.player.ReadyWeapon);
+            // If target is Dawn, check if she's sliding and has a fair amount of velocity. If not, prime.
+            if(w.activeSlideState && d.vel.Length() > 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+	virtual void setFallHeight() {
+		fallingHeight = pos.z;
+	}
+
+    // Plays footsteps. These behave simiarly to the player, albeit a bit more lightweight.
+	virtual void playFootstepSound() {
+		if(Distance2DSquared(players[0].mo) < 900*900) {
+			doFootstep(FSF_SCRIPTEDFOOTSTEP);
+		}
+	}
+
+    // Shoot a beam of lighting to visible nearby targets.
+    virtual void shockNearbyTargets (int shockRadius= 350, int totalTargets = 1, int shockDuration = 35)
+    {
+        actor oldTarget;
+        if(target)
+        {
+            oldTarget = target;
+        }
+
+        array<SelacoEnemy> shockTargets;
+		BlockThingsIterator it = BlockThingsIterator.Create(self, shockRadius);
+		actor currentMo;
+
+        // Seek for valid targets to shock
+		while (it.Next()) {
+			currentMo = it.thing; // Get the Actor it's currently on
+			if (currentMo is "dawn" || !(currentMo is "SelacoEnemy") || SelacoEnemy(currentMo).conductivity == 0 || SelacoEnemy(currentMo).shockRemainder > 0 || !currentMo.bIsMonster || currentmo == self || currentMo.health <= 0 || distance2DSquared(currentMo) > shockRadius*shockRadius || !checkSight(currentMo))
+				continue;
+
+			shockTargets.push(SelacoEnemy(currentMo));
+		}
+
+        // Shock' em!
+        for(int x=0;x<shockTargets.size();x++)
+        {
+            if(totalTargets > 0)
+            {
+                let shockTarget = shockTargets[x];
+                if(SelacoEnemy(shockTarget).shockRemainder == 0)
+                {
+                    // Make thinners paper thin so the lighting beam doesn't stop at their hitbox.
+                    int previousRadius = radius;
+                    int previousRadiusTarget = shockTarget.radius;
+                    A_SETSIZE(5);
+
+                    target = shockTarget;  
+                    target.A_SETSIZE(5);
+                    target.vel = (0,0,0);
+                    A_FACE(target);
+                    A_CustomRailgun(-1, spawnofs_xy: 0,flags:RGF_NOPIERCING | RGF_SILENT, aim:0, 0, pufftype:"EnergyBeam", range:6000, sparsity:10, spawnclass:"EnergyBeam", veleffect:5);
+
+                    // Shock target and find a new dude to shock
+                    shockTarget.applyShockDamage(shockDuration);
+
+                    // Revert hitboxes
+                    A_SETSIZE(previousRadius);
+                    shockTarget.A_SETSIZE(previousRadiusTarget);
+                    shockTarget.shockNearbyTargets(shockRadius, totalTargets, shockDuration);
+                    totalTargets--;
+                }
+            }
+        }
+        target = oldTarget;
+    }
+
+    static const string IgnoreHeadshotDamageTypes[] = {"meleeimpact", "MeleeImpactExtinguisher", "DawnFist", "ExplosiveImpact"};
+
+    virtual bool checkIfDamageTypeCanDoHeadshots(string damageType)
+    {
+
+        // Check damage types and see if they are in the ignore list
+        for(int x=0;x<IgnoreHeadshotDamageTypes.size();x++)
+        {
+            if(damageType == IgnoreHeadshotDamageTypes[x])
+            {
+                return false;
+            }
+        }
+
+        // How about the DMR with Concussive Blasts?
+		PlayerPawn pawn=players[0].mo;
+		let weapon = SelacoWeapon(pawn.FindInventory('DMR'));
+        if(weapon && weapon.checkIfZooming() && weapon.hasUpgradeClass('AltfireDMRZoomConcussive') == 1)
+        {
+            return false;
+        }
+
+        // We can do headshots!
+        return true;
+    }
+
+    // By default, the chance for enemies to trigger their headshot pain state is 90%.
+    // This can be overridden by applying SelacoEnemy.HeadPainChance as a property.
+    virtual bool doHeadshotPain() {
+        return((random(0,100) <= headPainChance) ? true : false);
+    }
+
+    virtual void applyFrost(int frostAmount = 0) {
+        if(frostAmount == 0) {
+            frostAmount = frostLength;
+        }
+
+         // Set up
+        frostTimer = frostAmount;
+		isFrozen = true;
+		bnoGravity = false;
+		vel.z = 0;
+		bNoPain = true;
+		setFallHeight();
+         A_Playsound("dest/icecrack", CHAN_AUTO);
+         if(!frostIcon) {
+             bool succ;
+             [succ, frostIcon] = A_SPAWNITEMEX("FrozenIcon", flags:SXF_SETMASTER);
+         }
+
+         console.printf("Frozen for %d ticks", frostAmount);
+
+         // Delay their current state
+         A_SETTICS(frostAmount);
+    }
+
+    bool isHeadshot;
+    bool isGoreyHit;
+    int headshotThisTick;
+    override int damageMobj(Actor inflictor, Actor source, int damage, Name damageType, int flags, double angle) {
+        int res = damage;
+        isHeadshot = false;
+        isGoreyHit = false;
+        SelacoWeapon currentWeapon;
+        receivedDamageType = damageType;
+        Dawn d;
+
+        // Get Dawn and her potential weapon
+        if(source && source is "dawn") {
+            d = Dawn(source);
+            if(d) {
+                currentWeapon = d.getPlayerWeapon();
+            }
+        }
+
+        if(currentWeapon && currentWeapon.hasUpgradeClass("ExtraGoreTrait")) {
+            isGoreyHit = true;
+        }
+
+        // handle armor stuff
+        if(armorHealth>0)
+        {
+             //No damage
+            res = 0;
+
+            // No pain
+            flags+=DMG_NO_PAIN;
+
+            // Yes, it will look like this until we have proper UI for it
+            A_PRINTBOLD("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Armor Icon]", 0.3);
+            
+            // SFX
+            A_PLAYSOUND("ENEMYARMOR/HIT", CHAN_5, 1.0, 0, 0.5, pitch:frandom(1.3,1.55));
+
+            // Damage
+            armorHealth-=damage;
+            
+            // Spawn effects when destroyed
+            if(armorHealth <= 0)
+            {
+                if(inflictor)
+                {
+                    actor impactEffect;
+                    impactEffect = spawn("MeleeImpactLarger", inflictor.pos);
+                    if(impactEffect)
+                    {
+                        impactEffect.scale*=1.5;
+                    }
+                }
+                TriggerPainChance("MagnumBullet", true);
+                A_PLAYSOUND("ENEMYARMOR/BREAK", CHAN_AUTO, 0.9, 0, 0.3, pitch:frandom(0.8,1.2));
+                A_PRINTBOLD("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Armor Destroyed!]", 0.8);
+                for(int x=5;x>0;x--)
+                {
+                    EmitDefinition('MetalChunkDefinition', chance:1.0, numTries: 18, offset:(frandom(-15,15),frandom(-15,15),frandom(24,40)));
+                }
+            }
+            
+        }
+
+        // Calculate leg damage
+        res = doLegDamage(source, inflictor, res, flags);
+
+        // Calculate headshot damage
+        res = doHeadshotDamage(source, inflictor, res, flags);
+
+
+        // If we are already dead, we just accumulate overkill damage
+        // This ignores damage modifiers
+        // Because health is <= 0 Super.Damagemobj will return nothing, so we do it here
+        if(bKilled) {
+            overkill += res;
+        }
+
+        // Track total damage in one frame for shotgun kills
+        // This is not properly scaled, but it doesn't matter because we are just looking to measure
+        // the percentage of headshot vs body damage
+        if(res > 0) {
+            if(Level.time == lastHitTime) {
+                if(isHeadshot) headshotDmg += res;
+                else takenDmg += res;
+            } else {
+                lastHitTime = Level.time;
+                if(isHeadshot) {
+                    headshotDmg = res;
+                    takenDmg = 0;
+                } else {
+                    takenDmg += res;
+                    headshotDmg = 0;
+                }
+            }
+        }
+		return Super.damageMobj(inflictor, source, res, damageType, flags, angle);
+    }
+
+    int doLegDamage(actor source, actor inflictor, int damage, int flags) {
+        int res = damage;
+
+        // get the lower and upper bounds of the "leg".
+        double legLower = pos.z;
+        double legUpper = pos.z + legSize;
+
+        // Are we hitting the leg?
+        if((inflictor is 'HitPuff' || inflictor is 'BulletPuff') && source is 'PlayerPawn' && bIsmonster && (inflictor) && inflictor.Pos.Z >= legLower && inflictor.Pos.Z <= legUpper) {
+           // Lower damage than usual
+            res*=0.75;
+            Stats.AddStat(STAT_LEGS_SHOT, 1, 0);
+            if(!bNoPain && isStrafing && stumbleCooldown <= 0 && random(0,100) <= legShotPainChance && res < Health) {
+                setState(findState("pain.stumbleToDirection"));
+            }
+        }
+        return res;
+    }
+
+    int doHeadshotDamage(actor source, actor inflictor, int damage, int flags) {
+        int res = damage;
+
+        SelacoWeapon playerWeapon = null;
+        if(inflictor && inflictor.master is 'SelacoWeapon' && inflictor.master) playerWeapon = SelacoWeapon(inflictor.master);   // Get weapon from a projectile
+
+        // Do headshot multiplier checks
+        if(!armorHealth && bAllowHeadshots && source is 'PlayerPawn' && bIsmonster) {
+            // Check for weapon if this is a hitscan attack
+            if(!playerWeapon && (inflictor is 'HitPuff' || inflictor is 'BulletPuff') && source.player) playerWeapon = SelacoWeapon(source.player.ReadyWeapon);
+
+            // For the love of god turns this into a flag already
+            if (checkIfDamageTypeCanDoHeadshots(damageType)) {
+                 Stats.AddStat(STAT_HEADSHOTS, 0, 1);    // Report that this COULD have been a headshot
+                
+                // get the lower and upper bounds of the "head".
+                double headLower = pos.z + Height - (Height * headSize);
+                double headUpper = pos.z + Height;
+
+                if((inflictor) && inflictor.Pos.Z >= headLower && inflictor.Pos.Z <= headUpper) {
+                    Stats.AddStat(STAT_HEADSHOTS, 1, 0);	// Report a successful headshot!
+
+                    double factor = Flags & DMG_PLAYERATTACK ? headshotHitscanMult : headshotMult;
+
+                    // Add additional headshot factor from the weapon
+                    if(playerWeapon) {
+                        factor += playerWeapon.weaponHeadshotMultiplier;
+                    }
+
+                    // Slugs are stronger against the head
+                    if(inflictor && inflictor is "SlugPuff") {
+                        factor*=1.3;
+                    }
+
+                    lastHeadshotTime = Level.time;
+
+                    res = int(damage * factor);
+                    isHeadshot = true;
+                    
+                    // Play a headshot sound
+                    if(headshotThisTick != level.time && enemyType == ENEMY_SOLDIER && getCvar("snd_headshotSound"))
+                    {
+                        A_PLAYSOUND("IMPACT/HEADSHOT", CHAN_AUTO, 0.9, 0, 0.7, pitch:frandom(1.2,1.6));
+                        headshotThisTick = level.time;
+                    }
+
+                    // TO-DO: Dont use setStateLabels. Instead, find a way to have their bullettype death states trigger.
+                    // Note: Killing enemies in this way skips the code that shuts them up in MasterAI.tick()
+
+                    // Get distance in meters
+                    int headshotDistance = self.distance3D(source);
+                    int headshotInMeters = floor((headshotDistance - 1) / 30);
+                    
+                    // Increase headshot damage if a sniper is used
+                    if(receivedDamageType == "SniperBullet") {
+                        res = res * (1 + 0.03 * headshotInMeters);
+                    }
+
+                    if (res > Health) {
+                        if(bCountKill && !bKilled && !bBuddha)
+                        {
+                            Stats.AddStat(STAT_KILLS_HEADSHOT, 1, 0);	// Track all hits as total even if this isn't a headshot
+                        }
+                    
+                        if(headshotInMeters > Stats.GetTrackerValue(STAT_HEADSHOT_DISTANCE)) {
+                            // Give achievement if higher than 70
+                            if(headshotInMeters >= 70)
+                            {
+                                LevelEventHandler leh = LevelEventHandler.instance();
+                                leh.SetAchievement("GAME_HEADSHOT");
+                            }
+                            stats.resetStat(STAT_HEADSHOT_DISTANCE, 1);
+                            stats.addStat(STAT_HEADSHOT_DISTANCE, headshotInMeters, 0);
+                        }
+
+                        // apply extra damage to the head per meter when a DMR is used
+                        
+                        // Set headshot death state if necessary
+                        // Don't do headshot death for shotgun tracers, those are handled by the actor in Death.Shotgun
+                        if(!bBuddha && !bKilled && !(inflictor is "ShotgunPuff") && findState("death.head")) {
+                            self.DamageType = 'head';
+                            Die(source, inflictor, flags, damageType);
+                        }
+                    }
+
+                    if(!bKilled) takenHeadShotDamage();
+
+                    if (bHasHeadshotPainAnimation && res < Health && bnoPain == false && doHeadshotPain()) {
+                        setState(findState("pain.head"));
+                    }
+                }
+            }
+        }
+        return res;
+    }
+    
+
+    // Spawns the death sprite of the enemy who has been killed, the feeds enemy information to further manipulate the corpse.
+    virtual actor spawnDeathActor(string deathAnimation = "", int offPosX = 0, int offPosY = 0, int offPosZ = 0, int velx = 0, int vely = 0, int velz = 0, int flags = 0) {
+        actor deathSprite;
+        bool succ;
+        [succ, deathSprite] = A_SPAWNITEMEX(deathAnimation);
+        if(deathSprite && deathSprite is "DeathCeptionMaster") {
+            DeathceptionMaster ds = DeathceptionMaster(deathSprite);
+            if(shockRemainder > 0) {
+                ds.doShock();
+            }
+        }
+        return deathSprite;
+    }
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+
+        PlayerPawn pawn=players[0].mo;
+        Dawn d = Dawn(pawn);
+
+        if(inflictor is "EngineerGrenadeRound") {
+            return 0;
+        }
+
+        let smgWeapon = SelacoWeapon(d.FindInventory('SMG'));
+
+        if(inflictor && inflictor is "KNIFEPROJECTILE") {
+            inflictor.destroy();
+        }
+
+        // High damage when frozen deals a truckload of damage. Making powerful enemies more powerful
+		if(damageType == "MeleeImpact" && isFrozen && damage > 30) {
+			damage = 1000;
+		}
+        
+        if(damageType == "DawnFist") {
+            stats.addStat(STAT_MELEE_HITS, 1, 0);
+        }
+
+        if(source is "CrawlerMine" && source.bFriendly) {
+            damage*=20;
+        }
+
+        // Increase damage against Small Robotic enemies if the player has Magnetic Bullets
+		if(enemyType == ENEMY_ROBOT && source && receivedDamageType == "SMGBullet" &&  smgWeapon && smgWeapon.hasUpgradeClass("UpgradeSMGMagnetic")) 
+		{
+			damage*=1.6;
+		}
+
+        if(damageType == "MeleeImpact" || damageType == "DawnFist")
+        {
+            inflictor.A_PlaySound("impact/melee", CHAN_AUTO, 1.0, 0, 0.8);
+            inflictor.A_SPAWNITEMEX("MeleeImpactEffect", 5);
+        }
+
+        // recentDamageCause is read by the blood puff.
+        if(damagetype)
+        {
+            recentDamageCause = damagetype; 
+        }
+
+/*         // Upgraded UC-36 increases Pain Chance
+        let assaultRifleWeapon = SelacoWeapon(pawn.FindInventory('rifle'));
+		if(assaultRifleWeapon && assaultRifleWeapon.hasUpgradeClass('UpgradeRiflePressurePoint') == 1) {
+
+			TriggerPainChance(damageType, true);
+		} */
+
+        // Knock enemy bceause DMR zoom with a Concussive Round
+        let dmrWeapon = SelacoWeapon(pawn.FindInventory('DMR'));
+		if(bHasKnockoverState && dmrWeapon && dmrWeapon.checkIfZooming() && dmrWeapon.hasUpgradeClass('AltfireDMRZoomConcussive') == 1 && concussiveRoundCooldown <= 0) {
+            knockEnemyOver();
+		}
+
+        // Enemy knockback when thrown by an object
+        if(inflictor && damageType == "DecorationImpact" && !bNoPain)
+        {
+            int knockBackVelocity = 5;
+            int objectMass = inflictor.mass;
+            for(objectMass;objectMass>0;objectMass-=50)
+            {
+                knockBackVelocity++;
+            }
+            A_FACE(inflictor);
+            A_RECOIL(knockBackVelocity);
+            A_PlaySound("impact/melee", CHAN_AUTO, 1.0);
+
+            // Small object -> Stagger as usual
+            if(inflictor.mass <= 250)
+            {
+                setState(findState("pain"));
+            }
+
+            // Big object -> Knock over, if possible.
+            if(bHasKnockoverState && inflictor.mass > 250)
+            {
+                setState(findState("pain.landOnYourAss"));
+            }   
+
+        }
+
+        // If damage by melee, look at the inflictor before being thrusted backwards through the MeleeImpact pain state
+        if(source && (damagetype == "MeleeImpact" || damagetype == "MeleeImpactExtinguisher" || damagetype == "MeleeImpactSplash"))
+        {
+            A_FACE(source);
+        }
+
+        // I HATE THIS AND FIXED THIS IN CHAPTER 2 >:(
+        if(damageType == "Ice" && bAllowFreezing)
+        {
+            applyFrost();
+        }
+
+        // Player has Overkill? Add chance of getting shocked
+        if((inflictor) && inflictor is "PlasmaProjectilePlayer" && PlasmaProjectilePlayer(inflictor).hasOverKill && random(0,100) <= 5)
+        {
+            shockAmplifier = (shockLength*0.75)*-1 ;
+            applyShockDamage();
+        }
+
+        if((inflictor) && inflictor is "PlasmaShieldActor")
+        {
+            shockAmplifier = (shockLength*0.75)*-1 ;
+        }
+
+
+
+        // if mounting a shield and cannot see the problem, stop mounting and attack
+        if(mountedShieldActor && !(lookforPlayers(false, MountedShieldLineOfSight)))
+        {
+            mountedShieldActor = null;
+        }
+
+        if(shockRemainder > 0 || isFrozen)
+        {
+            damage*=1.75;
+        }
+
+        if(isFrozen && damageType == "MeleeImpact" && bAllowFreezing)
+        {
+            die(self,self);
+        }
+
+
+
+        // Shock the enemy
+        if(conductivity > 0 && (damageType == "StunningShock" || damageType == "MeleeImpactTaser" || damageType == "ShockDart"))
+        {
+            int duration = damage;
+            damage = 0;
+            if(shockRemainder > 0)  {
+                if(duration > shockRemainder) {
+                    shockRemainder = duration;
+                }
+            } else {
+                applyShockDamage(duration);
+            }
+        }
+        
+        // Taser hit? AOE time!
+        if(damageType == "MeleeImpactTaser" || damageType == "ShockDart")
+        {
+            if(conductivity > 0) {
+                int conductivityModified = conductivity;
+                if(smgWeapon && SelacoWeapon(source.player.readyWeapon) && smgWeapon.hasUpgradeClass("UpgradeSMGUnderVolt"))
+                {
+                    conductivityModified = 0;
+                }
+                shockNearbyTargets(conductivityModified, 1);   
+            }
+        }
+
+
+        // Amplify shock length when hit by a Shock Mine
+        if((inflictor) && inflictor is "PulseMinePlaced")
+        {
+            shockAmplifier = shockLength*2;
+        }
+
+        if(damageType == "Ice")
+        {
+            A_STOPSOUND(CHAN_VOICE);
+            shockRemainder = 0; // Reset shock state;
+            isFrozen = true;
+        }
+
+		if(stealthKillTimer < STEALTH_KILL_TIME && bAllowStealthKill && source is 'playerpawn' && damage > 10 && damageType != "Ice") {
+			A_PLAYSOUND("ui/stealthkill", CHAN_AUTO, 1.0, 0, 0);
+			SetSeenPlayer();
+			health = 0;
+			Stats.AddStat(STAT_STEALTH_KILL, 1, 0);
+		}
+
+		int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		if(!bFriendly) doDamageChecks(inflictor, source, res, damageType, Level.time == lastHeadshotTime);
+		return res;
+    }
+
+    // Used for scripts where the enemy moves forward while attacking
+    virtual bool checkIfForwardMovementBlocked()
+    {
+  		FLineTraceData RemoteRay;
+		LineTrace(angle, 25, pitch,offsetz: maxStepHeight,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall)
+		{	
+			return true;
+		}              
+        return false;
+    }
+
+    virtual bool checkValidShieldAngle()
+    {
+		int angleMaxDif = 60;
+		int angleDif = abs(angle - mountedShieldAngle);
+		if(	(angleDif > angleMaxDif))
+		{
+            return false;
+		}
+        return true;
+    }
+
+    int shockStrength;
+
+    virtual void knockEnemyOver() {
+        if(concussiveRoundCooldown || !bHasKnockoverState || health <= 0) {
+            return;
+        }
+        concussiveRoundCooldown = 90;
+        SetState(findstate('pain.landOnYourAss'));
+    }
+
+	virtual void applyShockDamage(int shockDuration = -1) {
+        if(conductivity <= 0) {
+            return;
+        }
+        stats.addStat(STAT_ENEMIES_SHOCKED, 1, 0);
+		A_PLAYSOUND("pain/electrocuted", CHAN_7, 0.5);
+		bNoPain = false;
+        shockStrength = 0;
+        shockAmplifier = 0;
+        if(shockDuration > 0) {
+            shockRemainder = shockDuration;
+        } else {
+            shockRemainder = shockLength + shockAmplifier;
+        }
+        shockStrength = shockRemainder;
+		bNoPain = false;
+        A_SetSize(-1, GetDefaultByType(self.getClass()).height+8);
+        if(health > 0 ){ 
+            SetStateLabel("Pain.stunningshock");
+        }
+	}
+
+    // Triggered when walking over a Banana Peel actor
+    virtual bool doBananaSlide()
+    {
+        // DO NOT ADD A CARTOONY SOUND EFFECT HERE DESPITE POPULAR DEMAND. - Nexxtic
+        if(!bNoPain && bHasKnockoverState)
+        {
+            let st = findState('pain.LandOnYourAss');
+            if(st) {
+                setState(st);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        PlayerPawn pawn=players[0].mo;
+        Dawn d = Dawn(pawn);
+
+        if(randomizerHandler && randomizerHandler.hasRandomizer) {
+            randomizerHandler.randomizerKill(self);
+        }
+        
+        // Spawn a gun if Rare Tier 
+        if(randomizerHandler && randomizerHandler.hasRandomizer)
+        {
+            randomizerHandler.DropLoot(self);
+        }
+
+        if(rarityID >= RARITY_EPIC)
+        {
+            A_PRINTBOLD("\c[pink]Rare enemy defeated!");
+            players[consoleplayer].mo.A_PLAYSOUND("randomizer/rarekill", CHAN_VOICE, 0.8, 0, 0.3);
+        }
+
+		PlasmaRifle pl = PlasmaRifle(d.FindInventory('PlasmaRifle'));
+        if(pl && meansOfDeath == "Plasma" && source && source is "Dawn") {
+            int aoeDamage = pl.PLASMA_KILL_AOE_DAMAGE;
+            int aoeRange = pl.PLASMA_KILL_AOE_RANGE;
+            bool hasUpgrade = pl.hasUpgradeClass('UpgradePlasmaRifleOverBlown');
+            if(hasUpgrade) {
+                aoeDamage*=1.25;
+                aoeRange*=1.25;
+            }
+			S_EXPLODE(aoeDamage, aoeRange, damageType:"PlasmaAOE");
+		}
+
+        bool silentKill = false; // Silent Kill blocks A_AlertMonsters unless soldiers have line of sight with the actor running this function.
+		// === Stat tracking ===
+		if(inflictor is "ExtinquisherExplosion") {
+			Stats.AddStat(STAT_EXTINGUISHER_KILLS, 1, 0);
+		}
+		if(inflictor is "BarrelExplosion") {
+			Stats.AddStat(STAT_BARREL_KILLS, 1, 0);
+		}
+		if(MeansOfDeath == "ExplosiveImpact") {
+			Stats.AddStat(STAT_EXPLOSIVE_KILLS, 1, 0);
+		}
+		if(MeansOfDeath == "MeleeImpactSplash") {
+			Stats.AddStat(STAT_COLLISION_KILLS, 1, 0);
+		}
+		if(MeansOfDeath == "MeleeImpact") {
+			Stats.AddStat(STAT_MELEE_KILLS, 1, 0);
+		}
+		if(MeansOfDeath == "Fire") {
+			Stats.AddStat(STAT_FIRE_KILL, 1, 0);
+		}
+		if(isFrozen) {
+			Stats.AddStat(STAT_FROZEN_KILL, 1, 0);
+            setState(findState("death.frostexplosion"));
+		}
+		if(shockRemainder>0) {
+			Stats.AddStat(STAT_SHOCKED_KILL, 1, 0);
+		}
+		if(ENEMY_IdentifierTag == "SIEGER") {
+			Stats.addStat(STAT_KILLS_SIEGER, 1, 0);
+		}
+		if(ENEMY_IdentifierTag == "SNIPER") {
+			Stats.addStat(STAT_KILLS_SNIPER, 1, 0);
+		}
+		if(ENEMY_IdentifierTag == "RIFLEMAN") {
+			Stats.AddStat(STAT_KILLS_RIFLEMAN, 1, 0);
+		}
+		if(ENEMY_IdentifierTag == "GUNNER") {
+			Stats.AddStat(STAT_KILLS_GUNNER, 1, 0);
+		}
+		if(ENEMY_IdentifierTag == "PlasmaTrooper") {
+			Stats.AddStat(STAT_KILLS_PLASMATROOPER, 1, 0);
+		}
+		if(ENEMY_IdentifierTag == "ENGINEER") {
+			Stats.AddStat(STAT_KILLS_ENGINEER, 1, 0);
+		}
+        if(ENEMY_IdentifierTag == "SquadLeader") {
+            Stats.AddStat(STAT_SQUADLEADER_KILLS, 1, 0);
+        }
+
+        if(!receivedDamageType)
+        {
+            receivedDamageType = MeansOfDeath;
+        }
+        if(receivedDamageType && source && source is "Dawn")
+        {
+            if(receivedDamageType == "DawnFist")
+            {
+                Stats.addStat(STAT_MELEE_KILLS, 1, 0);
+            }
+            if(receivedDamageType == "MagnumBullet")
+            {
+                Stats.AddStat(STAT_MAGNUM_KILL, 1, 0);   
+            }
+            else if (receivedDamageType == "SMGBullet")
+            {
+                Stats.AddStat(STAT_SMG_KILL, 1, 0); 
+            }
+            else if (receivedDamageType == "Shotgun")
+            {
+                Stats.AddStat(STAT_SHOTGUN_KILL, 1, 0); 
+            }
+            else if(receivedDamageType == "AssaultRifleBullet")
+            {
+                Stats.AddStat(STAT_RIFLE_KILL, 1, 0); 
+            } 
+            else if(receivedDamageType == "NailDamage")
+            {
+                Stats.AddStat(STAT_NAILGUN_KILL, 1, 0); 
+            } 
+            else if(inflictor && inflictor is "GrenadeLauncherBombBase")
+            {
+                Stats.AddStat(STAT_GRENADELAUNCHER_KILL, 1, 0); 
+            }
+            else if ((receivedDamageType == "Plasma" || receivedDamageType == "PlasmaAOE") && inflictor && inflictor is "PlasmaProjectilePlayer")
+            {
+                Stats.AddStat(STAT_PLASMARIFLE_KILL, 1, 0); 
+            }
+            else if(receivedDamageType == "SniperBullet")
+            {
+                Stats.AddStat(STAT_DMR_KILL, 1, 0); 
+            } 
+            else if(receivedDamageType == "RailAttack")
+            {
+                Stats.AddStat(STAT_RAILGUN_KILL, 1, 0); 
+            }
+        }
+
+        // Drop extra stuff on Hard-boiled mode
+        if(isHardboiled && enemyType != ENEMY_ROBOT)
+        {
+            // Drop Credits
+            if(random(0,99) <= 95)
+            {
+                for(int x=0;x<random(HARDBOILED_MIN_CREDITS,HARDBOILED_MAX_CREDITS);x++)
+                {
+                    A_SPAWNITEMEX("CreditsFlat", frandom(-25,25), 0, frandom(10,height), frandom(1,2), 0, frandom(1,4), angle:random(0,360));
+                }
+            }
+            // Drop Weapon Parts 
+            else
+            {
+                for(int x=0;x<=random(0,HARDBOILED_MAX_WEAPONPARTS);x++)
+                {
+                    A_SPAWNITEMEX("WeaponPartPickup", frandom(-25,25), 0, frandom(10,height), frandom(1,2), 0, frandom(1,4), angle:random(0,360));
+                }
+            }
+        }
+
+        // Check for Overkill Achievement
+        if(source && source.countinv("ConfidenceBooster") && source.countinv("MegaPowderAmount") && source.countInv("BunnyHopDuration") && MeansOfDeath == "DawnFist")
+        {
+	        // Give Achievement for blowing up a toilet without using guns.
+            LevelEventHandler leh = LevelEventHandler.instance();
+            leh.SetAchievement("GAME_OVERKILL");
+        }
+
+
+        // recentDamageCause is read by the blood puff.
+        if(damagetype)
+        {
+            recentDamageCause = damagetype; 
+        }
+
+		// === Alert exceptions ===
+        // knife kills
+		if(MeansOfDeath == "Knife") 
+        {
+            silentKill = true;
+			Stats.AddStat(STAT_THROWING_KNIFES, 1, 0);
+		} 
+
+        if(MeansOfDeath == "Fanblade")
+        {
+            Stats.AddStat(STAT_THROWING_KNIFES, 1, 0);
+        }
+
+        // Silencer Kill
+        if (source is 'Dawn' && SelacoWeapon(source.player.readyWeapon) && SelacoWeapon(source.player.readyWeapon).isSilenced)
+        {
+            silentKill = true;
+            Stats.AddStat(STAT_SILENCER_KILL, 1, 0);
+        }
+
+        // Kill was silent, check for Line of Sight
+        if(silentKill)
+        {
+            // Start iterator for nearby soldiers
+            BlockThingsIterator it = BlockThingsIterator.Create(self, 1000);
+            Actor currentActor;
+
+            actor deathCheckActor;
+            bool successCheckActorSpawn;
+
+            [successCheckActorSpawn, deathCheckActor] = A_SPAWNITEMEX("deathDummyActor");
+
+            while (it.Next()) 
+            {   
+                currentActor = it.thing; // Get the Actor it's currently on
+
+                // Only include SelacoEnemy's in this search
+                if((currentActor != self) && currentActor is "SelacoEnemy" && currentActor.IsVisible(deathCheckActor, false, EnemyLineOfSight))
+                {
+                    if(source)
+                    {
+                        currentActor.lastheard = source;
+                        source.A_AlertMonsters();
+                    }
+                    break;
+                }
+            }
+        }
+
+        // No silent kill -> Alert regardless
+        else
+        {
+            A_AlertMonsters();
+        }
+    
+
+		// Track basic kills
+        if(bCountKill)
+        {
+            Stats.AddStat(STAT_KILLS, 1, 0);
+        }
+
+        doDeathChecks(source, inflictor, dmgflags, MeansOfDeath, Level.time - lastHeadshotTime <= 1);
+        
+        Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+    }
+
+	// returns True if there is at least one alien besides the caller near him
+    bool findNearbyAlertedAlien(int rad = 1500, int requiredAmount = 1) {
+        int radSquared = rad * rad;
+        
+        // Create the iterator
+        BlockThingsIterator it = BlockThingsIterator.Create(self, rad);
+        Actor currentMo;
+        int aliens ;
+
+        while (it.Next()) {
+            currentMo = it.thing; // Get the Actor it's currently on
+
+            // Check if currentMo is a valid monster and has seen the player
+            if (currentMo != self && 
+                currentMo is "EnemySoldier" &&
+                currentMo.bIsMonster && 
+                Distance2DSquared(currentMo) <= radSquared) {
+                
+                let masterEnemyActor = EnemySoldier(currentMo);
+                if (masterEnemyActor.getSeenPlayer() && masterEnemyActor.bCommunicator) {
+                    aliens++;
+                    if (aliens >= requiredAmount) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    states
+    {
+        pain.landOnYourAss:
+            TNT1 A 0 {
+                SetState(findstate('pain.landOnYourAss'));
+            }
+            goto pain.meleeimpact; 
+        see:
+            TNT1 A -1;
+        pain.meleeimpact:
+            goto pain;
+        pain:
+            goto see;
+    }
+}
+
+// Killed enemies are replaced with a DeathCeption actor immediatly. This exist to allow nearby enemies to detect a recently dead enemy.
+class deathDummyActor : SelacoActor
+{
+    default 
+    {
+        +NOINTERACTION;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 5;
+            stop;
+    }
+}
+
+class SelacoEnemyRobot : SelacoEnemy
+{
+
+    default
+    {
+        +NOBLOODDECALS;
+        damageFactor "Water", 100;
+    }
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) 
+    {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+        if(isGoreyHit) {
+            for(int x=0;x<5;x++) {
+                A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", frandom(-20,20), frandom(-25,25), frandom(0,35), frandom(1,2), frandom(-2,2), frandom(-2,2));
+            }
+        }
+        if(EnemyType == ENEMY_Robot && damageType == "water")
+        {
+            die(self,self);
+        }
+        return res;
+    }
+}   
+
+class LastVisualHelper : SelacoActor
+{
+    default
+    {
+        scale 5;
+        +NOINTERACTION
+    }
+    states
+    {
+        spawn:
+            TNT1 A 90;
+            stop;
+    }
+}
+
+
+class SelacoBoss : SelacoEnemy
+{
+	
+}
+
+// Check if the player is visible from the point of the attack. This is often off-center, hence why we
+// use a different actor to make sure the gun can see the target
+class SelacoEnemyWeaponSight : actor
+{
+    default
+    {
+        +NOINTERACTION
+    }
+    states
+    {
+        SPAWN:
+            TNT1 A 5;
+            stop;
+    }
+}
+
+class FrozenIcon : Actor {
+    SelacoEnemy enemy;
+    
+    override void postBeginPlay() {
+        super.postBeginPlay();
+        if(master && selacoEnemy(master)) {
+            enemy = SelacoEnemy(master);
+            return;
+        }
+    }
+
+    override void tick() {
+        super.tick();
+        if(enemy) {
+            warpActor();
+        }
+        shouldExist();
+    }
+
+    virtual void shouldExist() {
+        if(!master || !enemy.isFrozen) {
+            destroy();
+        }
+    } 
+
+    virtual void warpActor() {
+        Warp(enemy, 3, 0, enemy.height+10, 0, flags: WARPF_NOCHECKPOSITION);      
+    }
+
+    default {
+        scale 0.35;
+        +NOINTERACTION;
+    }
+
+    states {
+        spawn:
+            ICEA A -1 BRIGHT;
+            stop;
+    }
+}
+
+class AllyIcon : FrozenIcon {
+
+    override void warpActor() {
+        Warp(enemy, 0, 0, enemy.height+10, 0, flags: WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE);      
+    }
+    
+    override void shouldExist() {
+        if(!master || !enemy) {
+            destroy();
+        }
+    }
+
+    default {
+        scale 0.12;
+        +NOINTERACTION;
+    }
+
+    states {
+        spawn:
+            FRIN A -1 BRIGHT;
+            stop;
+    }
+}
+
+class ammoBearerIcon : AllyIcon {
+    default {
+        scale 0.24;
+    }
+    states {
+        spawn:
+            AMBE A -1 bright;
+            stop;
+    }
+}
+
+class ArmorBearerIcon : AllyIcon {
+    default {
+        scale 0.24;
+    }
+    states {
+        spawn:
+            AMBE B -1 bright;
+            stop;
+    }
+}
+
+class PlasmaGibEffect : Actor {
+    mixin lightEmitter;
+    default {
+        +NOINTERACTION;
+    }
+    States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 AAAAA 4
+            {
+                A_PLAYSOUND("dest/dsparks", CHAN_AUTO, 0.3, 0, 0.9);
+                SpawnLight(rColor:237, gColor:203, bColor:92, lightRadius:random(90,110), shadowRequirement:-1, xOffset:frandom(-45,45), divisionSpeed:1.4, zOffset: frandom(10,45), lightSettingRequirement:2);
+                for(int x=0;x<3;x++)
+                {
+                    float randX = frandom(30,40);
+                    float randZ = frandom(0,60);
+                    int randAngle = random(0,360);
+                    A_SPAWNITEMEX("SuperGoreRedLarger", randX, 0, randZ, frandom(0.1,2.7),0, frandom(-1.5,1.5),angle:randAngle);
+                    A_SPAWNITEMEX("BulletImpactEffectMetalZpuffTransparant", randX, 0, randZ, frandom(0.1,2.7),0, frandom(-1.5,1.5),angle:randAngle);
+                } 
+            }
+            stop;
+    }
+}

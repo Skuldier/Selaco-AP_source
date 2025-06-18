@@ -1,0 +1,16 @@
+class GOTE_HOLOGRAM : SelacoActor
+{
+    default
+    {
+        +NOINTERACTION
+        renderstyle "translucent";
+        alpha 0.8;
+    }
+    states
+    {
+        Spawn:
+            VOXE LLLLLLLLLLLLLLLLLLLL 1 BRIGHT A_FADEOUT(0.0125);
+            VOXE LLLLLLLLLLLLLLLLLLLL 1 BRIGHT A_FADEIN(0.0125);
+            loop;
+    }
+}

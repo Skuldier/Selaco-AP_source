@@ -1,0 +1,61 @@
+extend class SelacoWeapon {
+	CustomCrosshair activeCrosshair;              // Current crosshair
+	array<CustomCrosshair> crosshairCache;        // Crosshairs do not get deleted, they get recycled
+
+    void setCrosshair(class<CustomCrosshair> xhair) {
+        if(activeCrosshair is xhair) return;
+
+        if(activeCrosshair) {
+            activeCrosshair.detach();
+            crosshairCache.push(activeCrosshair);
+            activeCrosshair = null;
+        }
+
+        // Check cache before creating new ones
+        for(int x = 0; x < crosshairCache.size(); x++) {
+            if(crosshairCache[x] is xhair) {
+                activeCrosshair = crosshairCache[x];
+                crosshairCache.delete(x);
+                return;
+            }
+        }
+
+        activeCrosshair = CustomCrosshair(new(xhair));
+        activeCrosshair.init();
+        activeCrosshair.attach(self);
+        crosshair = 0;
+    }
+
+
+    void setPlainCrosshair(string tex) {
+        if(activeCrosshair is 'PlainCrosshair') {
+            PlainCrosshair(activeCrosshair).tex = TexMan.CheckForTexture(tex);
+            return;
+        }
+
+        if(activeCrosshair) {
+            activeCrosshair.detach();
+            crosshairCache.push(activeCrosshair);
+            activeCrosshair = null;
+        }
+
+        let pc = PlainCrosshair(new('PlainCrosshair'));
+        activeCrosshair = pc;
+        activeCrosshair.init();
+        activeCrosshair.attach(self);
+
+        pc.tex = TexMan.CheckForTexture(tex);
+        crosshair = 0;
+    }
+
+	action void A_SetCrosshair(int xhair)
+	{
+		let player = self.player;
+		if (player != NULL) {
+            let weapon = SelacoWeapon(player.ReadyWeapon);
+            if(weapon) {
+			    weapon.Crosshair = weapon.activeCrosshair ? 0 : xhair;
+            }
+		}
+	}
+}

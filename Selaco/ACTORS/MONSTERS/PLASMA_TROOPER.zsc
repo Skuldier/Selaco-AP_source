@@ -1,0 +1,280 @@
+
+class PlasmaTrooper : Soldier
+{
+
+	const SHOCKMINE_CHANCE = 2;
+
+	int shockMineAmount;
+	property ShockMineAmount : shockMineAmount;
+
+	override void additionalFiringEffects()
+	{
+		for(int i = 0; i <=50;i++) {
+			A_SpawnParticle("#53B7E6", SPF_FULLBRIGHT, random(4,16), frandom(2,4), frandom(0,360), frandom(-6,6), frandom(-6,6), height-10, frandom(-5,5), frandom(-5,5), frandom(-6,6));
+		}
+	}
+
+	static const string regularDeathAnimations[] = {"DeadPlasmatrooper9", "PlasmaTrooperDeadLeg", "DeathPlasmaTrooperRegular3", "DeathPlasmaTrooperWallBang", "PlasmaTrooper_SpinDrop", "DeadPlasmaTrooperBack"};
+	static const string shotgunDeathAnimationsEngineer[] = {"DEATH_PLASMATROOPERSPINOFDEATHSHOTGUN", "DeathPlasmaTrooperShotgunBackflip", "DeathPlasmaTrooperOverkill4Shotgun"};
+	static const string headshotDeathAnimationsEngineer[] = {"DeadPlasmatrooperHeadshot4", "DeadPlasmaTrooperHeadshot3", "DeadPlasmaTrooperHeadshot2"};
+	static const string wallSmashDeathAnimations[] = {"DeathPlasmaTrooperWallBang"};
+	static const string sittingDeathAnimationEngineer[] = {"Plasmatrooper_Wallsit"};
+	static const string nailgunDeathAnimation[] = {"PlasmaTrooperNailgun1"};
+
+	override string GetDeadAnimation() {
+		return regularDeathAnimations[random(0,regularDeathAnimations.size()-1)];
+	}
+
+	override string GetWallSmashAnimation() {
+		return wallSmashDeathAnimations[random(0,wallSmashDeathAnimations.size()-1)];
+	}
+
+	override string GetShotgunDeathAnimation() {
+		return shotgunDeathAnimationsEngineer[random(0,shotgunDeathAnimationsEngineer.size()-1)];
+	}
+
+	override string GetSittingAnimation() {
+		return sittingDeathAnimationEngineer[random(0,sittingDeathAnimationEngineer.size()-1)];
+	}
+
+	override string GetHeadshotDeadAnimation() {
+		string deathAnimationToUse = headshotDeathAnimationsEngineer[random(0,headshotDeathAnimationsEngineer.size()-1)];
+		return deathAnimationToUse;
+	}
+
+	override string GetnailgunDeathAnimation() {
+		string deathSprite = nailgunDeathAnimation[random(0,nailgunDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        if(damageType == 'BulletAlien' && source == self) return 0;	// Don't allow self AOE to hurt
+        return Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+    }
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+	}
+
+	override void performNodeAction() {
+		// Deploy Turret
+		if(CheckDeployShockDroid()) {
+			setState(findState("DeployShockDroid"));
+		}
+	}
+
+	bool checkDeployShockDroid()
+	{
+		if(checkInvasionTier(INVTIER_STUNDROID) && random(0,100) <= SHOCKMINE_CHANCE && shockMineAmount > 0)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	default
+	{
+		tag "$CHARACTER_PLASMATROOPER";
+		SelacoEnemy.weapon AWPN_PLASMAGUN;
+		SelacoEnemy.WeaponDamage				7;
+		SelacoEnemy.WeaponDamageOffset			1;
+		SelacoEnemy.ArmorPenetration 			-15;
+		SelacoEnemy.ArmorShredding 				-15;
+		SelacoEnemy.randomizerSpawnChance 25;
+		EnemySoldier.GrenadeType "CrawlerGrenade";
+		EnemySoldier.SPRITE_Walking "PTRU";
+		EnemySoldier.SPRITE_Idle "PTID";
+		EnemySoldier.SPRITE_Pain "ALIP";
+		EnemySoldier.SPRITE_PainShoulder1 "PTP1";
+		EnemySoldier.SPRITE_PainShoulder2 "PTP2";
+		EnemySoldier.SPRITE_PainHeadshot "PTHE";
+		EnemySoldier.SPRITE_FireAimed "PTFR";
+		EnemySoldier.SPRITE_CrouchFire "PTCR";
+		EnemySoldier.SPRITE_StumbleRight "PTP5";
+		EnemySoldier.SPRITE_StumbleLeft "PTP4";
+		EnemySoldier.SPRITE_StumbleForward "PTP6";
+		EnemySoldier.SPRITE_Reload "PTRE";
+		EnemySoldier.SPRITE_StrafeFiring "PTST";
+		EnemySoldier.SPRITE_Hipfiring "PTHF";
+		EnemySoldier.SPRITE_HipWalking "PTHW";
+		EnemySoldier.SPRITE_Fallingdown "PTFL";
+		EnemySoldier.SPRITE_MeleeFly "PTGU";
+		EnemySoldier.SPRITE_Grenade "PTGR";
+		EnemySoldier.SPRITE_Shocked "PTEL";
+		EnemySoldier.SPRITE_NailgunDeath "PTN1";
+		EnemySoldier.SPRITE_DodgeGrenade "PTDI";
+		SelacoEnemy.ENEMY_IdentifierTag "PlasmaTrooper";
+
+		EnemySoldier.sprayShotChance 0;
+		PlasmaTrooper.ShockMineAmount 1;
+		EnemySoldier.DisplayName "$CHARACTER_PLASMATROOPER";
+		+EnemySoldier.Armored;
+		painchance 95;
+		health 205;
+		BloodType "Selaco_Blood_MEDIUMARMOR", "Selaco_Blood_MEDIUMARMOR", "Selaco_Blood_MEDIUMARMOR";
+	}
+
+	states
+	{
+		Index:
+			PTID A 0;
+			PTRU A 0;
+			PTFR A 0;
+			PTCR A 0;
+			PTGR A 0;
+			PTST A 0;
+			PTHE A 0;
+			PTRE A 0;
+			PTP4 A 0;
+			PTP5 A 0;
+			PTN1 A 0;
+			PTP1 A 0;
+			PTP2 A 0;
+			PTP6 A 0;
+			PTHW A 0;
+			PTEL A 0;
+			PTGU A 0;
+			PTDI A 0;
+			PTHF A 0;
+			PTFL A 0;
+		Prepare_ShootWeapon1:
+			goto Prepare_ShootWeapon_Aiming;
+		Shootweapon1:
+			goto ShootWeapon_Aiming;
+		DeployShockDroid:
+            PTGR A 3 {
+                invoker.shockMineAmount--;
+            }
+            TNT1 A 0 {
+                bGhost = false;
+                bNoDropoff = false;
+            }
+            PTGR BCD 3 A_FACETARGET;
+			TNT1 A 0
+			{
+				A_PLAYSOUND("BOOBYTRAP/RIG", CHAN_AUTO, 1.0, 0, 0.5);
+				//talk(SOLDIER_DEPLOYShockDroid, urgent:true);
+			}
+            TNT1 A 0 A_PlaySound("OPNGRN", 1);
+            TNT1 A 0;
+            PTGR EF 3 A_FACETARGET;
+            TNT1 A 0 A_SPAWNITEMEX("ShockDroid", 40, 0, 3, 3);
+            TNT1 A 0 {
+                bGhost = false;
+                bNoDropoff = false;
+            }
+            PTGR GHIJ 3 A_FACETARGET;
+            Goto SeeContinue;
+	}
+}
+
+class PLASMATROOPER_DEFENDER : PlasmaTrooper
+{
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		RateOfFire = 6;
+		if(skill <= 1) {
+			strafeChance = 80;
+		}
+		evadeChance = 5;
+		combatdistance +=random(50,600);
+	}
+
+	default
+	{
+		speed 5;
+		SelacoEnemy.role "$ROLE_DEFENDER";
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.crouchedShotChance 255;
+		EnemySoldier.AccurateShotChance 255;
+		EnemySoldier.CombatDistance 1050;
+		EnemySoldier.Aggressiveness 0;
+		EnemySoldier.StrafeChance 125;
+		EnemySoldier.EvadeChance 255;
+		+EnemySoldier.KeepDistance;
+	}
+}
+
+class PLASMATROOPER_ATTACKER : PlasmaTrooper {
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		combatdistance +=random(50,450);
+		if(skill <= 2) {
+			strafeChance = 80;
+		}
+	}
+
+	default {
+		speed 6;
+		SelacoEnemy.role "$ROLE_ATTACKER";
+		+SelacoEnemy.AlwaysTryFlanking
+		+EnemySoldier.KeepDistance;
+		EnemySoldier.CombatDistance 450;
+		EnemySoldier.aggressiveness 225;
+		EnemySoldier.crouchedShotChance 80;
+		EnemySoldier.AccurateShotChance 80;
+		EnemySoldier.strafeChance 80;
+		EnemySoldier.evadeChance 5;
+	}
+}
+
+class PLASMATROOPER_AGGRESSOR : PlasmaTrooper {
+
+	default {
+		speed 8;
+		SelacoEnemy.role "$ROLE_PUSHER";
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.accurateShotChance 0;
+		EnemySoldier.crouchedShotChance 20;
+		EnemySoldier.strafeChance 25;
+		EnemySoldier.aggressiveness 225;
+		EnemySoldier.combatDistance 50;
+		-EnemySoldier.KeepDistance;
+		+JUMPDOWN
+	}
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		if(Skill == SKILL_ENSIGN) {
+			aggressiveness = aggressiveness / 2;
+		}
+	}
+}
+
+class PLASMATROOPER_STRAFER : PlasmaTrooper
+{
+	override void BeginPlay() {
+		super.BeginPlay();
+		if(skill >= SKILL_CAPTAIN) {
+			strafeChance = 170;
+		}
+	}
+
+	default {
+		SelacoEnemy.role "$ROLE_STRAFER";
+		EnemySoldier.strafeChance 150;
+		EnemySoldier.Aggressiveness 60;
+		EnemySoldier.evadeChance 0;
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.AccurateShotChance 0;
+		EnemySoldier.CrouchedShotChance 0;
+	}
+}
+
+// IS BROKEN, FOR SOME REASON.
+class PlasmaTrooperSpawner : actor {
+
+	static const string soldierList[] = {"PlasmaTrooper", "PLASMATROOPER_DEFENDER", "PLASMATROOPER_AGGRESSOR", "PLASMATROOPER_ATTACKER", "PLASMATROOPER_STRAFER"};
+	string soldierListSelected;
+
+	override void postbeginPlay() {
+		super.postbeginPlay();
+
+		// Select and spawn soldier
+		soldierListSelected = soldierList[random(0,soldierList.size()-1)];
+		A_SpawnItemEx(soldierListSelected,0,0,0,0,0,0,0,SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+
+		// We no longer need you
+		destroy();
+	}
+}

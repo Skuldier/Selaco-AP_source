@@ -1,0 +1,52 @@
+addplayerclass Dawn
+
+alias useGadget "netevent ThrowGadget"
+alias usemeds "netevent UseMedkit"
+alias InstantSlide "pukename CheckSlide"
+alias "QuicksaveSelaco" "netevent quicksaveselaco"
+alias switchGadget "netevent switchGadget"
+alias printObjectives "netevent show_objectives"
+alias "Toggle_Flashlight" "netevent Toggle_Flashlight"
+alias "Place_Marker"   "netevent Place_Marker"
+alias codex "netevent OpenCodex"
+alias lastWeapon "netevent LastWeapon"
+alias useability "netevent UseAbility"
+alias nextAbility "netevent NextAbility"
+alias previousAbility "netevent PrevAbility"
+alias +DashMode "pukename DodgeButtonPressed"
+alias -DashMode "pukename DodgeButtonNotPressed"
+
+alias save_menu "openmenu saveselacomenu"
+alias load_menu "openmenu loadselacomenu"
+alias toggle_HUD "netevent toggle_hud"
+
+alias weaponWheel ""
+
+alias am_togglelegend "toggle am_legend"
+
+defaultBind G       useGadget
+defaultbind R       reload
+defaultBind f       "Toggle_Flashlight" 
+defaultBind x       "Place_Marker" 
+defaultbind z       usemeds   
+defaultbind shift       +DashMode
+defaultbind CAPSLOCK    codex
+defaultbind m       testmap
+defaultbind f6	    "quicksaveselaco"
+defaultbind MOUSE3	useability
+defaultbind h       "switchGadget"
+defaultbind ]       nextAbility
+defaultbind [       previousAbility
+defaultbind =       toggle_HUD
+defaultbind /       weaponWheel
+defaultbind t       LastWeapon
+
+
+addmenukey "Melee"	meleeButton
+alias meleeButton "puke 669"
+defaultbind q		meleeButton
+
+alias +usereload +user1
+alias -usereload -user1
+defaultbind PAD_X +usereload
+defaultbind PAD_A +jump

@@ -1,0 +1,93 @@
+[enu default] 
+/* This section is both for American English (enu -> en US) and the default language
+   (used if there are no available translations for the user's own language).                         */
+/* Tutorial text can include keybinds. Format: $<+use>$ or $<color_code,+use>$ or $[color_code,+use]  */
+   
+TUT_DEMO =           "ARMOR1|||\c[HI]TUTORIAL\c- MESSAGE|||This is a \c[HI]NORMAL\c- \c[red]message\c-. Press $[[HI],+use]$ or $<+use>$ or $<[HI],+use>$ to exit this. We might \c[HI]HIGHLIGHT\c- some words here or there, but in general it's just a normal run on sentence and/or paragraph.";
+TUT_ARMOR =          "ARMOR1|||ARMOR|||While having \c[HI]armor\c-, a part of your incoming damage is taken from your \c[HI]armor\c- instead of your \c[HI]life\c-. While having less than 75 armor, \c[HI]35% of your damage is absorbed\c-. Having 75 armor or more \c[HI]absorbs 50% of your damage\c-.";
+TUT_GRENADE =        "GRENADE1|||Grenades|||The Frag Grenade deals \c[HI]large amounts of direct and collateral damage upon detonation\c-. Once thrown, the detonation timer of the grenade starts as soon the grenade is \c[HI]stationary. \n\c-Press $[[HI],useGadget]$ at any time to throw a grenade.";
+TUT_INTERACT =       "Interaction|||Dawn can Interact with panels, switches, doors and other objects with $[[HI],+use]$. The world of Selaco is filled with interactive objects, keep an eye open for them.";
+TUT_STEALTH =        "Quick Kills|||When an enemy is not aware of your presence, a single shot or melee attack is enough to eliminate them. Use this to get one free kill before you start engaging in a fight.";
+TUT_CRACK =          "Wall Cracks|||\c[HI]Cracked walls \c-can be destroyed with \c[HI]explosives\c-. Look for a nearby explosive object or use an explosive item to destroy it. \n\n\c[HI]Hint: \c-You can pickup objects with $[[HI],+use]$ and carry them with you.";
+TUT_CLEARANCE =      "CLEAR1|||Clearance Cards|||A Clearance Upgrade Card \c[HI]permanently increases your Clearance Level\c-, granting you access to areas that would otherwise be unreachable. \nIf your access level matches or exceeds the security level of the door, it will open for you.";
+TUT_ICEBOMB =        "GRENADE1|||Ice Bombs|||\c[HI]Ice Grenades \c-explode on impact, freezing all low-tier enemies that happen to be caught in the blast radius. \Hold $[[HI],weaponWheel]$ to open the Weapon Wheel, then press $[[HI],+attack]$ to cycle between different Equipment Items.";
+TUT_PULSEMINE =      "GRENADE1|||Pulse Mines|||\c[HI]Pulse Mines \c-can be placed on floors and detonate when hostiles get close to it, dealing area of effect damage to all hostiles caught in the blast radius. \Hold $[[HI],weaponWheel]$ to open the Weapon Wheel, then press $[[HI],+attack]$ to cycle between different Equipment Items.";
+TUT_MEDKIT =         "MEDKIT1|||Medkits|||\c[HI]Portable Medkits\c- can be picked up for later use and are activated manually. The number of medkits at your disposal is shown above your Health Indicator. Press $[[HI],usemeds]$ to consume a medkit and restore 50 points of health over 2 seconds.";
+TUT_NAVIGATION =     "Navigation|||\c[green]Green Lights\c- often point you towards where you need to go. If you find yourself disoriented, try searching for \c[green]Green Lights\c-.";
+TUT_FLASHLIGHT =     "FLASH1|||Flashlight|||Press $[[HI],Toggle_Flashlight]$ \c-to activate your flashlight. Your flashlight runs on a battery, you can recharge it by turning your flashlight off.\n\nEnemy soldiers can detect your light so use with caution.";
+TUT_CABINET =        "CLEAR1|||Cabinet Card|||\c[HI]Cabinet Cards\c- can be used to unlock \c[HI]Storage Cabinets \c-which contain valuable items. \n\nCabinet Cards are never far removed from their respective Storage Cabinet, keep searching!";
+TUT_SWIMMING =       "SWIM1|||Swimming|||While underwater, press $[[HI],+jump]$\c- to swim upwards. You can also aim into the direction you want to go and move forward to swim into that direction. \n\nWatch your oxygen!";
+TUT_CLIMBING =       "CLIMB1|||Climbing|||Is a ledge just out of reach? You can climb onto ledges by standing near the ledge and \c[HI]holding $[[HI],+jump]$. This can also be used to \c[HI]mantle\c- over low cover.";
+TUT_MELEE = 		   "MELEE1|||Melee|||Press $[[HI],meleeButton]$\c- for a quick melee strike. This can \c[hi]stun enemies\c-, or \c[hi]knock them into other enemies or objects for extra damage\c-. \n\nUnaware enemies will be instantly killed.";
+
+TUT_DOORS =          "Doors|||To unlock doors, approach the door and press $[[HI],+use]$ to open it.";
+
+TUT_SLIDE =          "SLIDTU1|||Sliding & Dashing|||Move forward while holding $[[HI],+DashMode]$ to perform a \c[HI]Slide Attack\c-. Slide Attacks allow you to get through small gaps (like doorways), knock enemies on the floor or dodge projectiles. \n\n\c[gold]Try sliding under the door ahead."; 
+
+INVASIONTIER =       "TIERS1|||Invasion Tiers|||As you progress throughout your journey, your enemies become stronger, gaining access to new abilities and tactics. Refer to your \c[HI]Codex\c- to find all currently active buffs for the enemy. These are called \c[HI]Invasion tiers\c-.";
+
+TUT_CRACKS =         "|||Wall Cracks|||Found a \c[HI]crack in the wall\c-? Look for a nearby \c[HI]explosive\c- or \c[HI]throw a grenade\c- in its proximity to blow it up, revealing the contents behind it! Red Wall cracks can only be blown up with Explosive Barrels."; 
+
+TUT_WORKSHOP1=        "TUTPART1|||Weapon Parts|||\c[HI]Weapon Parts\c- are often found in hidden or hard to reach places. \n\nEnemies will gain access to new tools as the campaign goes on, make sure to not fall behind by missing out on upgrades yourself.";
+
+PATREONWELCOME =     "PRETEST|||Welcome to the Pre-demo!|||After many years of development, the first phase of our Demo is finally here! Please keep in mind that this is an early preview of the game and that many of the story beats are still absent. \n\nGood luck out there,\n\c[purple]Altered Orbit Studios.";
+
+RANDOMTUT = "RANDGRPH|||Special Campaign Beta|||Thank you for participating in the \c[omniblue]Special Campaign Beta\c-!\n\nThis mode is still in active development and you will encounter bugs. \n\nHave fun and good luck!";
+
+CODEXFOUND =         "TUTCODEX|||Codex|||You can now use your Wrist Codex by pressing $[[HI],codex]$! The Wrist Codex is a powerful information tool, capable of downloading Datapad contents for you to read, check on level progression and much more.\n\n\c[gold]Read the datapad you just found to find the keypad combination for the door near you.";
+
+CODEXFOUNDREMINDER = "CODEX1|||Codex|||Reminder: Press $[[HI],codex]$ to open your codex. \c[HI]Stephen Rand's datapad\c- contains the password for the keypad door!";
+
+TUT_CHALLENGES =     "CHALLEN|||Challenges|||\c[OMNIBLUE]Milestones are now active!\c-\n\n Your Wrist Codex actively keeps track of the actions you perform and rewards you with Weapon Parts for achieving certain goals.\c-\n\nYou can disable or reduce the amount of challenge updates you receive by going to \c[OMNIBLUE]Options -> Interface -> 'Show Challenge Updates'"; 
+
+CAMERAFEED =         "CODEX1|||CAMERA FEEDS|||\c[HI]Camera Feeds\c- always point at something that might be of interest, even when that may not seem to be case at first glance. You can view Camera Feeds in fullscreen by \c[HI]interacting with the monitor\c-.";
+
+VACBOT =             "HUGGER1|||VACBOT HUGGING|||Giving \c[HI]VAC-BOTS \c-a quick hug is a popular trend among the civilians of Selaco. While not scientifically proven, it tends to make civilians feel more at ease.";
+
+TUT_CRATE =          "CRATE1|||ITEM CRATES|||Destroy \c[HI]Item Crates\c- to reveal their contents. Crates might yield you treasure, like \c[HI]grenades, ammo, armor and credits (or all at once!)\c-. Crates with a symbol on it drop more items of a specific type.";
+
+TUT_COVER =          "Cover|||Some objects in Selaco can be flipped over for cover by pressing the $[[HI],+use]$\c- key. Flipped cover will have increased resistance against enemy bullets compared to unflipped cover, but can still be destroyed after taking enough damage. Stay on your toes!";
+
+TUT_CARDS =          "|||Trading Cards|||In the full game, Trading Cards can be collected to unlock Concept Art and Gameplay Mutators. It is not implemented in this Demo."; 
+
+TUT_GRAB =           "|||Grabbing objects|||Aim at an object and press $[[HI],+use]$\c- to pick it up. This allows you to take objects with you. Press $[[HI],+attack]$\c- to throw it, or press $[[HI],+use]$\c- again to drop it"; 
+
+TUT_XMAS2022 =       "XMAS2021|||The Christmas Challenge|||The Aliens are ruining Christmas!\n\n- All item pickups have been removed.\n-Locate presents at random spots of the level, unwrap for items\n-Watch our for randomly spawned enemies!\n\n\c[green]Unwrap 10 presents to unlock the exit to the next level!";
+
+TUT_ALIENZONE =      "Alien Zones|||This zone is under heavy Alien control. These zones will have increased enemy activity and less item pickups. Be well prepared before engaging.";
+
+TUT_GRENADETYPES =   "Grenade Types|||A new ammo type for your \c[omniblue]grenade launcher\c- is now available! To use it, \c[omniblue]equip the grenade launcher\c- and press $[[HI],+altattack]$\c- to cycle through all available ammo types.";
+
+TUT_SHOOTINGRANGE =  "TUTSHOT1|||Shooting Range|||While in the \c[omniblue]Shooting Range\c-, ammunition will not be deducted. \n\nWhen you leave the range, the ammunition state of your weapons will return to the state they were in when you entered.";
+
+TUT_TEDDY11 =        "Teddy11|||Having Teddy11 in your inventory may come with unintended side-effects that cannot be removed.";
+
+TUT_SMG =            "SHOCK1|||Taser|||\c[HI]The UC-11 Compact\c- utilizes a \c[HI]Taser Attachment\c- to add new functionality to your melee attacks. Hitting an enemy will \c[HI]electrocute them and nearby enemies for a brief period\c-.\n\nYou can add \c[omniblue]additional functionality\c- to the Taser Attachment through \c[omniblue]The Weapon Station\c-.";
+
+TUT_SENTRYGUN =      "HACKING1|||Sentry Guns|||Disabled ACE Security Turrets can be activated with $[[HI],+use]$\c-, this will cause them to fight by your side and open fire at enemies.\n\nTurrets can be repositioned at any time.";
+
+TUT_WORKSHOP2 =      "SHOP1|||Safe Room|||\c[HI]You have found your first safe room!\c-\n\nYou can use these rooms to \c[HI]customize and upgrade your weapons\c- and, eventually, buy ammo and enter the Safe Room Extension for additional facilities.\n\nWeapons are upgraded using \c[HI]Weapon Parts\c-, these items are scattered around Selaco.";
+
+TUT_ENEMYMINE =      "|||Enemy Mines|||\c[HI]Enemy Landmines \c-are bulleproof and cannot be destroyed by conventional means. Look for a different way to \c[HI]trick or disable \c-a mine.";
+
+TUT_POWERCELL =      "|||Power Cells|||When a \c[omniblue]Power Cell\c- gets destroyed, it will return to its \c[Omniblue]Spawn Position\c-. Its position can be found on the \c[omniblue]Map\c-.";
+
+TUT_TECHMODULE =     "SHOP1|||Tech Module|||In order to gain access to stronger upgrades, you will have to locate a \c[omniblue]Tech Module\c-.\n\nYou can locate a new one at the Saferoom in the \c[omniblue]Water Treatment Plant.\c-";
+
+TUT_BIPOD =          "TUTBIPO1|||Bipod|||The DMR comes equipped with a bipod, allowing for reduced \c[omniblue]Spread \c-and \c[hi]Recoil\c-. Hold still near \c[omniblue]waist-high cover\c- to attach the Bipod\c-.\n\nOnce you see the weapon attach itself to cover in front of you, you are granted the bipod's benefits.";
+
+TUT_AGGRESSION  =    "|||Enemy Behavior Types|||Some enemy squads are more aggressive than others, and stances may change depending on the state of combat. Adjust accordingly.";
+
+TUT_FIRE =           "TUTFIRE1|||Burning|||You are \c[omniblue]on fire\c- and taking Burning Damage overtime! \n\nPerform \c[omniblue]Slide Attacks\c- and \c[omniblue]Side-Dashes\c- to mitigate Burning Damage and reduce the duration.";
+
+TUT_SUPPLYCHESTS =   "CHEST1|||Supply Chests|||\c[omniblue]Supply Chests\c- contain random items and can be opened with \c[omniblue]Credits\c-. These items may include \c[omniblue]Weapon Parts, Health, Armor, Ammo \c-and more. \n\nSupply Chests can only give ammo for weapons you own.";
+
+TUT_DASH =           "TUTDASH1|||Dashing|||While strafing, press $[[HI],+DashMode]$\c- to perform a \c[HI]Dash\c-.\n\nDuring a dash, there is a brief period where bullets cannot hit you\c-. \n\n\c[hi]Jump\c- while dashing to \c[hi]cover a larger distance\c-.";
+
+TUT_TRAINSYSTEM =    "TUTTRAN1|||Transit System|||The \c[omniblue]Transit System\c- allows you to revisit \c[omniblue]Safe Rooms\c- of \c[hi]previously completed levels\c-.\n\nYou can use this to resume exploring and locate \c[hi]upgrades\c- and \c[hi]secrets\c- you may have previously missed.";
+
+TUT_BUNNY =          "TUTBUNN1|||Bunny Hopper|||\c[hi]Bunny Hoppers\c- are spawned in random locations. Upon consumption, \c[hi]Movement Speed\c- and \c[hi]Accuracy\c- are greatly increased.\n\nHappy running!";
+
+TUT_TOXICENV_REGEN = "Health Regeneration|||The toxic environment here will stop your health from regenerating.";
+
+TUT_WEAPONKITS =     "TUTPART1|||Weapon Kits|||\c[HI]Weapon Kits\c- adjust the behavior of a weapon's primary and/or alternate fire. You can change the Weapon Kits of your weapons at an Upgrade Station. \n\nWeapon Kits are permanent and even carry over to new campaigns.";

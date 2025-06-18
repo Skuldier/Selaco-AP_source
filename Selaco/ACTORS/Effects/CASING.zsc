@@ -1,0 +1,728 @@
+class BrassBase : SelacoActor {
+    meta int startAngle, startRoll, startPitch;
+    meta int caseRollChance;
+
+    int angleSpeed, rollSpeed, pitchSpeed;
+    float endRollAngle, endRollSpeed; 
+
+    CasingHandler casingHandler;
+    SmokeHandler sh;
+    LevelEventHandler leh;
+
+    int smokeTimer;
+    int effectLifespan;
+    bool spawnSmokeTrail;
+    bool rollCasing;
+    bool infiniteBrass;
+    private int casingFlags;
+
+    // Projectile starting behavior
+    property StartAngle     : startAngle;
+    property StartRoll      : startRoll;
+    property StartPitch     : startPitch;
+    
+    // Rotation speed during travel
+    property AngleSpeed         : angleSpeed;
+    property RollSpeed          : rollSpeed;
+    property PitchSpeed         : pitchSpeed;
+    property caseRollChance     : caseRollChance;   // Chance for Casing to start rolling after going idle
+    property endRollAngle       : endRollAngle;     // How fast should it spin after being stationary on the floor
+    property EndRollSpeed       : endRollSpeed;     // How fast should it continue to move after being stationary on the floor
+    
+    flagdef SpawnCasingSmoke    : casingFlags, 0;   // Spawn Smoke Effects after spawning
+    flagdef DetailedMode        : casingFlags, 1;   // Bullet Casing will have simplistic behavior to save on resources
+    flagdef SmokeTrailOnly      : casingFlags, 2;
+    flagdef SmokeBounce         : casingFlags, 3;
+
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        sh.instance();
+        BounceFactor *= frandom(0.9, 1.1);  // Don't bounce uniformly
+
+        casingHandler = casingHandler.instance();
+        leh = LevelEventHandler.Instance();
+        // Extended Brass is used, mark it
+        if(casingHandler && casingHandler.hasExtendedBrassSetting)
+        {
+            casingHandler.storeCasingActor(self); // Store this instance in the handler
+            casingHandler.checkCleanup();         // Check if this new spawn exceeds the threshold
+            infiniteBrass = true;
+        }
+
+        // Base casing Lifespan
+        int cvarParticleLifespan = casingHandler ? casingHandler.cvParticleLifespan : GetCVar("r_particleLifespan");
+        effectLifespan = 15;
+        for(int x=0;x<=cvarParticleLifespan;x++) {
+             effectLifespan*=2;
+        }
+
+        // *Very* short lifespans on low game detail settings
+        if(leh && leh.gameDetailSetting <= GAMEDETAIL_LOW) {
+            effectLifespan = 5;
+        }
+
+        // Chance to roll after standing still
+        if(random(0,100) <= caseRollChance) {
+            rollCasing = true;
+        }
+
+        // Randomize roll speed so there's more variance.
+        if(endRollAngle >= 0.2) {
+            endRollAngle = endRollAngle+(frandom(-0.2,0.2));
+        }
+        if(endRollSpeed <= -0.07) {
+            endRollSpeed +=frandom(0.01, 0.03);
+        }
+    }
+
+    override void tick() {
+        super.tick();
+        if(smokeTimer <= 7) {
+            int cvarSmokeQuality = casingHandler ? casingHandler.cvSmokeQuality : GetCVar("r_smokequality");
+
+            smokeTimer++;
+            if(bSpawnCasingSmoke && cvarSmokeQuality >= 4 || (cvarSmokeQuality >= 5 && smokeTimer % 2 == 0)) {
+                A_SpawnItemEx("GunFireSmoke", 0);
+            }
+        }
+    }
+
+    default {
+        +DOOMBOUNCE;
+        +MISSILE;
+        +THRUACTORS;
+        +CANNOTPUSH;
+        +ROLLSPRITE;
+        +CLIENTSIDEONLY;
+        +MISSILE;
+        +BrassBase.SpawnCasingSmoke;
+        +BrassBase.SmokeBounce;
+        +BrassBase.detailedMode;
+        +BrassBase.SmokeTrailOnly;
+        +SelacoActor.IsTrash;
+        +InterpolateAngles;
+        +UseBounceState;
+
+        SelacoActor.sleepdistance 3096;
+        BrassBase.caseRollChance 55;
+        BrassBase.StartAngle 30;
+        BrassBase.StartRoll 5;
+        BrassBase.StartPitch 35;
+        BrassBase.EndRollAngle 0.4;
+        BrassBase.EndRollSpeed -0.07;
+        BrassBase.AngleSpeed 45;
+        BrassBase.RollSpeed 0;
+        BrassBase.PitchSpeed 0;
+
+        BounceCount 4;
+        Gravity 0.85;
+        Mass 1;
+        Height 5;
+        Radius 5;
+        Speed 4;
+        Scale 0.13;
+        MaxStepHeight 2;
+        BounceSound "weapons/casing";
+    }
+
+   States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_SETANGLE(angle +  random(-1*StartAngle,   StartAngle));
+                A_SetRoll(roll +    random(-1*StartRoll,    StartRoll));
+                A_SETPITCH(pitch +  random(-1*startPitch,   startPitch));
+                A_ChangeVelocity(frandom(0.2, 0.3), frandom(-1.3, 1.3), frandom(3.0, 7.0), CVF_RELATIVE);
+            }
+        Looper:
+            VOXE L 1 {
+                A_SetAngle(angle + angleSpeed, SPF_INTERPOLATE);
+                A_SETROLL(roll+ rollSpeed);
+                A_SetPitch(pitch + pitchSpeed, SPF_INTERPOLATE);
+                if((vel.z == 0 && vel.y == 0 && vel.x == 0) || waterLevel > 0) {
+                    setStateLabel("Death");
+                }
+            }
+            loop;
+        Bounce:
+            TNT1 A 0 {
+                if(bDetailedMode && bSmokeBounce)
+                {
+                    A_SPAWNITEMEX("BodyImpactSmokeUltraTinyFast", 0, 0, 0, 0, 0, 0.5);
+                    A_SpawnDefinedParticle("BulletCasePuffDefinition");
+                }
+                A_PLAYSOUND(bounceSound);
+                AngleSpeed = AngleSpeed-=5;
+                setStateLabel("Looper");
+            }
+        Death:
+            TNT1 A 0 {
+                A_PLAYSOUND(bounceSound);
+                A_SetPitch(0, SPF_INTERPOLATE);
+                A_SetRoll(0, SPF_INTERPOLATE);
+
+                // Only become steppable if the casing is able to roll, and not in water
+                if(leh && leh.gameDetailSetting >= GAMEDETAIL_HIGH && waterLevel == 0 && caseRollChance && endRollSpeed) {
+                    becomeSteppable(5, 6);
+                }
+            }
+        Deathloop: // Not by Arkane // @Cockatrice Ha... ha.
+            VOXE LLL 1 {
+                if(EndRollSpeed < 0 && bDetailedMode && rollCasing && waterLevel == 0){
+                    angle+=endRollAngle;
+                    A_CHANGEVELOCITY(EndRollSpeed, 0, 0, CVF_RELATIVE);
+                    EndRollSpeed+=0.001;
+                }
+
+                // Angle towards roll velocity
+                if(playerInteracted && pos.z <= floorz) {
+                    let dir = vel.unit();
+                    let speed = vel.xy.length();
+                    let dangle = atan2(dir.y, dir.x);
+
+                    // Rotate velocity by anglefudger
+                    if(speed > 0.1) vel.xy = angleToVector(dangle + (angleFudger * min(2.0, speed / 2.0)), speed);  
+                    
+                    // Angle towards velocity
+                    if(speed > 0.45 && dangle != angle) angle += (dangle - angle) * 0.15;
+                }
+            }
+            TNT1 A 0 {
+                if(vel.z ~== 0 && vel.y ~== 0 && vel.x ~== 0) {
+                    setStateLabel("EndCasing");
+                }
+            }
+            loop;
+        EndCasing:
+            VOXE L 1 {
+                if(infiniteBrass)
+                {
+                    sleepIndefinite();
+                    return;
+                }
+                sleep(effectLifespan);
+            }
+        FadeAway:
+            TNT1 A 0 { undoSteppable(); }
+            VOXE LLLLLLLLLLLLLLLLLLLL 1 A_FADEOUT(0.05);
+            stop;
+    }
+
+    int touchTime;
+    bool playerInteracted;
+    double angleFudger;
+    override void Touch(Actor toucher) {
+        if(toucher is 'PlayerPawn') {
+            if(toucher.vel.lengthSquared() >= 1.0) {
+                // Wake and shove
+                wake();
+                setStateLabel("Deathloop");
+                playerInteracted = true;
+                
+                
+                // Add velocity in the direction of the player
+                // Add velocity away from the player as well
+                // Probably needs tweeking
+                if(random(0,100) <= 15) {
+                    vel.z+=frandom(1,3);
+                }
+                vel.xy += toucher.vel.xy * 0.25;
+                vel.xy += (pos.xy - toucher.pos.xy).unit() * (toucher.vel.xy.length() * 0.45);
+                angleFudger = frandom(-2.0, 2.0);   // Will randomly change angle of momentum to simulate rolling
+                
+                // Play sound randomly and avoid repeating
+                if(level.totalTime - touchTime > 5 && random(0,100) < 35) {
+                    A_PLAYSOUND(bounceSound);
+                }
+
+                touchTime = level.totalTime;
+            }
+        }
+    }
+
+    void becomeSteppable(double radius = -1, double height = -1) {
+		bSOLID = false;
+		bSPECIAL = true;
+        bThruActors = false;
+        bThruPlayers = false;
+        bSlidesOnWalls = true;
+		A_SetSize(radius, height);
+		if(bNOBLOCKMAP && !bDestroyed) A_ChangeLinkFlags(0);
+	}
+
+	void undoSteppable() {
+		bSOLID = Default.bSOLID;
+		bSPECIAL = Default.bSPECIAL;
+        bTHRUACTORS = Default.bTHRUACTORS;
+        bThruPlayers = Default.bThruPlayers;
+        bSlidesOnWalls = Default.bSlidesOnWalls;
+		A_SetSize(Default.radius, Default.height);
+		if(Default.bNOBLOCKMAP && !bDestroyed) A_ChangeLinkFlags(1);
+	}
+}
+
+class RifleCaseSpawnEnemy : BrassBase
+{
+    default {
+        scale 0.16;
+        Speed 13;
+        Bouncefactor 0.2;
+        PROJECTILE;
+        +NOCLIP;
+        +CLIENTSIDEONLY;
+    }
+	States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnProjectile("BrassBaseEnemy",10,0,random(-90,-94),2,random(-30,-33));
+            Stop;
+	}
+}
+
+class RifleCaseSpawnEnemyMinigun : BrassBase
+{
+    default {
+        Speed 13;
+        Bouncefactor 0.2;
+        PROJECTILE;
+        +NOCLIP;
+        +CLIENTSIDEONLY;
+    }
+	States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnProjectile("BrassBaseEnemyMinigun",10,0,random(-90,-94),2,random(-30,-33));
+            Stop;
+	}
+}
+
+class EmptyNailCase : BrassBase {
+    default {
+        speed 5;
+        -BrassBase.SpawnCasingSmoke
+        BrassBase.StartAngle 50;
+        BrassBase.StartRoll 25;
+        BrassBase.StartPitch 95;
+        BrassBase.EndRollAngle 1;
+        BrassBase.EndRollSpeed -0.02;
+        BrassBase.AngleSpeed 65;
+        BrassBase.RollSpeed 30;
+        BrassBase.PitchSpeed 10;
+        BounceSound 'nailgun/casing';
+    } 
+}
+
+class BrassBaseEnemy : BrassBase { 
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        effectLifespan = 15;
+    }
+    default {
+        -BrassBase.SpawnCasingSmoke;
+        BrassBase.EndRollSpeed 0;
+        BounceSound "";
+    }
+}
+
+class BrassBaseEnemyMinigun : BrassBase { 
+
+    int aliveTime;
+    override void tick()
+    {
+        super.tick();
+        aliveTime++;
+        if(aliveTime > 9 && !infiniteBrass)
+        {
+            A_FADEOUT(0.07, FTF_REMOVE);
+        }
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        effectLifespan = 15;
+    }
+    default {
+        scale 0.17;
+        -BrassBase.SpawnCasingSmoke;
+        BrassBase.EndRollSpeed 0;
+        BounceSound "";
+    }
+}
+
+class ShotgunCasing : BrassBase
+{
+    default {
+        speed 7;
+        BrassBase.EndRollAngle 1;
+        BrassBase.caseRollChance 50;
+        BrassBase.AngleSpeed 25;
+        BrassBase.StartPitch 125;
+        BrassBase.RollSpeed 0;
+        BounceSound "weapons/shell";
+    }
+}
+
+class ShotgunCasingSlug : ShotgunCasing { }
+
+
+class ShotgunCasingEnemy : ShotgunCasing { }
+
+class AssaultRifleCasing : BrassBase { 
+    default {
+        scale 0.16;
+    }
+}
+
+// Bit of a dumb hack. It's just a invisible case
+class PlasmaSmoke : BrassBase {
+    int aliveTime;
+
+    default {
+        +NOGRAVITY;
+        RenderStyle "none";
+        speed 3;
+        BounceSound "";
+    }
+
+    override void tick() {
+        super.tick();
+        alivetime++;
+        if(aliveTime > 10) {
+            destroy();
+        }
+    }
+}
+
+class EmptyBrassAirdrone : BrassBase {
+    int caseLifeSpan;
+    override void tick()
+    {
+        super.tick();
+        caselifespan++;
+        if(caselifespan > 20 && !infiniteBrass)
+        {
+            A_FADEOUT(0.06, FTF_REMOVE);
+        }
+    }
+    default {
+        scale 0.4;
+        speed 2;
+        BrassBase.EndRollAngle 1;
+        BrassBase.AngleSpeed 60;
+        BrassBase.StartPitch 125;
+        BrassBase.PitchSpeed 30;
+        bounceFactor 0.1;
+    }
+}
+
+class EmptyBrassCricket : BrassBase {
+    default {
+        speed 4;
+        BrassBase.StartAngle 110;
+        BrassBase.AngleSpeed 5;
+        BrassBase.StartPitch 90;
+        BrassBase.rollspeed 13;
+        Scale 0.17;
+        BounceSound "weapon/cricket/casing";
+    }
+}
+class EmptyBrassJetpack : EmptyBrassCricket {
+    default {
+        speed 4;
+        BrassBase.StartAngle 110;
+        BrassBase.AngleSpeed 5;
+        BrassBase.StartPitch 90;
+        BrassBase.rollspeed 13;
+        Scale 0.11;
+        BounceSound "weapon/cricket/casing";
+    }
+}
+
+class EmptyBrassDMR : BrassBase {
+    default {
+        speed 4;
+        BrassBase.StartAngle 110;
+        BrassBase.AngleSpeed 5;
+        BrassBase.StartPitch 90;
+        BrassBase.rollspeed 13;
+        Scale 0.17;
+        BounceSound "weapon/cricket/casing";
+    }
+}
+class EmptyMagazineCricket : AssaultRifleMagazine {
+    default {
+        BrassBase.AngleSpeed 5;
+        scale 0.21;
+        BounceSound "weapons/pistolmagdrop";
+        BounceFactor 0.45;
+    }
+}
+
+class EmptyClipSMG : AssaultRifleMagazine
+{
+    default {
+        speed 9;
+        BrassBase.AngleSpeed 25;
+        scale 0.21;
+        BounceSound "weapons/pistolmagdrop";
+        BounceFactor 0.45;
+    }    
+}
+
+class EmptyMagazinePlasmaRifle : AssaultRifleMagazine
+{
+    default {
+        BrassBase.AngleSpeed 5;
+        scale 0.21;
+        BounceSound "PLASMAMAGAZINE/bounce";
+        BounceFactor 0.45;
+    }   
+}
+
+class AssaultRifleMagazine : BrassBase {
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+
+        int cvarParticleLifespan = casingHandler ? casingHandler.cvParticleLifespan : GetCVar("r_particleLifespan");
+        
+        switch(cvarParticleLifespan) {
+            case 1:
+            case 2:
+            case 3:
+                for(int x=0;x<=cvarParticleLifespan;x++) {
+                    effectLifespan*=4;
+                }
+                break;
+            case 4:
+                effectLifespan+=12000;
+                break;
+            case 5:
+                effectLifespan = -1;
+                break;
+        }   
+    }
+
+    default {
+        BrassBase.StartAngle 30;
+        BrassBase.StartPitch 0;
+        BrassBase.EndRollAngle 0;
+        BrassBase.EndRollSpeed 0;
+        BrassBase.AngleSpeed 40;
+        BrassBase.RollSpeed 0;
+        BrassBase.PitchSpeed 0;
+        -Brassbase.SpawnCasingSmoke;
+        scale 0.23;
+        speed 4;
+        BounceSound "weapons/largemagdrop";
+    }
+}
+
+class DMRMagazine : AssaultRifleMagazine
+{
+    default
+    {
+        BounceSound "DMR/MAGDROP";
+        speed 6;
+    }
+}
+
+class nail_drum_dropped : AssaultRifleMagazine {
+    default {
+        BrassBase.StartAngle 30;
+        BrassBase.StartRoll 5;
+        BrassBase.StartPitch 120;
+        BrassBase.EndRollAngle 0;
+        BrassBase.EndRollSpeed 0;
+        BrassBase.AngleSpeed 25;
+        BrassBase.RollSpeed 10;
+        BrassBase.PitchSpeed 10;
+        BounceFactor 0.45;
+        Speed 2;
+        Scale 0.3;
+        BounceSound "nailgun/bounce";
+    }
+}		
+
+// SPAWNERS
+// With the way how A_FireProjectile works, we have to make it move forward like this before spawning the actual effect
+class RifleCaseSpawn : actor {
+    default {
+        +NOINTERACTION
+        speed 14;
+    }
+    States {
+	    Spawn:
+            TNT1 A 0;
+		    TNT1 A 0 A_SpawnProjectile("AssaultRifleCasing",-10,-6,random(-84,-87),2,random(-30,-33));
+		    Stop;
+	}
+}
+
+class PlasmaSmokeSpawn : actor {
+    default {
+        +NOINTERACTION
+        speed 14;
+    }
+    States {
+	    Spawn:
+            TNT1 A 0;
+		    TNT1 A 0 A_SpawnProjectile("PlasmaSmoke",-10,-6,random(-130,-150),2,random(-30,-33));
+		    Stop;
+	}
+}
+
+
+class EmptyNailCaseSpawn : actor {
+    default
+    {
+        +NOINTERACTION;
+        speed 6;
+    }
+    States {
+        Spawn:
+            TNT1 A 2;
+            TNT1 A 0 A_SpawnProjectile("EmptyNailCase",-5,0,frandom(-84,-86),2,frandom(-30,-31));
+            Stop;
+	}
+}
+
+class RoaringCricketCaseSpawn : actor {
+    default
+    {
+        +missile
+        speed 15;
+    }
+	States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnProjectile("EmptyBrassCricket",-5,0,random(-84,-87),2,random(-30,-33));
+            Stop;
+	}
+}
+
+class JetpackCasingSpawn : RoaringCricketCaseSpawn
+{
+	States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnProjectile("EmptyBrassJetpack",-5,0,random(84,87),2,random(-30,-33));
+            Stop;
+	}
+}
+
+class DMRCASESPAWN : actor {
+    default
+    {
+        +missile
+        speed 17;
+    }
+	States {
+        Spawn:
+            TNT1 A 1;
+            TNT1 A 1 A_SpawnProjectile("EmptyBrassDMR",-5,0,random(-84,-87),2,random(-30,-33));
+            Stop;
+	}
+}
+
+class ShotCaseSpawn : actor {
+    default
+    {
+        +missile;
+        speed 12;
+    }
+	States {
+        Spawn:
+            TNT1 A 1;
+            TNT1 A 0 A_SpawnProjectile("ShotgunCasing",spawnheight:0,spawnofs_xy:0,angle:random(-50,-60),flags:2,pitch:random(-40,-60));
+            Stop;
+	}
+} 
+class ShotSlugCaseSpawn : actor {
+    default
+    {
+        +missile;
+        speed 12;
+    }
+	States {
+        Spawn:
+            TNT1 A 1;
+            TNT1 A 0 A_SpawnProjectile("ShotgunCasingSlug",spawnheight:0,spawnofs_xy:0,angle:random(-50,-60),flags:2,pitch:random(-40,-60));
+            Stop;
+	}
+} 
+class ShotCaseSpawnEnemy : actor {
+	States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnProjectile("ShotgunCasingEnemy",0,0,random(-80,-100),2,random(-40,-60));
+            Stop;
+        }
+} 
+
+class EmptyClipSpawn : SelacoActor {
+    default {
+        Speed 14;
+        PROJECTILE;
+        +NOCLIP;
+        +THRUACTORS;
+    }
+	  States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnProjectile("AssaultRifleMagazine",spawnheight:-9,spawnofs_xy:-18,angle:random(85,95),flags:2,-2);
+            Stop;
+	  }
+}
+
+class EmptyNailgunDrumSpawn : EmptyClipSpawn {
+	States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnProjectile("nail_drum_dropped",spawnheight:-5,spawnofs_xy:-20,angle:random(85,95),flags:2,pitch:10);
+            Stop;
+	}
+}
+
+class EmptyDMRMagazineSpawn : EmptyClipSpawn
+{
+    default
+    {
+        +NOINTERACTION;
+        +MISSILE
+        speed 18;
+    }
+ 	States {
+        Spawn:
+            TNT1 A 1;
+            TNT1 A 0 A_SpawnProjectile("DMRMagazine",spawnheight:-10,spawnofs_xy:0,angle:-6,flags:2,pitch:25);
+            Stop;
+	}   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Where's your Moral Barometer?

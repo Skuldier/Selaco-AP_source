@@ -1,0 +1,1103 @@
+class FlaredPickup : SelacoItem {
+    meta int lifeTime;
+    double flareDistance, iconDistance;
+    double flareOffset, iconOffset;
+    class<Actor> iconClass, flareClass;
+    int lifeCounter;
+	meta bool sleepInInventory;					// Sleeps once this item becomes an inventory item
+
+    Property FlareDistance : flareDistance;     // Distance from player that the flare should be visible
+    Property IconDistance : iconDistance;       // Distance from player that icon should replace the flare
+    Property FlareOffset : flareOffset;         // Vertical offset of spawned flare
+    Property IconOffset : iconOffset;           // ditto icon
+    Property IconClass : iconClass;
+    Property FlareClass : flareClass;
+    Property Lifetime : lifeTime;               // Amount of tics to live after spawning. Below 0 is infinite
+	Property pickupCount		: pickupCount;
+    Property SleepInInventory 	: sleepInInventory;
+	private int checkSeed;                      // Random time offset to prevent all items from checking on the same tick
+    private Actor flareActor, iconActor;
+    
+    int noSpawn;
+	string tagName;
+
+	const ICON_VERTICAL_HEIGHT_LIMIT = 28;		// Amount of extra space above actor required to show icon
+
+	default {
+        +DoomBounce;
+        speed 2;
+        Gravity 0.46;
+        +DONTGIB;
+        +FLOORCLIP;
+
+        FlaredPickup.FlareOffset 9;
+        FlaredPickup.IconOffset 15;
+        FlaredPickup.IconDistance 250;
+        FlaredPickup.FlareDistance 800;
+        FlaredPickup.Lifetime -1;
+		FlaredPickup.SleepInInventory true;
+    }
+
+    States {
+        PickupSuccess:	// Called as part of customInventory, not used in the real state chain
+            TNT1 A 1 {
+                invoker.cleanup();
+            }
+            stop;
+    }
+
+    override void postBeginPlay() {
+		Super.postBeginPlay();
+		
+        checkSeed = random[flareseed](0, 20);
+        noSpawn = false;
+        lifeCounter = lifetime;
+		sleepDist = flareDistance;
+    }
+
+    override void tick() {
+        Super.tick();
+
+        lifeCounter--;
+        if(lifeCounter == 0) {
+            // Our time is up, die.
+            cleanup();
+            die(self, self);
+            return;
+        }
+
+		// If we have become an inventory item, cleanup and sleep
+		if(owner) {
+			cleanup();
+			if(sleepInInventory) sleepIndefinite();
+			return;
+		}
+
+        // Periodically check distance from player
+        if(!noSpawn && ceilingZ >= pos.z + max(28, flareOffset + ICON_VERTICAL_HEIGHT_LIMIT)) {
+            bool iconNear = iconDistance != 0 && !CheckRange(iconDistance);
+            bool flareNear = flareDistance != 0 && !iconNear && !CheckRange(flareDistance);
+
+            // Kill actors if too far away
+            // Check icon distance
+            if(iconActor && (!iconNear || getCvar("g_itemicons") == 0)) {
+                iconActor.wake(); // in case it was sleeping
+                iconActor.die(self, self);
+                iconActor = null;
+            } else if(!iconActor && iconNear && getCvar("g_itemicons") > 0 && iconClass) {
+                bool success;
+                
+                [success, iconActor] = A_SpawnItemEx(iconClass, 0, 0, iconOffset, flags: SXF_SETMASTER);
+            }
+
+            // Check flare distance
+            if(flareActor && (!flareNear || getCvar("g_itemicons") == 0)) {
+                flareActor.wake(); // in case it was sleeping
+                flareActor.SetStateLabel("DistanceDeath");
+                flareActor = null;
+            } else if(!flareActor && flareNear && getCvar("g_itemicons") > 1 && flareClass) {
+                bool success;
+                
+                [success, flareActor] = A_SpawnItemEx(flareClass, 0, 0, flareOffset, flags: SXF_SETMASTER);
+            }
+        }
+
+		positionAttachments();
+    }
+
+	void positionAttachments() {
+		if(flareActor) { flareActor.vel = vel; flareActor.Warp(self, 0, 0, flareOffset, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION); }
+		if(iconActor) { iconActor.vel = vel; iconActor.Warp(self, 0, 0, iconOffset, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION); }
+	}
+
+	// Presumeably we won't be sleeping close to the player, so let's assume we are out of range
+	// of the player when sleeping. This means cleaning up the flare
+	// We also want to cancel out of sleep if our life counter is above zero, because we need to properly
+	// despawn when life is up
+	override void sleep(int tics) {
+		if(lifeCounter > 0) {
+			return;
+		}
+
+		cleanup(false, true);
+
+        Super.sleep(tics);
+    }
+
+	void checkCeilingHeight() {
+		if(ceilingZ < pos.z + max(28, flareOffset + ICON_VERTICAL_HEIGHT_LIMIT)) {
+			cleanup(false, false);
+		}
+	}
+
+    // It is not absolutely required to call Cleanup before death
+    // But it can avoid possible flickering of the flare or icon
+    void cleanup(bool stopSpawn = true, bool distance = false) {
+        if(flareActor) {
+            flareActor.wake();
+			flareActor.vel = vel;
+			if(distance) {
+				flareActor.SetStateLabel("DistanceDeath");
+			} else {
+				flareActor.die(self, self);
+			}
+            
+            flareActor = null;
+        }
+
+        if(iconActor) {
+			iconActor.wake();
+            iconActor.vel = vel;
+            iconActor.die(self, self);
+            iconActor = null;
+        }
+
+        noSpawn = stopSpawn;
+    }
+
+	override void onRandomizerSwapped(SelacoItem other) {
+        Super.onRandomizerSwapped(other);
+
+		checkCeilingHeight();
+		positionAttachments();
+    }
+}
+
+
+// Designed to replace AmmoIcon, it will stick to the object
+// that it targets until destroyed
+class PickupIcon : Actor {
+    //double zOffset;
+	mixin SleepDebugger;
+
+    default {
+		+INVISIBLEINMIRRORS;
+        +NOGRAVITY
+        +THRUACTORS
+        +NOINTERACTION
+		+NOBLOCKMAP
+        Health 15;
+        Scale 0.15;
+        Alpha 0;
+    }
+
+    /*override void PostBeginPlay() {
+        Super.PostBeginPlay();
+
+        // Assign offset here, these should be spawned with the offset we want from the master
+        //if(Master) {
+        //    zOffset = pos.z - Master.pos.z;
+        //}
+    }
+
+
+    override void Tick() {
+        Super.Tick();
+		
+		
+        //if(Master && Master.health > 0) {
+        //    // Follow master at the offset given at spawn
+        //    Warp(Master, 0, 0, zOffset, flags: WARPF_INTERPOLATE);
+        //} else {
+        //    Die(self, self);
+        //}
+    }*/
+}
+
+class DummyActor : SelacoACtor {
+	default {
+		+PRECACHEALWAYS;
+	}
+	states {
+		Precache:
+			PFLA H 0;
+			stop;
+	}
+}
+
+class PickupFlare : PickupIcon {
+    default {
+		+PRECACHEALWAYS;
+        RenderStyle "add";
+        Scale 0.5;
+		+FORCEXYBILLBOARD;
+    }
+
+	States {
+		Precache:
+			PFLA H 0;
+			stop;
+		Spawn:
+            TNT1 A 0;
+			PFLA HHHHHHHHHHHHH 1 BRIGHT A_FADEIN(0.08, FTF_CLAMP);
+        Lupe:
+            PFLA H 1 BRIGHT { sleepIndefinite(); }
+			loop;
+        Death:
+			PFLA HHHHH 1 BRIGHT {
+                A_FADEOUT(0.2);
+            }
+			stop;
+		DistanceDeath:
+			PFLA HHHHHHHHHHHHH 1 BRIGHT A_FADEOUT(0.08, FTF_CLAMP);
+			stop;
+	}
+}
+
+
+class Cricket_Flare : PickupFlare {
+	Default {
+	    //RenderStyle "AddShaded";
+		//StencilColor "E6 33 E6";
+		Translation "0:255=%[0,0,0]:[0.9,0.2,0.9]";
+    }
+}
+
+class Nailgun_Flare : PickupFlare {
+	Default {
+	    Translation "0:255=%[0,0,0]:[0.3, 0.7, 1.0]";
+    }
+}
+
+class Grenadeshell_Flare : PickupFlare {
+	Default {
+	    Translation "0:255=%[0,0,0]:[0.4, 1.0, 0.4]";
+    }
+}
+
+class Shotgun_Flare : PickupFlare {
+	Default {
+	    Translation "0:255=%[0,0,0]:[1.0,0.5,0.4]";
+    }
+}
+
+class Rifle_Flare : PickupFlare {
+	Default {
+	    Translation "0:255=%[0,0,0]:[0.9,0.8,0.2]";
+    }
+}
+
+class Throwable_Flare : PickupFlare {
+
+}
+
+class Health_Flare : PickupFlare {
+
+	Default {
+		+PRECACHEALWAYS
+	    Translation "0:255=%[0,0,0]:[1.0,0.2,0.2]";
+    }
+	States {
+		Precache:
+			PFLA H 0;
+			stop;
+	}
+}
+
+class Armor_Flare : PickupFlare {
+	Default {
+	    Translation "0:255=%[0,0,0]:[0.2,1.0,0.2]";
+    }
+}
+
+class Energy_Flare : PickupFlare {
+	Default {
+	    Translation "0:255=%[0,0,0]:[0.3,0.3,1.1]";
+    }
+}
+
+class Rounds_Flare : PickupFlare {
+	Default {
+	    Translation "0:255=%[0,0,0]:[0.9,0.7,0.1]";
+    }
+}
+
+class Shell_Flare : Rounds_Flare { }
+
+
+// Icons ============================
+// ==================================
+class Cricket_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZG AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZG A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZG AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class GrenadeLauncherFrag_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZY AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZY A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZY AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+class GrenadeLauncherIce_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZX AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZX A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZX AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+class GrenadeLauncherAcid_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZW AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZW A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZW AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class ARMOR_ICON : PickupICON {
+	States {
+		Spawn:
+			ZZZK AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZK A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZK AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class Rifle_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZA AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZA A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZA AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class SHOTGUNWEAPON_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZWP AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZWP A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZWP AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class RIFLEWEAPON_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZWP BBBBBB 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZWP B 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZWP BBBBBB 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+
+class Grenade_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZC AAAAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZC A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZC AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class IceGrenade_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZN CCCCCC 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZN C 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZN CCCC 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class PulseMine_Icon : PickupIcon {
+	States {
+		Spawn:
+			ZZZN DDDD 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZN D 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZN DDDD 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class NAILGUN_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZJ AAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZJ A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZJ AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class CABINET_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZA EEEE 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZA E 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZA EEEE 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+
+}
+
+class ENERGY_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZM AAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZM A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZM AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class RAILGUN_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZN AAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZN A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZN AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class DMR_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZN BBBB 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZN B 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZN BBBB 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+
+class SHELL_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZB AAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZB A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZB AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+
+
+class FLARE_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZA AAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZA A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZA AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class HEALTH_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZD AAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZD A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZD AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+}
+
+class EXTINGUISHER_ICON : PickupIcon {
+	States {
+		Spawn:
+			ZZZL AAAA 1 BRIGHT A_FADEIN(0.3);
+		Lupe:
+			ZZZL A 2 BRIGHT { sleepIndefinite(); }
+			loop;
+		Death:
+			ZZZL AAAA 1 BRIGHT A_FADEOUT(0.3);
+			stop;
+	}
+
+}
+
+
+// AMMO CLASSES ============================
+// ==================================
+
+class AmmoPickup : FlaredPickup {
+	override void postBeginPlay()
+	{
+		super.postbeginPlay();
+		useIcon = TexMan.CheckForTexture("XH_AMMO");
+	}
+
+	default {
+		+SelacoItem.KeepReserve;		// Keep leftover ammo if the player is full
+		+FLOORCLIP;
+		radius 15;
+		height 25;
+		scale 0.8;	
+		speed 1;
+		friction 0.85;
+		gravity 0.46;
+	}
+
+	states {
+		Spawn:
+			VOXE L -1;
+			loop;
+	}
+}
+
+// Some different rules apply to Ammo Shards
+class AmmoPickupShard : AmmoPickup {
+	default {
+		+SelacoItem.AlwaysAllowTouchMode
+		scale 1.0;
+		radius 25;
+		Inventory.PickupSound "item/clipz";
+		FlaredPickup.Lifetime -1;
+		FlaredPickup.FlareOffset 7;
+		FlaredPickup.IconDistance 0;
+		FlaredPickup.IconClass "";
+		speed 5;
+	}
+}
+
+class AmmoCricketBase : AmmoPickup
+{
+	default {
+		SelacoItem.RandomizerSpawnChance 10;
+		Inventory.PickupSound "pickup/roaringammo";
+		FlaredPickup.FlareClass "Cricket_Flare";
+		FlaredPickup.IconClass "Cricket_Icon";
+		SelacoItem.StatNumber STAT_CRICKET_AMMO;
+		SelacoItem.pickupType "PistolReserve";
+		SelacoItem.pickupIcon "P_ROAR";
+		SelacoItem.pickupTag "$PICKUPTAG_MAGNUM";
+		tag "$PICKUP_MAGNUMAMMO";
+	}
+}
+
+class AmmoCricketMedium : AmmoCricketBase
+{
+	default {
+		SelacoItem.pickupCount 12;
+	}
+}
+
+
+class AmmoCricketLarge : AmmoCricketBase
+{
+	default {
+		SelacoItem.RandomizerSpawnChance 3;
+		SelacoItem.pickupCount 24;
+	}
+}
+
+class AmmoCricketTiny : AmmoPickupShard
+{
+	default {
+		tag "$PICKUP_MAGNUMAMMO";
+		SelacoItem.pickupCount 1;
+		FlaredPickup.FlareClass "Cricket_Flare";
+		SelacoItem.StatNumber STAT_CRICKET_AMMO;
+		SelacoItem.pickupType "PistolReserve";
+		SelacoItem.pickupIcon "P_ROAR";
+		SelacoItem.pickupTag "$PICKUPTAG_MAGNUM";
+	}
+}
+
+class AmmoMachinegunBase : AmmoPickup
+{
+	default
+	{
+		tag "$PICKUP_ASSAULTRIFLEAMMO";
+		Inventory.PickupSound "item/rifammo";
+		FlaredPickup.FlareClass "Rifle_Flare";
+		FlaredPickup.IconClass "Rifle_Icon";
+		SelacoItem.pickupIcon "P_SROUND";
+		SelacoItem.pickupType "RifleReserve";
+		SelacoItem.pickupTag "$PICKUPTAG_ROUNDS";
+		SelacoItem.StatNumber STAT_MACHINEGUN_AMMO;
+		FlaredPickup.FlareOffset 5;
+		FlaredPickup.IconOffset 14;
+	}
+}
+
+class AmmoMachinegunTiny : AmmoPickupShard 
+{
+	default 
+	{
+		tag "$PICKUP_ASSAULTRIFLEAMMO";
+		SelacoItem.pickupCount 1;
+		Inventory.PickupSound "item/clipz";
+		FlaredPickup.FlareClass "Rounds_Flare";
+		SelacoItem.StatNumber STAT_MACHINEGUN_AMMO;
+		SelacoItem.pickupType "RifleReserve";
+		SelacoItem.pickupIcon "P_SROUND";
+		SelacoItem.pickupTag "$PICKUPTAG_ROUNDS";
+	}
+}
+
+class AmmoMachinegunMedium : AmmoMachinegunBase {
+	default {
+		SelacoItem.RandomizerSpawnChance 40;
+		SelacoItem.pickupCount 30;
+	}
+}
+
+
+class AmmoMachinegunLarge : AmmoMachinegunBase {
+	default {
+		SelacoItem.RandomizerSpawnChance 20;
+		SelacoItem.pickupCount 50;
+	}
+}
+
+
+class AmmoMachinegunDropped : AmmoMachinegunBase
+{
+	default {
+		Inventory.PickupSound "ITEM/RIFAMMO/SMALL";
+		FlaredPickup.IconDistance 0;
+		SelacoItem.pickupCount 10;
+	}
+}
+
+class AmmoShotgunBase : AmmoPickup
+{
+	default {
+		tag "$PICKUP_SHOTGUNAMMO";
+		Inventory.pickupSound "item/shotz";
+		FlaredPickup.IconClass "Shell_Icon";
+		FlaredPickup.FlareClass "shotgun_flare";
+		FlaredPickup.IconOffset 13;
+		SelacoItem.StatNumber STAT_SHOTGUN_AMMO;
+		SelacoItem.pickupType "ShotgunReserve";
+		SelacoItem.pickupIcon "P_SHOT";
+		SelacoItem.pickupTag "$PICKUPTAG_SHELLS";
+		SelacoItem.RandomizerSpawnChance 0;
+
+	}	
+}
+
+class AmmoShotgunSmall : AmmoShotgunBase {
+	default{ 
+		Inventory.pickupSound "misc/shell_pickupsmall";
+		SelacoItem.RandomizerSpawnChance 25;
+		SelacoItem.pickupCount 2;
+	}
+}
+
+class AmmoShotgunMedium : AmmoShotgunBase {
+	default
+	{
+		SelacoItem.pickupCount 4;
+		SelacoItem.RandomizerSpawnChance 15;
+	}
+}
+
+class AmmoShotgunLarge : AmmoShotgunBase {
+	default {
+		Inventory.PickupSound "misc/shellbox_PickUp";
+		SelacoItem.pickupCount 12;
+		FlaredPickup.FlareOffset 8;
+		FlaredPickup.IconOffset 19;
+		SelacoItem.RandomizerSpawnChance 2;
+	}
+}
+
+class AmmoShotgunSmall_Dropped : AmmoShotgunSmall
+{
+	default {
+		FlaredPickup.FlareClass "shotgun_flare";
+		FlaredPickup.IconDistance 0;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			// Dont show up if the player doesn't have a shotgun
+			TNT1 A 0 {
+				if(!ACS_NamedExecuteWithResult("hasShotgun")) {
+					setStateLabel("Death");
+				}
+			}
+			VOXE L -1;
+			loop;
+	}
+}
+
+class AmmoShotgunTiny : AmmoPickupShard {
+	default {
+		tag "$PICKUP_SHOTGUNAMMO";
+		SelacoItem.StatNumber STAT_SHOTGUN_AMMO;
+		FlaredPickup.FlareClass "Shell_Flare";
+		FlaredPickup.FlareOffset 0;
+		SelacoItem.pickupCount 1;
+		SelacoItem.pickupType "ShotgunReserve";
+		SelacoItem.pickupIcon "P_SHOT";
+		SelacoItem.pickupTag "$PICKUPTAG_SHELLS";
+	}
+}
+
+class RESUPPLYKIT : Interactable {
+
+	override void deactivate(actor deactivator) {
+		activate(deactivator);
+	}
+
+	override void Activate(actor activator) {
+		super.Activate(activator);
+		activator.giveInventory("RifleReserve", 250);
+		a_playsound("GAR/USE", CHAN_AUTO, 0.7);
+	}
+
+	default {
+		+USESPECIAL
+		Activation THINGSPEC_SWITCH;
+		tag "$WEAPON_ASSAULTRIFLE";
+		SelacoActor.UseTag "$INTERACT_RESUPPLY";
+	}
+	states {
+		Inactive:
+		Active:
+		Spawn:
+			VOXE L -1;
+			loop;
+	}
+}
+
+class AmmoNailgunBase : AmmoPickup
+{
+
+	virtual void checkAmmoUpgrade(Actor toucher) { }
+
+	default {
+		Inventory.PickupSound "NAILGUN/AMMO";
+		tag "$PICKUP_NAILGUN";
+		SelacoItem.RandomizerSpawnChance 0;
+		FlaredPickup.FlareClass "nailgun_flare";
+		FlaredPickup.FlareOffset 9;
+		FlaredPickup.IconClass "NAILGUN_ICON";
+		FlaredPickup.IconOffset 15;
+		SelacoItem.StatNumber STAT_NAILGUN_AMMO;
+		SelacoItem.pickupIcon "p_nails";
+		SelacoItem.pickupType "NailgunReserve";
+		SelacoItem.pickupTag "$PICKUP_NAILGUN";
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		checkAmmoUpgrade(toucher);
+
+		Super.DoPickupSpecial(toucher);
+	}
+}
+
+
+class AmmoNailgunSmall : AmmoNailgunBase 
+{
+	override void checkAmmoUpgrade(Actor toucher)
+	{
+		let d = Dawn(toucher);
+		if(d && d.hasWeaponUpgrade('UpgradeNailgunExpandedAmmo') == 1) {  
+			pickupCount +=1;
+		}
+	}
+
+	default 
+	{
+		SelacoItem.RandomizerSpawnChance 17;
+		SelacoItem.pickupCount 10;
+		FlaredPickup.FlareClass "nailgun_flare";
+		FlaredPickup.FlareOffset 4;
+		FlaredPickup.Lifetime 500;
+
+		SelacoItem.pickupIcon "p_nails";
+		SelacoItem.pickupTag "$PICKUPTAG_NAILS";
+	}
+}
+
+class AmmoNailgunMedium : AmmoNailgunBase 
+{
+	override void checkAmmoUpgrade(Actor toucher)
+	{
+		let d = Dawn(toucher);
+		if(d && d.hasWeaponUpgrade('UpgradeNailgunExpandedAmmo') == 1) {  
+			pickupCount += 10;
+		}
+	}
+
+	default
+	{
+		SelacoItem.RandomizerSpawnChance 15;
+		SelacoItem.pickupCount 40;
+	}
+}
+
+
+class AmmoNailgun_dropped : AmmoNailgunBase {
+	Default {
+		FlaredPickup.IconDistance 0;
+		SelacoItem.pickupCount 10;
+	}
+}
+
+
+class AmmoSniperMedium : AmmoPickup {
+	default {
+		SelacoItem.RandomizerSpawnChance 5;
+		SelacoItem.StatNumber STAT_DMR_AMMO;
+		SelacoItem.pickupIcon "P_DMR";
+		SelacoItem.pickupTag "$PICKUPTAG_DMRAMMO";
+		SelacoItem.pickupType "MarksmanRifleReserve";
+		Inventory.PickupSound "DMR/AMMOPICKUP";
+		tag "$PICKUP_MARKSMAN";
+		FlaredPickup.FlareClass "Cricket_Flare";
+		FlaredPickup.IconClass "DMR_ICON";
+		FlaredPickup.IconOffset 15;
+		SelacoItem.pickupCount 10;
+	}
+}
+
+class GrenadeLauncherPickup : AmmoPickup
+{
+	int amountGiven;
+
+	void checkAmmoUpgrade(Actor toucher)
+	{
+		let d = Dawn(toucher);
+
+		// Player uses Scavenger, add 1 more except for Acid.
+		if(d && d.hasWeaponUpgrade('UpgradeGrenadeLauncherScavenger') == 1 && pickupType != "GLAcidReserve") 
+		{
+			pickupCount++;
+		}
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		checkAmmoUpgrade(toucher);
+
+		Super.DoPickupSpecial(toucher);
+	}
+}
+
+
+class AmmoGrenadeLauncherFrag : GrenadeLauncherPickup {
+	default {
+		Inventory.PickupSound "item/grenadelauncherammo";
+		FlaredPickup.IconClass "GrenadeLauncherFrag_Icon";
+		FlaredPickup.FlareClass "Shell_Flare";
+
+		SelacoItem.RandomizerSpawnChance 5;
+		tag "$PICKUP_GRENADELAUNCHER_FRAG_1";
+		SelacoItem.StatNumber STAT_GRENADESHELL_AMMO;
+		SelacoItem.pickupIcon "P_GRENA4";
+		SelacoItem.pickupTag "$PICKUPTAG_FRAGSHELL";
+		SelacoItem.pickupType "GLFragReserve";
+		SelacoItem.pickupCount 1;
+
+	}
+}
+
+class AmmoGrenadeLauncherIce : AmmoGrenadeLauncherFrag {
+	default {
+		Inventory.PickupSound "item/grenadelauncherammoice";
+		FlaredPickup.IconClass "GrenadeLauncherIce_Icon";
+		tag "$PICKUP_GRENADELAUNCHER_ICE_1";
+
+		SelacoItem.RandomizerSpawnChance 2.5;
+		SelacoItem.pickupIcon "P_GRENA2";
+		SelacoItem.pickupTag "$PICKUPTAG_ICESHELL";
+		SelacoItem.pickupType "GLIceReserve";
+		SelacoItem.pickupCount 1;
+
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		Super.DoPickupSpecial(toucher);
+
+		if(toucher is "Dawn" && toucher.countinv("UnlockedIceGrenades") == 0 && toucher.countinv("UnlockedAcidGrenades") == 0) {
+			TutorialHandler.TutorialMessage("TUT_GRENADETYPES", 1);
+		}
+
+		toucher.A_GiveInventory("UnlockedIceGrenades", 1);
+	}
+}
+
+class AmmoGrenadeLauncherAcid : AmmoGrenadeLauncherFrag {
+	default {
+		SelacoItem.randomizerSpawnChance 1;
+		Inventory.PickupSound "item/grenadelauncherammoacid";
+		FlaredPickup.IconClass "GrenadeLauncherAcid_Icon";
+		tag "$PICKUP_GRENADELAUNCHER_ACID_1";
+
+		SelacoItem.pickupIcon "P_GRENA3";
+		SelacoItem.pickupTag "$PICKUPTAG_ACIDSHELL";
+		SelacoItem.pickupType "GLAcidReserve";
+		SelacoItem.pickupCount 1;
+
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		Super.DoPickupSpecial(toucher);
+
+		if(toucher is "Dawn" && toucher.countinv("UnlockedIceGrenades") == 0 && toucher.countinv("UnlockedAcidGrenades") == 0) {
+			TutorialHandler.TutorialMessage("TUT_GRENADETYPES", 1);
+		}
+
+		toucher.A_GiveInventory("UnlockedAcidGrenades", 1);
+	}
+}
+
+class AmmoRailgunBase : AmmoPickup
+{
+	default 
+	{
+		Inventory.PickupSound "RAILGUN/AMMO";
+		tag "$PICKUP_RAILGUN";
+		FlaredPickup.FlareClass "energy_flare";
+		FlaredPickup.FlareOffset 10;
+		FlaredPickup.IconClass "RAILGUN_ICON";
+		FlaredPickup.IconOffset 15;
+		SelacoItem.StatNumber STAT_RAILGUN_AMMO;
+		SelacoItem.pickupIcon "P_RAIL";
+		SelacoItem.pickupTag "$PICKUPTAG_SLUGS";
+		SelacoItem.pickupType "RailgunAmmo";
+
+	}
+}
+
+class AmmoRailgunMedium : AmmoRailgunBase
+{
+	default 
+	{
+		SelacoItem.RandomizerSpawnChance 1;
+		SelacoItem.pickupCount 3;
+	}
+}
+
+class AmmoRailgunSmall : AmmoRailgunBase
+{
+	default 
+	{
+		SelacoItem.RandomizerSpawnChance 4;
+		SelacoItem.pickupCount 1;
+	}
+}
+
+class AmmoEnergyBase : AmmoPickup
+{
+	virtual void checkAmmoUpgrade(Actor toucher)
+	{
+		let d = Dawn(toucher);
+
+		if(d && d.hasWeaponUpgrade('UpgradePlasmaRifleOvercapacity') == 1) 
+		{  
+			pickupCount += 5;
+		}
+	}
+
+	default {
+		Inventory.PickupSound "PLASMARIFLE/PLASMAPICKUP_SMALL";
+		tag "$PICKUP_PLASMAAMMO";
+		FlaredPickup.FlareClass "energy_flare";
+		FlaredPickup.FlareOffset 10;
+		FlaredPickup.IconClass "ENERGY_ICON";
+		FlaredPickup.IconOffset 20;
+
+		SelacoItem.StatNumber STAT_PLASMA_AMMO;
+		SelacoItem.pickupIcon "P_PLASMA";
+		SelacoItem.pickupTag "$PICKUPTAG_PLASMAAMMO";
+		SelacoItem.pickupType "PlasmaReserve";
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		checkAmmoUpgrade(toucher);
+
+		Super.DoPickupSpecial(toucher);
+	}
+}
+
+class AmmoEnergySmall : AmmoEnergyBase
+{
+	default {
+		SelacoItem.RandomizerSpawnChance 10;
+		SelacoItem.pickupCount 35;
+	}
+}
+
+
+class AmmoEnergyLarge : AmmoEnergyBase
+{
+	default 
+	{
+		SelacoItem.RandomizerSpawnChance 5;
+		Inventory.PickupSound "PLASMARIFLE/PLASMAPICKUP_LARGE";
+		FlaredPickup.FlareClass "energy_flare";
+		FlaredPickup.FlareOffset 14;
+		FlaredPickup.IconOffset 20;
+		SelacoItem.pickupCount 70;
+	}
+}

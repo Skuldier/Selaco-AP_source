@@ -1,0 +1,1133 @@
+
+
+class UpgradeDMRZoom : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeCost 	200;
+		WeaponUpgrade.TechModuleRequirement 	2;
+		WeaponUpgrade.UpgradeImage			"UPGRD25";
+		WeaponUpgrade.Weapon 				'DMR';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_IMPROVEDMAGNIFICATION", "$UPGRADE_IMPROVEDMAGNIFICATION";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_IMPROVEDMAGNIFICATION_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	860, 65;
+		WeaponUpgrade.UpgradePosition			1000, -30;
+	}	
+}
+
+class UpgradeDMRSpread : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeCost 	350;
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeImage			"UPGRD5";
+		WeaponUpgrade.SpreadMod 			-0.05;
+		WeaponUpgrade.Weapon 				'DMR';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_DMR_SPREAD", "$UPGRADE_DMR_SPREAD";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_DMR_SPREAD_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	220, 140;
+		WeaponUpgrade.UpgradePosition			305, 18;
+	}	
+}
+
+class UpgradeDMRSilencer : WeaponUpgrade {
+	
+	override void onEnabled()
+	{
+		super.onEnabled();
+		let weapon = getWeapon('dmr', playerNumber());
+		if(weapon) weapon.isSilenced = true;
+	}
+
+	override void onDisabled()
+	{
+		super.onDisabled();
+		let weapon = getWeapon('DMR', playerNumber());
+		if(weapon) weapon.isSilenced = false;
+	}
+
+	default {
+		WeaponUpgrade.SpreadMod 			-0.12;
+		WeaponUpgrade.UpgradeCost 			150;
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeImage			"UPGRD24";
+		WeaponUpgrade.damageMod				-25;
+		WeaponUpgrade.Weapon 				'DMR';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SILENCER", "$UPGRADE_SILENCER";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SILENCER_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	150, 140;
+		WeaponUpgrade.UpgradePosition			150, -30;
+	}	
+}
+
+
+class UpgradeDMRExtendedMagazine : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	1;
+		WeaponUpgrade.UpgradeImage 			'UPGRD4';
+		WeaponUpgrade.Weapon 				'DMR';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_EXTENDED_MAG", "$UPGRADE_EXTENDED_MAG_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_EXTENDED_DMR_CRICKET_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	915, 360;
+		WeaponUpgrade.UpgradePosition			835, 475;
+		WeaponUpgrade.MagazineSizeMod 			4;
+	}	
+}
+
+
+class UpgradeDMRBipod : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage			"UPGRD37";
+		WeaponUpgrade.Weapon 				'DMR';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_DMR_BIPOD", "$UPGRADE_DMR_BIPOD";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_DMR_BIPOD_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	285, 290;
+		WeaponUpgrade.UpgradePosition			355, 410;
+	}	
+}
+
+class UpgradeDMRHeadshot : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradeImage			"UPGRD2";
+		WeaponUpgrade.headshotMultiplierMod 0.25;
+		WeaponUpgrade.damageMod 10;
+		WeaponUpgrade.Weapon 				'DMR';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_CRICKET_HEADSHOT", "$UPGRADE_CRICKET_HEADSHOT";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_DMR_HEADSHOT_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	510, 90;
+		WeaponUpgrade.UpgradePosition			585, -55;
+	}	
+}
+
+class UpgradeDMRHairTrigger : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.FireRateMod			-3;
+		WeaponUpgrade.UpgradeCost 	350;
+		WeaponUpgrade.UpgradeImage 			'UPGRD23';
+		WeaponUpgrade.Weapon 				'DMR';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_CRICKET_HAIRTRIGGER", "$UPGRADE_CRICKET_HAIRTRIGGER";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_DMR_HAIRTRIGGER_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	720, 275;
+		WeaponUpgrade.UpgradePosition			625, 425;
+	}	
+}
+
+
+
+class AltfireDMRZoomTraditional : WeaponAltFire {
+	default {
+		WeaponAltFire.WorkshopOrder			-1;		// Zoom should always be first
+		WeaponUpgrade.Weapon 'DMR';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_ZOOM", "$ALTFIRE_ZOOM";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_ZOOM_TRADITIONAL_NAME_DESC";
+	}
+}
+
+class AltfireDMRZoomCharger : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'DMR';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_ZOOM_CHARGESHOT_NAME", "$ALTFIRE_ZOOM_CHARGESHOT_NAME";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_ZOOM_CHARGESHOT_DESC";
+	}
+}
+
+
+class AltfireDMRZoomConcussive : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'DMR';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_ZOOM_CONCUSSIVESHOT_NAME", "$ALTFIRE_ZOOM_CONCUSSIVESHOT_NAME";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_ZOOM_CONCUSSIVESHOT_DESC";
+	}
+}
+
+class DMR : SelacoWeapon
+{
+	bool checkBipod()
+	{
+		bool foundFloor = checkFloorLinetrace();
+		if (hasUpgradeClass("UpgradeDMRBipod") && foundFloor && owner.vel.length() == 0)
+		{
+			if(!bipodMode)
+			{
+				if(!checkIfZooming())
+				{
+					SetWeaponState("TransitionToBipod");
+				}
+				A_PLAYSOUND("BIPOD/ON", CHAN_AUTO, 0.3);
+				bipodTime = level.time;
+			}
+			bipodMode = true;
+			adjustedSpread = 0;
+			return true;
+		}
+
+		// play Bipod Off sound
+		if(!foundFloor && bipodMode)
+		{
+			if(!checkIfZooming())
+			{
+				SetWeaponState("TransitionAwayFromBipod");
+			}
+			A_PLAYSOUND("BIPOD/OFF", CHAN_AUTO, 0.3);
+			bipodMode = false;
+			bipodTime = level.time;
+		}
+		return false;
+	}
+
+	override void tick()
+	{
+		super.tick();
+
+		if(Dawn(players[consolePlayer].mo).playerHasWeaponReady() && players[consolePlayer].mo && players[consolePlayer].mo.player.readyWeapon is "DMR")
+		{
+			checkBipod();
+		}
+		if(abs(level.time - bipodTime) > 1)
+		{
+			if(bipodMode)
+			{
+				bipodTransitioned = true;
+			}
+			else
+			{
+				bipodTransitioned = false;
+			}
+		}
+	}
+
+	bool checkFloorLinetrace()
+	{
+		if(!owner)
+		{
+			return false;
+		}
+		// Check if there's a low floor in front of the player
+		FLineTraceData RemoteRay;
+		for(int x=-10;x<=15;x+=2)
+		{
+			owner.LineTrace(owner.angle,46, 45, 0, owner.height+10,offsetforward:x, data: RemoteRay);		
+			if(RemoteRay.HitType)
+			{
+				bool isFloor = RemoteRay.HitType == TRACE_HitFloor;
+				bool isWaistHighActor = (RemoteRay.HitActor && RemoteRay.HitActor.bSolid && Remoteray.HitActor.radius >= 5 && Remoteray.HitActor.height <=15 && !RemoteRay.hitActor.bIsMonster);
+				bool isPickedup = !(RemoteRay.HitActor is "PickupableDecoration" && PickupableDecoration(RemoteRay.HitActor).isPickedup());
+				return isFloor || isWaistHighActor || isPickedup;
+			}
+		}
+		return false;
+	}
+
+	int chargeTime;
+	int recoilX, recoilY;
+	const zoomRange = 2.1;
+
+	int damageMultiplyerTimer;
+	int muzzleFlashFrame;
+	string weaponEffectsTrail;
+	bool ejectTheMagazine;
+	bool magnifiedZoom;
+	bool bipodTransitioned;
+	float muzzleFlashScale;
+	int flashID;
+	int loaded;
+	int bipodTime; // level.time when the bipod got added.
+	float screenSpread;
+	int shotsPerBurst;
+	int shotsFired;
+
+	bool magRemoved;
+	const CHARGE_ZOOM_THRESHOLD = 45;
+	// ALT FIRES:
+	// 0 == MAIN
+	// 1 == BURST FIRE
+	default {
+	//$Category Weapons/custom
+		WeaponBase.AmmoGive1 4;
+		WeaponBase.AmmoGive2 12;
+		WeaponBase.AmmoType1 "MarksmanRifleReserve";
+		WeaponBase.AmmoType2 "MarksmanAmmo";
+		WeaponBase.SelectionOrder 120;
+		WeaponBase.SlotNumber 9;
+		SelacoWeapon.DryFireSound "DMR/DRYFIRE";
+		+SelacoWeapon.IgnoreRateOfFireBehavior
+		SelacoWeapon.weaponSpread 0.4;
+		SelacoWeapon.magazineSize 12;
+		SelacoWeapon.weaponSpreadReductionSpeed 0.85;		// Per tick
+		SelacoWeapon.weaponSpreadIncreasePerShot 415;	// Spread*Increase Per shot
+		SelacoWeapon.weaponSpreadMaximum 7.8;
+		SelacoWeapon.weaponRecoil 1.6;
+		SelacoWeapon.weaponFireRate 22;
+		SelacoWeapon.WeaponDamage  105;
+		SelacoWeapon.ReadySound "DMR/EQUIP";
+		SelacoWeapon.deselectSound "DMR/UNEQUIP";
+		SelacoWeapon.SlidingSprite "DMRZ";
+		SelacoWeapon.interactionSprite "DMRB";
+		SelacoWeapon.lowAmmoThreshold 3;
+		SelacoWeapon.weaponStatistic	STAT_MARKSMANRIFLE;
+		SelacoWeapon.ImagePrefix "dmr";
+		SelacoWeapon.voxelDecorationModel "DMRModel";
+		SelacoWeapon.AmmoColor "5B 53 A9";
+		SelacoWeapon.BulletDamageToGlass 125;
+		SelacoWeapon.BulletForceToGlass 25;
+		Inventory.Icon "WPNDMR";
+		+FLOORCLIP;
+		+FLOAT;
+		+NOGRAVITY;
+		+RollSprite;
+		+DONTGIB;
+		Obituary "%o was shot down by %k's DMR.";
+		AttackSound "None";
+		Scale 0.25;
+		Tag "$WEAPON_MARKSMANRIFLE";
+	}
+	States
+	{
+
+	Precache:
+		DMRB ABCDEF 0; // Interaction
+		DMRS ABCDEF 0; // Selection
+		DMRF A 0;
+		DMR5 A 0;
+		DMRI ABCDEFGHIJKLMNOP 0; 	// Breathing;
+		DMRW ABCDE 0;
+		DMR1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		DMR2 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		DMR3 ABCDEFGHI 0;
+		stop;
+	Flashlight:
+		OFLA A 1 BRIGHT;
+		stop;
+
+	Equip:
+		TNT1 A 2;
+		TNT1 A 0 {
+			invoker.checkLowAmmo();
+		}
+		DMRZ ABC 0;
+
+		TNT1 A 0 A_SETTICS(invoker.WEAPON_SWAP_SPEED);
+		TNT1 A 0 A_EquipNewWeapon();
+		TNT1 A 0 A_SetCrosshair(86);
+		DMRS ABCDEFGHIJK 1 {
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		//RIF5 ABCDEFGHHHHHHHHIJKLMNO 2;
+        //TNT1 A 0 A_SetCrosshair(0);
+	Ready3:
+		DMRI A 1;
+	ReallyReady:
+		TNT1 A 0; 
+		TNT1 A 0 A_TakeInventory("CancelAnimation", 1);
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		TNT1 A 0 A_JumpIfInventory("PushButtonNow", 1, "PushButton");
+		TNT1 A 0;
+		TNT1 A 0 A_SetCrosshair(86);
+		TNT1 A 0 {
+			if(checkIfZooming()) {
+				SetWeaponState("Ready_ZOOM");
+			}
+		}
+		goto Ready_NOZOOM;
+
+	TransitionToBipod:
+		DMR4 ABCDEF 2;
+		goto Ready_Bipod;
+
+	TransitionAwayFromBipod:
+		DMR4 FEDCBA 2;
+		goto Ready_NOZOOM;
+
+	// A lot of duplicate stuff here, can improve.
+	Ready_Bipod:
+		DMR4 G 1
+		{
+			A_ZOOMFACTOR(1.02);
+			A_SetCrosshair(86);
+			invoker.chargeTime = 0;
+			CheckPlayerStates();
+			invoker.screenSpread = 0.38;
+			S_WeaponReady(WRF_ALLOWRELOAD);
+			S_WeaponOffset();
+		}
+		goto ReallyReady;
+
+	Ready_NOZOOM:
+		TNT1 A 0
+		{
+			if(invoker.bipodMode && !invoker.bipodTransitioned)
+			{
+				SetWeaponState("TransitionToBipod");
+			}
+			if(invoker.bipodMode && invoker.bipodTransitioned)
+			{
+				SetWeaponState("Ready_Bipod");
+			}
+			if(!invoker.bipodMode && invoker.bipodTransitioned)
+			{
+				SetWeaponState("TransitionAwayFromBipod");
+			}
+		}
+		DMRI A 1
+			{
+				A_SetCrosshair(86);
+				invoker.chargeTime = 0;
+				CheckPlayerStates();
+				invoker.screenSpread = 0.38;
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+				breathWobble("DMRI", 20);
+				A_EnableWeaponShift();
+			}
+		Loop;
+
+    Ready_ZOOM:
+		TNT1 A 0 {
+			A_EnableWeaponShift(false);
+		}
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		TNT1 A 0 A_JumpIfInventory("PushButtonNow", 1, "PushButton");
+		TNT1 A 1
+			{
+				// Check charge time stuff if the player has AltfireDMRZoomCharger
+				if(invoker.hasUpgradeClass("AltfireDMRZoomCharger"))
+				{
+					
+					// Increment until max is reached
+					if(invoker.chargeTime < CHARGE_ZOOM_THRESHOLD)
+					{
+						invoker.chargeTime++;
+
+					// Charged. Notify player
+					}
+
+					// Play charge sound and vibrate the gamepad to notify the player
+					if(invoker.chargeTime == CHARGE_ZOOM_THRESHOLD-1)
+					{
+						// BRRRRRR
+						A_QUAKEEX(1, 1, 1, 5,0, 290, 0, 0, 1, 0, 0, 0, 0, 0); 
+
+						// BZZZZZZZ
+						InputHandler.Instance().AddWorldFeedback2(
+							(frandom(0.01,0.5), frandom(0.01,0.5)),
+							(frandom(0.01,0.5), frandom(0.01,0.5)),
+							(frandom(0.01,0.5), frandom(0.01,0.5)),
+							(frandom(0.01,0.5), frandom(0.01,0.5))
+						);
+						
+						// Bleep!
+						A_PLAYSOUND("DMR/CHARGED", CHAN_AUTO);
+					}
+				}
+
+				// Generic ready looping stuff
+				if(invoker.hasUpgradeClass("UpgradeDMRZoom"))
+				{
+					A_ZOOMFACTOR(zoomRange);
+				}
+				else
+				{
+					A_ZOOMFACTOR(zoomRange*2.7);
+				}
+				A_SetCrosshair(16);
+				if(invoker.magnifiedZoom)
+				{
+					A_SetCrosshair(25);
+					A_ZOOMFACTOR(zoomRange*2.7);
+				}
+				if (CheckInventory("MeleeButton", 1)) 
+				{
+					// Zoom further if you have the Upgraded DMR Zoom
+					if(checkifZooming() && invoker.hasUpgradeClass("UpgradeDMRZoom"))
+					{
+						if(CheckInventory("MeleeButton", 1))
+						{
+							A_PLAYSOUND("DMR/EXTENDEDZOOM", CHAN_AUTO, 0.5);
+							invoker.magnifiedZoom = !invoker.magnifiedZoom;
+							return;
+						}
+					}
+					else
+					{
+						A_STOPSOUND(CHAN_WEAPON);
+						SetWeaponState("MeleeAttack");
+						A_ZoomFactor(1.0);
+					}
+				}
+				CheckUnZoom();
+				S_WeaponOffset();
+				CheckPlayerStates(1);
+				S_WeaponReady();
+			}
+		goto ReallyReady;
+
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+		DMRW AABBCCDDDEE 1  {
+				A_SetPitch(pitch + 0.6);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		DMRW F 6  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		DMRW EEDDCCBBAA 1  {
+				A_SetPitch(pitch - 0.6);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+	MoveGunDown:
+		RIF6 ABCD 2  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		RIF6 E 25  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		RIF6 DCBA 2  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+
+	ReadyADS:
+	Unequip:
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+        TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_SetSpeed(0.3);
+	    TNT1 A 0 A_PlaySound("weapons/changing", 1);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		TNT1 A 0 {
+			A_STOPSOUND(CHAN_WEAPON );
+			setZoomStatus(false);
+			invoker.isFiring = 0;
+			invoker.bipodMode = false;
+			invoker.bipodTransitioned = false;
+			invoker.bipodTime = 0;
+		}
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		TNT1 A 0 A_PlaySound("dawn/deselect", CHAN_AUTO);
+		TNT1 A 0 A_UNEQUIPWEAPON();
+		DMRS KJIHGFEDCBA 1 {
+			S_WeaponOffset();
+		}
+		TNT1 A 1;
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+		TNT1 A 1;
+		Wait;
+
+	Select:
+		TNT1 A 0;
+		TNT1 A 0 A_SetSpeed(1);
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Raise();
+		TNT1 AAAAAAAA 1 A_Raise();
+		//RIFH ABCDEFGHIJKLLLMN 2;
+		goto ReallyReady;
+
+	// With the DMR, it kicks instead!
+	MeleeAttackExecute:
+		TNT1 A 0
+		{
+			meleeAndLunge();
+			getClosestMeleeTarget();
+			let d = Dawn(player.mo);
+			if(invoker.meleeSpritev2)
+			{
+				setWeaponState("MeleeAttackv2");
+			}
+			if(d.isSliding)
+			{
+				// No kick for you!
+				A_TakeInventory("MeleeButton", 1);
+				setWeaponState("reallyready");
+			}
+		}
+		TNT1 A 0 {
+			invoker.weaponFrame = 0;
+			S_ZOOMFACTOR(1.0);
+			A_ZOOMFACTOR(1.0, ZOOM_INSTANT);
+			setZoomStatus(false);
+			invoker.isZooming = false;
+			if (!invoker.TargetInRange && random(0,3) == 0) {
+				A_Playsound("dawn/melee", CHAN_AUTO, 0.8);
+			}
+			invoker.currentZoomFactor = 1.00;
+			A_PlaySound("impact/meleeS1", CHAN_AUTO, 0.3);
+			A_PlaySound("impact/firstpersonMelee",CHAN_AUTO, 0.7, 0, 1.0, false, frandom(0.85, 1.0));
+		}
+		goto beginMelee;
+	beginMelee:
+		TNT1 A 0 {
+			A_overlay(-400, "KickAnimationFast");
+			invoker.stopAttackingSound();
+			meleeAndLunge();
+			getClosestMeleeTarget();
+			invoker.isMeleeAttack = true;
+			invoker.isFiring = 0;
+			S_ZOOMFACTOR(1.0);
+			invoker.isZooming = false;
+			A_QuakeEx( 1, 1, 0, 5, 0, 20, 0, 0, 10, 10, 10, 6);
+		}
+		DMRB ACE 2 {
+			S_WeaponOffset(0, 5);
+			A_OverlayOffset(-400, -15, -5);
+
+			if(invoker.TargetInRange && invoker.weaponFrame > 0) { // Target in range? Lunge to the target!
+				A_ZoomFactor(invoker.currentZoomFactor);
+				A_Recoil(-15);
+				invoker.currentZoomFactor = invoker.currentZoomFactor - 0.02;		
+			}
+
+			if(invoker.weaponFrame < 5) {
+				invoker.weaponFrame++;
+			} else {
+				invoker.weaponFrame++;
+			}
+		}
+		TNT1 A 0 {
+			executeMeleeHits();
+		}
+		DMRB FFFFFFFFFF 1
+		{
+			A_OverlayOffset(-400, -15, -5);
+			S_WeaponOffset(0, 10);
+		}
+		DMRB ECB 2 {
+			A_OverlayOffset(-400, -15, -5);
+			S_WeaponOffset(0, 5);
+			invoker.weaponFrame--;
+			if(invoker.TargetInRange) { // Target in range? Lunge to the target!
+				A_ZoomFactor(invoker.currentZoomFactor);
+				invoker.currentZoomFactor = invoker.currentZoomFactor + 0.02;		
+			}
+		}
+		TNT1 A 0 A_SetRoll(0);
+		TNT1 A 0 {
+			invoker.isMeleeAttack = false;
+			invoker.TargetInRange = false;
+		}
+		goto GoingToReady;
+
+    Fire:
+		TNT1 A 0 {
+			invoker.TakeWeaponAmmo();
+		}
+		TNT1 A 0 {
+			// Prepare Regular Fire
+			string muzzleFlashType = "muzzleFlashSpawnerDMR";
+			invoker.weaponEffectsTrail = "SniperTrailSmoke";
+			invoker.muzzleFlashScale = 0.2;
+			invoker.weaponSound = "DMR/FIRE";
+			invoker.weaponFrame = 0;
+			invoker.weaponSprite = invoker.bipodMode ? "DMR5" : "DMRF";
+			invoker.weaponFrameDelayer = 0;
+			invoker.adjustedRecoil = invoker.weaponRecoil;
+			// Prepare Silenced Fire
+			if(invoker.isSilenced)
+			{
+				muzzleFlashType = "muzzleFlashSpawnerDMRSilenced";
+				invoker.weaponEffectsTrail = "-";
+				invoker.weaponSound = "DMR/SILENCER";
+				invoker.muzzleFlashScale = -1.3;
+			} 
+
+			// Only run this if there's **no** silencer
+			else
+			{
+				emberEffect(emberCount:45);
+				A_AlertMonsters();
+			}
+
+			// Execute
+			invoker.flashID = random(0,1);
+			A_PLAYSOUND(invoker.weaponSound, CHAN_AUTO , 0.94, pitch:frandom(0.9,1.05));
+			A_FireProjectile(muzzleFlashType,0,0,random(invoker.xPos, invoker.yPos),0);
+		}
+		TNT1 A 0 {
+			if(checkIfZooming()) {
+				SetWeaponState("FireZoomed");
+			}
+		}
+		TNT1 A 0 A_JumpIfInventory("Zoomed",1,"Fire2");
+		TNT1 A 1 {
+			int ofs_xy = invoker.bipodMode ? 6 : 11;
+			int ofs_z = invoker.bipodMode ? 1 : 1;
+			int muzzleOffsetX = invoker.bipodMode ? -4 : 0;
+			int muzzleOffsetZ = 0;
+			X_SetOverlaySprite(1, (invoker.bipodMode ? "DMR5" : "DMRF"), invoker.weaponFrame); // Why was this commented out?????????????????????
+			FireBullets(frandom(-1*invoker.adjustedSpread*6, invoker.adjustedSpread*6), frandom(-1*invoker.adjustedSpread*3, invoker.adjustedSpread*3), 1, invoker.WeaponDamage, "HitPuffSniper", flags:FBF_NORANDOM);
+			
+			invoker.breathingFrame = 3;
+			S_SelacoMuzzleFlash("DMRM", 0, invoker.muzzleFlashScale, fixedScale:invoker.isSilenced);
+			if(!invoker.bipodMode)
+			{
+				A_RECOIL(3);
+			}
+			invoker.isFiring = 1;
+			invoker.xPos = frandom(-2.9, 2.9);
+			invoker.yPos = frandom(-2.4, 2.4);
+			A_PLAYSOUND("weapon/mecha", 3, 0.30);
+			invoker.playerIsFiring();
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(6, 6, 6 , 9, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 4);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(4, 4, 4 , 7, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 2);
+					break;
+			}
+			ACS_NamedExecuteAlways("SpawnHudShake", 0, 6, 6, 6);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.9, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(1);
+			S_ZOOMFACTOR(0.972);
+		}
+		TNT1 B 1 {
+			invoker.weaponFrame++;
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			S_SelacoMuzzleFlash("DMRM", 1, invoker.muzzleFlashScale, fixedScale:invoker.isSilenced);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.8, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(2);
+			S_ZOOMFACTOR(0.960);
+		}
+		TNT1 C 1 {
+			invoker.weaponFrame++;
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			invoker.shotFired--;
+			S_SelacoMuzzleFlash("DMRM", 2, invoker.muzzleFlashScale, fixedScale:invoker.isSilenced);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.7, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(3);
+			S_ZOOMFACTOR(1.0);
+		}
+		TNT1 A 0
+		{
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(2, 2, 2 , 6, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 1);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(2, 2, 2 , 4, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 2);
+					break;
+			}
+		}
+		TNT1 A 0 {
+			A_FireProjectile("DMRCASESPAWN",5,0,17,7, 0, 18);
+		}
+		TNT1 D 1 {
+			invoker.weaponFrame++;
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			S_SelacoMuzzleFlash("DMRM", 3, invoker.muzzleFlashScale, fixedScale:invoker.isSilenced);
+			S_WeaponOffset(2);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.6, 0, frandom(-0.6, 0.6));
+		}
+		TNT1 E 1 {
+			invoker.weaponFrame++;
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			S_SelacoMuzzleFlash("DMRM", 4, invoker.muzzleFlashScale, fixedScale:invoker.isSilenced);
+			S_WeaponOffset(2);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.5, 0, frandom(-0.6, 0.6));
+		}
+		TNT1 F 1 {
+			invoker.weaponFrame++;
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			S_WeaponOffset(2);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.2, 0, frandom(-0.6, 0.6));
+		}
+		DMRF GGHHI 1 {			
+			invoker.weaponFrameDelayer++;
+			if(invoker.weaponFrameDelayer % 2 == 0)
+			{
+				invoker.weaponFrame++;
+			}
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			A_SELACORECOIL(invoker.adjustedRecoil*0.09, 0, 0);
+			S_WeaponOffset();
+		}
+		DMRF IJJ 1 {
+			if(invoker.hasUpgradeClass("UpgradeDMRHairTrigger"))
+			{
+				S_WeaponReady(WRF_NOSECONDARY);
+			}
+			
+			invoker.weaponFrameDelayer++;
+			if(invoker.weaponFrameDelayer % 2 == 0)
+			{
+				invoker.weaponFrame++;
+			}
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			A_SELACORECOIL(invoker.adjustedRecoil*0.09, 0, 0);
+			S_WeaponOffset();
+		}
+		DMRF KKLLMMNNOO 1 {
+			invoker.weaponFrameDelayer++;
+			if(invoker.weaponFrameDelayer % 2 == 0)
+			{
+				invoker.weaponFrame++;
+			}
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			S_WeaponReady(WRF_NOSECONDARY);
+			S_WeaponOffset();
+		}
+
+		Goto ReallyReady;
+
+	FireZoomed:
+		TNT1 A 1 {
+			invoker.muzzleFlashFrame = 0;
+			A_RailAttack(-1, spawnofs_xy:0, 1, flags:RGF_NOPIERCING, pufftype:"HitPuff", 0, spread_z:0, range:1200, sparsity:9, driftspeed:100, spawnClass:invoker.weaponEffectsTrail);
+			invoker.flashID = random(0,1);
+			if(!invoker.hasUpgradeClass("UpgradeDMRZoom") || (invoker.hasUpgradeClass("UpgradeDMRZoom") && invoker.magnifiedZoom))
+			{
+				invoker.adjustedRecoil*=0.7;
+			}
+		}
+		TNT1 A 0 A_JumpIfInventory("Zoomed",1,"Fire2");
+		TNT1 A 1 {
+			if(!invoker.isSilenced)
+			{
+				S_SelacoMuzzleFlash("DMRM", invoker.muzzleFlashFrame, 7, xOffset: 15, yOffset:155, fixedScale:invoker.isSilenced);
+			}
+			invoker.muzzleFlashFrame++;
+			invoker.breathingFrame = 0;
+			invoker.isFiring = 1;
+			int adjustedDamage = invoker.weaponDamage;
+
+			//// -- CHARGE SHOT --- //////
+			if(invoker.hasUpgradeClass("AltfireDMRZoomCharger") == 1)
+			{
+				// Increase damage if the charge timer is at max
+				if(invoker.chargeTime >= CHARGE_ZOOM_THRESHOLD)
+				{
+					adjustedDamage = adjustedDamage *2;
+					A_RECOIL(35);
+					A_PLAYSOUND("DMR/CHARGESHOT", CHAN_AUTO);
+				}
+				// If the charge time is not successful, reduce damage. 
+				else
+				{
+					adjustedDamage = adjustedDamage *0.75;
+				}
+			}
+
+			// Fire Bullet
+			FireBullets(0, 0, -1, adjustedDamage+10, "HitPuffSniper", flags:FBF_NORANDOM);
+
+			invoker.xPos = frandom(-2.9, 2.9);
+			invoker.yPos = frandom(-2.4, 2.4);
+			A_PLAYSOUND("weapon/mecha", 3, 0.30);
+			invoker.playerIsFiring();
+			if (getCVAR("g_screenshake") == 2) {
+				A_QuakeEx(3, 3, frandom(0.600000, 0.650000) , 10, 0, 20, 0, 0, 10, 10, 10, 6, frandom(1.200000, 1.350000), frandom(1.300000, 1.350000));
+			}
+			if (getCVAR("g_screenshake") == 1) {
+				A_QuakeEx(1, 1, frandom(0.300000, 0.350000) , 7, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.200000, 0.250000), frandom(0.200000, 0.250000));
+			}
+			ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.9, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(1);
+
+			// Reset charged shot
+			invoker.chargeTime = 0;
+		}
+		TNT1 AA 1 {
+			invoker.muzzleFlashFrame++;
+			if(!invoker.isSilenced)
+			{
+				S_SelacoMuzzleFlash("DMRM", invoker.muzzleFlashFrame, 7, xOffset: 15, yOffset:155, fixedScale:invoker.isSilenced);
+			}
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.5, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(2);
+	}
+		TNT1 AA 1 {
+			invoker.muzzleFlashFrame++;
+			if(!invoker.isSilenced)
+			{
+				S_SelacoMuzzleFlash("DMRM", invoker.muzzleFlashFrame, 7, xOffset: 15, yOffset:155, fixedScale:invoker.isSilenced);
+			}
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.2, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(3);
+		}
+		TNT1 A 1 {
+			invoker.muzzleFlashFrame++;
+			if(!invoker.isSilenced)
+			{
+				S_SelacoMuzzleFlash("DMRM", invoker.muzzleFlashFrame, 7, xOffset: 15, yOffset:155, fixedScale:invoker.isSilenced);
+			}
+			A_FireProjectile("DMRCASESPAWN",5,0,17,7, 0, 18);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.1, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(2);
+		}
+		TNT1 A 1 {
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.02, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(2);
+		}
+		TNT1 A 1 {
+			A_SELACORECOIL(-1*invoker.adjustedRecoil*0.06, 0, frandom(-0.6, 0.6));
+			S_WeaponOffset(2);
+		}
+		TNT1 GGHHII 1 {
+			S_WeaponReady(WRF_NOPRIMARY);
+			A_SELACORECOIL(invoker.adjustedRecoil*0.12, 0, 0);
+			S_WeaponOffset(2);
+		}
+		GOTO ReallyReady;
+	Flash1:
+		DMRM A 1 BRIGHT;
+		stop;
+
+	Flash2:
+		DMRM B 1 BRIGHT;
+		stop;
+
+	Flash3:
+		DMRM C 1 BRIGHT;
+		stop;
+	Flash4:
+		DMRM D 1 BRIGHT;
+		stop;
+	Flash5:
+		DMRM E 1 BRIGHT;
+		stop;
+	MeleeAttack:
+		TNT1 A 0 {
+			setZoomStatus(false);
+		}
+		RIFM A 0 {
+			invoker.weaponSprite = "RIFM";
+			invoker.weaponFrame = 0;
+		}
+		goto MeleeAttackExecute;
+
+
+	GoBurst:
+		TNT1 A 0 A_Playsound("DMR/burst", CHAN_AUTO, 0.7);
+		TNT1 A 0 A_SetCrosshair(16);
+		Goto ReallyReady;
+	
+	SwapZoom:
+	Altfire:
+		TNT1 A 0 {
+			invoker.damageMultiplyerTimer = 0;
+			// Behave like normal. Toggle to a new zoom
+			toggleZoomStatus();
+			if(checkIfZooming()) {
+				invoker.magnifiedZoom = false;
+				SetWeaponState("SwapZoom_ZOOM");
+			} else {
+				invoker.magnifiedZoom = false;
+				SetWeaponState("SwapZoom_UNZOOM");
+			}
+		}
+		goto ReallyReady;
+
+	SwapZoom_ZOOM:
+		TNT1 A 0 {
+			A_PLAYSOUND("DMR/ZOOM", CHAN_AUTO, 0.65);
+			A_SetCrosshair(16);
+		}
+		DMR8 ABCDEGI 1;
+		TNT1 A 0
+		{
+			if(invoker.hasUpgradeClass("UpgradeDMRZoom"))
+			{
+				A_ZoomFactor(zoomRange, ZOOM_INSTANT);
+			} 
+			else
+			{
+				A_ZoomFactor(zoomRange*2.7, ZOOM_INSTANT);
+			}
+		}
+		DMR8 KL 1;
+		goto ReallyReady;
+	SwapZoom_UNZOOM:
+		TNT1 A 0 {
+			CheckPlayerStates();
+			A_Playsound("DMR/UNZOOM", CHAN_AUTO, 0.65);
+			A_SetCrosshair(16);
+			A_ZoomFactor(1.0, ZOOM_INSTANT);
+		}
+		DMR8 KIGECBA 1;
+		goto ReallyReady;
+
+
+	SwapBurst:
+		TNT1 A 0 {
+			invoker.altFireMode =! invoker.altFireMode;
+			if (invoker.altFireMode == 0) {
+				A_PRINTBOLD("Auto Mode");
+				A_Playsound("DMR/auto", CHAN_AUTO, 0.7);
+			} else {
+				A_Playsound("DMR/burst", CHAN_AUTO, 0.7);
+				A_PRINTBOLD("Burst Mode");
+			}
+		}
+		RIF8 ABCCBA 1;
+		Goto ReallyReady;	
+
+	NoAmmo:
+		RIFG A 0 A_PlaySound("weapons/empty");
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+		TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		Goto ReallyReady;
+	
+	FireEmptyMag:
+		TNT1 A 0 dryFire();
+		RIFG A 1 S_WeaponReady();
+		goto reallyready;
+
+
+    ReloadWeapon:	
+		RIFG A 0  {
+			doWeaponReload();
+		}
+		TNT1 A 0 S_WeaponOffset();
+		TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+        TNT1 AAA 0;
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+		TNT1 A 0 A_SetPitch(+0.47 + pitch);
+		TNT1 A 0 A_SetAngle(+0.32 + angle);
+		DMR1 AABBCCDDEEGG 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 
+		{		
+			A_PlaySound("DMR/RELOAD1", CHAN_AUTO, 0.15);
+		}
+		DMR1 HHIIJJ 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		
+		// Move to insert if the mag is removed
+		TNT1 A 0
+		{
+			if(invoker.magRemoved)
+			{
+				setWeaponState("ReloadMagRemoved");
+			}
+		}
+
+		DMR1 KKL 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0
+		{
+			A_PlaySound("DMR/RELOAD2", CHAN_AUTO, 0.32);
+		}
+		DMR1 MMNNPPQQ 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0
+		{
+			invoker.magRemoved = true;
+			removeCurrentAmmo();	
+		}
+		DMR1 RRTTUU 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		// Drop magazine
+		TNT1 A 0
+		{
+			A_FireProjectile("EmptyDMRMagazineSpawn",angle:19,useammo:0,spawnofs_xy:0,spawnheight:0, pitch:0);
+		}
+		DMR1 VVWWXXYYZZ 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+	ReloadMagRemoved:
+		DMR2 AABBCCEEFFGGHHIIJJKKLLMM 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0
+		{
+			invoker.magRemoved = false;
+			insertNewAmmo();		
+			A_PlaySound("DMR/RELOAD3", CHAN_AUTO, 0.43);	
+		}
+		DMR2 NNOOPP 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		DMR2 RRSSTTUUVVWWXXYYZZ 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		DMR3 AABBCCDDEEGGIIJJKKLLMMNN 1
+		{
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		goto reallyready;
+
+	 Spawn:
+	 	TNT1 A 0;
+		TNT1 A 0 A_SPAWNITEMEX("RIFLE_PICKUP");
+		Stop;
+
+	}
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		setCrosshair('DMRCrosshair');
+	}
+}
+
+Class MarksmanAmmo : Ammo
+{
+	Default {
+	Inventory.Amount 0;
+	   Inventory.MaxAmount 12;
+	   Ammo.BackpackAmount 0;
+	   Ammo.BackpackMaxAmount 40;
+	}
+}
+
+class muzzleFlashSpawnerDMR : playerMuzzleFlash 
+{
+	default
+	{
+		PlayerMuzzleFlash.lightSize 160, 200;
+	}
+	override void SpawnLightEffect()
+	{
+		spawnLight(rColor:500, gColor:197, bColor:67, getLightSize(), 0, shadowRequirement:allowShadow, xOffset:frandom(-5,5), overbright: 0, divisionSpeed:1.45, alwaysShow:1,weaponFlash:1);
+	}
+}
+
+class muzzleFlashSpawnerDMRSilenced : playerMuzzleFlash {
+
+	override void SpawnLightEffect()
+	{
+		spawnLight(rColor:500, gColor:197, bColor:67, frandom(45,65), 0, shadowRequirement:allowShadow, xOffset:frandom(-5,5), overbright: 0, divisionSpeed:1.45, alwaysShow:1,weaponFlash:1);
+	}
+
+}

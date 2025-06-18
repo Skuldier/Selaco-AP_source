@@ -1,0 +1,375 @@
+ACTOR PowerDoubleDamage : PowerDamage
+{
+	Damagefactor "normal", 2
+}
+
+ACTOR DoubleDamagePowerupActual : PowerupGiver 
+{
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type "PowerDoubleDamage"
+	Powerup.Duration -30
+	Powerup.Color 255, 0, 255, 0.150
+}
+
+Actor TimeFreezer : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 0
+  Powerup.Type TimeFreezer
+  Powerup.Duration 2
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    TIME AAABBBCCCDDD 2
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+Actor TimeFreezer3 : TimeFreezer {
+  Powerup.Duration 105
+}
+
+Actor TimeFreezerPowerup : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 0
+  Powerup.Type TimeFreezer
+  Powerup.Duration -10
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    TIME AAABBBCCCDDD 2
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+
+Actor TimeSphere2 : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 1
+  Inventory.pickupsound "TIMESPH"
+  Powerup.Type TimeFreezer
+  Powerup.Color GoldMap
+  Powerup.Duration -1
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    TIME AAABBBCCCDDD 2 Bright
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+        TNT1 AAAAAAAAAAAAA 0 A_SpawnProjectile ("ShinnySmoke", 0, 0, random (0, 360), 2, random (0, 360))
+		TNT1 A 0 A_Print ("You've found a Time Sphere!")
+		Stop
+	
+  }
+}
+
+Actor healActive : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 1
+  Inventory.pickupsound "TIMESPH"
+  Powerup.Color 0, 100, 0, 0.050
+	powerup.type Speed
+  Powerup.Duration -1
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    TIME AAABBBCCCDDD 2 Bright
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+Actor upgradeMenuFilter : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 1
+  Inventory.pickupsound "TIMESPH"
+  Powerup.Color 0, 0, 0, 0.8
+	powerup.type Speed
+  Powerup.Duration 10000
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    TIME AAABBBCCCDDD 2 Bright
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+Actor UnderDirtyWater : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 1
+  Inventory.pickupsound "TIMESPH"
+  Powerup.Color 0, 0, 0, 0.52
+	powerup.type Speed
+  Powerup.Duration 10000
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+Actor RestorePowerup : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 1
+  Inventory.pickupsound "TIMESPH"
+  Powerup.Color 0, 0, 0, 0
+	powerup.type Speed
+  Powerup.Duration 10000
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+Actor playerDead : PowerupGiver
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 1
+  Inventory.pickupsound "TIMESPH"
+  Powerup.Color 55, 0, 0, 0.850
+	powerup.type Speed
+  Powerup.Duration 10000
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    TIME AAABBBCCCDDD 2 Bright
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+Actor upgradeMenuCancel : PowerupGiver // PREVENTS THE SCREEN FROM BLINKING
+{
+	SpawnID 7200
+  -CountItem
+  +NoGravity
+  +DONTGIB
+  +FloatBob
+  +Inventory.AutoActivate
+  +Inventory.AlwaysPickup
+  Inventory.MaxAmount 1
+  Inventory.pickupsound "TIMESPH"
+  Powerup.Color 10, 10, 10, 0
+	powerup.type Speed
+  Powerup.Duration -1
+  States
+  {
+  Spawn:
+	TNT1 A 2 A_JumpIf(ACS_NamedExecuteWithResult("CheckTraditional")==1,"ReplaceTraditional")
+	TNT1 AA 0
+    TIME AAABBBCCCDDD 2 Bright
+    Goto SPawn+2
+	
+	ReplaceTraditional:
+		TNT1 A 1
+		Stop
+	
+	Pickup:
+		Stop
+	
+  }
+}
+
+actor SentryGunDeco : SwitchableDecoration 
+{
+  obituary "%o was ventilated by an auto-sentry."
+  health 100
+  radius 20
+  height 56
+  mass 100000
+  speed 0
+ 
+  MONSTER
+  +FLOORCLIP
+  +FRIENDLY
+  +NOBLOOD
+  +USESPECIAL
+	Activation THINGSPEC_Activate
+  +QUICKTORETALIATE
+  +LOOKALLAROUND
+  +NEVERRESPAWN
+  +STANDSTILL
+  +MISSILEMORE
+  +MISSILEEVENMORE
+  states
+  {
+  Spawn:
+    SENT AAAAAAAAAA 1 
+    loop
+  }
+}
+
+actor anti-toxinePickup : CustomInventory 1799 {
+  +NOGRAVITY
+  +FLOATBOB
+  +FLOAT
+  scale 0.32
+  States {
+    Spawn:
+      GMAS A -1 BRIGHT
+      stop
+
+    Pickup:
+      TNT1 A 0 A_GiveInventory("antitoxinAbility", 1)
+      TNT1 A 0 A_GiveInventory("antitoxinFull", 1)
+      TNT1 A 0 A_GiveInventory("antitoxinAmount", 100)
+      TNT1 A 0 ACS_NamedExecute("antitoxinTip", 0)
+      stop
+   }
+}
+
+Actor AntiToxinActivated : PowerProtection
+{
+ 	damagefactor "Poison", 0
+	Painchance "Poison", 0
+	Powerup.Duration 10
+	+AUTOACTIVATE 
+}
+
+Actor AntiToxinTank : SelacoItem 2366 {
+  tag "AntiToxin Oxygen"
+  +float
+  +NOGRAVITY
+  yscale 0.8
+  states {
+    Spawn:
+      GMAS B -1 BRIGHT  
+      stop
+    Pickup:
+       TNT1 A 0 A_GiveInventory("antitoxinAmount", 100)
+        TNT1 A 0 ACS_NamedExecuteAlways("pickupOxygen", 0, 100)
+       stop
+  }
+}

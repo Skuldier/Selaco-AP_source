@@ -1,0 +1,1486 @@
+///////////////////////////////////////////////
+// +++ THIS FILE HAS BEEN STRIPPED DOWN FOR DEMO PURPOSES. ALL CONTENTS NOT REQUIRED FOR THE DEMO IS NOT IN HERE. +++
+///////////////////////////////////////////////
+
+cluster 1 {
+	hub
+}
+cluster 2 {
+	hub
+}
+cluster 3 {
+	hub
+}
+clearepisodes
+episode SE_01a
+{
+	name = "Ominous"
+	key = "h"
+}
+
+
+gameinfo
+{
+	DimColor = "Black"
+	QuitMessages = "Are you sure you want to quit?"
+	DimAmount = 0
+	Cursorpic = "mouse"
+	QuitSound = ""
+	PickupColor = "#034980"
+}
+
+GameInfo
+{
+	AddEventHandlers = 	"CockHandler",
+						"KeypadGlobalHandler", 
+						"PDAManager",
+						"MusicHandler",
+						"DamageOverlay",
+						"TOSEventHandler",
+						"RandomizerHandler",
+						"IntroHandler",
+						"LightsHandler",
+						"ShaderHandler",
+						"StatsHandler",
+						"GlassHandler",
+						"RainHandler",
+						"ParticleHandler",
+						"SmokeHandler",
+						"GamepadAssistHandler",
+						"MaterialIndexer",
+						"XmasHandler", "XmasLevelHandler",	
+						"RifleStartHandler",
+						"InvasionTierSystem",
+						"LightEffectHandler",
+						"PathHandler",
+						"EarthquakeHandler",
+						"GoreHandler",
+						"BattleOverseer",
+						"SpeechHandler",
+						"ReflectionsHandler",
+						"ShootingRangeHandler",
+						"WeaponWheelHandler",
+						"SafetyHandler",
+						"SafeRoomExtension",
+						"BBHandler",
+						"LevelTransitionHandler",
+						"LocalLevelHandler",
+						"EquipmentHandler",
+						"CasingHandler",
+						"D00dl3G3n3rat0r"
+						//"HitFlashHandler"
+							
+	PlayerClasses = "Dawn"
+	PrecacheClasses = "BaseWeapon", "SHOT_GUN", "Rifle", "SMG", "RoaringCricket", "PrettyExplosionParticleRainPerformance", "BaseExplosionEffect", "StretchBed_piece1", "StretchBed_piece2", "StretchBed_piece3", "datapad_hologram"
+    PrecacheSounds =  "INTROL", "INTROI", "dest/01CEILBR", "DRONE", "AMBIENT/PASSBY01", "AMBIENT/PASSBY02", "AMBIENT/PASSBY03", "AMBIENT/PASSBY04", "AMBIENT/PASSBY05", "AMBIENT/PASSBY06"
+	PauseSign = "M_PAUSE"	// This should never show
+}	
+
+
+map TITLEMAP "Menu"
+{
+	music = "Titlemap"
+}
+
+ClearSkills
+
+Skill easy
+{
+
+   AmmoFactor = 1
+   DamageFactor = 0.5
+   MonsterHealth = 1.25
+   aggressiveness = 1
+   SpawnFilter = Easy
+   Textcolor = white
+   MustConfirm = "This difficulty is for players new to First Person Shooters or for those wanting a more forgivable experience. The AI is slower to react, will use less deadly tactics and is less likely to move around in combat. "
+   Name = "Ensign"
+}
+
+Skill normal
+{
+   AmmoFactor = 1
+   DamageFactor = 0.8
+   MonsterHealth = 1.35
+   aggressiveness = 1
+   SpawnFilter = Easy
+   Textcolor = white
+   DisableCheats
+   MustConfirm = "For players with some First Person Shooter experience. The enemies will give you a hard time, but leave plenty of room for error. Shoot them before they shoot you! "
+   Name = "Lieutenant"
+}
+
+Skill Hard
+{
+   AmmoFactor = 1
+   DamageFactor = 1.05
+   aggressiveness = 1
+   MonsterHealth = 1.55
+   SpawnFilter = 3
+   Textcolor = white
+   DisableCheats
+   MustConfirm = "For players with plenty of First Person Shooter experience. The enemy is lethal, fast and will use advanced tactics to bring you down. Be smart, fast and resourceful to win."
+   Name = "Commander"
+}
+
+Skill VeryHard
+{
+   AmmoFactor = 1
+   DamageFactor = 1.9
+   aggressiveness = 1
+   MonsterHealth = 1.69
+   ACSReturn = 4
+   SpawnFilter = 4
+   Textcolor = white
+   DisableCheats
+   Name = "Captain"
+   MustConfirm = "For players with lots of First person shooter experience. Your enemies are relentless, accurate, fast and unforgiving. Never let your guard down and utilize all of your senses in order to stand a chance at survival. "
+}
+
+Skill UltraHard
+{
+   AmmoFactor = 1
+   DamageFactor = 3.05
+   aggressiveness = 1
+   MonsterHealth = 1.69
+   ACSReturn = 4
+   SpawnFilter = 4
+   Textcolor = white
+   DisableCheats
+   Name = "Admiral"
+   MustConfirm = "For the absolute best of the bests. This difficulty is similar to Captain in many ways, but makes the enemy far more accurate, hard-hitting and mobile. Forget survival, this is suicide."
+}
+
+Skill Realism
+{
+   AmmoFactor = 1
+   DamageFactor = 5.9
+   MonsterHealth = 1.95
+   aggressiveness = 1
+   ACSReturn = 5
+   SpawnFilter = 5
+   Textcolor = white
+   DisableCheats
+   Name = "SELACO MUST FALL"
+   MustConfirm = "No compromises! The enemy will fully utilize their toolset with zero intention to keep you alive. If you're looking for a balanced and fair experience, you will not find it here. Enjoy your restarts!"
+}
+
+Skill ExplorationMode
+{
+   AmmoFactor = 1.0
+   DamageFactor = 0.25
+   MonsterHealth = 1.2
+   aggressiveness = 1
+   ACSReturn = 6
+   SpawnFilter = 6
+   Textcolor = white
+   DisableCheats
+   Name = "Exploration"
+   MustConfirm = "No compromises! The enemy will fully utilize their toolset with zero intention to keep you alive. If you're looking for a balanced and fair experience, you will not find it here. Enjoy your restarts!"
+}
+
+GameInfo
+{
+	DimAmount = 0.70
+	NoRandomPlayerClass = True
+}
+
+
+defaultmap {
+	AirControl = 0.09
+	clipmidtextures
+	NoInfighting
+	FallingDamage
+	RememberState
+	SMoothLighting
+	DisableSkyboxAO
+	SpawnWithWeaponRaised
+	cluster = 1
+	sky1 = "LATENIGHT"
+	F1 = "TEMPLOGO"
+}
+
+map INVTIER "Invasion Tier screenies"
+{
+	invasiontier = 12
+	LevelNum  = 997
+	cluster = 997
+	sky1 = "LEGACY"
+}
+
+map "Dev Maps/GLASSMAP" "Cock's Torture Forest"
+{
+	LevelNum  = 1
+	cluster = 1
+	AreaNum = 99999
+	sky1 = "LATENIGHT"
+}
+
+map TESTRAIN "Cocky Rain Map"
+{
+	LevelNum  = 1
+	cluster = 1
+	sky1 = "LATENIGHT"
+	rainymap
+}
+
+
+map SE_01A "Pathfinder Hospital"
+{
+	LevelNum  = 1
+	invasiontier = 0
+	cluster = 1
+	levelGroup = 1
+	areaNum = 1
+	sky1 = "NIGHT"
+	PrecacheClasses = "VoxelDoorKickable", "PinSpawner", "Drawing1", "Drawing2", "Drawing3", "Drawing4", "Drawing5", "Drawing6", "Drawing7", "Drawing8", "Drawing9", "Drawing10", "Drawing11", "Drawing12", "Drawing13", "Drawing14", "Drawing15", "Drawing16", "Drawing17", "Drawing18", "Drawing19", "Drawing20", "Drawing21", "Drawing22", "Drawing23", "Drawing24", "Drawing25", "Drawing26", "Drawing27", "Drawing28", "Drawing29", "Drawing30", "Drawing31", "Drawing32", "Drawing33", "Drawing34", "Drawing35", "Drawing36", "Drawing37", "Drawing38", "Drawing39", "Drawing40", "Drawing41", "Drawing42", "Drawing43", "Drawing44", "Drawing45", "Drawing46", "Drawing47", "Drawing48", "Drawing49", "Drawing50", "Drawing51", "Drawing52", "Drawing53", "Drawing54", "Drawing55", "Drawing56", "Drawing57", "Drawing58", "Drawing59", "Drawing60", "Drawing61"
+}
+
+map SE_01B "Pathfinder Hospital (Blue)"
+{
+	saferoom
+	invasiontier = 1
+	LevelNum  = 2
+	cluster = 1
+	levelGroup = 1
+	areaNum = 2
+	sky1 = "NIGHT"
+	saferoom
+	PrecacheClasses = "PinSpawner", "Drawing1", "Drawing2", "Drawing3", "Drawing4", "Drawing5", "Drawing6", "Drawing7", "Drawing8", "Drawing9", "Drawing10", "Drawing11", "Drawing12", "Drawing13", "Drawing14", "Drawing15", "Drawing16", "Drawing17", "Drawing18", "Drawing19", "Drawing20", "Drawing21", "Drawing22", "Drawing23", "Drawing24", "Drawing25", "Drawing26", "Drawing27", "Drawing28", "Drawing29", "Drawing30", "Drawing31", "Drawing32", "Drawing33", "Drawing34", "Drawing35", "Drawing36", "Drawing37", "Drawing38", "Drawing39", "Drawing40", "Drawing41", "Drawing42", "Drawing43", "Drawing44", "Drawing45", "Drawing46", "Drawing47", "Drawing48", "Drawing49", "Drawing50", "Drawing51", "Drawing52", "Drawing53", "Drawing54", "Drawing55", "Drawing56", "Drawing57", "Drawing58", "Drawing59", "Drawing60", "Drawing61"
+}
+
+map SE_01C "Pathfinder Labs"
+{
+	invasiontier = 1
+	LevelNum  = 3
+	cluster = 1
+	levelGroup = 1
+	areaNum = 3
+	sky1 = "NIGHT"
+	PrecacheClasses = "HORIZONTAL_LIGHT_BAR", "PinSpawner", "Drawing1", "Drawing2", "Drawing3", "Drawing4", "Drawing5", "Drawing6", "Drawing7", "Drawing8", "Drawing9", "Drawing10", "Drawing11", "Drawing12", "Drawing13", "Drawing14", "Drawing15", "Drawing16", "Drawing17", "Drawing18", "Drawing19", "Drawing20", "Drawing21", "Drawing22", "Drawing23", "Drawing24", "Drawing25", "Drawing26", "Drawing27", "Drawing28", "Drawing29", "Drawing30", "Drawing31", "Drawing32", "Drawing33", "Drawing34", "Drawing35", "Drawing36", "Drawing37", "Drawing38", "Drawing39", "Drawing40", "Drawing41", "Drawing42", "Drawing43", "Drawing44", "Drawing45", "Drawing46", "Drawing47", "Drawing48", "Drawing49", "Drawing50", "Drawing51", "Drawing52", "Drawing53", "Drawing54", "Drawing55", "Drawing56", "Drawing57", "Drawing58", "Drawing59", "Drawing60", "Drawing61"
+}
+
+map SE_02A "Utility Area"
+{
+	invasiontier = 3
+	LevelNum  = 4
+	cluster = 1
+	levelGroup = 2
+	areaNum = 1
+	rainymap
+	sky1 = "NIGHT"
+}
+
+map SE_02Z "Pathfinder Hospital (Orange)"
+{
+	LevelNum  = 5
+	invasiontier = 2
+	cluster = 1
+	levelGroup = 2
+	areaNum = 2
+	sky1 = "NIGHT"
+	rainymap
+	saferoom
+}
+map SE_02B "Utility Area"
+{
+	rainymap
+	invasiontier = 3
+	LevelNum  = 6
+	cluster = 1
+	levelGroup = 2
+	areaNum = 3
+	sky1 = "NIGHT"
+}
+
+map SE_02C "Water Treatment"
+{
+	saferoom
+	invasiontier = 3
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 7
+	cluster = 1
+	levelGroup = 2
+	areaNum = 4
+	rainymap
+	saferoom
+	sky1 = "LATENIGHT"
+}
+
+map SE_09A "Example Map (Level 9 - Area 5)"
+{
+	levelGroup = 9
+	areaNum = 5
+}
+
+map SE_03A "Parking Garage"
+{
+	saferoom
+	invasiontier = 4
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 8
+	cluster = 1
+	levelGroup = 3
+	areaNum = 1
+	sky1 = "LATENIGHT"
+	rainymap
+}
+
+map SE_03A1 "Parking Garage"
+{
+	invasiontier = 4
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 32
+	cluster = 1
+	levelGroup = 3
+	areaNum = 1
+	sky1 = "LATENIGHT"
+	rainymap
+}
+
+map SE_03B "Selaco Streets"
+{
+	invasiontier = 5
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 9	// Referenced by Streets Credits
+	cluster = 1
+	levelGroup = 3
+	areaNum = 2
+	sky1 = "LATE2"
+	rainymap
+}
+
+map SE_03B1 "Selaco Streets"
+{
+	saferoom	
+	invasiontier = 5
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 10
+	cluster = 1
+	levelGroup = 3
+	areaNum = 3
+	sky1 = "LATE2"
+	rainymap
+}
+
+map SE_03B2 "Sal's Bar"
+{
+	invasiontier = 6
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 11//if you change this update call to "RJSyncFire" in SE_04A and "RJSyncGate" in SE_03B1
+	cluster = 1
+	levelGroup = 3
+	areaNum = 4
+	sky1 = "LATE2"
+	rainymap
+}
+
+
+map SE_03C "Sal's Lair"
+{
+	invasiontier = 6
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 12
+	cluster = 1
+	levelGroup = 3
+	areaNum = 5
+	sky1 = "LATENIGHT"
+}
+
+map SE_04A "Office Complex"
+{
+	invasiontier = 7
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 13
+	cluster = 1
+	levelGroup = 4
+	areaNum = 1
+	sky1 = "LATENIGHT"
+	rainymap
+}
+
+map SE_04B "Administration"
+{
+	invasiontier = 8
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 14
+	cluster = 1
+	levelGroup = 4
+	areaNum = 2
+	sky1 = "LATENIGHT"
+	//rainymap
+}
+
+map SE_04C "Courtyard"
+{
+	saferoom
+	invasiontier = 8
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 15
+	cluster = 1
+	levelGroup = 4
+	areaNum = 3
+	sky1 = "DAWN"
+	rainymap
+	saferoom
+}
+
+
+map SE_05A "Exodus Plaza"
+{
+	invasiontier = 9
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 16 // if you change this, update call to "RJReturnFromNorth" and "RJReturnFromSouth" in SE_05B/C script  1808 and 1809
+	cluster = 1
+	levelGroup = 5 // @nexxtic JOE -> I already updated the level group accordingly. Do not adjust.
+	areaNum = 1
+	sky1 = "DAWN"
+	rainymap
+}
+
+map SE_05B "Exodus Plaza - North"
+{
+	invasiontier = 9
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 17 //if you change this, update call to "RJSetItemsNORTH" and "RJSetItemsSOUTH" in SE_05A "SetupLevel"
+	cluster = 1
+	levelGroup = 5
+	areaNum = 2
+	sky1 = "DAWN"
+	music = "MALL"
+	rainymap
+}
+
+map SE_05C "Exodus Plaza - South"
+{
+	invasiontier = 9
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 18 //if you change this, update call to "RJSetItemsNORTH" and "RJSetItemsSOUTH" in SE_05A "SetupLevel"
+	cluster = 1
+	levelGroup = 5
+	areaNum = 3
+	sky1 = "DAWN"
+	music = "MALL"
+	rainymap
+}
+
+
+map SE_05D "Exodus Plaza - Front Entrance"
+{
+	saferoom
+	invasiontier = 9
+	skyfog = 255
+	outsidefogdensity = 2553338
+	LevelNum  = 19
+	cluster = 1
+	levelGroup = 5
+	areaNum = 4
+	sky1 = "DAWN"
+	rainymap
+	saferoom
+}
+
+map SE_06A "Plant Cloning Facility - Offices"
+{
+	saferoom
+	invasiontier = 10
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 20
+	cluster = 1
+	levelGroup = 6
+	areaNum = 1
+	sky1 = "DAWN"
+}
+
+map SE_06A1 "Plant Cloning Facility - Offices"
+{
+	invasiontier = 10
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 21//if you mess with this number you will break the elevator script
+	cluster = 1
+	levelGroup = 6
+	areaNum = 1
+	sky1 = "DAWN"
+}
+
+map SE_06B "Plant Cloning Facility - Research Labs"
+{
+	invasiontier = 10
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 22//if you mess with this number you will break the elevator script
+	cluster = 1
+	levelGroup = 6
+	areaNum = 2
+	sky1 = "LATENIGHT"
+}
+
+map SE_06C "Plant Cloning Facility - Cloning Plant"
+{
+	invasiontier = 10
+	skyfog = 255
+	outsidefogdensity = 255
+	LevelNum  = 23//if you mess with this number you will break the elevator script
+	cluster = 1
+	levelGroup = 6
+	areaNum = 3
+	sky1 = "LATENIGHT"
+}
+
+map SE_07A1 "Starlight Exterior"
+{
+	saferoom
+	invasiontier = 10
+	LevelNum  = 24
+	cluster = 1
+	levelGroup = 7
+	areaNum = 1
+	sky1 = "ALLWHITE"
+	skyfog = 255
+	rainymap
+}
+
+
+map SE_07A "Starlight Lobby"
+{
+	saferoom
+	invasiontier = 10
+	LevelNum  = 25
+	cluster = 1
+	levelGroup = 7
+	areaNum = 1
+	sky1 = "LATENIGHT"
+}
+
+map SE_07B "Starlight Green"
+{
+	invasiontier = 10
+	LevelNum  = 26//if you change this update call to "RJUnlockLine" in 07Z
+	cluster = 1
+	levelGroup = 7
+	areaNum = 2
+	sky1 = "ALLWHITE"
+	skyfog = 255
+}
+
+map SE_07C "Starlight Red"
+{
+	invasiontier = 10
+	LevelNum  = 27
+	cluster = 1
+	levelGroup = 7
+	areaNum = 3
+	sky1 = "LATENIGHT"
+}
+
+map SE_07D "Starlight Blue"
+{
+	invasiontier = 10
+	LevelNum  = 28
+	cluster = 1
+	levelGroup = 7
+	areaNum = 4
+	sky1 = "LATENIGHT"
+}
+
+map SE_07E "Starlight Purple"
+{
+	invasiontier = 10
+	LevelNum  = 29
+	cluster = 1
+	levelGroup = 7
+	areaNum = 5
+	sky1 = "LATENIGHT"
+}
+
+map SE_07Z "Starlight Purple"
+{
+	invasiontier = 10
+	LevelNum  = 30
+	cluster = 1
+	levelGroup = 7
+	areaNum = 6
+	sky1 = "LATENIGHT"
+}
+
+map SE_08A "Endgame"
+{
+	invasiontier = 10
+	LevelNum  = 31
+	cluster = 1
+	levelGroup = 8
+	areaNum = 1
+	sky1 = "LATENIGHT"
+	//saferoom
+}
+
+map SE_SAFE "Safe Room Extension"
+{
+	LevelNum  = 100
+	cluster = 1
+	levelGroup = 100
+	sky1 = "LATENIGHT"
+	ForgetState
+}
+
+map TITLEMAP "Menu" {
+	levelnum = 9999
+	cluster = 1
+	clipmidtextures
+
+	NoInfighting
+	RememberState
+	sky1 = "NONE"	// Don't load a sky during TITLEMAP
+}
+
+map OM_JOY "Test World" {
+	LevelNum  = 290
+	sky1 = "LATENIGHT"
+}
+
+map SE_TEST "Test World" {
+	LevelNum  = 99
+	invasiontier = 12
+	sky1 = "DAWN"
+}
+map SE_RANDO "Randomizer Testing Ground" {
+	invasiontier = 12
+	rainymap
+	sky1 = "LATENIGHT"
+}
+map "Dev Maps/SE_RANDOM2" "Randomizer Test Level" {
+	LevelNum  = 99
+	invasiontier = 5
+	rainymap
+	sky1 = "NIGHT"
+}
+
+map OM_LOCK3 "Some unknown Doom Level" {
+	cluster = 1
+	skyfog = 112
+	sky1 = "LATENIGHT"
+	clipmidtextures
+	NoInfighting
+	RememberState
+	RandomPlayerStarts
+}
+
+map OM_LOCK4 "Ravaged Pathfinder Hospital" {
+	cluster = 1
+	skyfog = 112
+	sky1 = "LATENIGHT"
+	clipmidtextures
+	NoInfighting
+	RememberState
+	RandomPlayerStarts
+}
+
+map OM_LOCK2 "ACE Security Combat Simulation" {
+	cluster = 1
+	skyfog = 112
+	sky1 = "LATENIGHT"
+	clipmidtextures
+	NoInfighting
+	RememberState
+
+}
+
+map OM_LOCK1 "Blast Furnace" {
+	cluster = 1
+	skyfog = 112
+	clipmidtextures
+	NoInfighting
+	RandomPlayerStarts
+	ForgetState
+}
+
+MAP SE_S01 "A Secret Level" {
+	cluster = 1
+	areaNum = 1
+	skyfog = 112
+	clipmidtextures
+	NoInfighting
+	RandomPlayerStarts
+	ForgetState
+	sky1 = "SKY5"
+}
+
+MAP DECK15 "DM-Deck15[]" {
+	cluster = 1
+	areaNum = 1
+	skyfog = 112
+	clipmidtextures
+	NoInfighting
+	RandomPlayerStarts
+	ForgetState
+	sky1 = "LATENIGHT"
+}
+
+
+
+DoomEdNums
+{
+
+	// AI
+	1232 = PathNode
+	1233 = DoorNode
+	4322 = FISH1
+	4323 = SmallFish
+	12212 = SOLDIER_AGGRESSOR
+	12213 = SOLDIER_DEFENDER
+	12221 = SOLDIER_ATTACKER
+	12214 = SOLDIER_STRAFER
+	12215 = SOLDIER_SQUADLEADER
+	12216 = SOLDIER_CAMPER
+	12217 = Engineer
+	12263 = TargetPracticeDummy
+	12264 = ShootingRangeRail
+	3004 = SOLDIERSPAWNER
+	12235 = Engineer_aggressor
+	12236 = Engineer_suppressor
+	12218 = Juggernaut
+	15641 = VAC_BOT
+	13000 = SentryGun
+	13005 = Zombie_Grunt
+	13008 = Zombie_Ranged
+	13010 = Zombie_Tank
+	//13011 = ArmoredRifleman
+	9991 = Sieger
+	2188 = GwynMachine
+	13009 = SentryGunAlien
+	13007 = Gunner
+	12219 = CrawlerMine
+	12223 = Enforcer
+	12224 = ENFORCER_DEFENDER
+	12225 = ENFORCER_AGGRESSOR
+	12227 = Airdrone
+	12238 = Sniper
+	12239 = EnemyMine
+	12240 = Sawdrone
+	12244 = PLASMATROOPER
+	12245 = PLASMATROOPER_AGGRESSOR
+	12246 = PLASMATROOPER_DEFENDER
+	12247 = PLASMATROOPER_ATTACKER
+	12248 = PLASMATROOPER_STRAFER
+	15632 = ISAAC
+	15633 = SentryGunBaseFriendly
+	15634 = SentryGunBaseRocketMounted
+	15635 = SentryGunBasePlayerLocked
+	15636 = ISAAC_HEAD
+	15637 = ISAAC_BEHEADEDBODY
+	// DECORATIONS
+	229 = BRICK_FULL
+	230 = BRICK_PIECE_1
+	231 = BRICK_PIECE_2
+	232 = CITYBRICK
+	263 = Shadow_shape_1
+	264 = Dart
+	275 = AlienCorpseSpawner
+	278 = CivilianCarDestroyed
+	279 = CivilianCarB_DESTROYED
+	260 = SELACOCRAFT_GRASS
+	375 = FBF_LABEL
+	918 = Palette
+	919 = Jukebox
+	920 = WOODSPEAKER
+	921 = BODYBAG
+	1941 = plantPainting
+	1942 = GWYN_SIMP
+	5431 = Toilet
+	5464 = Toolbox_drawer_standalone
+	5465 = CivilianCar
+	5466 = TechPlatform
+	5467 = Vehicle_truck
+	5470 = CivilianCarB
+	5468 = BookMedium
+	5469 = BookSmall
+	5471 = BookMediumDawnApartment
+	5476 = Scissors
+	5477 = COMB_A
+	5478 = COMB_B
+	5479 = CurlingIron
+	5480 = Hairclipper
+	5481 = HairDryer
+	5482 = BunHolder
+	5560 = VOXELDOORKICKABLEHIGHVELOCITY
+	6425 = Pasteboard
+	22217 = koala
+	2543 = Microwave
+	2544 = Paperdispenser
+	2260 = faucet_BLUE
+	2261 = Faucet_hybrid
+	2262 = circuitboardDecoration
+	2275 = CITYBACKGROUND
+	2276 = ScorchMarkFloorPermanent
+	1939 = WallPaintingSpawner
+	2151 = NailgunTracerDecoration
+	2219 = FryingPan
+	2220 = KnifeBig
+	2221 = KnifeMedium
+	2222 = KnifeSmall
+	2223 = Spetula
+	2224 = CuttingPlankBlue
+	2225 = CuttingPlankPurple
+	2226 = Cleaver
+	2227 = Metalpot	
+	2235 = WIREROLLWHEEL
+	2236 = WIREROLLWHEEL_EMPTY
+	2237 = WIREROLL_WIRE_PICKUPABLE
+	2238 = WIREROLLWHEEL_BIG
+	2253 = Saw
+	2254 = COPPERWIRE
+	2255 = DRILL
+	2256 = HAMMER
+	2257 = PLIER
+	2258 = SCREWDRIVER_A
+	2259 = SCREWDRIVER_C
+	2265 = SCREWDRIVER_B
+	2266 = SOLDERING_IRON
+	2267 = WRENCH
+	2268 = WRENCH_2
+	2269 = MULTIFUNCTIONMETER_A
+	2270 = MULTIFUNCTIONMETER_B
+	2271 = BIOANALYSER_MACHINE
+	2272 = TOWEL_FLAT
+	2273 = TOWEL_ROLLED
+	2274 = TOWEL_HANGING
+	2280 = TOWEL_FLAT_MESSY
+	2285 = Donut
+	2286 = PAPERBINDER_LARGE
+	2287 = PAPERBINDER_MEDIUM
+	2288 = PAPERBINDER_SMALL
+	2289 = PAPERBINDER_LARGE_STANDING
+	2290 = PAPERBINDER_MEDIUM_STANDING
+	2291 = PAPERBINDER_SMALL_STANDING
+	2279 = TOWEL_HOOK
+	2281 = Teddy11
+	3542 = GlassShardsDecal
+	5444 = PaperDecal
+	3575 = WaterFoamSpawnerRadius
+	3576 = BubbleEmitter
+	3544 = CHEMICAL_ACID
+	3545 = CHEMICAL_OIL
+	3546 = CHEMICAL_NAOH
+	3547 = CHEMICAL_SAFELAB
+	3548 = CHEMICAL_GREEN
+	3560 = CHEMICAL_WHITE
+	3550 = CHEMICAL_PINK
+	3551 = CHEMICAL_RED
+	3552 = CHEMICAL_FREEZAH
+	3553 = CHEMICAL_3_GREEN
+	3554 = CHEMICAL_GLO
+	3555 = CHEMICAL_4_GREEN
+	3563 = CHEMICAL_4_BLUE
+	3556 = CHEMICAL_5_CHLORIDE
+	3557 = CHEMICAL_5_GREEN
+	3558 = CHEMICAL_5_OIL
+	3559 = CHEMICAL_5_RATAWAY
+	3561 = WHITEBOARD
+	3562 = HOLOKEYBOARDPROJECTOR
+	3564 = GOTE_HOLOGRAM
+	3565 = AOS_SPEAKER
+	2282 = NeonSignHeart
+	5515 = LABPOSTER1
+	5516 = LABPOSTER2
+	5517 = LABPOSTER3
+	5518 = LABPOSTER4
+	5527 = LABPOSTER5
+	5528 = LABPOSTER6
+	5529 = LABPOSTER7
+	5530 = LABPOSTER8
+	5531 = LIPSTICK_DRAWING
+	5532 = CEILING_NOTE
+	5523 = LABPOSTER9
+	5524 = LABPOSTER10
+	5525 = LABPOSTER11
+	5526 = LABPOSTER12
+	5533 = BAND_POSTER1
+	5534 = SCATTEREDBLUEPRINTS
+	5535 = BLUEPRINTS_MECH
+	5548 = JONATHAN_PHOTO 
+	5563 = CANNEDFOOD
+	5564 = PropaneTank
+	5565 = CANNEDFOOD_FLAT
+	5566 = FORSALE_SIGN
+	5342 = ToiletPaper
+	5343 = KitchenRoll
+	6324 = Broom_Blue
+	6325 = Broom_Green
+	6326 = Bucket
+	223 = WaterCooler
+	12398 = Pushpinboard
+	6321 = BrokenComputerScreen
+	6328 = BAG_BASE
+	1940 = PaintingSkewed
+	13203 = OfficeChair
+	13209 = OfficeChair2
+	11726 = OfficeChair_Damaged
+	11107 = BabyDecoration1
+	11108 = BabyDecoration2
+	11109 = BabyDecoration3
+	5447 = ClothingDecal
+	5449 = ClutterSpawner
+	5450 = Mannequin
+	14301 = CameraNew
+	11110 = EMPLOYEEDOG
+	11112 = PaintBucket
+	11113 = PaintBucketSide
+	11114 = SnowDecal
+	9496 = FamiliyPortrait1
+	9497 = FamiliyPortrait2
+	9498 = FamiliyPortrait3
+	9499 = FamiliyPortrait4
+	9503 = FamiliyPortrait5
+	9504 = FamiliyPortrait6
+	9505 = FamiliyPortrait7
+	9506 = FamiliyPortrait8
+	9565 = FluorescentLightBlue
+	3288 = Sandwich_Bitten
+	3284 = Hotdog_Mostard
+	22210 = teddybear
+	22218 = Wilson
+	21300 = DrawingGenerator
+	23000 = AIRCO_PIECE_1
+	23001 = AIRCO_PIECE_2
+	23002 = AIRCO_PIECE_3
+	23003 = AIRCO_PIECE_4
+	23004 = AIRCO_PIECE_5
+	23005 = WIRE_PIECE_1
+	23006 = WIRE_PIECE_2
+	23007 = WIRE_PIECE_3
+	23008 = WIRE_PIECE_4
+	23009 = WIRE_PIECE_5
+	23010 = WIRE_PIECE_6
+	23011 = WIRE_PIECE_7
+	23012 = WIRE_PIECE_8
+	23013 = METALBEAM_PIECE_1
+	23014 = METALBEAM_PIECE_2
+	23015 = METALBEAM_PIECE_3
+	23016 = METALBEAM_PIECE_4
+	23017 = METALBEAM_PIECE_5
+	23018 = METALBEAM_PIECE_6
+	23019 = METALBEAM_PIECE_7
+	23020 = FOAM_PIECE_1
+	23021 = FOAM_PIECE_2
+	23022 = FOAM_PIECE_3
+	23023 = FOAM_PIECE_4
+	23024 = FOAM_PIECE_5
+	23025 = FOAM_PIECE_6
+	4655 = OldPlanetFeasts_menu_small
+	5321 = CardboardBasev2
+	5322 = GENERICBOX_PINK_A
+	5323 = GENERICBOX_PINK_B
+	5324 = GENERICBOX_SQUARE_A
+	5325 = GENERICBOX_SQUARE_B
+	5326 = GENERICBOX_SQUARE_C
+	5327 = GENERICBOX_YELLOW_A
+	5328 = GENERICBOX_YELLOW_B
+	5329 = GENERICBOX_YELLOWTALL_A
+	5330 = GENERICBOX_YELLOWTALL_B
+	1800 = HoneyCombCase_Orange
+	1801 = HoneyCombCase_Blue
+	1802 = HoneyCombCase_Red
+	1803 = HoneyCombCase_Green
+	1978 = SPACEBRO_CABINET
+	12839 = WrongOrder
+	3549 = PickNickBench
+	1539 = Trashbag
+	1540 = TrashbagWhite
+	11727 = LightCubeOn
+	22216 = Teddy11Larger
+	1276 = WineBottle
+	3283 = Hotdog_Ketchup
+	13210 = FireActor
+	13211 = MEGAFIRE
+	12399 = DoorMarker
+	16272 = WineGlass
+	16273 = DrinkingGlass
+	16274 = GenericCorkBottle
+	3285 = Burger1
+	3286 = Burger1_bitten
+	3600 = WATERBOTTLE
+	3601 = WATERBOTTLE_DRANK
+	3039 = SOLDIER
+	5448 = EarthMemorialFlyers
+	5500 = TEA_BAG_DROPPED
+	5501 = TEA_BAG_STRAIGHT
+	5502 = TEA_BAG_CLUTTERED
+	5503 = BaronOfGel
+	5504 = GaiaPerfume
+	5505 = JeanLucc
+	5506 = SELACOTRONICS_LABEL_3
+	5507 = SELACOTRONICS_LABEL_2
+	5508 = SELACOTRONICS_LABEL_1
+	5509 = DOCTOR_EYE
+	5510 = DOCTOR_ORGANS
+	5511 = DOCTOR_PAIN
+	5512 = DOCTOR_EYE_FLAT
+	5513 = ShittyOfficeReference
+	5514 = AUS_FLAG
+	5519 = PlasticCase
+	5520 = GrateModel
+	5547 = SELACOTRONICS_LABEL_4
+	5367 = Datapad_Decoration
+	5521 = Urinal
+	5522 = Plastic_case_long
+	5536 = SPACEFROG_POSTER
+	5537 = PlantPot
+	5538 = COFFEE_POSTER_1
+	5539 = COFFEE_POSTER_2
+	5540 = MetalPipes
+	5541 = MetalPipeStandalone
+	5542 = TissueBox
+	5543 = SentryGunBroken
+	5544 = TurretPartDecoration
+	5545 = Plastic_Crate
+	5546 = Paper_Bag
+	5457 = LAPTOP_BOTTOM
+	5459 = PeriodicTable
+	5460 = PeriodicTableClean
+	5461 = MankindPoster
+	5462 = Mouse
+	5463 = TOMSWOONEY
+	5472 = DAWNARMORDECORATION
+	5473 = BookClub
+	5474 = ARACHNO_POSTER_1
+	5475 = ARACHNO_POSTER_2
+	5483 = ARACHNO_POSTER_3
+	5484 = CONTROLLED_CONSTRUCTION_STICKER
+	5486 = YOGA_WINDOW
+	5489 = CLEAN_POOLCUE
+	5490 = PUNCHINGTARGET
+	12233 = DustCloudFloorPrespawn
+	12234 = DustCloudWall
+	5487 = REINFORCEDCASE
+	5488 = OldPlanetFeasts_menu
+	6430 = PERFUME_A
+	6436 = PERFUME_B
+	6432 = PERFUME_C
+	6433 = PERFUME_D
+	6434 = PERFUME_E
+	6435 = PERFUME_F
+	6465 = CITY_TRASHBIN
+	6472 = CockroachSpawner
+	6473 = DONKMONKPAINTINGSPAWNER
+	6474 = AcidContainer
+	6475 = UC36_POSTER
+	6476 = SHOTGUN_POSTER
+	6477 = NAILGUN_POSTER
+	6478 = MGL2_POSTER
+	3295 = Banana
+	15000 = fan_top
+	19924 = Dishwasher
+	19960 = ToiletCleaner
+	19961 = WindowCleaner
+	1991 = Handstation
+	1532 = 	Dirtdecal
+	6192 = GrassPatch
+	6193 = GrassPatchTall
+	6194 = GrassPatchNoRandom
+	6195 = BloodyFootprint
+	6196 = GrassCluster1
+	6197 = GrassCluster2
+	6198 = GrassCluster3
+	6199 = GrassCluster4
+	6200 = GrassCluster5
+	8533 = PaperBinEmpty
+	8534 = PaperBinFull
+	8535 = RainLine
+	8536 = RainPuddle
+	9474 = TireTrack1
+	9475 = TireTrack2
+	13102 = stool2
+	4344 = SparksLooperCustomizer
+	3280 = DroppingSparks
+	3281 = WaterLeaker
+	3294 = SparkLauncher
+	3299 = ACESECURITY_DEATH_1
+	3305 = Fly
+	3306 = ACESECURITY_DEATH_SITTER
+	3307 = AlarmClock
+	3308 = BLUEPRINT_WALL
+	3401 = CLOTHES_TORSO_1
+	3402 = CLOTHES_TORSO_2
+	3403 = CLOTHES_TORSO_3
+	3404 = CLOTHES_TORSO_4
+	3405 = CLOTHES_TORSO_5
+	3406 = CLOTHES_TORSO_6
+	3407 = CLOTHES_TORSO_7
+	3408 = CLOTHES_TORSO_8
+	3409 = CLOTHES_TORSO_2B
+	3410 = CLOTHES_TROLLEY
+	3411 = CLOTH_HANGER
+	3412 = CLOTH_HANGER_LAYING
+	3413 = Shoe_1
+	3414 = CLOTHES_TROLLEY_PINK
+	13085 = Bottle1
+	3453 = Banana_peel
+
+	//3286 = APPLE_ORANGE_FULL
+	3293 = APPLE_ORANGE_BIT
+	3292 = APPLE_RED_BIT
+	3290 = APPLE_RED_FULL
+	3291 = APPLE_GREEN_FULL
+	3287 = FoodPlate_future
+	3232 = Foodplate_Future_PLUTO
+	3296 = PizzaBoxClosed
+	2277 = Toolbox
+	3297 = Chococake
+	6490 = CoffeePot
+	6491 = TeaPot
+	5312 = Sodacan
+	5313 = BunnyHopper
+	7500 = Balloon_GetWellSoon
+	7501 = Balloon_1up
+	7502 = Balloon_basic_blue
+	22201 = Keyboard
+	1504 = GibbedHuman
+	1503 = SuperGibbedHuman
+	1505 = CivilianCorpseSpawner
+	23234 = FlareStickdecoration
+	7503 = Balloon_basic_red
+	7504 = Balloon_basic_grey
+	7505 = Balloon_basic_green
+	7506 = Balloon_basic_pink
+	7507 = Balloon_heart
+	7508 = RandomBalloon
+	7509 = LilyPad_Big
+	7669 = ARCADE_CABINET
+	7670 = LABEQUIPMENT_1
+	7671 = LABEQUIPMENT_2
+	7672 = LABEQUIPMENT_3
+	7673 = LABEQUIPMENT_4
+	7674 = LABEQUIPMENT_5
+	7675 = LABEQUIPMENT_6
+	7676 = LABEQUIPMENT_7
+	7677 = LABEQUIPMENT_8
+	7678 = LABEQUIPMENT_9
+	7679 = LABEQUIPMENT_10
+	7680 = LETTERBLOCK_SMALL
+	7681 = LETTERBLOCK_LARGE
+	7682 = NUMBERBLOCK_1
+	7683 = NUMBERBLOCK_2
+	7684 = NUMBERBLOCK_3
+	7685 = NUMBERBLOCK_4
+	7686 = NUMBERBLOCK_4
+	7690 = MAGAZINE_STARLIGHT
+	7691 = TREE_1
+	7692 = OFFICEPRINTER
+	7693 = CoffeeCup
+	7694 = AmmoMagazine_Decoration
+	7695 = AmmoMagazine_stacked_Decoration
+	7696 = TREE_STUMP
+	7697 = LEAVES_FALLEN
+	3338 = Partyhat
+	7510 = LilyPad_small
+	26687 = Salt
+	26688 = Pepper
+	8532 = TrashBin_close
+	13225 = WireDecoration1
+	2213 = PaperStack
+	22200 = MUG_BASEv2
+	22199 = CupMTea
+	2936 = MagazineSpawner
+	2940 = MAGAZINE_DAWNTagged
+	2941 = MAGAZINE_EARTH
+	2942 = MAGAZINE_BOXERSOFEARTH
+	2943 = FIREHYDRANT
+	2944 = ROTATING_STAND_FEET
+	11088 = YellowLightShaft
+	11011 = LIGHTSHAFTBLUE
+	11249 = LightShaftCustomizer
+	22212 = PlasticChair_Undamaged
+	22213 = PlasticChair_damaged
+	22214 = PlasticChair_yellow_Undamaged
+	22220 = PlasticChair_brown
+	22221 = PlasticChair_Teal
+	12275 = ComputerMonitor
+	12276 = ComputerMonitor_A
+	12277 = ComputerMonitor_A_OFF
+	12278 = ComputerMonitor_B
+	12279 = ComputerMonitor_B_OFF
+	19921 = PaintDecalWhite
+	12280 = ComputerMonitor_A2
+	12281 = ComputerMonitor_A2_OFF 
+	12282 = ComputerMonitor_B2
+	12283 = FRUITFUL_COMPUTER
+	12284 = FRUITFUL_BOX
+	12285 = PHILD_BOX
+	13213 = SmallerPlant
+	13223 = SmallestPlant
+	11321 = BushSmall
+	13215 = plant10
+	13216 = plant11
+	11123 = Bush
+	11124 = Plant3
+	13263 = Plant4
+	11125 = Plant5
+	19920 = GWYN_BOTTLE
+	4338 = ShutterWindow1
+	4332 = Debugger
+	4333 = TornadoSpray
+	4642 = PaintBrush
+	4648 = DEMOLITIONCHARGE
+	4649 = DEMOLITIONCHARGE_PICKUP
+	4650 = GamePad_BurgerFlipper
+	4651 = MineralExpoFlyer
+	4652 = EARTH_MEMORIALDAY_FLYER
+	4653 = EARTH_MEMORIALDAY_FLYER_2
+	4654 = ColorfulCureFlyer
+	22215 = Comfychair
+	22219 = StarlightChair
+	23210 = StarlightHubCeiling
+	23211 = debrisSpawner
+	32111 = FliesSpawner
+	32112 = RainBoxLarge
+	32113 = RainBoxMedium
+	32114 = RainBoxSmall
+	32115 = RainRectLarge
+	32116 = RainRectMedium
+	32117 = RainRectSmall
+	32118 = RainRect192
+	32119 = RainBlobSmall
+	32120 = RainBlobTiny
+	32121 = NapkinWhite
+	32122 = LED_Container_Small
+	32123 = LED_Container_Medium
+	32124 = LED_Container_Large
+	32125 = LED_Container_Large_RED
+	4643 = WaterFoamEmitter
+	4644 = Steelcontainer_A_BLUE
+	4645 = SteelContainer_B_BLUE
+	4646 = Steelcontainer_A_ORANGE
+	4647 = Steelcontainer_B_ORANGE
+	
+	// GAMEPLAY DECORATIONS
+	1275 = Beer
+	1277 = MedStation
+	1281 = EmptyBeer
+	1283 = BottleCap
+	1227 = VACBOT_Recharging
+	1228 = VACBOT_Scared
+	6914 = Cueball
+	6913 = Poolball
+	6915 = PoolNet
+	6916 = Poolgame
+	6917 = Funball
+	6918 = FunballNet
+	6467 = Poolcue
+	1235 = barbell_heavy
+	1236 = BARBELL_MEDIUM
+	1237 = BARBELL_SMALL_HEAVY
+	1238 = BARBELL_SMALL_LIGHT
+	1239 = WEIGHT_HEAVY
+	1240 = WEIGHT_LIGHT
+	1241 = JumpRope
+	1242 = KETTLEBELL
+	1243 = FOAMROLLER
+	1244 = FOAMROLLER_SIDEWAYS
+	1255 = FBF_DOORAMBUSH
+	1256 = DOOR_KNOCKOVER
+ 	3312 = TechModuleSign_2
+	3313 = TechModuleSign_3
+	22054 = YellowBarrel
+	22202 = Keyboardgreen
+	2437 = JunctionBox
+	2563 = Generator
+	2531 = BUTTON_GREEN
+	2532 = BUTTON_PURPLE
+	2533 = BUTTON_GREEN_SHOOTABLE
+	2534 = BUTTON_HANDPRINT
+	2539 = BreachingCharge
+	2540 = HEAVYCRATE
+	2542 = PowerCell
+	2560 = SaferoomMarker
+	3298 = pluto_fries
+	3289 = fries
+	3300 = POPCORN_FULL
+	3301 = POPCORN_EATEN
+	3302 = POPCORN_EMPTY
+	3303 = FOAM_TANK
+	3304 = WaterMelon
+	10506 = CrateObjectBoobytrap
+	10499 = CrateObjectSmall
+	10498 = CrateObjectMedium
+	10497 = CrateObjectLarge
+	11497 = CrateObjectAmmo
+	11498 = CrateObjectArmor
+	10500 = CryoBarrel
+	10505 = VALVE_DESTRUCTIBLE
+	10411 = VendingMachine
+	10533 = metalbar
+	15299 = DETONATOR
+	14219 = Valve
+	12378 = fireEx
+	10501 = AcidBarrel
+	10502 = SelacoExplosivebarrel
+	10504 = explosivePlant
+	10503 = HeavyBarrel
+	10509 = Jonathan
+	4331 = WetFloorSign
+	11666 = ItemChest
+	11667 = FBFElevatorPanel
+	11668 = HockeyBumper
+	11669 = HockeyPuck
+	11670 = HockeyGoal
+
+	// LOGIC
+	654 = BlackSmokeLauncher
+	22222 = RJSkyViewpoint
+	14459 = WallDestroyer
+	14464 = WallDestroyerCrackedCeiling
+	14458 = WallDestroyerCracked
+	11490 = WallDestroyerCrackedYellow
+	11569 = WallDestroyerRailgun
+	12326 = ExplosiveTarget
+	12328 = Padlock
+	14865 = SetSoundScape
+	4391  = SWITCH1
+	4392  = SWITCH2
+	21116 = DamageTrigger
+	3311 = RadiusTrigger
+	2189 = StorageCabinet
+	1200 = LOCKEDExitMarker
+	1220 = UNLOCKEDExitMarker
+	1225 = LevelSwitchIcon
+	1282 = LOCKEDDOOR
+	1254 = SecurityMarker
+	22113 = KeypadIcon
+	22114 = Ladder
+	22115 = FenceLadder
+	1279 = Keypad
+	1280 = DawnLevelTransitioner
+	8901 = PatreonDoodleSpawner
+	8902 = OfficialDoodleSpawner
+	
+	// Weapons	
+	5010  = RIFLE_PICKUP
+	5012  = RIFLE_PICKUP_STATIONARY
+	2001  = SHOTGUN_PICKUP
+	12327 = ROARINGCRICKET_PICKUP
+	13206 = GRENADELAUNCHER_PICKUP
+	13205 = Nailgun_pickup
+	13204 = RAILGUN_PICKUP
+	5011  = SMG_PICKUP
+	13228 = MARKSMANRIFLE_PICKUP
+	5013  = PLASMARIFLE_PICKUP
+	5016 = RIFLE_PICKUPv2
+	// ITEMS
+	2566 = CreditsbagLarge
+	2567 = CreditsbagSmall
+	2570 = CreditsbagMedium
+	2568 = GrenadeBandolier
+	2569 = MedicalSatchel
+	19392 = CommonArmor
+	16542 = ProteinShake
+	12220 = WeaponPartPickup
+	2333 = GoldenKeyActor
+	16099 = CabinetCard
+	12412 = RareArmor
+	12452 = EpicArmor
+	13332 = TradingCard
+	18953 = LegendaryArmor
+	5959 = SecurityCard
+	22211 = ArmorShardPickup
+	29793 = OMNI_PURPLECARD_PICKUP
+	29794 = OMNI_BLUECARD_PICKUP
+	29791 = OMNI_YELLOWCARD_PICKUP
+	29795 = STARLIGHT_COLORKEY_RED
+	29796 = STARLIGHT_COLORKEY_GREEN
+	29797 = STARLIGHT_COLORKEY_PURPLE
+	29798 = STARLIGHT_COLORKEY_BLUE
+	29799 = STARLIGHT_EMPLOYEE_PASS
+	8329  = StretchBed
+	8336  = medicalequipment2
+	8335  = medicalequipment1
+	13122 = Datapad
+	13090 = HealthUpgrade
+	8331  = StretchBedSide
+	8330  = BloodBagStand
+	8332 = BloodStandalone
+	2011  = Stimpack
+	8886  = Medkit
+	16070 = PortableMedkit
+	7431  = HealthShardPickup
+    14099 = Credits
+	15942 = CreditsFlat
+	14475 = WeaponCapacityKit
+	14478 = WeaponCapacityKit_UC36
+	14477 = WeaponCapacityKit_Shotgun
+	14476 = WeaponCapacityKit_Roaring
+	6421 = UltraHealth
+	23336 = RESUPPLYKIT
+	922 = WeaponKit
+	6464 = TechModule
+	6466 = GASMASK_PICKUP
+
+	// AMMO
+	12222 = AmmoMachinegunMedium
+	12243 = AmmoMachinegunLarge
+	12127 = AmmoCricketMedium
+	12128 = AmmoCricketLarge
+	6428 = 	AmmoEnergyLarge
+	16332 = AmmoShotgunLarge
+	15331 = AmmoShotgunMedium
+	15330 = AmmoShotgunSmall
+	23331 = Handgrenade
+	13200 = AmmoGrenadeLauncherFrag
+	13201 = AmmoGrenadeLauncherIce
+	13202 = AmmoGrenadeLauncherAcid
+	13214 = AmmoSniperMedium
+	23169 = MineAmmoPickupLarge
+	23170 = MineAmmoPickupSmall
+	12286 = AmmoNailgunMedium
+	6427  = AmmoEnergySmall
+	6429 = AmmoRailgunMedium
+	6437 = AmmoRailgunSmall
+	19324 = IceGrenade
+
+	// BUILDINGS / city
+		14431 = BUILDING_1
+		14432 = BUILDING_2
+		14433 = BUILDING_3
+		14434 = BUILDING_4
+		14435 = BUILDING_5
+		14436 = BUILDING_6
+		14437 = BUILDING_7
+		14438 = BUILDING_8
+		14439 = BUILDING_9
+		14440 = BUILDING_10
+		14441 = BUILDING_11
+		14442 = BUILDING_12
+		14443 = BUILDING_13
+		14444 = BUILDING_14
+		14445 = BUILDING_15
+		14446 = BUILDING_16
+		14447 = BUILDING_17
+		14448 = BUILDING_18
+		14449 = BUILDING_19
+		14450 = BUILDING_20
+		14451 = BUILDING_21
+		14452 = BUILDING_22
+		14453 = BUILDING_23
+		14454 = BUILDING_24
+		14455 = BUILDING_25
+		14456 = BUILDING_26
+		14457 = LIGHTPOLE
+		14460 = ADVERTISEMENTFRAME
+		14461 = HORIZONTAL_LIGHT_BAR
+		14468 = BROKENBUILDING_1
+
+}

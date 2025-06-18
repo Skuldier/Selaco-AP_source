@@ -1,0 +1,279 @@
+class DoorMarker : SELACOACTOR
+{
+  int markerFrame; 
+  int automapIcon; // The icon to create on the automap. Use script AutomapAdded in ACS for reference.
+  string markerIcon;
+  bool hasSeenPlayer;
+  string unlockIcon;
+  override void BeginPlay() {
+      if (args[0] == 0) {
+            markerFrame = 2;
+            markerIcon = "PURPLEDOORMARKER";
+            automapIcon = 1;
+            UnlockIcon = "PurpleDoorUnlocked";
+      }
+      if (args[0] == 1) {
+            markerFrame = 0;
+            markerIcon = "YELLOWDOORMARKER";
+            automapIcon = 2;
+            UnlockIcon = " ";
+      }
+      if (args[0] == 2) {
+            markerFrame = 1;
+            markerIcon = "BLUEDOORMARKER";
+            UnlockIcon = "BlueDoorUnlocked";
+            automapIcon = 0;
+      }
+      if (args[0] == 3) {
+            markerFrame = 5;
+            markerIcon = "level1marker";
+            automapIcon = 7;
+      }
+      if (args[0] == 4) {
+            markerFrame = 6;
+            markerIcon = "level2marker";
+            automapIcon = 8;
+      }
+      if (args[0] == 5) {
+            markerFrame = 7;
+            markerIcon = "level3marker";
+            automapIcon = 9;
+      }
+      if (args[0] == 6) {
+            markerFrame = 8;
+            markerIcon = "level4marker";
+            automapIcon = 10;
+      }
+      if (args[0] == 7) {
+            markerFrame = 9;
+            markerIcon = "level5marker";
+            automapIcon = 11;
+      }
+      if (args[0] == 8) {
+            markerFrame = 10;
+            markerIcon = "level6marker";
+            automapIcon = 12;
+      }
+      if (args[0] == 9) {
+            markerFrame = 3;
+            bUseSpecial = false;
+      }  
+      if (args[0] == 10) {
+            bUseSpecial = false;
+            markerFrame = 4;
+      }       
+      if (args[0] == 11) {
+            args[3] = true; 
+            bUseSpecial = false;
+            markerFrame = 11;
+      }     
+      // DEMO LOCK
+      if (args[0] == 12) {
+            bUseSpecial = false;
+            markerFrame = 12;
+      }   
+  }
+
+  default {
+    +NoBlockMap;
+    +NoGravity;
+    +DontSplash;
+    +FORCEXYBILLBOARD;
+    +WALLSPRITE;
+    +CLIENTSIDEONLY;
+    +THRUACTORS;
+    +FLOORHUGGER;
+    +GHOST;
+    +THRUGHOST;
+    SelacoActor.SleepDistance 0;
+    Height 5;
+    Radius 5;
+    Mass 100;
+    RenderStyle "Translucent";
+    ALPHA 0.3;
+    Speed 1;
+    Scale 0.19;
+  }
+  States
+  {
+	  Spawn:
+		LOCK C 1;
+		TNT1 A 0 A_TakeInventory("LockedDoorNeverSeenPlayer", 1);
+        Looper:
+            LOCK A 1 BRIGHT {
+                 frame = markerFrame; 
+                 alpha = 1.0;
+                 if(args[3] == false) {
+                   setStateLabel("Blinking");
+                 }
+            }
+            loop;
+	  Blinking:
+		TNT1 A 0 A_JumpIfInventory("LockedDoorNeverSeenPlayer", 1, "BlinkingButSeen");
+		TNT1 A 0 A_LOOKEX(LOF_NOSOUNDCHECK, 0, 1000, 1000, 360, "BlinkingButSeen");
+		LOCK AAAAAAAAA 1 BRIGHT {
+                  frame = markerFrame;
+                  A_FadeIN(0.1,FTF_CLAMP);
+            }
+                  LOCK AAAA 5 BRIGHT  {
+                  frame = markerFrame;
+            }
+                  LOCK AAAAAAAAA 1 BRIGHT   {
+                  frame = markerFrame;
+                  A_FadeOut(0.1,FTF_CLAMP);
+            }
+		TNT1 AAAAA 2 A_LOOKEX(LOF_NOSOUNDCHECK, 0, 1000, 1000, 360, "BlinkingButSeen");
+		loop;
+      NoPower:
+		TNT1 A 0;
+		TNT1 A 5;
+		LOCK LLLLLLLLLL 1 BRIGHT A_FADEIN(0.1,FTF_CLAMP );
+		LOCK L 30 BRIGHT;
+		LOCK LLLLLLLLLL 1 BRIGHT A_FadeOut(0.1, FTF_CLAMP );
+		goto Blinking;
+	BlinkingButSeen:
+		TNT1 A 0    A_JumpIfInventory("LockedDoorNeverSeenPlayer", 1, 2);  
+            TNT1 A 0 {
+                  if(!hasSeenPlayer)  {
+                       ACS_ExecuteWithResult(args[2], 0); 
+                  }
+            }
+            TNT1 A 0 {
+                  if(args[0] <= 8 && args[1] == false && !hasSeenPlayer) {
+                        ACS_NamedExecuteWithResult("AutomapAdded", invoker.automapIcon, invoker.automapIcon);
+                  }
+                  hasSeenPlayer = true;
+            }
+            TNT1 A 0 A_GiveInventory("LockedDoorNeverSeenPlayer", 1);
+            TNT1 A 0 {
+                  if(args[1] == false) {
+                     A_SpawnItemEx(markerIcon);   
+                  }
+            }
+		LOCK AAAAAAAAA 1 BRIGHT {
+                  frame = markerFrame;
+                  A_FadeIN(0.1,FTF_CLAMP);
+            }
+            LOCK AAAA 5 BRIGHT  {
+                  frame = markerFrame;
+            }
+            LOCK AAAAAAAAA 1 BRIGHT   {
+                  frame = markerFrame;
+                  A_FadeOut(0.1,FTF_CLAMP);
+            }
+            TNT1 A 10;
+            loop;
+	  Unlock:
+            TNT1 A 0 A_SpawnItemEx(UnlockIcon);
+		TNT1 A 5;
+		UNLO A 10 BRIGHT A_SetTranslucent(0.75, 0);
+            TNT1 A 0
+            {
+                  if(markerFrame <= 4)
+                  {
+                        Notification.Subtitle("$CHARACTER_AOS", "$ACCESS_GRANTED", 3.0);
+                        A_PLAYSOUND("VO/AOS/ACCESSGRANTED", CHAN_6, 1.0);
+                  }
+                  else
+                  {
+				Notification.Subtitle("$CHARACTER_AOS", "$AOS_SECURITYCLEARANCE_ACCEPTED", 3.0);
+				A_PlaySound("VO/AOS/CLEARANCE/GRANTED", chan_voice);
+                  }
+            }
+		UNLO ABCDEF 2 BRIGHT;
+		UNLO GHIJK 2 BRIGHT A_FADEOUT(0.12, FTF_CLAMP);
+		stop;
+	  Locked:
+		TNT1 A 0;
+		TNT1 A 5;
+		LOCK NNNNNNNNN 1 BRIGHT A_FADEIN(0.1,FTF_CLAMP );
+            TNT1 A 0
+            {
+                  if(markerFrame <= 4)
+                  {
+                        Notification.Subtitle("$CHARACTER_AOS", "$ACCESS_DENIED", 3.0);
+                        A_PLAYSOUND("VO/AOS/ACCESSDENIED", CHAN_6, 1.0);
+                  }
+                  else
+                  {
+                        Notification.Subtitle("$CHARACTER_AOS", "$AOS_SECURITYCLEARANCE_REJECTED", 3.0);
+                        A_PlaySound("VO/AOS/CLEARANCE/DENIED", chan_voice);
+                  }
+            }
+		LOCK N 30 BRIGHT;
+		LOCK NNNNNNNNN 1 BRIGHT A_FadeOut(0.1, FTF_CLAMP );
+		goto Blinking;
+	}
+ }
+
+class TechModuleSign_2 : SelacoActor
+{
+      // Replace door sign with an open one
+      void repaintDoor()
+      {
+            FLineTraceData RemoteRay;
+            LineTrace(angle-180, 60, 0, flags: TRF_THRUACTORS, data: RemoteRay);
+            if(RemoteRay.HitLine)
+            {
+                  line l = RemoteRay.Hitline;
+                  TextureID doorTex = TexMan.CheckForTexture("DRSAFE1A");
+                  l.sidedef[1].SetTexture(side.top, doorTex);
+                  l.sidedef[0].SetTexture(side.top, doorTex);
+            }
+            else
+            {
+                  console.printf("\c[red]TECHMODULE SIGN WARNING: Safe Room door texture not found. Let a developer know before the game explodes!\c-");
+            }
+            destroy();
+      }
+      default
+      {
+            +NOINTERACTION
+            scale 0.47;
+            +WALLSPRITE
+            SelfLighting "FFFFFF";
+            SelacoActor.sleepDistance 1024;
+      }
+      states
+      {
+            Spawn:
+                  TNT1 A 0;
+            Looper:
+                  TNT1 A 0 
+                  {
+
+                        if(players[consolePlayer].mo. countinv("WorkshopTierItem") >= 2)
+                        {
+                             repaintDoor();
+                        }
+                  }
+                  TECH AAAAAAAAAAAAAA 1 A_FADEOUT(0.05, FTF_CLAMP ); // Fade to invisible
+                  TECH A 15; // Wait while invisible
+                  TECH AAAAAAAAAAAAAA 1 A_FADEIN(0.05, FTF_CLAMP ); // Fade to opague
+                  TECH A 15;
+                  loop;
+      }
+}
+
+class TechModuleSign_3 : TechModuleSign_2
+{
+      states
+      {
+           Spawn:
+                  TNT1 A 0;
+            Looper:
+                  TNT1 A 0 
+                  {
+
+                        if(players[consolePlayer].mo. countinv("WorkshopTierItem") >= 3)
+                        {
+                             destroy();
+                        }
+                  }
+                  TECH BBBBBBBBBBBBBB 1 A_FADEOUT(0.05, FTF_CLAMP ); // Fade to invisible
+                  TECH B 15; // Wait while invisible
+                  TECH BBBBBBBBBBBBBB 1 A_FADEIN(0.05, FTF_CLAMP ); // Fade to opague
+                  TECH B 15;
+                  loop;
+      }
+}

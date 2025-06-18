@@ -1,0 +1,475 @@
+Actor Calender : Pushpinboard 6431
+{
+	//$Category SelacoDecorations
+	tag "Calender"
+	scale 0.12
+	radius 8
+	mass 100
+	height 25
+	maxStepHeight 1
+	health 30
+	BloodType ""
+	SelfLighting "2d6296"
+	-solid
+	+DONTTHRUST
+	-Usespecial
+	activation THINGSPEC_DEFAULT
+	+WALLSPRITE
+	-SELACOACTOR.SleepWhenIdle		// This guy is animated, don't sleep when idle
+	+SELACOACTOR.WakeNearPlayer
+
+	states
+	{
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_RECOIL(50)
+			CALE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABCDE 3
+			loop
+		PAIN:
+			TNT1 A 0 A_ChangeFlag("NOGRAVITY", 1)
+			TNT1 A 0 A_playSound("dest/glassm")
+			TNT1 AAAAAAAAAAAAAAAAAA 0 A_SpawnProjectile("LargeGlassParticle1", random(1, 15), random(1, 9), random(-45, 45), 0, 90)
+			CALE F -1
+		Death.ExplosiveImpact:
+		Death.Shotgun:
+		Death: 
+			TNT1 AAAAAAAAAAAAAAAAAAAAA 0 A_SpawnProjectile("LargeGlassParticle1", frandom(-22, 22), random(1, 9), random(-45, 45), 0, 90)
+			TNT1 A 0 A_playSound("dest/glassm")
+			TNT1 A 0 A_CHANGEFLAG("NoGravity", 0)
+            CALE F 0
+			Stop
+		}
+}
+
+// All the drawings here are drawn by our Patrons. Thank you all for being a part of this journey <3
+Actor Drawing1 : PatreonDoodle 6111
+{
+	-SOLID
+	+NOPAIN
+	height 18
+	mass 100
+	height 25
+	SelfLighting ""
+	maxStepHeight 1
+	health 10
+	alpha 0.5
+	mass 10
+    tag "Drawing1"
+	scale 1
+	deathsound "dest/paper"
+	Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP"
+	
+	// Override calendars no-sleep behaviour as we are not animated
+	-SELACOACTOR.WakeNearPlayer
+    +SELACOACTOR.SleepWhenIdle
+
+	states
+	{
+		Precache:
+			DRAW B 0
+			stop
+		Spawn:
+			DRAW B 0
+			TNT1 A 0 A_RECOIL(3)
+			TNT1 A 0 {
+				A_SETROLL(random(-2,2));
+			}
+			TNT1 A 0 {
+				if (args[1] == 1) {
+					A_SETROLL(0);
+					A_ChangeFlag("wallsprite", false);
+					A_ChangeFlag("flatsprite", true);
+				}
+			}
+			TNT1 A 0 {
+				if(args[0] == 0) {
+					
+					A_SpawnItemEx("PinSpawner", 0, frandom(-1,1), frandom(10.8,11.2));
+				}
+				SetStateLabel("DrawSprite");
+			}
+		DrawSprite:
+			DRAW B 1 SleepIndefinite()
+			stop
+		Pain.Shotgun:
+		Pain.Explosiveimpact:
+		Pain:
+		Death.ExplosiveImpact:
+		Death.Shotgun:
+		Death: 
+			TNT1 A 0 {
+				Wake();
+			}
+			TNT1 AAA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(0,50), frandom(-20,20), random(-10,10), frandom(0.3,0.6))
+			TNT1 A 0 A_PlaySound("dest/paper")
+			DRAW BBBBBBBBBBBBBBB 1 {
+				bNoInteraction = true;
+				a_fadeout(0.07);
+				A_SETSCALE(scalex+0.001, 0);
+			}
+			Stop
+	}
+}
+
+Actor Drawing2 : PatreonDoodle 6112
+{
+    tag "Drawing 2 (Galfsedras)"
+}
+
+Actor Drawing3: PatreonDoodle 6113
+{
+     tag "Drawing 3 (TempleTurkey)"
+}
+
+Actor Drawing4: PatreonDoodle 6114
+{
+     tag "Drawing 4"
+}
+
+
+Actor Drawing5: PatreonDoodle 6115
+{
+     tag "Drawing 5"
+}
+
+Actor Drawing6: PatreonDoodle 6116
+{
+     tag "Drawing 6"
+}
+
+Actor Drawing7: PatreonDoodle 6117
+{
+     tag "Drawing 7"
+}
+
+Actor Drawing8: PatreonDoodle 6118
+{
+     tag "Drawing 8"
+}
+
+Actor Drawing9: PatreonDoodle 6119
+{
+     tag "Drawing 9"
+}
+
+Actor Drawing10: PatreonDoodle 6120
+{
+     tag "Drawing 10"
+}
+
+Actor Drawing11: PatreonDoodle 6121
+{
+     tag "Drawing 11"
+}
+
+Actor Drawing12: PatreonDoodle 6122
+{
+     tag "Drawing 12"
+}
+
+Actor Drawing13: PatreonDoodle 6123
+{
+     tag "Drawing 13 (Mr. Pung Yung)"
+}
+
+Actor Drawing14: PatreonDoodle 6124
+{
+     tag "Drawing 14 (maggit)"
+}
+Actor Drawing15: PatreonDoodle 6125
+{
+     tag "Drawing 15"
+}
+Actor Drawing16: PatreonDoodle 6126
+{
+     tag "Drawing 16"
+}
+Actor Drawing17: PatreonDoodle 6127
+{
+     tag "Drawing 17"
+}
+Actor Drawing18: PatreonDoodle 6128
+{
+     tag "Drawing 18"
+}
+Actor Drawing19: PatreonDoodle 6129
+{
+     tag "Drawing 19"
+}
+
+Actor Drawing20: PatreonDoodle 6131
+{
+     tag "Drawing 20 - Arthos"
+}
+Actor Drawing21: PatreonDoodle 6132
+{
+     tag "Drawing 21 - Fixx"
+}
+Actor Drawing22: PatreonDoodle 6133
+{
+     tag "Drawing 22 - Commander Lizard"
+}
+Actor Drawing23: PatreonDoodle 6134
+{
+     tag "Drawing 23 - Fitterspace"
+}
+
+// where is drawing24????
+
+Actor Drawing25: PatreonDoodle 6136
+{
+     tag "Drawing 25 - Damien"
+}
+Actor Drawing26: PatreonDoodle 6137
+{
+     tag "Drawing 26 - MTD"
+}
+
+Actor Drawing27: PatreonDoodle 6138
+{
+//$Category SelacoDecorations
+     tag "Drawing 27 - ToneyMo"
+  	scale 0.07
+	states
+	{
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 {
+				A_SETROLL(random(-12,12));
+				//A_SpawnItemEx("PinSpawner", 0, frandom(-2,2), frandom(12,13));
+				SetStateLabel("DrawSprite");
+			}
+		DrawSprite:
+			DRAV A -1
+			stop
+	}
+}
+Actor Drawing28: PatreonDoodle 6139
+{
+     tag "Drawing 27 - Icezolation"
+}
+
+Actor Drawing29: PatreonDoodle 6140
+{
+     tag "Drawing 28 - Forever.exe"
+}
+
+Actor Drawing30: PatreonDoodle 6141
+{
+     tag "Drawing 29 - Graeme Small"
+}
+
+Actor Drawing31: PatreonDoodle 6142
+{
+     tag "Drawing 30 - KnightRiderX25"
+}
+
+Actor Drawing32: PatreonDoodle 6143
+{
+     tag "Drawing 31 - MaFrae"
+}
+Actor Drawing33: PatreonDoodle 6144
+{
+     tag "Drawing 32 - Mario-SZ"
+}
+Actor Drawing34: PatreonDoodle 6145
+{
+     tag "Drawing 33 - Mario-SZ"
+}
+Actor Drawing35: PatreonDoodle 6156
+{
+     tag "Drawing 34 - Micmash"
+}
+Actor Drawing36: PatreonDoodle 6146
+{
+     tag "Drawing 35 - PiE"
+}
+Actor Drawing37: PatreonDoodle 6147
+{
+     tag "Drawing 36 - RaidingDrongo "
+}
+Actor Drawing38: PatreonDoodle 6148
+{
+     tag "Drawing 37 - SlyBalto"
+}
+Actor Drawing39: PatreonDoodle 6149
+{
+     tag "Drawing 38 - ULTI"
+}
+Actor Drawing40: PatreonDoodle 6150
+{
+     tag "Drawing 39 - Veddy"
+}
+Actor Drawing41: PatreonDoodle 6151
+{
+     tag "Drawing 40 - Zerby"
+}
+Actor Drawing42: PatreonDoodle 6152
+{
+     tag "Drawing 41 - AWSH"
+}
+Actor Drawing43: PatreonDoodle 6153
+{
+     tag "Drawing 42 - Ben Croft"
+}
+Actor Drawing44: PatreonDoodle 6154
+{
+     tag "Drawing 43 - disseminate"
+}
+Actor Drawing45: PatreonDoodle 6155
+{
+     tag "Drawing 44 - Doom64hunter"
+}
+Actor Drawing46: PatreonDoodle 6157
+{
+     tag "Drawing 46 - Fernando López-Nuño Riera"
+}
+Actor Drawing47: PatreonDoodle 6158
+{
+     tag "Drawing 47 - PlokiteWolf"
+}
+Actor Drawing48: PatreonDoodle 6159
+{
+     tag "Drawing 48 - Sprony"
+}
+Actor Drawing49: PatreonDoodle
+{
+     tag "Drawing 49 - Vizzys"
+}
+Actor Drawing50: PatreonDoodle
+{
+     tag "Drawing 50 - JenkinsDC"
+}
+Actor Drawing51: PatreonDoodle
+{
+     tag "Drawing 51 - soppel"
+}
+Actor Drawing52: PatreonDoodle
+{
+     tag "Drawing 52 - Skullkiller"
+}
+Actor Drawing53: PatreonDoodle
+{
+     tag "Drawing 53 - Seth Johnson"
+}
+Actor Drawing54: PatreonDoodle
+{
+     tag "Drawing 54 - Sir Rune"
+}
+Actor Drawing55: PatreonDoodle
+{
+     tag "Drawing 55 - Pinefruit"
+}
+Actor Drawing56: PatreonDoodle
+{
+     tag "Drawing 56 - lugubriousmoron"
+}
+Actor Drawing57: PatreonDoodle
+{
+     tag "Drawing 57 - KaosWulf"
+}
+Actor Drawing58: PatreonDoodle
+{
+     tag "Drawing 58 - Ryne Pearson"
+}
+Actor Drawing59: PatreonDoodle
+{
+     tag "Drawing 59 - Khtugg"
+}
+Actor Drawing60: PatreonDoodle
+{
+     tag "Drawing 60 - Tom James Butcher"
+}
+Actor Drawing61: PatreonDoodle
+{
+     tag "Drawing 61 - Degonyte"
+}
+
+Actor DAWN_SQUAD: Doodle 6031
+{
+//$Category SelacoDecorations
+	+rollsprite
+	-USESPECIAL
+	activation THINGSPEC_DEFAULT
+	//xscale 0.12
+	//yscale -0.12
+	scale 0.12
+     tag "Dawn Squad"	
+	states
+	{
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_RECOIL(3)
+			TNT1 A 2
+			TNT1 A 0 {
+				if (args[1] == 1) {
+					A_SETROLL(0);
+					A_ChangeFlag("wallsprite", false);
+					A_ChangeFlag("flatsprite", true);
+				}
+			}
+			DWSQ A -1
+			stop
+	}
+}
+
+Actor medicalpaper1: Doodle 15653 {
+	scale 1.0
+	tag "$OBJECT_MEDICALPOSTER"
+	height 40
+	+rollsprite
+	states
+	{
+	Spawn:
+		VOXE L -1
+		stop
+	Death: 
+		TNT1 AAAAAAA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(0,50), frandom(-20,20), random(-15,45), frandom(0.3,0.6))
+		TNT1 A 0 A_PlaySound("dest/paper")
+		Stop
+	}
+}
+Actor medicalpaper2 : medicalpaper1 15654 {
+	scale 1.0
+	height 40
+	tag "$OBJECT_MEDICALPOSTER"
+	+rollsprite
+	states
+	{
+	Spawn:
+		VOXE L -1
+		stop
+
+	}
+}
+Actor medicalpaper3 : medicalpaper1 15655 {
+	scale 1.0
+	height 40
+	tag "$OBJECT_MEDICALPOSTER"
+	+rollsprite
+	states
+	{
+	Spawn:
+		VOXE L -1
+		stop
+
+	}
+}
+
+Actor VACBOTDrawing: Doodle 6160
+{
+//$Category SelacoDecorations
+	+rollsprite
+	+NOINTERACTION
+	scale 0.55
+	alpha 1.0
+       tag "VACBOT FIGHT poster"	
+states
+{
+	DrawSprite:
+		TNT1 A 0
+		//TNT1 A 0 A_SETPITCH(30)
+		DR1W C -1
+		stop
+}
+}

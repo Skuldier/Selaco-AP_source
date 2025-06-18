@@ -1,0 +1,13 @@
+IWad
+{
+	Name = ""
+	AutoName = "Selaco"
+	Game = "Doom"
+	Config = "Selaco"
+	Mapinfo = "mapinfo/mindefaults.txt"
+	BannerColors = "D1 D3 EB", "00 00 00"
+	StartupType = "Hexen"
+ 	SteamAppId="1592280"
+ 	DiscordAppId="956262381762261034"
+	NoKeyboardCheats
+}

@@ -1,0 +1,76 @@
+mixin class BasicTargetTracker {
+    Actor lastVisibleTarget, lastFiringTarget;
+    int targetVisibleThisFrame, firingSolutionThisFrame;        // 0 - NA , 1 - False, 2 - True
+    int targetTimeVisible, targetTimeout;                                      
+    int lofCounter;                       // Ticks we have failed to find LOF
+    double lastFiringSolutionDistance;
+    //Vector3 bestFiringSolution;         // Point on Target that we should aim for if we want to hit
+
+    // Checks for visibility, but target has to be visible for framesVisible frames before we consider fully visible
+    bool isTargetVisible(int framesVisible = 10, bool checkWeaponLOSRejection = true) {
+        if(!target) {
+            return false;
+        }
+        let d = Dawn(target);
+        if(d && d.invulnerableInMenu) return false;
+        
+        if(level.totalTime - targetTimeout < 0 || (checkWeaponLOSRejection && losRejectCooldown)) return false;
+        if(targetVisibleThisFrame > 0 && lastVisibleTarget == target && targetTimeVisible >= framesVisible) return targetVisibleThisFrame == 2;
+        bool found = checkSight(target, SF_IGNOREVISIBILITY | SF_IGNOREWATERBOUNDARY);
+
+        if(found && self is "SelacoEnemy") {
+            SelacoEnemy(self).denyPlayerSaving();
+        }
+
+        if(found && lastVisibleTarget == target) targetTimeVisible++;
+        else targetTimeVisible = 0;
+
+        lastVisibleTarget = target;
+        targetVisibleThisFrame = found ? 2 : 1;
+
+        return found;
+    }
+
+    // This check only considers other MONSTERs and BLOCKLOF objects to be in the way. It does not consider world geometry. 
+    // If you want to know if the target is occluded by geometry, use isTargetVisible()
+    bool findFiringSolutionToTarget(double range, bool detailed = false) {
+        // Early out if target is too far
+        if(Distance3DSquared(target) > (range * range)) return false;
+        
+        //CheckLOF(int flags = 0, double range = 0, double minrange = 0, double angle = 0, double pitch = 0, double offsetheight = 0, double offsetwidth = 0, int ptr_target = AAPTR_DEFAULT, double offsetforward = 0);
+        bool found = checkLOF(CLOFF_SKIPWORLD | CLOFF_BLOCKLOF_ALWAYS | CLOFF_JUMPMONSTER | CLOFF_FROMBASE, range, offsetheight: height * 0.9);
+        
+        // TODO: If we want a more accurate check, we need to check a few parts of the target
+        return found;
+    }
+
+    // Can this actor get a straight line to the target without hitting a friendly unit, and is the shot within the required range?
+    // @nexxtic - Set this to 4096 instead of 2048 for now. Enemies not attacking at all made it awkward and hard to test gameplay with.
+    bool hasFiringSolution(double range = 4096) {
+        if(!target) return false;
+        
+        if(firingSolutionThisFrame > 1 && lastFiringTarget == target && range >= lastFiringSolutionDistance) return true;
+        
+        lastFiringSolutionDistance = range;
+
+        bool found = findFiringSolutionToTarget(range);
+        
+        if(found) {
+            lastFiringTarget = target;
+            firingSolutionThisFrame = 2;
+            lofCounter = 0;
+        } else {
+            lofCounter++;
+            firingSolutionThisFrame = 1;
+        }
+
+        return found;
+    }
+
+    // Makes cache dirty so we do another check
+    // Call every frame, before the rest of Tick()
+    void resetTargetVisibility() {
+        targetVisibleThisFrame = 0;
+        firingSolutionThisFrame = 0;
+    }
+}

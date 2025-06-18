@@ -1,0 +1,310 @@
+
+Model HoneyCombCase_Green 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_GREEN.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HoneyCombCase_Blue
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_Blue.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HoneyCombCase_Orange
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_Orange.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HoneyCombCase_Orange_flipped
+{
+   USEACTORPITCH
+   RollOffset 90
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_Orange.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Offset 0 26 12
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HoneyCombCase_green_flipped
+{
+   USEACTORPITCH
+   RollOffset 90
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_green.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Offset 0 26 12
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}Model HoneyCombCase_red_flipped
+{
+   USEACTORPITCH
+   RollOffset 90
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_red.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Offset 0 26 12
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}Model HoneyCombCase_blue_flipped
+{
+   USEACTORPITCH
+   RollOffset 90
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_blue.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Offset 0 26 12
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HoneyCombCase_Red
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_Red.png" 
+   MODEL 0 "HONEYCOMP.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+
+Model HONEYCOMP_GREEN_CHUNK_1 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_GREEN_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_GREEN_CHUNK_2 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_GREEN_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_GREEN_CHUNK_3 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_GREEN_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_GREEN_CHUNK_4 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_GREEN_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HONEYCOMP_RED_CHUNK_1 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_RED_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_RED_CHUNK_2 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_RED_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_RED_CHUNK_3 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_RED_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HONEYCOMP_RED_CHUNK_4 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_RED_CHUNK_4.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_4.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HONEYCOMP_BLUE_CHUNK_4 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_BLUE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HONEYCOMP_BLUE_CHUNK_1 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_BLUE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_BLUE_CHUNK_2 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_BLUE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_BLUE_CHUNK_3 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_BLUE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_BLUE_CHUNK_4 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_BLUE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+
+Model HONEYCOMP_ORANGE_CHUNK_1 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_ORANGE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_ORANGE_CHUNK_2 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_ORANGE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_ORANGE_CHUNK_3 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_ORANGE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}
+Model HONEYCOMP_ORANGE_CHUNK_4 
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+
+   Path "MD/HoneyCombCase"
+   SKIN 0 "HONEYCOMP_ORANGE_CHUNK_1.png" 
+   MODEL 0 "HONEYCOMP_GREEN_CHUNK_1.md3" 
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0 
+}

@@ -1,0 +1,365 @@
+class SafeRoomItem : Inventory {
+    default { Inventory.MaxAmount 1; }
+     // All weapon kits picked up in the safe room get logged here
+    // There was a dumb flaw in this, since all weapon kits are the same class
+    // PickedUpKits is only left in for legacy save stability
+    // TODO: Remove pickedUpKits for Chapter 2
+    Array< class<WeaponKit> > pickedUpKits;    
+    Array<Int> pickedUpKitIDs;      // Which kits (based on kit ID) are picked up
+    Array<Int> unlockedRooms;       // List of levelNums which have saferooms and are unlocked
+    bool hasVisitedExtension;       // Set the first time we leave a saferoom extension
+
+    override void postbeginPlay() {
+        Super.PostBeginPlay();
+        unlockedRooms.push(2);      // 01B should always be available, since you do not visit it manually at the start of the game
+    }
+
+    // Unlocks saferoom in levelNum or in the current level if -1
+    // For all players
+    static void UnlockSaferoom(int levelNum = -1) {
+        if(levelNum == -1) levelNum = level.levelnum;
+
+        for(int x = 0; x < players.size(); x++) {
+            let mo = players[x].mo;
+            if(mo) {
+                SafeRoomItem inv = SafeRoomItem(mo.FindInventory("SafeRoomItem"));
+                if(!inv) inv = SafeRoomItem(mo.GiveInventoryType("SafeRoomItem"));
+
+                if(inv) {
+                    if(inv.unlockedRooms.find(levelNum) >= inv.unlockedRooms.size())
+                        inv.unlockedRooms.push(levelNum);
+                }
+            }
+        }
+    }
+
+    override bool handlePickup(Inventory item) {
+        if(item is "insideSafeRoomItem") 
+        {
+            // First time the player enters a Safe Room
+            if(players[consoleplayer].mo.countinv("firstSafeRoom") == 0)
+            {
+                players[consoleplayer].mo.A_GiveInventory("firstSafeRoom", 1);
+
+                // Give Achievement and Tutorial if it's the first time. (Eventually use SetAchievement directly. This function is purely used for debugging)
+                LevelEventHandler leh = LevelEventHandler.instance();
+                leh.SetAchievement("GAME_SAFEROOM");
+            
+                TutorialHandler.TutorialMessage("TUT_WORKSHOP2", 2);
+            }
+
+            // When we enter a safe room it is automatically unlocked
+            doSafeRoomUnlock();
+        }
+        return Super.handlePickup(item);
+    }
+
+    void doSafeRoomUnlock()
+    {
+        Console.Printf("\c[GOLD]Unlocked fast travel for safe room in level %d", level.levelnum);
+        SafeRoomItem.UnlockSaferoom();
+    }
+
+}
+
+
+
+
+class SafeRoomExtension : EventHandler
+{
+    array<AOS_Speaker> speakerActors;
+    
+    Array<actor> placedActors;
+    int transitionDelay;        // We need to delay the actual level load by 1 tick so ACS can properly show the loading screen. CockUI eventually(?)
+    bool inSaferoomExtension;
+
+    static SafeRoomExtension Instance() {
+        return SafeRoomExtension(EventHandler.Find('SafeRoomExtension'));
+    }
+
+    // Returns true if we are in the safe room and this is the second+ time we have visited
+    static bool BackInSafeRoomExtension() {
+        //let i = Instance();
+        if((level.MapName ~== "SE_SAFE") && players[consolePlayer].mo) {
+            SafeRoomItem inv = SafeRoomItem(players[consolePlayer].mo.FindInventory("SafeRoomItem"));
+            if(inv) {
+                return inv.hasVisitedExtension;
+            }
+        }
+        
+        return false;
+    }
+
+    void traverseTolevel()
+    {
+        // Spwn TID of the Player Spawn to spawn to.
+        int spawnArgument = 899; 
+
+        PlayerPawn pawn=players[consoleplayer].mo;
+        let d = Dawn(pawn);
+
+        // This should in theory never happen. In case it does, return players to the hospital instead of crashing the game.
+        if(d.destinationLevel == "")
+        {
+            console.printf("\c[red] WARNING! No Destination Level is found. Taking the player to 01A instead.");
+            spawnArgument = 0;
+            d.destinationLevel = "SE_01A";
+        }
+        let handler = LevelTransitionHandler.instance();
+        handler.LevelTransitionName(d.destinationLevel, 0, spawnArgument, 0, 1);
+    }
+
+    // If we leave a level that *ISNT* the save room, remember where the player came from.
+	override void WorldUnloaded(WorldEvent e) {
+ 		if(!(level.MapName ~== "SE_SAFE"))
+        {
+            PlayerPawn pawn=players[consoleplayer].mo;
+            let d = Dawn(pawn);
+            d.destinationLevel = level.MapName; // We store it in Dawn because using static event handlers scares me.
+        }
+
+        // Set flag if we have left the safe room extension, so we know we have visited it on return
+        if(inSaferoomExtension) {
+            SafeRoomItem inv = SafeRoomItem(players[consolePlayer].mo.FindInventory("SafeRoomItem"));
+            if(inv) {
+                inv.hasVisitedExtension = true;
+            }
+        }
+	}
+
+    // Player visits the Safe Room Extension by elevator, so we make preperations to properly 'resume' the elevator ride in SE_SAFE
+    override void WorldLoaded(WorldEvent e)
+    {
+        inSaferoomExtension = level.MapName ~== "SE_SAFE";
+
+        PlayerPawn pawn=players[consoleplayer].mo;
+		let d = Dawn(pawn);
+        if(d && d.usesSaferoomElevator)
+        {
+            d.usesSaferoomElevator = false;
+            d.ACS_NamedExecute("EnterSaferoomExtensionResume", 0);
+        }
+
+        // Assign a speaker actor
+        SafeRoomExtension handler = SafeRoomExtension.instance();
+		ThinkerIterator it = ThinkerIterator.Create("AOS_SPEAKER");
+		AOS_Speaker speakerInstance = AOS_Speaker(it.Next());
+
+        // Wipe all actors that are not in the list.
+		for (; speakerInstance; speakerInstance = AOS_Speaker(it.Next())) 
+		{
+            console.printf("Safe Room Extension: \c[green]An AOS Speaker has been added");
+			speakerActors.push(speakerInstance);
+		}
+    }
+
+    static void DEBUG_setDestination03D2()
+    {
+        PlayerPawn pawn=players[consoleplayer].mo;
+        let d = Dawn(pawn);
+        d.destinationLevel = "SE_03C2";  
+    }
+
+    static void DEBUG_setDestination03A()
+    {
+        PlayerPawn pawn=players[consoleplayer].mo;
+        let d = Dawn(pawn);
+        d.destinationLevel = "SE_03A";  
+    }
+
+	static void DEBUG_SetDestination(string adest)
+	{
+		PlayerPawn pawn = players[consoleplayer].mo;
+		let d = Dawn(pawn);
+		d.destinationLevel = adest;
+	}
+	
+    // Preps stuff so the elevator knows the player is coming into the new level from an elevator.
+    static void useExtensionElevator()
+    {
+		PlayerPawn pawn=players[consoleplayer].mo;
+		let d = Dawn(pawn);
+        d.usesSaferoomElevator = true;
+        d.ACS_NamedExecute("EnterSaferoomExtensionProcess", 0);
+    }
+
+    // Taking an elevator in a Safe Room, down to the Safe Room Extension
+    static void gotoSafeRoomExtension()
+    {
+        let handler = LevelTransitionHandler.instance();
+        handler.LevelTransitionName("SE_SAFE", 0, 1, 0, 1);
+        //level.ChangeLevel("SE_SAFE", 1, CHANGELEVEL_NOINTERMISSION | CHANGELEVEL_PRERAISEWEAPON);
+    }
+
+    // The Safe Room the elevator should take the player to. Used when switching levels.
+    static void gotoDestinationSafeRoom() 
+    {
+        let handler = instance();
+		PlayerPawn pawn=players[consoleplayer].mo;
+		let d = Dawn(pawn);
+        d.usesSaferoomElevator = true;
+        handler.transitionDelay = 2;
+	}
+
+
+    static void openTrainMenu()
+    {
+        PlayerPawn pawn=players[consoleplayer].mo;
+        Menu.SetMenu("TrainMenu");
+    }
+
+    override void worldTick()
+    {
+        // Decrease transitionDelay if greater than 0
+        if (transitionDelay > 0)
+        {
+            transitionDelay--;
+            
+            // Check if it's time to traverse to the next level
+            if (transitionDelay == 0)
+            {
+                traverseToLevel();
+            }
+        }
+    }
+
+
+    // Called in ACS
+    static void announceAOSMessage()
+    {
+        Dawn d = Dawn(players[consolePlayer].mo);
+        SafeRoomExtension  handler = SafeRoomExtension.instance();
+        string soundReference;
+        string levelSubtitle;
+        string destinationSubtitle = stringTable.localize("$TRAIN_SETDESTINATION");
+        string destinationLevel = d.destinationLevel;
+
+        if(destinationLevel ~== "SE_01B") {
+            soundReference = "VO/AOS/TRAIN/PATHFINDERBLUE";
+            levelSubtitle = "$TRAIN_PATHFINDER_1";
+        } else if  (destinationLevel ~== "SE_02Z"){
+            soundReference = "VO/AOS/TRAIN/PATHFINDERORANGE";
+            levelSubtitle = "$TRAIN_PATHFINDER_2";           
+        } else if (destinationLevel ~== "SE_02C"){
+            soundReference = "VO/AOS/TRAIN/WATERTREATMENTPLANT";
+            levelSubtitle = "$TRAIN_WATERTREATMENT";           
+        } else if (destinationLevel ~== "SE_03A"){
+            soundReference = "VO/AOS/TRAIN/GARAGE";
+            levelSubtitle = "$TRAIN_PARKINGGARAGE";           
+        } else if (destinationLevel ~== "SE_03b1"){
+            soundReference = "VO/AOS/TRAIN/BLUESECTOR";
+            levelSubtitle = "$TRAIN_SELACOSTREET";           
+        } else if (destinationLevel ~== "SE_04c"){
+            soundReference = "VO/AOS/TRAIN/LIANCRIA";
+            levelSubtitle = "$TRAIN_LIANCRIA";           
+        } else if (destinationLevel ~== "SE_05D"){
+            soundReference = "VO/AOS/TRAIN/EXODUSPLAZA";
+            levelSubtitle = "$TRAIN_EXODUSPLAZA";           
+        } else if (destinationLevel ~== "SE_06A"){
+            soundReference = "VO/AOS/TRAIN/FBF";
+            levelSubtitle = "$TRAIN_FBF";           
+        } else if (destinationLevel ~== "SE_07A"){
+            soundReference = "VO/AOS/TRAIN/STARLIGHT";
+            levelSubtitle = "$TRAIN_STARLIGHT";           
+        }
+
+        destinationSubtitle = string.format("%s: %s", destinationSubtitle, stringTable.localize(levelSubtitle));
+
+
+        for(int x=0;x<handler.speakerActors.size(); x++)
+        {
+            handler.speakerActors[x].playVoiceLine(soundReference, destinationSubtitle);
+        }
+    }
+
+    // Handle requests to set destination map
+    // TODO: Verify if we are even in the train room
+    override void NetworkProcess(ConsoleEvent e) {
+        if(e.name ~== "setTrainDest") {
+            if((!e.IsManual || sv_cheats > 0) && e.args[0] > 0) {
+                // Set travel destination map
+                Dawn d = Dawn(players[e.player].mo);
+                let info = LevelInfo.FindLevelByNum(e.args[0]);
+                if(d && info) {
+                    if(developer > 1) d.A_PRINTBOLD(String.Format("Set destination to: %s", info.mapname));
+                    d.destinationLevel = info.MapName;
+                    d.ACS_NamedExecute("RJPaintrain", 0);
+                }
+            }
+            return;
+        }
+    }
+
+    // Find all actors that currently exists and store them.
+    static void getAllPlacedActors()
+    {
+        SafeRoomExtension  handler = SafeRoomExtension.instance();
+		ThinkerIterator it = ThinkerIterator.Create("actor");
+		actor actorInstance = actor(it.Next());
+
+        // Find all actors that exist right now
+		for (; actorInstance; actorInstance = actor(it.Next())) 
+        {
+            // Ignore Dawn and her potential minions
+            if(actorInstance is "Dawn" || actorInstance.master is "Dawn")
+                continue;
+
+            // Flag actor to avoid removal
+            handler.placedActors.push(actor(actorInstance));
+		}
+    }
+
+    // Kill every single actor that isn't in the placedActors list. Useful when traveling by train and giving the illusion it's a brand new station
+    static void wipeNonPreplacedActors()
+    {
+        SafeRoomExtension handler = SafeRoomExtension.instance();
+		ThinkerIterator it = ThinkerIterator.Create("actor");
+		actor actorInstance = actor(it.Next());
+
+        // Wipe all actors that are not in the list.
+		for (; actorInstance; actorInstance = actor(it.Next())) 
+		{
+            // Skip inventory objects that have been added to Dawn
+            if(actorInstance is 'Inventory' && Inventory(actorInstance).Owner is 'Dawn') continue;
+
+			if(handler.placedActors.find(actorInstance) == handler.placedActors.Size() && !(actorInstance is "Dawn") && handler.checkThingSector(actorInstance))
+            {
+                actorInstance.destroy();
+            }
+		}
+    }
+
+    bool checkThingSector(actor checkActor)
+    {
+		Array<int> sectors;
+
+        LevelTransitionHandler handler = LevelTransitionHandler.Instance();
+        handler.clearTravelList();
+
+        // Find all sectors that match 18000 and store them
+		SectorTagIterator st = Level.CreateSectorTagIterator(18000);
+		int secID = st.Next();
+		while(secID >= 0) {
+			sectors.push(secID);
+			secID = st.Next();
+		}
+
+        // Check if checkActor is inside the given sector ID
+        let sl = sectors.size();
+        if(sectors.find(checkActor.CurSector.index()) != sl) {
+            console.printf("There is an actor in the train: %s", checkActor.getClassName());
+            return false;
+        }
+        return true;
+    }
+
+    static void changeSaferoomLayout()
+    {
+        let handler = SafeRoomExtension.instance();       
+        PlayerPawn pawn=players[consoleplayer].mo;
+        let d = Dawn(pawn);
+        if(d.destinationLevel == "SE_01B") {
+            d.ACS_NamedExecute("SwitchTo01BLayout");
+        }
+    }
+}

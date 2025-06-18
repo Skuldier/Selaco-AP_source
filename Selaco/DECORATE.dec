@@ -1,0 +1,2933 @@
+#include "Actors/Items/Consumables.dec"
+
+//Powerups
+#include "Actors/Items/SpecialPowerups.dec"
+
+//DECORATIONS
+#include "actors/decorations/patreondrawings.dec"
+#include "Actors/Decorations/Walldecorations.dec"
+#include "Actors/Decorations/CrateSpawner.dec"
+
+//Effects
+#include "Actors/Effects/LOCKDOWN.dec"
+#include "Actors/Effects/PARTICLES.dec"
+#include "Actors/Effects/SMOKE.dec"
+#include "Actors/Effects/FIRE.dec"
+#include "Actors/Effects/SPARKS.dec"
+#include "Actors/Effects/FLARES.dec"
+#include "Actors/Effects/PUFF.dec"
+#include "Actors/Effects/TRACERS.dec"
+#include "Actors/Effects/WEATHEREFFECTS.dec"
+
+
+// Weapons (Other half in zscript file)
+#include "Actors/Weapons/Throwables.dec"
+#include "Actors/Weapons/EXTRA.dec"
+
+#include "Actors/Effects/SPLASHES.dec"
+
+#include "Actors/Decorations/VOXELDEC.dec"
+#include "Actors/Decorations/LOCKDOWN.dec"
+
+Actor SquadLeaderBuffPowerup : PowerProtection
+{
+     DamageFactor "Normal", 0.75
+     DamageFactor "Shotgun", 0.75
+     DamageFactor "Plasma", 0.75
+     DamageFactor "MagnumBullet", 0.75
+    Powerup.Duration -9999999
+    +AUTOACTIVATE 
+    +NOPAIN
+}
+
+actor TeleportEffect { 
+	+NOINTERACTION
+	-SOLID
+	states {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_PLAYSOUND("item/tpitem", CHAN_AUTO, 0.7)
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SpawnParticle("#3399ff", SPF_FULLBRIGHT | SPF_RELATIVE , 35, 6, random(0,360), frandom(3,9), frandom(3,9), frandom(10,60), frandom(1,2), frandom(1,2), frandom(0.3,0.5))
+			stop
+	}
+}
+
+actor FlashLightMode : Inventory {
+
+}
+
+Actor FiredPrimary : Inventory {
+
+}	
+
+Actor DestructibleTarget 12322
+{
+	//$Category SelacoFeatures
+	radius 20
+	Height 20
+	Health 1
+	scale 1.0
+	Mass 0
+	+NOGRAVITY
+	+SHOOTABLE
+	BloodType "Stacked_Sparks_lite", "Stacked_Sparks_lite", "Stacked_Sparks_Lite"
+	PainSound "impact/hardmetal"
+	TAG "Hit Trigger"
+
+	States
+	{
+		Spawn:
+			TNT1 A 2
+			goto Spawn
+		Death:
+			TNT1 A 0
+			Stop
+	}
+}
+
+Actor graffiti1 : graffitibase 11453 {
+  	+WALLSPRITE
+ 	+NOGRAVITY
+ 	+ROLLSPRITE
+	scale 0.5
+	tag "Graffiti: Earth Was better"
+	RenderStyle Translucent
+	alpha 0.9
+	states
+	{
+	Spawn:
+		GRAV A -1
+		stop
+	}
+}
+
+// Used to damage actor that have been spawned after the fact. Just spawn this near another actor and it will take damage.
+Actor ActorDamager 2112 {
+//Category SelacoEffects
+	Tag "Sector Damager"
+	states {
+		Spawn:
+			TNT1 A 0
+			TNT1 AAA 0 A_EXPLODE(100, 20)
+			stop
+	}	
+}
+
+// - CONVERT THIS
+actor WeaponPartSpawner {
+	tag "Weapon Part" 
+	states {
+		Spawn:
+			WPAR A 0
+			WPAR A 1 A_SpawnItemEx("WeaponPartPickup")
+			stop
+	}
+}
+
+
+actor SoapRemaining : inventory {
+	inventory.maxamount 5
+}
+
+actor passcode 12999 {
+	scale 0.8
+	alpha 0.7
+	+WALLSPRITE
+	+NOGRAVITY
+	-SOLID
+	Renderstyle add
+	tag "Passcode Wall"
+	states {
+		Spawn:
+			SLID AA 1 BRIGHT A_FADEOUT(0.06)
+			SLID AA 1 BRIGHT A_FADEIN(0.06)
+			loop
+	}
+}
+
+actor SpermGuy 19922 {
+	// Secret area
+	tag "Guy with sperm on his clothes"
+	+STANDSTILL
+	+NOGRAVITY
+	states {
+		Spawn:
+			SPER E -1
+			stop
+	}
+}
+
+actor SpermPieceWall 19925 {
+	tag "Piece of Sperm Wall"
+	+WALLSPRITE
+	-FLATSPRITE
+	+STANDSTILL
+	+NOINTERACTION
+	+NOGRAVITY
+	+NOPAIN
+	scale 0.6
+	States {
+		Spawn:
+			SPER A -1
+			stop
+	}
+}
+
+ACTOR SlideUpgrade : SelacoItem 17643 {
+	tag "Slide Upgrade"
+	Inventory.Amount 1
+	scale 0.3
+	+NOGRAVITY
+	+FLOAT
+	+FLOATBOB
+    States {
+		Spawn:
+		   ABIL S -1 BRIGHT
+		   stop
+		Pickup:
+           TNT1 A 0 ACS_Namedexecute("GotSlideBoots", 0)
+		   stop
+	}
+}
+
+Actor InvisibleActor 19950 {
+	+SOLID
+	Health 90000
+	Tag "Blocker"
+	radius 20
+	height 22
+	states {
+		Spawn:
+		TNT1 A -1
+		stop
+	}
+}
+
+
+Actor DestroyIcon : CustomInventory {
+	Inventory.MaxAmount 1
+}
+
+
+Actor PurplecardIcon : AmmoIcon {
+	scale 0.2
+	States {
+		Spawn:
+			ZZZH AAAAA 1 BRIGHT A_FADEIN(0.2)
+			goto Death
+		Death:
+			ZZZH AAAAA 1 BRIGHT A_FADEIN(0.2)
+			stop
+	}
+
+}
+
+Actor BluecardIcon : AmmoIcon {
+	scale 0.2
+	States {
+		Spawn:
+			ZZZI AAAAA 1 BRIGHT A_FADEIN(0.2)
+			goto Death
+		Death:
+			ZZZI AAAAA 1 BRIGHT A_FADEIN(0.2)
+			stop
+	}
+
+}
+
+Actor yellowcardicon : AmmoIcon {
+	scale 0.2
+	States {
+		Spawn:
+			ZZZF AAAAA 1 BRIGHT A_FADEIN(0.2)
+			goto Death
+		Death:
+			ZZZF AAAAA 1 BRIGHT A_FADEIN(0.2)
+			stop
+	}
+
+}
+
+
+Actor Cricket_Icon_Old : AmmoIcon {
+	States {
+		Spawn:
+			ZZZG AAAAA 1 BRIGHT A_FADEIN(0.03)
+			goto Death
+		Death:
+			ZZZG AAAAA 1 BRIGHT A_FADEIN(0.03)
+			stop
+	}
+
+}
+
+ACTOR DMR_TINY_SHOOTER {
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 A 1 A_SPAWNITEMEX("AmmoMachinegunTiny", 0, 0, 0, random(-1,1), random(-1,1), 4, random(0,360))
+			stop
+	}
+}
+
+ACTOR _TINY_SHOOTER {
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 A 1 A_SPAWNITEMEX("AmmoMachinegunTiny", 0, 0, 0, random(-1,1), random(-1,1), 4, random(0,360))
+			stop
+	}
+}
+
+ACTOR ARMOR_SHOOTER {
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 AAAAAAAAAAAAAA 2 A_SPAWNITEMEX("ArmorShardPickup_Flat", 0, 0, 0, random(-3,3), random(-3,3), 4, random(0,360))
+			stop
+	}
+}
+
+ACTOR ARMOR_SHOOTER_ENFORCER {
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 AAAAAAAA 0 A_SPAWNITEMEX("ArmorShardPickup_Flat", 0, 0, 0, random(-1,1), random(-1,1), 4, random(0,360))
+			stop
+	}
+}
+
+ACTOR SHELL_TINY_SHOOTER {
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 A 1 A_SPAWNITEMEX("AmmoShotgunTiny", 0, 0, 0, random(-1,1), random(-1,1), 4, random(0,360))
+			stop
+	}
+}
+
+ACTOR FlareStick
+{
+	//$Category SelacoEffects
+	+DOOMBOUNCE
+	Radius 10
+	Height 3
+	Speed 13
+    Damage 0
+    Gravity 0.6
+	Scale 0.2
+    -NOGRAVITY
+    -BLOODSPLATTER
+	+FLOORCLIP
+	+DONTGIB
+	BounceFactor 0.5
+	WallBounceFactor 0.6
+States
+{
+ Spawn:
+ 	FLAR A 1 BRIGHT A_SpawnItem("RedFlareLonger", 5, 5)
+	loop
+}
+}
+
+ACTOR FlareFireEffect {
+	RenderStyle add
+	scale 0.3
+	radius 5
+	height 5
+	alpha 0.27
+	+FLATSPRITE
+	+NOINTERACTION
+	+ROLLSPRITE
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SETPITCH(0)
+		Looper:
+			FLFR ABCDEFGHIJ 2 BRIGHT
+			loop
+	}
+}
+
+actor FlareFireEffectLight : FlareFireEffect {
+
+}
+
+Actor ShaftFan1 : LightShaftMaster {
+	-SPAWNCEILING
+	XScale 0.3
+	Yscale 0.6
+	alpha 0.3
+	states {
+		Spawn:
+			SHAF AAAA 1 BRIGHT A_FADEOUT(0.075)
+			SHAF A 4 BRIGHT
+			SHAF AAAA 1 BRIGHT A_FADEIN(0.075)
+			loop
+	}
+}
+
+ACTOR LightShaftMasterTighter: LightShaftMaster 1132
+{
+	//$Category SelacoEffects
+	tag "Light Shaft - Very tight"
+	XScale 0.7
+	Yscale 0.6
+}
+
+ACTOR LIGHTSHAFTBLUESMALLER: LIGHTSHAFTBLUE
+{
+	tag "Light Shaft Blue - Small"
+	//$Category SelacoEffects
+XScale 0.8
+Yscale 0.7
+	States {
+		Spawn:
+			TNT1 A 0
+		Lit:
+			TNT1 A 0 A_SetTranslucent(0.52, 1)
+			LTRD D random(5,15) BRIGHT 
+			loop
+		GOORANGE:
+			TNT1 A 0  A_SetTranslucent(0.62, 1)
+			LTRD C random(1,20) BRIGHT
+			loop
+		Dimmed:
+			TNT1 A 0 A_SetTranslucent(0, 1)
+			LTRD D random(1,20) BRIGHT
+			loop
+		Destroy:
+			TNT1 A 0
+			stop
+	}
+}
+
+actor LightParticleBlue {
+	RenderStyle add
+	states {
+		Spawn:
+			TNT1 A 0
+			PGEZ A 0 A_SpawnItemEx("LightParticleBlueMoving", 0, 0, 0, 18)
+			stop
+	}
+}
+
+actor LightParticleBlueMoving {
+	-SOLID
+	projectile
+	speed 100
+	radius 5
+	height 5
+	RenderStyle add
+	states {
+		Spawn:
+			TNT1 A 0
+			PGEZ A 1 bright
+			loop
+	}
+}
+
+ACTOR LIGHTSHAFTGreen: LightShaftMaster 11019
+	{
+		tag "Light Shaft Green"
+		//$Category SelacoEffects
+	Alpha 0
+	+FORCEXYBILLBOARD
+	XScale 1.8
+	Yscale 1.5
+	States
+	{
+	Spawn:
+		LTRD B 1 BRIGHT
+		goto Lit
+	Lit:
+		TNT1 A 0  A_SetTranslucent(0.32, 1)
+		LTRD B 1 BRIGHT
+		loop
+	Dimmed:
+		LTRD B 1
+		TNT1 A 0 A_SetTranslucent(0, 1)
+		loop
+	Destroy:
+		TNT1 A 0
+		stop
+	}
+}
+
+
+ACTOR LIGHTSHAFTBLUE_CUSTOMIZER_ARGS: LightShaftMaster 11051
+{
+	//$Category SelacoEffects
+	tag "Light Shaft - Blue (Custom Alpha)"
+Alpha 0
++FORCEXYBILLBOARD
+XScale 1.8
+Yscale 1.5
+States
+{
+ Spawn:
+	LTRD D 1
+	goto Lit
+ Lit:
+	LTRD D random(5,15) BRIGHT A_SetTranslucent(0.2*args[0], 1)
+	loop
+ Dimmed:
+	LTRD D 1 A_SetTranslucent(0, 1)
+	loop
+}
+}
+
+
+ACTOR LightShaftMasterFLAT : LightShaftMaster 11074
+{
+	//$Category SelacoEffects
+	tag "Light Shaft - Flat"
++SPAWNCEILING
++INVULNERABLE
++WALLSPRITE
+Alpha 0.10
+XScale 1.5
+Yscale 0.8
+States
+	{
+	 Spawn:
+		TNT1 A 0
+		 GOTO Lit
+		Lit:
+			LTRD C 0 BRIGHT A_SetTranslucent(0.40, 1)
+			LTRD C random(40, 125)  BRIGHT
+			loop
+		 Dimmed:
+			LTRD C 1 A_SetTranslucent(0, 1)
+			loop
+		Destroy:
+			stop
+	}
+}
+
+
+ACTOR LightShaftMasterTALL: LightShaftMaster 11081
+{
+	//$Category SelacoEffects
++SPAWNCEILING
++nointeraction
++INVULNERABLE
+Alpha 0.10
+XScale 1.8
+Yscale 2.5
+States
+	{
+	 Spawn:
+		TNT1 A 0
+		 GOTO Lit
+		Lit:
+			LTRD C 0 BRIGHT A_SetTranslucent(0.30, 1)
+			LTRD C random(40, 125) BRIGHT
+			loop
+		 Dimmed:
+			LTRD C 1 A_SetTranslucent(0, 1)
+			loop
+	}
+}
+
+ACTOR DirtDecalsStandAlone 12173{
+	//$Category NewThings
+	renderstyle Add
+	alpha 0.9
+	-COUNTKILL
+	-SHOOTABLE
+	+CLIENTSIDEONLY
+	+BLOODLESSIMPACT
+	+FORCEXYBILLBOARD
+	+THRUACTORS
+	+NOGRAVITY
+	+NODAMAGETHRUST
+	Mass 900
+	//damagetype "Shrapnel"
+	Scale 0.3
+	Speed 0
+	Radius 6
+	Height 1
+	States
+	{
+		Spawn:
+			TNT1 A 0 A_PlaySound("dirtrain", 1, 0.87)
+			TNT1 A 0 A_SpawnItem("BrownCloudSmall")
+			TNT1 AAAAAAAAA 0 A_SpawnProjectile ("DirtChunk3", 2, random(0,100), random (0, 290), 2, random (10, 210))
+			TNT1 AAAA 0 A_SpawnProjectile ("DirtChunk4", 2, 0, random (0, 220), 2, random (10, 130))
+			stop
+		Death:
+			TNT1 A 0
+			Stop
+	}
+}
+
+actor SoldierGivesRifle : SOLDIER 23875 {
+	SelacoEnemy.RandomizerSpawnChance 0
+	tag "Soldier That Gives A Rifle"
+}
+
+actor VentilationSmokeSpawnerVertical : SelacoActor 5621 {
+	+NOINTERACTION
+	SelacoActor.SleepDistance 1024
+	scale 0.5
+	Tag "Ventilation Smoke Vertical"
+	states {
+		Spawn:
+			UDBI A 0
+		Looper:
+			TNT1 A 3 A_SPAWNITEMEX("VentilationSmoke", frandom(-6,6), frandom(-6,6), 0, 0, 0, -5)
+			loop
+	}
+}
+
+actor VentilationSmokeSpawnerHorizontal : SelacoActor 5622 {
+	+NOINTERACTION
+	SelacoActor.SleepDistance 1024
+	Tag "Ventilation Smoke Horizontal"
+	states {
+		Spawn:
+			TNT1 A 3 A_SPAWNITEMEX("VentilationSmokeLessTransparant", frandom(-6,6), frandom(-6,6), frandom(-6,6), 5, 0, 0)
+			loop
+	}
+}
+
+Actor spottedPlayer : Inventory
+{
+inventory.maxamount 5
+}
+
+Actor FROZEN_OBJECT {
+	scale 0.3
+	+NOGRAVITY
+	+NOINTERACTION
+	states {
+		spawn:
+			FROZ A 10
+			stop
+	}
+}
+
+actor ChairDestroyer {
+
+	states {
+		Spawn:
+			TNT1 A 0  
+			TNT1 A 0 A_Explode(10,50, XF_HURTSOURCE, 0, 0, 0, 0, 0, "Gridlock")
+			stop
+	}
+}
+
+ACTOR Credits: SelacoItem 14099
+{
+	Game Doom
+	-COUNTITEM
+	+DONTGIB
+	+INVENTORY.ALWAYSPICKUP
+	+SelacoItem.AlwaysAllowTouchMode
+	Inventory.pickupSound "none"
+	Tag "Selver coin (+5 Credits)"
+	States
+	{
+		Spawn:
+			goto Show
+
+		Show:
+			VOXE L -1 BRIGHT
+			Loop
+
+		Pickup:
+		TNT1 A 0 A_PLAYSOUND("item/credits", CHAN_AUTO, 0.6)
+		TNT1 A 0 ACS_NamedExecuteWithResult("giveCredits", 2, 5, 5)
+		TNT1 A 20
+		Stop
+
+	}
+}
+
+/*ACTOR CreditsFlat: SelacoItem
+{
+	Game Doom
+	Scale 1
+	radius 20
+	+COUNTITEM
+	+DONTGIB
+	+INVENTORY.ALWAYSPICKUP
+	+INVENTORY.PICKUPFLASH
+	Inventory.pickupSound "none"
+	Tag "Selver coin (+5 Credits)"
+	States
+	{
+		Spawn:
+			goto Show
+
+		Show:
+			TNT1 A 0
+			TNT1 A 0 A_SETANGLE(random(0,360))
+			VOXE L -1
+			Loop
+
+		Pickup:
+		TNT1 A 0 A_PLAYSOUND("item/credits", CHAN_ITEM, 0.6)
+		TNT1 A 0 ACS_NamedExecuteWithResult("giveCredits", 2, 5, 5)
+		TNT1 A 20
+		Stop
+
+	}
+}*/
+
+ACTOR RevenantPus 23023 {
+	//$category SelacoDecorations
+	RenderStyle Translucent
+	tag "Revenant Pus"
+	+WALLSPRITE
+	scale 0.22
+	alpha 0.8
+	+NOGRAVITY
+	+STANDSTILL
+	+FLOAT
+	States {
+		Spawn:
+			RPUS A -1
+			stop
+	}
+}
+
+Actor BabyPlantSpawner 13266
+{
+	//$Category SelacoDecorations
+	tag "Plant 1 - Baby Small"
+	XSCALE 0.3
+	YSCALE 0.3
+	states
+	{
+		Spawn:
+		PLT1 A 0
+		TNT1 A 0 A_SpawnItemEx("BabyPlant", 0, 0, 0, 0, 0, 0, 90.0)
+		TNT1 A 0 A_SpawnItemEx("BabyPlantMirrored", 0, 0, 0, 0, 0, 0, random(130, 140))
+		stop
+	}
+}
+
+Actor Plant2Spawner 11174 {	
+	tag "Plant 2"
+	states
+	{
+		Spawn:
+		PLT2 A 0
+		TNT1 A 0 A_SpawnItemEx("Plant2", 0, 0, 0, 0, 0, 0)
+		TNT1 A 0 A_SpawnItemEx("Plant2Mirrored", 0, 0, 0, 0, 0, 0, random(70, 100))
+		stop
+	}
+}
+
+Actor Plant5SpawnerSmall 11129 {	
+	tag "Plant 5 (Cactus Small)"
+	states
+	{
+		Spawn:
+		PLT5 A 0
+		TNT1 A 0 A_SpawnItemEx("Plant5Small", 0, 0, 0, 0, 0, 0)
+		TNT1 A 0 A_SpawnItemEx("Plant5Small_MIRRORED", 0, 0, 0, 0, 0, 0, random(70, 100))
+		stop
+	}
+}
+
+
+Actor Plant6Spawner 11135 {	
+	tag "Seaweed 1"
+	states
+	{
+		Spawn:
+		PLT6 A 0
+		TNT1 A 0 A_SpawnItemEx("Plant6", 0, 0, 0, 0, 0, 0)
+		TNT1 A 0 A_SpawnItemEx("Plant6_MIRRORED", 0, 0, 0, 0, 0, 0, random(70, 100))
+		stop
+	}
+}
+
+Actor Plant7Spawner 11136 {	
+	tag "Seaweed 2"
+	states
+	{
+		Spawn:
+		PLT7 A 0
+		TNT1 A 0 A_SpawnItemEx("Plant7", 0, 0, 0, 0, 0, 0)
+		TNT1 A 0 A_SpawnItemEx("Plant7_MIRRORED", 0, 0, 0, 0, 0, 0, random(70, 100))
+		stop
+	}
+}
+
+Actor Plant8Spawner 11137 {	
+	tag "Seaweed 3"
+	states
+	{
+		Spawn:
+		PLT8 A 0
+		TNT1 A 0 A_SpawnItemEx("Plant8", 0, 0, 0, 0, 0, 0)
+		TNT1 A 0 A_SpawnItemEx("Plant8_MIRRORED", 0, 0, 0, 0, 0, 0, random(70, 100))
+		stop
+	}
+}
+
+Actor RustSpotGround : SelacoActor 13224
+{
+//$Category SelacoDecorations
+  +FLATSPRITE
+  +ROLLSPRITE
+  RenderStyle Translucent
+scale 1.2
+radius 5
+alpha 0.9
+states
+{
+	Spawn:
+		TNT1 A 0
+		RUST A 1 {
+			SleepIndefinite();
+		}
+	Dimmed:
+		TNT1 A 10
+		loop
+	Destroy:
+		TNT1 A 0
+		stop
+}
+}
+
+Actor EasterEgg1 16039
+{
+//$Category SelacoDecorations
+tag "EasterEgg1"
+  +WALLSPRITE
+  +NOGRAVITY
+  +FLOAT
+  +ROLLSPRITE
+scale 0.4
+radius 5
+alpha 0.5
+states
+	{
+		Spawn:
+			civv A -1
+			Loop
+
+	}
+}
+
+
+Actor Flyer1 : WireDecoration1 17436
+{
+//$Category SelacoDecorations
+scale 0.25
+alpha 0.9
+states
+{
+	Spawn:
+		FLYE A random(40, 125)
+	Looper:
+		FLYE A -1
+		Loop
+	Destroy:
+		TNT1 A 0
+		stop
+}
+}
+
+Actor RustSpotWall 13226
+{
+//$Category SelacoDecorations
+  	+WALLSPRITE
+ 	 +NOGRAVITY
+ 	 +ROLLSPRITE
+  	radius 5
+ 	 height 3
+	scale 1.6
+	alpha 0.5
+	states
+	{
+		Spawn:
+			RUST A random(40, 125)
+		loop
+	}
+}
+
+
+
+
+Actor graffiti2 : graffiti1 11451 {
+	scale 0.85
+	tag "Graffiti: AOS <3"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		TNT1 A 0 A_SetScale(ARGS[0] * 0.1, ARGS[0] * 0.1)
+		GRAV B -1
+		stop
+	}
+}
+
+Actor graffiti3 : graffiti1 11450 {
+	scale 1.0
+	tag "Graffiti: Remember Us"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		GRAV C -1
+		stop
+	}
+}
+
+Actor graffiti4 : graffiti1 11449 {
+	scale 1.0
+	tag "Graffiti:  Cowabunga"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_SetScale(ARGS[0] * 0.1, ARGS[0] * 0.1)
+		TNT1 A 0 A_Recoil(5)
+		VOXE L -1
+		stop
+	}
+}
+
+Actor BloodDecalDecoration1 13212
+{
+	//$Category SelacoDecorations
+	+WALLSPRITE
+	+NOGRAVITY
+	scale 0.6
+states
+	{
+	Spawn:
+		TNT1 A 0
+		MESS A -1
+		stop
+	}
+}
+
+Actor BloodDecalDecoration2  : BloodDecalDecoration1 11213
+{
+//$Category SelacoDecorations
+  +WALLSPRITE
++NOGRAVITY
+scale 0.3
+states
+	{
+	Spawn:
+		MESS B -1
+		stop
+	}
+}
+
+Actor BloodDecalDecoration3  : BloodDecalDecoration1 11211
+{
+//$Category SelacoDecorations
+  +WALLSPRITE
++NOGRAVITY
+scale 0.15
+	states
+	{
+	Spawn:
+		MESS C -1
+		stop
+	}
+}
+
+Actor PieceOfPaperCrap 13234
+{
+//$Category SelacoDecorations
+  +WALLSPRITE
++NOGRAVITY
+scale 0.06
+states
+	{
+	Spawn:
+		PAPE T -1
+		stop
+	}
+}
+
+actor PaperDecal_Small : SELACOACTOR 5446 {
+	//$Category SelacoDecorations
+	scale 0.12
+	height 5
+	radius 5
+	tag "Paper Decals (Small)"
+	+NOINTERACTION
+	states {
+		spawn:
+			PDEC A -1
+			stop
+	}
+}
+
+actor PokerGame  : SelacoActor 1629 {
+	+FLATSPRITE
+	scale 0.17
+	states {
+		Spawn:
+			POKE A -1
+			stop
+	}
+}
+
+Actor TriplePaintingSpawner_1 1968 {
+	//$Category SelacoDecorations
+	tag "TriplePaintingSpawner - City"
+	scale 0.8
+	+NOGRAVITY
+	states {
+		spawn:
+			PORE A 0
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_1A", 0, -40)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_1B", 0, 0)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_1C", 0, 40)
+			stop
+	}
+}
+Actor TriplePaintingSpawner_2b 1974 {
+	//$Category SelacoDecorations
+	tag "TriplePaintingSpawner - Forest Big"
+	+NOGRAVITY
+	states {
+		spawn:
+			PORE A 0
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_2A", 0, -55)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_2B", 0, 0)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_2C", 0, 55)
+			stop
+	}
+}
+
+Actor TriplePaintingSpawner_2 1969 {
+	//$Category SelacoDecorations
+	tag "TriplePaintingSpawner - Forest"
+	+NOGRAVITY
+	states {
+		spawn:
+			PORE A 0
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_2A", 0, -40)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_2B", 0, 0)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_2C", 0, 40)
+			stop
+	}
+}
+
+Actor TriplePaintingSpawner_3 1970 {
+	//$Category SelacoDecorations
+	tag "TriplePaintingSpawner - Hill"
+	+NOGRAVITY
+	states {
+		spawn:
+			PORE A 0
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_3C", 0, -40)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_3B", 0, 0)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_3A", 0, 40)
+			stop
+	}
+}
+
+Actor TriplePaintingSpawner_3B 1975 {
+	//$Category SelacoDecorations
+	tag "TriplePaintingSpawner - Hill Big"
+	+NOGRAVITY
+	states {
+		spawn:
+			PORE A 0
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_3C", 0, -55)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_3B", 0, 0)
+			TNT1 A 0 A_SPAWNITEMEX("PaintingTriple_3A", 0, 55)
+			stop
+	}
+}
+
+actor PaperDecalWall 5445 {
+	scale 0.18
+	tag "Paper Decals - WALL"
+	+WALLSPRITE
+	states {
+		spawn:
+			PDEC A -1
+			stop
+	}
+}
+
+actor Stacked_SparksSmall {
+  height 0
+  radius 0
+  mass 0
+  +MISSILE +NOBLOCKMAP +NOCLIP +NOGRAVITY
++CLIENTSIDEONLY
+States
+	{
+	Spawn:
+		TNT1 A 1 A_SETANGLE(random(0,360))
+		TNT1 AAAAAAA 0 A_SpawnItemEx ("Spark_impact",random(-3, -6), random(-10,-8), random(-10, 3), random(0, 4), 0, random(0, 4), random(0, 30))
+		TNT1 AAAAAAAAA 0 A_SpawnItemEx ("Spark_impact",random(-20, 20), random(-10,10), random(0, 5), random(0, 4), 0, random(0, 4), random(0, 60))
+		TNT1 AAAAAAAAAAA 0 A_SpawnItemEx ("Spark_impact",random(-20, 20), random(-10,10), random(0, 3), random(0, 7), 0, random(0, 5), random(0, 90))
+		stop
+	}
+}
+
+
+
+Actor SparkShoot {
+
+}
+
+Actor SparkShootLite {
+
+}
+
+actor SoldierNerf : SOLDIER 13207
+{
+	SelacoEnemy.RandomizerSpawnChance 0
+	//$Category Ominous
+	Health 30
+	DropItem "Rifle"
+}
+
+actor SoldierNerf2 : SOLDIER 13235
+{
+	SelacoEnemy.RandomizerSpawnChance 0
+	//$Category Ominous
+	Health 60
+}
+
+
+actor SpawnWallSitterDecoration 11111 {
+	tag "Wallsitter Decoration"
+	scale 0.3
+	States {
+		Spawn:
+			RFST J 0
+			TNT1 A 0 A_SpawnItemEx("RIFLEMAN_WALLSIT")
+			stop
+	}
+}
+
+Actor ShootDebries {
+	States {
+	Spawn:
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx("HugeWallChunk", random(3, 5), random(-5, 5), random(1, 10), random(1, 4), random(1,4), random(1,6), 0)
+		stop
+	}
+}
+
+Actor Confetti_1 : SELACOACTORSTATIC 14309 {
+	//$Category SelacoDecorations
+	tag "Confetti Pattern 1"
+	+FLATSPRITE
+	+NOGRAVITY
+	+NOINTERACTION
+	scale 1.5
+	States {
+		Spawn:
+			CONF A -1
+			stop
+	}
+}
+
+Actor Confetti_2 : Confetti_1 14310 {
+	tag "Confetti Pattern 2"
+	States {
+		Spawn:
+			CONF B -1
+			stop
+	}
+}
+Actor Confetti_3 : Confetti_1 14314 {
+	tag "Confetti Pattern 3"
+	States {
+		Spawn:
+			CONF C -1
+			stop
+	}
+}Actor Confetti_4 : Confetti_1 14312 {
+	tag "Confetti Pattern 4"
+	States {
+		Spawn:
+			CONF D -1
+			stop
+	}
+}Actor Confetti_5 : Confetti_1 14313 {
+	tag "Confetti Pattern 5"
+	States {
+		Spawn:
+			CONF E -1
+			stop
+	}
+}
+
+Actor Garlands : SelacoActor 14322 {
+	//$Category SelacoDecorations
+	YSCALE 0.55
+	XSCALE 0.5
+	+WALLSPRITE
+	+SPAWNCEILING
+	+CEILINGHUGGER
+	+NOGRAVITY
+	radius 50
+	States {
+		Spawn:
+			TNT1 A 0
+			HAPP A 1 SleepIndefinite()
+			stop
+	}
+
+}
+
+
+Actor HappyGarlands 14325 {
+	//$Category SelacoDecorations
+	YSCALE 0.2
+	XSCALE 0.2
+	+WALLSPRITE
+	+NOINTERACTION
+	+NOGRAVITY
+	States {
+		Spawn:
+			TNT1 A 0
+			HAPP C 1 SleepIndefinite()
+			stop
+	}
+
+}
+
+
+actor CrateDecoration {
+
+	States {
+		CRAT A -1
+		stop
+	}
+}
+
+Actor PoorGuyBurningLife : Inventory
+{
+inventory.maxamount 20
+}
+
+Actor DogtagsDecoration 2639
+{
+	//$Category SelacoDecorations
+	tag "Dogtags"
+	+FLATSPRITE
+	+NOINTERACTION
+	scale 0.05
+	height 1
+	+STANDSTILL
+	States {
+		Spawn:
+			TAGS A -1
+			stop
+	}
+}
+
+Actor KickboxMagazine : DogtagsDecoration 2938
+{
+	//$Category SelacoDecorations
+	tag "Magazine - Kickbox"
+	+shootable
+	-NoInteraction
+	+NOBLOODDECALS
+	deathsound "dest/paper"
+	Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP"
+	health 1
+	scale 0.15
+	yscale -0.15
+	States {
+		Spawn:
+			MAGA Z -1
+			stop
+		Death:
+			TNT1 A 0 A_PlaySound("dest/paper")
+	}
+}
+
+
+
+Actor Badge : DogtagsDecoration 2937
+{
+	-flatsprite
+	+wallsprite
+	//$Category SelacoDecorations
+	tag "Badge"
+	scale 0.2
+	yscale -0.20
+	States {
+		Spawn:
+			BADG E -1
+			stop
+	}
+}
+
+Actor RememberMagazine : KickboxMagazine 2932
+{
+	//$Category SelacoDecorations
+	tag "Magazine - Remember Earth"
+	scale 0.7
+	yscale 1.2
+	States {
+		Spawn:
+			MAGA A -1
+			stop
+		Death:
+			TNT1 A 0 A_PlaySound("dest/paper")
+			stop
+	}
+}
+
+Actor RainSpawner : SelacoACtor  //DoomEdNum on this
+{
+  Radius 1
+  Height 1
+  +NoClip
+  +ClientSideOnly
+  +SpawnCeiling
+  +NoGravity
+  SeeSound "ambient/dripping"
+  States
+  {
+  Spawn:
+     Spawn:
+		TNT1 A 1
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("ParticlePhysics")==1,"ParticlePhysics")
+		TNT1 A 1
+	Death:
+	    TNT1 A 0
+		stop
+
+  NoSound:
+    TNT1 A 0 A_Jumpif(Args[3] > 0, "NoSoundCircle")
+    TNT1 AAA 2 A_SpawnItemEx("RainDrop", Random(-Args[0], Args[0]), Random(-Args[0], Args[0]), -2, 0, 0, 0, 0, 128, Args[1])
+    Loop
+  Circle:
+    TNT1 AAA 2 A_SpawnItemEx("RainDrop", Random(-Args[0], Args[0]), 0, -2, 0, 0, 0, Random(0, 360), 128, Args[1])
+  NoSound:
+    TNT1 A 0 A_Jumpif(Args[3] > 0, "NoSoundCircle")
+    TNT1 AAA 2 A_SpawnItemEx("RainDrop", Random(-Args[0], Args[0]), Random(-Args[0], Args[0]), -2, 0, 0, 0, 0, 128, Args[1])
+    Loop
+  NoSoundCircle:
+    TNT1 A 2 A_SpawnItemEx("RainDrop", Random(-Args[0], Args[0]), 0, -2, 0, 0, 0, Random(0, 360), 128, Args[1])
+    Loop
+  }
+}
+
+
+actor SomeBrightObject {
+	+NOGRAVITY
+	PROJECTILE
+   RenderStyle Add
+  +FORCEXYBILLBOARD
+	scale 0.5
+	States {
+		Spawn:
+			TNT1 A 0
+			PGEY A -1 BRIGHT ThrustThing(angle*256/360, 14, 0, 0)
+			stop
+	}
+}
+
+Actor ShowerDrop : RainDrop
+{
+	alpha 0.2
+	xscale 0.3
+	yscale 0.7
+	radius 2
+	height 2
+	States
+	{
+	Death:
+		TNT1 A 0 {
+			A_SETSCALE(0.1, 0.3);
+		}
+		TNT1 A 0 A_SpawnItemEx("RainSmoke", frandom(-26,26), frandom(-26,26), frandom(0,12), 0, 0, frandom(0.2,0.5), 0, SXF_ABSOLUTEPOSITION | SXF_ABSOLUTEVELOCITY, 128)
+		TNT1 A 0 A_SpawnItemEx("LiquidParticleXSmallBaby", frandom(-20,20), frandom(-20,20), frandom(0,0))
+		RNDR BCDEFGH 3 A_FadeOut(0.15)
+		stop
+	Xdeath:
+		TNT1 A 0 {
+			A_SETSCALE(0.1, 0.3);
+		}
+		TNT1 A 0 A_SpawnItemEx("RainSmoke", frandom(-26,26), frandom(-26,26), frandom(-60,0), 0, 0, 1, 0, SXF_ABSOLUTEPOSITION | SXF_ABSOLUTEVELOCITY, 128)
+		TNT1 A 0 A_SpawnItemEx("LiquidParticleXSmallBaby", 0, 0, frandom(-60,0))
+		RNDR BCDEFGH 3 A_FadeOut(0.15)
+		stop
+	}
+}
+
+Actor FliesSpawner 32111
+{
+	//category SelacoDecorations
+ tag "Bunchofflies"
+ +Missile
+ +NoBlockmap
+ +NoGravity
+ +NoSector
+ +Clientsideonly
+ Radius 1
+ Height 3
+ States
+ {
+  Spawn:
+   TNT1 A 0
+   TNT1 A 0
+   TNT1 A 10 A_JUMP(2, "Death")
+   TNT1 A 0 A_PlaySound("script/swarm", chan_auto, 0.5, 1)
+   TNT1 AAAAAA random(1,3) A_SpawnItemEx ("SwarmFlies",frandom(16,16),frandom(-16,16),-30)
+  SomeTimesBlood:
+   	TNT1 A random(20, 30)
+	TNT1 A 0 A_PlaySound("undead/bite", CHAN_AUTO, 0.08)
+   	loop
+  Death:
+	TNT1 A 0
+	Stop
+ }
+}
+
+Actor DroppingSparksOnce : DroppingSparks {
+/* 	+SpawnCeiling
+	height 2
+	states {
+		Spawn:
+		SpawnEffect:
+			TNT1 A 0 A_PlaySound("dest/dsparks", CHAN_AUTO, 0.6)
+			stop
+		Destroy:
+			TNT1 A 0
+			stop
+	} */
+}
+
+ACTOR SparksLooper : SELACOACTOR 4339
+{
+	//category SelacoEffects
+	tag "Spark Looper"
+	renderstyle add
+	height 3
+	scale 0.33
+	SelacoActor.SleepDistance 1024
+	-NOBLOCKMAP
+	-CEILINGHUGGER
+	+NOINTERACTION
+	+STANDSTILL
+	+NOGRAVITY
+  states
+  {
+  Spawn:
+	FX58 A 1
+  WaitForDawn:
+  ShootSparks:
+	TNT1 A random(40,125)
+    TNT1 A 0 {
+		if(GetCvar("g_dimMuzzleFlashes") == 0) {
+			A_SpawnItem ("YellowFlareSmall", 0);
+		}
+	}
+	TNT1 A 0 A_playSound("script/sparks", 1.0, 0.3)
+	TNT1 A 0
+    FX58 ABCDEFG 2 bright
+	goto WaitForDawn
+	Destroy:
+		TNT1 A 0
+		stop
+  }
+}
+
+actor NeonSign1 9303 {
+	tag "Space Bro Neon Sign 1"
+	+WALLSPRITE
+	+NOGRAVITY
+	mass 500
+	radius 1
+	scale 0.39
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 A 0 A_PLAYSOUND("ambient/neonhum", CHAN_AUTO, 1.0, 1, 1.0)
+			NEON C -1 BRIGHT
+			stop
+	}
+}
+
+ACTOR SparksLooperFast : SparksLooper 4341
+{
+  tag "Spark Looper Fast"
+  states
+  {
+  Spawn:
+	FX58 A 1
+  WaitForDawn:
+  ShootSparks:
+	TNT1 A random(20,65)
+    TNT1 A 0 A_SpawnItem ("YellowFlareSmall", 0)
+	TNT1 A 0 A_playSound("script/sparks", 1.0, 0.3)
+	TNT1 A 0
+    FX58 ABCDEFG 2 bright
+	goto WaitForDawn
+	Destroy:
+		TNT1 A 0
+		stop
+  }
+}
+
+actor UseableSwitch 7435 {
+	//category OminousFunctions
+	speed 5
+	radius 5
+	Health 8000
+	+NOGRAVITY
+	+FLOAT
+	+SHOOTABLE
+	+UseSpecial
+	// 0 = Activate
+	// 1 = Consume Cabinet Card
+	states {
+		Spawn:
+			TNT1 A 0
+		Check1: // Is the player close enough to a switch?
+			TNT1 A 1 A_LOOKEX(LOF_NOSOUNDCHECK, 0, 120, 0, 360, "Check2")
+			loop
+		Check2: // Player is in range. Is the player facing the switch?
+			TNT1 A 0 A_JumpIfInTargetLOS("Check3", 40)
+			goto Lost
+		Check3: // Player is in range and facing the switch. Is the player pressing USE?
+			TNT1 A 1 ACS_NamedExecute("SetButtonRange", 0, 1)
+			TNT1 A 0 ACS_NamedExecute("ButtonPrompt", 0, Args[4])
+			goto Check1
+		Lost: // If one of the checks failed, go here
+			TNT1 A 1 ACS_NamedExecute("SetButtonRange", 0, 0)
+			goto Spawn
+		Interact: // All checks completed, player pressed USE
+			TNT1 A 1 ACS_NamedExecute("SetButtonRange", 0, 0)
+			TNT1 A 1
+		Death:
+			stop
+	}
+}
+
+actor UsableSwitchRepeatable : UseableSwitch 7436 {
+	//category OminousFunctions
+	states {
+		Interact: // All checks completed, player pressed USE
+			TNT1 A 1 ACS_NamedExecute("SetButtonRange", 0, 0)
+			TNT1 A 1
+		Death:
+			TNT1 A 1 ACS_NamedExecute("SetButtonRange", 0, 0)
+			TNT1 A 1 A_SpawnItemEx("UsableSwitchRepeatable", 0, 0, 0, 0, 0, 0, 0, SXF_TRANSFERSPECIAL | SXF_TRANSFERPOINTERS  | SXF_SETTARGET  )
+			stop
+	}
+}
+
+actor vendmachine_error : SelacoActor 3278 {
+	+NOGRAVITY
+	+WALLSPRITE
+	+THRUACTORS
+	+FLOAT
+	+NOBLOCKMAP 
+	alpha 0.3
+	scale 0.22
+	SelacoActor.SleepDistance 1252
+
+	States {
+		Spawn:
+			VNDB RRRRRR 2 BRIGHT A_FADEIN(0.1, FTF_CLAMP )
+			VNDB R 15 BRIGHT
+			VNDB RRRRRR 2 BRIGHT A_FADEOUT(0.1, FTF_CLAMP )
+			VNDB R 15 BRIGHT
+			loop
+	}
+}
+
+actor vendmachine_flat 3279 {
+	tag "Vending error"
+	+NOGRAVITY
+	+FLATSPRITE
+	+THRUACTORS
+	alpha 0.3
+	xscale 0.4
+	yscale -0.4
+	States {
+		Spawn:
+			VNDB RRRRRR 2 BRIGHT A_FADEIN(0.1, FTF_CLAMP )
+			VNDB R 15 BRIGHT
+			VNDB RRRRRR 2 BRIGHT A_FADEOUT(0.1, FTF_CLAMP )
+			VNDB R 15 BRIGHT
+			loop
+	}
+}
+
+Actor PaperPiecePassword1 23886 {
+	tag "Password Note 1"
+	+FLATSPRITE
+	+NOINTERACTION
+	xscale 0.2
+	yscale -0.2
+	states {
+		Spawn:
+			NOTE B -1
+			stop
+	}
+}
+
+actor - {
+
+}
+
+actor 0 {
+
+}
+
+actor VOXELTHINGY {
+	renderstyle none
+	radius 5
+	states {
+		spawn:
+			DHOL J -1
+			stop
+	}
+}
+
+// Here for legacy reasons. It should no longer be used
+actor SOLDIERSPAWNER_OLD {
+}
+
+Actor EngineerSpawner : SOLDIERSPAWNER_OLD {
+	tag "Engineer"
+	states {
+		Spawn:
+			ENAI A 1
+			TNT1 A 0 A_SpawnItemEx("Engineer",0,0,0,0,0,0,0,SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288)
+			stop
+	}
+}
+
+actor Neon_Money_Spawner 5485 {
+	+WALLSPRITE
+	+NOGRAVITY
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SPAWNITEMEX("Neon_Money", 0, 0, 0, 0, 0, 0, 0)
+			TNT1 A 0 A_SPAWNITEMEX("Neon_Money_outer", 0, 0, 0, 0, 0, 0, 90)
+			stop
+	}
+}
+
+actor Neon_Money {
+	+WALLSPRITE
+	+NOGRAVITY
+	scale 0.4
+	states {
+		spawn:
+			NEON A 1 bright A_SETANGLE(angle + 5)
+ 			loop
+	}
+}
+
+actor Neon_Money_outer : Neon_Money {
+	scale 0.5
+	states {
+		spawn:
+			NEON B 1 bright A_SETANGLE(angle - 5)
+ 			loop
+	}
+}
+
+actor StartDropping : Inventory {
+	Inventory.maxAmount 35
+}
+
+
+actor FrozenAlien : SwitchableDecoration 21322 {
+		Scale 1.02
+		Health 90000
+		DamageFactor "GRIDLOCK", 10000.0
+		+SOLID
+		+Shootable
+	height 20
+	+USESPECIAL
+	Activation THINGSPEC_Switch
+	+Pushable
+		States {
+			Spawn:
+				ALIE N 5
+				loop
+			Active:
+				TNT1 A 0 A_CheckProximity("", "Dawn", 900, 1, CPXF_SetTarget)
+				ALIE N 1 A_Warp(AAPTR_TARGET, 70, 0, 20, 0, WARPF_INTERPOLATE)
+				loop
+			Inactive:
+				TNT1 A 0 ThrustThing(ACS_NamedExecuteWithResult("GetPlayerAngle"), 11, 0, 0)
+				goto Spawn
+			Pain.Gridlock:
+			Death.Gridlock:
+					TNT1 A 0 A_PlaySound("dest/glass", chan_auto)
+					TNT1 AAAAAAAAAAAAAA 0 A_SpawnProjectile("LargeGlassParticle1", random(1, 85), random(-30, 30), random(3, 360), 0, 90)
+					TNT1 AAAAAAAAAAAAAA 0 A_SpawnProjectile("LargeGlassParticle2", random(1, 85), random(-30, 30), random(3, 360), 0, 90)
+					TNT1 AAAAAAAAAAAAAA 0 A_SpawnProjectile("LargeGlassParticle3", random(1, 85), random(-30, 30), random(3, 360), 0, 90)
+					TNT1 AAAAAAAAAAAAAA 0 A_SpawnProjectile("LargeGlassParticle4", random(1, 85), random(-30, 30), random(3, 360), 0, 90)
+					stop
+		}
+}
+
+
+
+actor Z_FloorCheck
+{
+	Radius 8
+	Height 4
+	+SOLID
+	+NOTIMEFREEZE
+	States
+	{
+		Spawn:
+			TNT1 A 1
+			Stop
+	}
+}
+
+Actor CantFire : Inventory
+{
+inventory.maxamount 1
+}
+
+/*ACTOR painstate : PowerupGiver
+{
+  Inventory.MaxAmount 0
+  //Powerup.Color ""
+  Powerup.Type "NoBloodDamage"
+  +INVENTORY.AUTOACTIVATE
+  States  {}
+}*/
+
+
+
+
+
+
+
+Actor LookingForPlayer : Inventory
+{
+inventory.maxamount 30
+}
+
+Actor DeathTimer1 : Inventory
+{
+	inventory.maxamount 120
+}
+
+
+ACTOR CasingsJanitor: Inventory
+{Inventory.MaxAmount 1}
+
+
+
+
+// WIRE KIT
+actor Wirekit1 : WireDecoration1 9000{
+	tag "Wire Kit 1"
+}
+actor Wirekit2 : WireDecoration1 9017{
+	tag "Wire Kit 2"
+}
+actor Wirekit3 : WireDecoration1 9002{
+	tag "Wire Kit 3"
+}
+actor Wirekit4 : WireDecoration1 9003{
+	tag "Wire Kit 4"
+}
+actor Wirekit5 : WireDecoration1 9004{
+	tag "Wire Kit 5"
+}
+actor Wirekit6 : WireDecoration1 9005{
+	tag "Wire Kit 6"
+}
+actor Wirekit7 : WireDecoration1 9006{
+	tag "Wire Kit 7"
+}
+actor Wirekit8 : WireDecoration1 9007{
+	tag "Wire Kit 8"
+}
+actor Wirekit9 : WireDecoration1 9008{
+	tag "Wire Kit 9"
+}
+actor Wirekit10 : WireDecoration1 9009{
+	tag "Wire Kit 10"
+}
+actor Wirekit11 : WireDecoration1 9010{
+	tag "Wire Kit 11"
+}
+actor Wirekit12 : WireDecoration1 9011{
+	tag "Wire Kit 12"
+}
+actor Wirekit13 : WireDecoration1 9012{
+	tag "Wire Kit 13" 
+}
+actor Wirekit14 : WireDecoration1 9921{
+	tag "Wire Kit 14"
+}
+
+actor Wireplug : WireDecoration1 9014{
+	tag "Wire Kit - Plug"
+}
+actor Wiretip : WireDecoration1 9015{
+	tag "Wire Kit - Tip"
+}
+actor WirePlus : WireDecoration1 9016{
+	tag "Wire Kit - Plus"
+}
+
+actor Wire_Y1 : WireDecoration1 9021{
+	tag "Wire Kit - Y-Shape 1"
+}
+
+actor Wire_Y2 : WireDecoration1 9022{
+	tag "Wire Kit - Y-Shape 2"
+}
+Actor WireDecoration2 : WireDecoration1 13230	{tag "Wirekit 16"}
+Actor WireDecoration3 : WireDecoration1 13227	{tag "Wirekit 17"}
+Actor WireDecoration4 : WireDecoration1 13229	{tag "Wirekit 18"}
+
+
+actor WIRELEDGE1 : WireDecoration1 9020 {
+	scale 0.75
+	radius 2
+	height 2
+	tag "Wire Kit - Ledge 1"
+	states {
+		Spawn:
+			TNT1 A 0
+			VOXE L 0 A_SPAWNITEMEX("WIRELEDGE1B")
+			VOXE L -1
+			stop
+	}
+}
+actor WIRELEDGE1B : WIRELEDGE1  {
+	states {
+		Spawn:
+			TNT1 A 0
+			VOXE L -1 BRIGHT
+			stop
+	}
+}
+
+actor WIRELEDGE2 : WireDecoration1 9019 {
+	scale 1.15
+	tag "Wire Kit - Ledge 2"
+	states {
+		Spawn:
+			TNT1 A 0
+			VOXE L -1
+			stop
+	}
+}
+actor WIRELEDGE2B : WIRELEDGE1  {
+	scale 1.15
+	states {
+		Spawn:
+			VOXE L -1 BRIGHT
+			stop
+	}
+}
+
+
+// CIVILIANS
+Actor DeadCivilian 18722 {
+	tag "Dead Civilian"
+    states {
+        Spawn:
+            TNT1 A 0
+            stop
+    }
+}
+
+// FULL GAME DECORATE
+Actor graffiti28 : graffitibase 11483 {
+  	+WALLSPRITE
+ 	+NOGRAVITY
+ 	+ROLLSPRITE
+	scale 0.65
+	tag "Grafiti: ArachnoCola"
+	RenderStyle Translucent
+	alpha 0.9
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		TNT1 A 3
+		VOXE L -1 {
+			SleepIndefinite();
+		}
+		loop
+	}
+}
+
+actor SPACEBROPOSTER 2930 {
+	tag "Space Bro Poster 1"
+	+WALLSPRITE
+	+DONTTHRUST
+	YSCALE 0.2
+	XSCALE 0.22
+	+NOGRAVITY
+	MASS 2000
+	states {
+		Spawn:
+			SPPO A -1
+			stop
+	}
+}
+
+
+Actor MachinerySign1 : KeepOutSign 339 {
+	tag "Machinery Sign 1 (Keep hands free)"
+}
+Actor MachinerySign2 : KeepOutSign 340 {
+	tag "Machinery Sign 2 (Automatic Machinery)"
+}
+Actor MachinerySign3 : KeepOutSign 341 {
+	tag "Machinery Sign 3 (Loud noises)"
+}
+Actor MachinerySign4 : KeepOutSign 342 {
+	tag "Machinery Sign 4 (Toxins)"
+}
+Actor MachinerySign5 : KeepOutSign 343 {
+	tag "Machinery Sign 5 (Flashes)"
+}
+Actor MachinerySign6 : KeepOutSign 344 {
+	tag "Machinery Sign 6 (Wear safety helmet)"
+}
+Actor MachinerySign7 : KeepOutSign 345 {
+	tag "Machinery Sign 7 (No children)"
+}
+Actor MachinerySign8 : KeepOutSign 346 {
+	tag "Machinery Sign 8 (Gas Mask)"
+}
+Actor MachinerySign9 : KeepOutSign 347 {
+	tag "Machinery Sign 9 (Unfinished Structure)"
+}
+Actor MachinerySign10 : KeepOutSign 348 {
+	tag "Machinery Sign 10 (Under Construction)"
+}
+Actor MachinerySign11 : KeepOutSign 349 {
+	tag "Machinery Sign 11 (High Voltage)"
+}
+Actor MachinerySign12 : KeepOutSign 350 {
+	tag "Machinery Sign 12 (Employees Only)"
+}
+Actor TrashSign : KeepOutSign 351 {
+	tag "Trash Instruction Sign"
+}
+Actor MachinerySign13 : KeepOutSign 352 {
+	tag "Machinery Sign 13 (Caution)"
+}
+Actor MachinerySign14 : KeepOutSign 353 {
+	tag "Machinery Sign 14 (VAC-BOT Charging Station)"
+}
+Actor FIRE_EXTINGUISHER_SIGN : KeepOutSign 354 {
+	tag "FIRE_EXTINGUISHER_SIGN"
+}
+Actor MachinerySign15 : KeepOutSign 355 {
+	tag "Machinery Sign 15 (No trespassing, staff only)"
+}
+Actor MachinerySign16 : KeepOutSign 356 {
+	tag "Machinery Sign 16 (No Dickheads)"
+}
+Actor MachinerySign17 : KeepOutSign 357 {
+	tag "Machinery Sign 17 (No elderly allowed)"
+}
+Actor MachinerySign18 : KeepOutSign 358 {
+	tag "Machinery Sign 18 (Deep Water)"
+}
+Actor KEYCARD_SIGN_BLUE : KeepOutSign 359 {
+	tag "Blue Keycard Sign"
+}
+Actor KEYCARD_SIGN_PURPLE : KeepOutSign 360 {
+	tag "Purple Keycard Sign"
+}
+Actor KEYCARD_SIGN_YELLOW : KeepOutSign 361 {
+	tag "Yellow Keycard Sign"
+}
+Actor SIGN_STAIRS_RIGHT : KeepOutSign 362 {
+	tag "Stairwell Sign (Right)"
+}
+Actor SIGN_STAIRS_LEFT : KeepOutSign 364 {
+	tag "Stairwell Sign (Left)"
+}
+Actor SIGN_ELEVATOR : KeepOutSign 365 {
+	tag "Elevator Sign"
+}
+Actor SIGN_ELEVATOR_LEFT : KeepOutSign 366 {
+	tag "Elevator Sign (Left)"
+}
+Actor SIGN_ELEVATOR_RIGHT : KeepOutSign 367 {
+	tag "Elevator Sign (Right)"
+}
+Actor EmergencySignLeft : KeepOutSign 368 {
+	tag "Emergency Exit Sign (Left)"
+}
+Actor EmergencySignRight : KeepOutSign 370 {
+	tag "Emergency Exit Sign (Right)"
+}
+Actor RooftopSignRight : KeepOutSign 371 {
+	tag "Rooftop Exit Sign (Right)"
+}
+Actor RooftopSignLeft : KeepOutSign 372 {
+	tag "Rooftop Exit Sign (Left)"
+}
+Actor FalldamageSIgn : KeepOutSign 369 {
+	tag "Fall Damage Sign"
+}
+actor Changing_Room : KeepOutSign 373 {
+	tag "Changing Room sign"
+}
+actor Dartboard : KeepOutSign 374
+{
+	tag "Dartboard"
+	+NOINTERACTION
+}
+Actor Server_Room_Blue : KeepOutSign 376 {
+	tag "Server Room Sign (Blue)"
+}
+Actor Server_Room_pink : KeepOutSign 377 {
+	tag "Server Room Sign (Pink)"
+}
+Actor STORAGE_ROOM_BLUE : KeepOutSign 378 {
+	tag "Storage Room Sign"
+}
+Actor AUTHORIZED_PERSONAL : KeepOutSign 379 {
+	tag "Authorized Personnel Sign"
+}
+Actor MachinerySign19 : KeepOutSign 380 {
+	tag "Ace Security Only Sign"
+}
+
+Actor GAMEAWARD_1 : KeepOutSign 382 {
+	tag "Game Award: Most DLC In A Kids Game"
+}
+Actor GAMEAWARD_2 : KeepOutSign 383 {
+	tag "Game Award: Greatest Advertisement"
+}
+Actor GAMEAWARD_3 : KeepOutSign 384 {
+	tag "Game Award: Game Of The Year"
+}
+Actor WashHandsSign1 : KeepOutSign 385 {
+	tag "Wash Hands Sign 1"
+}
+Actor WashHandsSign2 : KeepOutSign 386 {
+	tag "Wash Hands Sign 2"
+}
+Actor LadderSign : KeepOutSign 387
+{
+	tag "Ladder Sign"
+}
+Actor Barrelloader_Sign	: KeepOutSign 388
+{
+	tag "Barrel Loader Sign"
+}
+actor Keycard_Purple_left : KeepOutSign 389 {
+	tag "Purple Keycard Sign (Left)"
+}
+
+actor SPACEBROPOSTER_2 : SPACEBROPOSTER 2931 {
+	tag "Space Bro Poster 2"
+	YSCALE 0.3
+	XSCALE 0.35
+	states {
+		Spawn:
+			SPPO B -1
+			stop
+	}
+}
+
+Actor Plant9Spawner 11138 {	
+	tag "Plant 9"
+	states
+	{
+		Spawn:
+		PLT9 A 0
+		TNT1 A 0 A_SpawnItemEx("Plant9", 0, 0, 0, 0, 0, 0)
+		TNT1 A 0 A_SpawnItemEx("Plant9_MIRRORED", 0, 0, 0, 0, 0, 0, random(70, 100))
+		stop
+	}
+}
+
+Actor Plant9SpawnerHuge 11139 {	
+	tag "Huge Plant 9"
+	states
+	{
+		Spawn:
+		PLT9 A 0
+		TNT1 A 0 A_SpawnItemEx("PlantHuge9", 0, 0, 0, 0, 0, 0)
+		TNT1 A 0 A_SpawnItemEx("PlantHuge9_MIRRORED", 0, 0, 0, 0, 0, 0, random(70, 100))
+		stop
+	}
+}
+
+actor NeonSign2 : NeonSign1 9302 {
+	scale 0.45
+	tag "Space Bro Neon Sign 2"
+	states {
+		spawn:
+			TNT1 A 0
+			TNT1 A 0 A_PLAYSOUND("ambient/neonhum", CHAN_AUTO, 1.0, 1, 1.0)
+			NEON D -1 BRIGHT
+			stop
+	}
+}
+
+ACTOR Garlands_Claire : SELACOACTORSTATIC 9283 {
+	tag "Garlands Claire"
+	scale 0.49
+	+WALLSPRITE
+	+NOGRAVITY
+	+NOINTERACTIOn
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL A -1
+			stop
+	}
+}
+ACTOR Garlands_Back : Garlands_Claire 9284 {
+	tag "Garlands Claire Backside"
+	scale 0.49
+	xscale -0.49 
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL B -1
+			stop
+	}
+}
+
+ACTOR Garlands_memorial_1 : Garlands_Claire 9232 {
+	tag "Earth memorial Day Garland 1"
+	scale 0.5
+	xscale -0.5
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL C -1
+			stop
+	}
+}
+
+ACTOR Garlands_memorial_2 : Garlands_memorial_1 9233 {
+	tag "Earth memorial Day Garland 2"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL D -1
+			stop
+	}
+}
+
+ACTOR Garlands_memorial_3 : Garlands_memorial_1 9234 {
+	tag "Earth memorial Day Garland 3"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL E -1
+			stop
+	}
+}
+
+ACTOR Garlands_memorial_4 : Garlands_memorial_1 9235 {
+	tag "Earth memorial Day Garland 4"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL G -1
+			stop
+	}
+}ACTOR Garlands_memorial_5 : Garlands_memorial_1 9236 {
+	tag "Earth memorial Day Garland 5"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL H -1
+			stop
+	}
+}ACTOR Garlands_memorial_6 : Garlands_memorial_1 9237 {
+	tag "Earth memorial Day Garland 6"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL I -1
+			stop
+	}
+}ACTOR Garlands_memorial_7 : Garlands_memorial_1 9238 {
+	tag "Earth memorial Day Garland 7"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL J -1
+			stop
+	}
+}
+
+ACTOR Garlands_memorial_8 : Garlands_memorial_1 9239 {
+	tag "Earth memorial Day Garland 8"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL F -1
+			stop
+	}
+}
+
+
+ACTOR Garlands_memorial_9 : Garlands_memorial_1 9240 {
+	tag "Earth memorial Day Garland 9"
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL K -1
+			stop
+	}
+}
+
+ACTOR Garlands_memorial_10 : Garlands_memorial_1 9241 {
+	tag "Earth memorial Day Garland 10"
+	scale 0.76
+	states {
+		Spawn:
+			TNT1 A 0
+			GARL L -1
+			stop
+	}
+}
+
+Actor BlueFilterNeon 13153
+{
+	//$Category SelacoDecorations
+	TAG "Filter Error sign"
+	+WALLSPRITE
+	+NOGRAVITY
+	+FLOAT
+	+ROLLSPRITE
+	scale 1.1
+	alpha 1.0
+	states
+	{
+		Spawn:
+		FILT AAAAAAA 1 BRIGHT A_FADEOUT(0.1)
+		FILT A 10 BRIGHT
+		FILT AAAAAAA 1 BRIGHT A_FADEIN(0.1)
+		FILT A 10 BRIGHT
+		loop
+	}
+}
+
+Actor SurvivorMessage 28492
+{
+TAG "HydrocyMessage"
+  +WALLSPRITE
++NOGRAVITY
+scale 0.4
+states
+{
+	Spawn:
+	MESS D -1
+	stop
+}
+}
+
+Actor SecretHintHydrocy 11243
+{
+//$Category SelacoDecorations
+TAG "Hydrocy Secret Hint"
+  +FLATSPRITE
++NOGRAVITY
+scale 0.07
+states
+	{
+		Spawn:
+		PAPE C -1
+		stop
+	}
+}
+
+Actor SkullsAndRoses : SELACOACTOR 16599 {
+	tag "Skulls and Roses flag"
+	+WALLSPRITE
+	+NOINTERACTION
+	scale 0.5
+	states {
+		Spawn:
+			SKRO A -1
+			stop
+	}
+}
+
+actor Squadleader {
+	+NOGRAVITY
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SPawnItemEx("SquadLeaderAura", 0, 0, 0)
+			TNT1 A 1 A_SPawnItemEx("SquadLeaderIcon", 0, 0, 70)
+			stop
+	}
+}
+
+Actor graffiti19:  graffiti28 11473 {
+	scale 0.32
+	alpha 0.95
+	tag "Graffiti: PLUG IT UP"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV S -1
+		stop
+	}
+}
+
+Actor graffiti21:  graffiti28 11476 {
+	scale 0.65
+	alpha 0.95
+	tag "Graffiti: suckers"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV U -1
+		stop
+	}
+}
+
+Actor graffiti22:  graffiti28 11477 {
+	scale 0.15
+	alpha 0.95
+	tag "Graffiti: Hump Crate"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV V -1
+		stop
+	}
+}
+
+Actor graffiti23:  graffiti28 11478 {
+	scale 1.0
+	alpha 0.75
+	tag "Graffiti: Who Watches Aos"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV W -1
+		stop
+	}
+}
+
+Actor graffiti24:  graffiti28 11479 {
+	scale 1.0
+	alpha 0.85
+	tag "Graffiti: Selaco has Fallen"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV X -1
+		stop
+	}
+}
+
+Actor graffiti24_LITE :  graffiti28 11486 {
+	scale 0.6
+	alpha 0.85
+	tag "Graffiti: Selaco has Fallen LITE"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV X -1
+		stop
+	}
+}
+
+
+Actor graffiti25:  graffiti28 11480 {
+	scale 0.4
+	alpha 1.0
+	tag "Graffiti: feed the addiction"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV Y -1
+		stop
+	}
+}
+
+Actor graffiti26:  graffiti28 11481 {
+	alpha 0.7
+	tag "Graffiti: Fortunes Run A "
+}
+Actor graffiti27:  graffiti28 11482 {
+	alpha 0.7
+	tag "Graffiti: Fortunes Run B "
+}
+
+Actor graffiti5 :  graffiti28 11448 {
+	scale 1.5
+	tag "Graffiti:  Earth sucks"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		TNT1 A 0 A_SetScale(ARGS[0] * 0.1, ARGS[0] * 0.1)
+		VOXE L -1
+		stop
+	}
+}
+
+Actor graffiti10 :  graffiti28 11464 {
+	scale 0.55
+	tag "Graffiti: Fucking Deserved"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		TNT1 A 0 A_SetRoll(1)
+		GRAV J -1
+		stop
+	}
+}
+
+Actor graffiti11 :  graffiti28 11465 {
+	scale 0.55
+	tag "Graffiti: AOS protects you"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		TNT1 A 0 A_SetScale(ARGS[0] * 0.1, ARGS[0] * 0.1)
+		TNT1 A 0 A_SetRoll(1)
+		GRAV K -1
+		stop
+	}
+}
+
+Actor graffiti12 :  graffiti28 11466 {
+	scale 0.22
+	tag "Graffiti: God of Selaco"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		TNT1 A 0 A_SetRoll(1)
+		GRAV L -1
+		stop
+	}
+}
+
+Actor graffiti16:  graffiti28 11470 {
+	scale 0.23
+	tag "Graffiti: Piss off"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV P -1
+		stop
+	}
+}
+
+Actor NotAMimic 11153 {
+  	+WALLSPRITE
+ 	+NOGRAVITY
+ 	 +ROLLSPRITE
+	scale 0.10
+	tag "Not A Mimic"
+	RenderStyle Translucent
+	alpha 1.0
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_SETROLL(roll + random(-8, 8))
+		NOTE C -1
+		stop
+	}
+}
+
+Actor OverflownNeon : BlueFilterNeon 13158
+{
+//$Category SelacoDecorations
+TAG "Overflow Error sign"
+scale 1.5
+states
+{
+	Spawn:
+	FILT BBBBBBBBBBB 1 BRIGHT A_FADEOUT(0.1)
+	FILT B 10 BRIGHT
+	FILT BBBBBBBBBBB 1 BRIGHT A_FADEIN(0.1)
+	FILT B 10 BRIGHT
+	loop
+}
+}
+
+Actor graffiti17:  graffiti28 11471 {
+	scale 0.53
+	alpha 0.95
+	tag "Graffiti: Cross"
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		GRAV Q -1
+		stop
+	}
+}
+
+Actor graffiti29:  graffiti28 11485 {
+	tag "Graffiti: Totally not a Cacodemon"
+}
+
+Actor graffiti30:  graffiti28 11487 {
+	tag "Graffiti: Brutal Doom"
+}
+Actor graffiti31:  graffiti28 11488 {
+	tag "Graffiti: SELACO"
+}
+Actor graffiti32:  graffiti28 11489 {
+	tag "Graffiti: TRUST GWYN"
+}
+Actor graffiti33:  graffiti28 11491 {
+	tag "Graffiti: SEVERED STEEL"
+}
+Actor graffiti34:  graffiti28 11492 {
+	tag "Graffiti: TITAN GYM"
+}
+Actor graffiti35:  graffiti28 11493 {
+	tag "Graffiti: ArachnoCola can"
+}
+Actor graffiti36:  graffiti28 11494 {
+	tag "Graffiti: Saber"
+}
+Actor graffiti37:  graffiti28 11495 {
+	tag "Graffiti: SUBWES"
+}
+Actor graffiti38 : Interactable 11496 {
+  	+WALLSPRITE
+	+INTERPOLATEANGLES
+ 	+NOGRAVITY
+ 	+ROLLSPRITE
+	+USESPECIAL
+	Activation THINGSPEC_SWITCH
+	scale 0.55
+	RenderStyle Translucent
+	alpha 0.9
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Recoil(5)
+		//TNT1 A 0 A_SetRoll(25)
+		VOXE L 1
+		loop
+	Inactive:
+	Active:
+		TNT1 A 0 A_PLAYSOUND("ui/GZYEEY", CHAN_AUTO)
+		VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 {
+			A_SETROLL(roll+8);
+		}
+		VOXE L 10
+		VOXE L 0 {
+			A_PLAYSOUND("dest/snap2");
+			A_PLAYSOUND("dest/snap2", CHAN_AUTO);
+			bNoInteraction = true;
+			A_SetRoll(35, SPF_INTERPOLATE);
+			A_ChangeVelocity(0, 0, -3);
+		}
+		VOXE L 70
+		TNT1 A 0 A_playsound("Destruction/explosion")
+		stop
+	}
+}
+Actor graffiti39:  graffiti28 11500 {
+	tag "Graffiti: Ashes"
+}
+Actor graffiti40:  graffiti28 11501 {
+	scale 1
+	tag "Graffiti: Alma"
+}
+Actor graffiti41:  graffiti28 11502 {
+	tag "Graffiti: Arasrain"
+}
+Actor graffiti42:  graffiti28 11503 {
+	tag "Graffiti: CockUI"
+}
+Actor graffiti43:  graffiti29 11504 {
+	tag "Graffiti: Markings"
+}
+Actor graffiti44:  graffiti29 11505 {
+	tag "Graffiti: GARBAGE DAY"
+}
+
+Actor KoalaGraffiti:  graffiti29 11506 {
+	tag "Graffiti: Koala (tiny)"
+}
+Actor graffiti45:  graffiti29 11507 {
+	tag "Graffiti: Graf"
+}
+
+Actor graffiti46:  graffiti29 11508 {
+	tag "Graffiti: Andrew"
+}
+
+Actor graffiti47:  graffiti29 11510 {
+	tag "Graffiti: ACE SECURITY logos"
+}
+
+Actor graffiti48:  graffiti29 11511 {
+	tag "Graffiti: Stop Skeletons"
+}
+Actor graffiti49:  graffiti29 11512 {
+	tag "Graffiti: FEAR THE THRID"
+}
+Actor graffiti51:  graffiti29 11514 {
+	tag "Graffiti: Shitpicke"
+}
+Actor graffiti52:  graffiti29 11515 {
+	tag "Graffiti: Painsaw"
+}
+Actor graffiti53:  graffiti29 11516 {
+	tag "Graffiti: Asssss"
+}
+Actor graffiti54:  graffiti29 11517 {
+	tag "Graffiti: Icarus"
+}
+Actor graffiti55:  graffiti29 11518 {
+	tag "Graffiti: Galaxy Hunter"
+}
+Actor graffiti56:  graffiti29 11519 {
+	tag "Graffiti: Purple Ape"
+}
+Actor graffiti57:  graffiti29 11520 {
+	tag "Graffiti: My mom's cake."
+}
+Actor graffiti58:  graffiti29 11521 {
+	tag "Graffiti: SPACE BRO"
+}
+Actor graffiti59:  graffiti29 11522 {
+	tag "Graffiti: Altered Orbit Studios 1"
+}
+Actor graffiti60:  graffiti29 11523 {
+	tag "Graffiti: Altered Orbit Studios 2"
+}
+Actor graffiti61:  graffiti29 11524 {
+	tag "Graffiti: Child holding a baloon"
+}
+Actor graffiti62:  graffiti29 11525 {
+	tag "Graffiti: Alien head"
+}
+Actor graffiti63:  graffiti29 11526 {
+	tag "Graffiti: Isaac"
+}
+Actor graffiti64:  graffiti29 11527 {
+	tag "Graffiti: Chuck Clan of Dragons"
+}
+Actor graffiti65:  graffiti29 11528 {
+	tag "Graffiti: Feed Me"
+}
+Actor graffiti66:  graffiti29 11529 {
+	tag "Graffiti: Letter N"
+}
+Actor graffiti67:  graffiti29 11530 {
+	tag "Graffiti: Pluto Burger"
+}
+Actor graffiti68:  graffiti29 11531 {
+	tag "Graffiti: Loook out for yourself"
+}
+Actor graffiti69:  graffiti29 11532 {
+	tag "Graffiti: Grah"
+}
+Actor graffiti70:  graffiti29 11533 {
+	tag "Graffiti: Diagonal Lines"
+}
+Actor graffiti71:  graffiti29 11534 {
+	tag "Graffiti: Hugging Cats"
+}
+Actor graffiti72:  graffiti29 11535 {
+	tag "Graffiti: Text I cannot read #1"
+}
+Actor graffiti73:  graffiti29 11536 {
+	tag "Graffiti: Text I cannot read #2"
+}
+Actor graffiti74:  graffiti29 11537 {
+	tag "Graffiti: Abstract Line A"
+}
+Actor graffiti75:  graffiti29 11538 {
+	tag "Graffiti: Abstract Line B"
+}
+Actor graffiti76:  graffiti29 11539 {
+	tag "Graffiti: Text I cannot read #3"
+}
+Actor graffiti77:  graffiti29 11540 {
+	tag "Graffiti: Text I cannot read #4"
+}
+Actor graffiti78:  graffiti29 11541 {
+	tag "Graffiti: Pizza Slice"
+}
+Actor graffiti79:  graffiti29 11542 {
+	tag "Graffiti: Open Eye"
+}
+Actor graffiti80:  graffiti29 11543 {
+	tag "Graffiti: Monster Smile"
+}
+Actor graffiti81:  graffiti29 11544 {
+	tag "Graffiti: Horned Face"
+}
+Actor graffiti82:  graffiti29 11545 {
+	tag "Graffiti: Plague Doctor"
+}
+Actor graffiti83:  graffiti29 11546 {
+	tag "Graffiti: Fingers holding a flower"
+}
+Actor graffiti84:  graffiti29 11547 {
+	tag "Graffiti: Tunnel Snakes"
+}Actor graffiti85:  graffiti29 11548 {
+	tag "Graffiti: No Hidden Explosive Bears in 3-4"
+	}Actor graffiti86:  graffiti29 11549 {
+		tag "Graffiti: Mondays"
+	}Actor graffiti87:  graffiti29 11550 {
+	tag "Graffiti: Six Seasons and a movie"
+}Actor graffiti88:  graffiti29 11551 {
+	tag "Graffiti: ControllerTestBranch22**"
+}Actor graffiti89:  graffiti29 11552 {
+	tag "Graffiti: #Team Purple"
+}
+Actor graffiti90:  graffiti29 11553 {
+	tag "Graffiti: Psycho Grandma"
+}
+Actor graffiti91:  graffiti29 11554 {
+	tag "Graffiti: Scav"
+}
+Actor graffiti92:  graffiti29 11555 {
+	tag "Graffiti: Bring back NTV"
+}
+Actor graffiti93:  graffiti29 11556 {
+	tag "Graffiti: Ridge Chaser"
+}
+Actor graffiti94:  graffiti29 11557 {
+	tag "Graffiti: Cooka Da Pizza"
+}
+Actor graffiti95:  graffiti29 11558 {
+	tag "Graffiti: i am here"
+}
+Actor graffiti96:  graffiti29 11559 {
+	tag "Graffiti: Laser Moth"
+}
+Actor graffiti97:  graffiti29 11560 {
+	tag "Graffiti: Lighting Exclamation"
+}
+Actor graffiti98:  graffiti29 11561 {
+	tag "Graffiti: CPU Problem"
+}
+Actor graffiti99:  graffiti29 11562 {
+	tag "Graffiti: Aras cat"
+}
+Actor graffiti100:  graffiti29 11563 {
+	tag "Graffiti:  RAT"
+}
+Actor graffiti101:  graffiti29 11564 {
+	tag "Graffiti:  *STARS*"
+}
+Actor graffiti102:  graffiti29 11565 {
+	tag "Graffiti:  NICE REFLEXES BRO!"
+}
+actor NEXXTICS_BRICK_BOX : graffiti29 11566
+{
+	tag "Nexxtic's stupid box"
+}
+actor VACFISH : graffiti29 11567
+{
+	tag "VAC-FISH (RIP)"
+}
+Actor graffiti103:  graffiti29 11568 {
+	tag "Graffiti:  Kipper"
+}
+Actor graffiti104 : graffiti29 11570
+{
+	tag "Graffiti:  The Last Exterminator"
+}
+Actor graffiti105 : graffiti29 11571
+{
+	tag "Graffiti:  Prime Time Bitch"
+}
+Actor graffiti106 : graffiti29 11572
+{
+	tag "Graffiti:  Stop uppercutting our prices"
+}
+Actor graffiti107 : graffiti29 11573
+{
+	tag "Graffiti:  Subpar Burgerjoint"
+}
+actor EffectActor {
+	DistanceCheck r_thingLOD
+}
+
+Actor NukageSmoke : EffectActor{
+	tag "Toxic Smoke Effect"
+	RenderStyle Add
+	Alpha 0
+	scale 0.9
+	+Rollsprite
+	+NoGravity
+	states {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SetRoll(random(0, 360))
+		SpawnEffect:
+			TNT1 A 1 A_CheckProximity("DontSpawn", "Dawn", 250, 1, CPXF_SetTarget)
+			TNT1 A 0 A_Jump(255, "Spawn1", "Spawn2")
+		Spawn1:
+			SMK6 AAAAAAAAAAAAAAAAAAAAA 1 A_FadeIn(0.035)
+			SMK6 A 35
+			SMK6 AAAAAAAAAAAAAAAAAAAAA 1 A_FadeOut(0.035)
+			stop
+
+		// Player plays on High settings
+		SpawnMedium:
+			TNT1 A 1 A_CheckProximity("SpawnEffect", "Dawn", 400, 1, CPXF_SetTarget)
+			stop	
+		SpawnHigh:
+			TNT1 A 1 A_CheckProximity("SpawnEffect", "Dawn", 600, 1, CPXF_SetTarget)
+			stop
+		DontSpawn:
+			TNT1 A 2
+			stop
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Fine >:(
+ACTOR DOPEFISH : graffiti29  11509 {
+	tag "Dopefish"
+	scale 1
+}

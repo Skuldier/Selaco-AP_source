@@ -1,0 +1,13 @@
+ACTOR FlashLightMode : Inventory
+{
+   Inventory.Amount 1
+   Inventory.MaxAmount 1
+   //Inventory.Icon PGRND0
+   Scale 0.3
+   States
+   {
+   Spawn:
+      TNT1 D -1
+      Stop
+   }
+}

@@ -1,0 +1,60 @@
+// This soldier doesn't talk, but does scream ''GOT ANOTHER ONE!'' after seeing the player.
+class Soldier_GotAnotherOne : Soldier {
+	default {
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.CrouchedShotChance 0;
+		EnemySoldier.accurateShotChance 0;
+		EnemySoldier.combatDistance 150;
+		EnemySoldier.aggressiveness 0;
+		EnemySoldier.strafeChance 0;
+		EnemySoldier.evadeChance 0;
+		SelacoEnemy.RandomizerSpawnChance 0;
+	}
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		strafeChance = 0;
+		mayNotTalk = true;
+	}	
+
+	states {
+		See:
+				TNT1 A 0 S_AlertEnemies();
+				TNT1 A 0 {
+					bNODROPOFF = false;	
+				}
+				TNT1 A 0 {
+					if (!getSeenPlayer()) {
+						ACS_NamedExecuteWithResult("AI_DialogMasterScript", 0, 21);
+					}
+					SetSeenPlayer();
+				}
+				TNT1 A 0 {
+					if (!findNearbyAlertedAlien()) {
+						SetStateLabel("SeeContinue");
+					}
+				}
+				Goto SeeContinue;
+	}
+}
+
+class Soldier_YouFreeze : Soldier_GotAnotherOne {
+	states {
+		See:
+				TNT1 A 0 S_AlertEnemies();
+				TNT1 A 0 {
+					bNODROPOFF = false;	
+				}
+				TNT1 A 0 {
+					if (!getSeenPlayer()) {
+						ACS_NamedExecuteWithResult("AI_DialogMasterScript", 0, 22);
+					}
+					SetSeenPlayer();
+				}
+				TNT1 A 0 {
+					if (!findNearbyAlertedAlien()) {
+						SetStateLabel("SeeContinue");
+					}
+				}
+				Goto SeeContinue;
+	}
+}

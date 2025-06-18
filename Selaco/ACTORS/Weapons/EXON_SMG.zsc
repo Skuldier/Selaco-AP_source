@@ -1,0 +1,1474 @@
+// TO-DO: Write Zscript function to make this less convoluted
+class UpgradeSMGAmmo : SelacoItem {
+	default { 
+		Inventory.Amount 1;
+		Inventory.MaxAmount 1;
+		Inventory.InterHubAmount 1;
+		Inventory.UseSound "misc/invuse";
+		Inventory.PickupSound "misc/i_pkup";
+	}	
+	states {
+		Pickup:
+		Use:	
+			TNT1 A 0;
+			TNT1 A 0 ACS_NamedExecuteWithResult("UpgradeRifleCapacity", 0);
+			stop;
+	}
+}
+
+Class UpgradeSMF1eloadSpeed : Inventory
+{ 	Default
+	{
+		inventory.maxamount 1;
+	} 
+}
+
+class UpgradeSMGMelee : inventory {
+	default {
+		Inventory.MaxAmount 1;
+	}	
+}
+
+class UpgradeSMGDamage : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD11';
+		WeaponUpgrade.damageMod				1;
+		WeaponUpgrade.Weapon 				'SMG';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SMG_DAMAGE", "$UPGRADE_SMG_DAMAGE";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SMG_DAMAGE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	275, 20;
+		WeaponUpgrade.UpgradePosition			275, -135;
+		WeaponUpgrade.TechModuleRequirement 	1;
+		WeaponUpgrade.UpgradeCost          	350;
+	}	
+}
+
+class UpgradeSMGSpread : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD5';
+		WeaponUpgrade.spreadMod				-0.45;
+		WeaponUpgrade.Weapon 				'SMG';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_EXTENDED_BARREL", "$UPGRADE_EXTENDED_BARREL";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SMG_EXPANDEDBARREL_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	40, 85;
+		WeaponUpgrade.UpgradePosition			-55, -65;
+		WeaponUpgrade.TechModuleRequirement 	1;
+		WeaponUpgrade.UpgradeCost          	250;
+	}	
+}
+
+class UpgradeSMGStock : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD41';
+		WeaponUpgrade.spreadMod				-0.55;
+		WeaponUpgrade.recoilMod				0.15;
+		WeaponUpgrade.Weapon 				'SMG';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SMG_MULESTOCK", "$UPGRADE_SMG_MULESTOCK";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SMG_MULESTOCK_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	605, 80;
+		WeaponUpgrade.UpgradePosition			675, -40;
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeCost          	250;
+	}	
+}
+
+class UpgradeSMGMagnetic : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD21';
+		WeaponUpgrade.Weapon 				'SMG';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SMG_MAGNETIC", "$UPGRADE_SMG_MAGNETIC";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SMG_MAGNETIC_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	335, 125;
+		WeaponUpgrade.UpgradePosition			640, 420;
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeCost          		250;
+	}	
+}
+
+class UpgradeSmgStaticDischarge : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD12';
+		WeaponUpgrade.Weapon 				'SMG';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SMG_STATICDISCHARGE", "$UPGRADE_SMG_STATICDISCHARGE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SMG_STATICDISCHARGE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	10, 220;
+		WeaponUpgrade.UpgradePosition			-115, 315;
+		WeaponUpgrade.TechModuleRequirement 	2;
+		WeaponUpgrade.UpgradeCost          	200;
+	}	
+}
+
+class UpgradeSMGMagazine : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD4';
+		WeaponUpgrade.MagazineSizeMod		10;
+		WeaponUpgrade.Weapon 				'SMG';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_EXTENDED_MAG", "$UPGRADE_EXTENDED_MAG_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_EXTENDED_MAG_SMG_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	325, 100;
+		WeaponUpgrade.UpgradePosition			485, -120;
+		WeaponUpgrade.TechModuleRequirement 	2;
+		WeaponUpgrade.UpgradeCost          	250;
+	}	
+}
+
+class UpgradeSMGUnderVolt : WeaponUpgrade {
+	default {
+		WeaponUpgrade.Weapon 				'SMG';
+		WeaponUpgrade.UpgradeImage 			'UPGRD13';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SMG_UNDERVOLT", "$UPGRADE_SMG_UNDERVOLT_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SMG_UNDERVOLT_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	85, 255;
+		WeaponUpgrade.UpgradePosition			85, 395;
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradeCost          	400;
+	}	
+}
+
+
+class AltFireSMGZoom: WeaponAltFire {
+
+	override void onDisabled()
+	{
+		super.onDisabled();
+		let weapon = getWeapon('smg', playerNumber());
+		if(weapon && weapon.isZooming)
+		{
+			weapon.isZooming = false;
+			weapon.SetWeaponState("AltFire_ExitZoom");
+		}
+
+	}
+
+	default {
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_ZOOM", "$ALTFIRE_ZOOM";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_ZOOM_SMG_DESC";
+		WeaponAltFire.WorkshopOrder			-1;		// Zoom should always be first
+		WeaponUpgrade.Weapon 'SMG';
+	}
+}
+class AltFireSMGDualWield: WeaponAltFire {
+	override void onDisabled()
+	{
+		super.onDisabled();
+		let weapon = getWeapon('smg', playerNumber());
+		if(weapon && weapon.dualWielding)
+		{
+			weapon.dualWielding = false;
+			//weapon.setWeaponState("AltFire_ExitDualWield");
+		}
+	}
+
+	default {
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_SMG_DUALWIELD", "$ALTFIRE_SMG_DUALWIELD";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SMG_DUALWIELD_DESC";
+		WeaponUpgrade.Weapon 'SMG';
+	}
+}
+class AltFireSMGControlledShots: WeaponAltFire {
+	default {
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_SMG_CONTROLLEDSHOTS", "$ALTFIRE_SMG_CONTROLLEDSHOTS";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SMG_CONTROLLEDSHOTS_DESC";
+		WeaponUpgrade.Weapon 'SMG';
+	}
+	override void onDisabled()
+	{
+		super.onDisabled();
+		let weapon = getWeapon('smg', playerNumber());
+		if(weapon)
+		{
+			weapon.dualWielding = false;
+			if(weapon.isZooming)
+			{
+				weapon.isZooming = false;
+				weapon.SetWeaponState("AltFire_ExitZoom");
+			}
+		}
+	}
+}
+
+class AltFireSMGShockDart: WeaponAltFire {
+
+	override void onDisabled()
+	{
+		super.onDisabled();
+		let weapon = getWeapon('smg', playerNumber());
+		if(weapon)
+		{
+			weapon.dualWielding = false;
+			if(weapon.isZooming)
+			{
+				weapon.isZooming = false;
+				weapon.SetWeaponState("AltFire_ExitZoom");
+			}
+		}
+	}
+
+	default {
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_SMG_SHOCKDART", "$ALTFIRE_SMG_SHOCKDART";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SMG_SHOCKDART_DESC";
+		WeaponUpgrade.Weapon 'SMG';
+	}
+}
+
+class SMG : SelacoWeapon 
+{
+
+	override void throwEquipmentItem()
+	{
+		if(dualwielding)
+		{
+			interactionSprite = "SMDC";
+		} else {
+			interactionSprite = "SMPU";
+		}
+		super.throwEquipmentItem();
+	}
+
+	override void playerIsFiring()
+	{
+		super.playerIsFiring();
+		adjustedDamage = adjustedDamage + random(-1,1);
+	}
+
+	const zoomRange = 1.3;
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		setCrosshair('SMGCrosshair');
+	}
+
+	override void cancelFiringLoop() {
+		super.cancelFiringLoop();
+		A_Playsound("smg/end");
+	}
+
+	action void doAttackChecks() {
+		invoker.adjustedDamage = invoker.weaponDamage;
+		invoker.adjustedRecoil = invoker.weaponRecoil;
+		invoker.magazineSize = 50;
+		// UPGRADES
+			/*if (upgradeCheck("UpgradeSMGDamage") == 1) {
+					invoker.weaponDamage = 12;
+				} else {
+					invoker.weaponDamage = 11;
+			}
+			if(upgradeCheck("UpgradeSMGMagazine") == 1) {
+				invoker.magazineSize = 60;
+			}
+
+			if (upgradeCheck("UpgradeSMGMelee") == 1) {
+				addMeleeUpgrade();
+			} else {
+				removeMeleeUpgrade();
+			}*/
+
+		// ALT FIRES
+			if (invoker.altFireMode == 0) {
+				A_SetCrosshair(56);
+			} else {
+				A_SetCrosshair(17);
+			}
+	}
+
+	action void doWeaponChecks() {
+		CheckPlayerStates();
+		invoker.screenSpread = 0.38;
+		S_WeaponReady(WRF_ALLOWRELOAD);
+		S_WeaponOffset();		
+	}
+
+	int FiredShots;
+	int flashID;
+	int loaded;
+	int leftHandOffset;
+	float screenSpread;
+	string endFireSprite; 
+	int shotsPerBurst;
+	int shotsFired;
+
+	bool magRemoved;
+	
+	default {
+	//$Category Weapons/custom
+		WeaponBase.AmmoGive1 30;
+		WeaponBase.AmmoGive2 0;
+		WeaponBase.AmmoType1 "RifleReserve";
+		WeaponBase.AmmoType2 "SMGAmmo";
+		WeaponBase.SelectionOrder 120;
+		WeaponBase.SlotNumber 2;
+		SelacoWeapon.dryfireSound "SMG/DRYFIRE";
+		SelacoWeapon.readySound "smg/ready";
+		SelacoWeapon.deselectSound "smg/unequip";
+		SelacoWeapon.lowAmmoPitchSound "SMG/PITCHER";
+		SelacoWeapon.SlidingSprite "SMSL";
+		SelacoWeapon.weaponDamage 23;
+		SelacoWeapon.weaponSpread 3.6;
+		SelacoWeapon.weaponSpreadMaximum 6.1;
+		SelacoWeapon.weaponSpreadIncreasePerShot 5;	// Per shot
+		SelacoWeapon.weaponSpreadReductionSpeed 1.9;	// Per tick
+		SelacoWeapon.weaponFireRate 3;	
+		SelacoWeapon.weaponStatistic	STAT_SMG;
+		SelacoWeapon.WeaponRecoil 0.11;
+		SelacoWeapon.lowAmmoThreshold 10;
+		SelacoWeapon.ImagePrefix "smg";
+		SelacoWeapon.VoxelDecorationModel "SMGModel";
+		SelacoWeapon.AmmoColor "FF F8 76";
+		SelacoWeapon.BulletDamageToGlass 20;
+		SelacoWeapon.BulletForceToGlass 10;
+		SelacoWeapon.MagazineSize 50;
+		Inventory.Icon "WPNSMG";
+		+FLOORCLIP;
+		+FLOAT;
+		+NOGRAVITY;
+		+RollSprite;
+		+DONTGIB;
+		Obituary "%o was shot down by %k's DMR.";
+		AttackSound "None";
+		Scale 0.25;
+		Tag "$WEAPON_SMG";
+	}
+	States
+	{
+
+	 Precache:
+		SMF1 ABC 0;
+		SMF2 ABC 0;
+		SMF3 ABC 0;
+		SMDF ABC 0;
+		SMME ABCDE 0;
+		SMDM ABCDE 0;
+		SMGD A 0;
+		SMDS ABCDE 0;
+		SMDM ABCDE 0;
+		SMZF ABC 0;
+		SMDC ABCDEF 0;
+		SMPU ABCDEF 0;
+		SMZI ABCDEFG 0;
+		SMUZ ABCDEFGHI 0;
+		SMDB ABCDEFGHIJKLMNOPQRSTUV 0;
+		stop;
+
+	 Spawn:
+	 	TNT1 A 0;
+		SMSL A 0;
+		TNT1 A 0 A_SPAWNITEMEX("SMG_PICKUP");
+		Stop;
+
+	Ready:
+	Equip:
+		TNT1 A 0;
+		TNT1 A 0
+		{
+			checkWeaponReady();
+		}
+		TNT1 A 2 {
+			S_WeaponReady(WRF_NOFIRE);
+		}
+		TNT1 A 0 A_SETTICS(WEAPON_SWAP_SPEED-4);
+		TNT1 A 0 A_EquipNewWeapon();
+		TNT1 A 0 {
+			if(invoker.dualwielding) 
+			{
+				SetWeaponState("Equip_Dual");
+			}
+		}
+	Equip_Single:
+		SMRE BCDEFGHI 1 {
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		goto ReallyReady;
+	Equip_Dual:
+		SMDE NIHDBA 1 {
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		goto ReallyReady;
+
+	Ready3:
+		TNT1 A 0 {
+			if(invoker.dualWielding)
+			{
+				SetWeaponState("Ready3Dual");
+			}
+		}
+		SMGI A 1;
+		goto reallyReady;
+	Ready3Dual:
+		SMDB A 1;
+		goto reallyReady;
+
+	ReallyReady:
+		TNT1 A 0; 
+		TNT1 A 0 A_TakeInventory("CancelAnimation", 1);
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		TNT1 A 0; 
+		TNT1 A 0 A_JumpIfInventory("AutoMode", 1, 1);
+		TNT1 A 0; 
+		TNT1 A 0 { 	
+			if (invoker.isFiring == 1) {
+				invoker.cancelFiringLoop();
+				A_stopsound(CHAN_7);
+				A_Playsound("smg/end", CHAN_WEAPON);
+			}
+			doAttackChecks();
+			A_TakeInventory("CancelAnimation", 1);
+			if(!invoker.dualWielding)
+			{
+				invoker.SlidingSprite = "SMSL";
+			}
+		}
+
+		TNT1 A 0 {
+			// Allow zooming if the player has 
+			if(invoker.hasUpgradeClass("AltFireSMGZoom"))
+			{
+				// Is player zooming?
+				if(checkIfZooming())
+				{
+					SetWeaponState("Idle_Zoomed");
+				}
+			// If player has no Zoom upgrade, cancel.
+			}
+
+			// If player is currently dual wielding, go to Dual Wield mode
+			if(invoker.dualWielding) {
+				SetWeaponState("Idle_Dual");
+			}
+			
+		}
+	Idle_Single:
+		SMGI A 1 {
+			breathWobble("SMGI", 20);
+			S_ZOOMFACTOR(1.0);
+			doWeaponChecks();
+		}
+		Loop;
+
+	Idle_Dual:
+		SMDB A 1 {
+			breathWobble("SMGB", 20);
+			doWeaponChecks();
+		}
+		goto reallyReady;
+	
+	Idle_Zoomed:
+		SMZI H 1
+		{
+			doWeaponChecks();
+			CheckPlayerStates(1);
+			CheckUnZoom();
+			A_EnableWeaponShift(true, multiplier: 0.025);
+			A_ZOOMFACTOR(Zoomrange);
+		}
+		goto ReallyReady;
+
+	ReadyADS:
+	animateZoom:
+		TNT1 A 0 S_ZOOMFACTOR(2.0);
+		TNT1 A 0 A_Takeinventory("Reloading",1);
+		// Animation should not play when Iron Sights is enabled
+		TNT1 A 0 {
+			if (getCvar("g_ironsights") == 1) {
+				SetWeaponState("Ready2");
+			}
+			if (checkIfZooming()) {
+				SetWeaponState("ReadyOldSkool");
+			}
+			setZoomStatus(true);
+		}
+		RIF7 ABC 2;
+
+    Ready2:
+		TNT1 A 0 { 	
+			if (invoker.isFiring == 1) {
+				invoker.cancelFiringLoop();
+				A_STOPSOUND(CHAN_WEAPON);
+				A_STOPSOUND(CHAN_7);
+				A_Playsound("smg/end", CHAN_WEAPON);
+			}
+		}
+		TNT1 A 0 S_ZOOMFACTOR(2.0);
+		TNT1 A 0 A_SetCrosshair(56);
+		TNT1 A 0; 
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		TNT1 A 0 A_JumpIfInventory("PushButtonNow", 1, "PushButton");
+        TNT1 A 0 A_JumpIfInventory("Reloading",1,"ReloadWeapon");
+		TNT1 A 0
+		{
+			A_SetSpeed(0.3);
+			if (getCvar("g_ironsights") == 0) {
+				SetWeaponState("ReadyOldSkool");
+			}
+		}
+		RIF3 A 1
+			{
+				setZoomStatus(true);
+				CheckPlayerStates(1);
+				S_WeaponReady();
+				//S_WeaponOffset();
+			}
+		Loop;
+	ReadyOldSkool:
+		RIF7 C 1
+			{
+				setZoomStatus(true);
+				CheckPlayerStates(1);
+				S_WeaponReady();
+				//S_WeaponOffset();
+			}
+		goto Ready2;
+
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+		RIF9 ABCD 2  {
+				A_SetPitch(pitch + 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		RIF9 E 6  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		RIF9 DCBA 2  {
+				A_SetPitch(pitch - 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+	MoveGunDown:
+		RIF6 BCD 3  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		RIF6 D 30  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		RIF6 DCB 3  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+
+	AutoCrosshair:
+		TNT1 A 0 A_SetCrosshair(56);
+		goto Ready3;
+
+	BurstCrosshair:
+		TNT1 A 0 A_SetCrosshair(0);
+		goto Ready3;
+
+
+	Unequip:
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+		TNT1 A 0 A_GiveInventory("AutoMode", 1);
+		TNT1 A 0 A_TakeInventory("ZoomMode", 1);
+        TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_SetSpeed(0.3);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		TNT1 A 0 {
+			A_UNEQUIPWEAPON();
+			invoker.weaponIsReady = false;
+			if (invoker.isFiring == 1) {
+				invoker.cancelFiringLoop();
+				A_Playsound("smg/end", CHAN_WEAPON);
+			}
+		}
+		TNT1 A 0 A_PlaySound("dawn/deselect", CHAN_AUTO, 0.7);
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);	
+		TNT1 A 0 {
+			if(invoker.dualwielding)
+			{
+				SetWeaponState("Deselect_dual");
+			} 
+		}
+	Deselect_Single:
+		SMRE IHGFEDCBA 1 S_WeaponOffset();
+		goto DeselectFinish;
+	Deselect_Dual:
+		TNT1 A 0 A_PlaySound("dawn/deselect", CHAN_AUTO);
+		SMDE CEIKMN 1 S_WeaponOffset();
+		goto DeselectFinish;
+	DeselectFinish:
+		TNT1 A 1;
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+		TNT1 A 1;
+		Wait;
+
+	Select:
+		TNT1 A 0;
+		TNT1 A 0 A_SetSpeed(1);
+		TNT1 A 0 {
+			invoker.checkLowAmmo();
+		}
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 A 0 A_EnableWeaponShift();
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Raise();
+		TNT1 AAAAAAAA 1 A_Raise();
+		//RIFH ABCDEFGHIJKLLLMN 2;
+		goto ReallyReady;
+
+	HandRemoved:
+		TNT1 A 0;
+		TNT1 A 0
+		{
+			if(invoker.dualwielding)
+			{
+				invoker.interactionSprite = "SMDC";
+			} else {
+				invoker.interactionSprite = "SMPU";
+			}
+		}
+		goto HandRemovedBridge;
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+		TNT1 A 0 {
+			if(invoker.dualwielding)
+			{
+				SetWeaponState("Ready3");
+			}
+		}
+		SMGW ABCD 2  {
+				A_SetPitch(pitch + 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		SMGW E 9  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		SMGW DCBA 2  {
+				A_SetPitch(pitch - 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+		
+	// Both Single and Dual wield are handled here.
+    Fire:
+		TNT1 A 0 {
+			invoker.TakeWeaponAmmo();
+		}
+		TNT1 A 0 {
+			// Remove dual wield when reserves are empty.
+			if(invoker.dualwielding && countInv("RifleReserve") == 0) {
+				SetWeaponState("AltFire_ExitDualWield");
+			}
+		}
+		// First we need to check if the player is dual wielding. If so, adjust sprites and prepare some things
+		TNT1 A 0{
+			// Dual Wield
+			if(invoker.dualWielding)
+			{
+				invoker.rumbleIntensity = 1.0;
+				if(level.levelnum != MAP_SAFEROOMEXTENSION)
+				{
+					A_Takeinventory("RifleReserve",1);
+				}
+				invoker.leftHandOffset = -75;
+				invoker.adjustedWeaponOffset = frandom(-1*(invoker.weaponOffsetIncrement-6), invoker.weaponOffsetIncrement+4);
+				invoker.weaponSprite = "SMDF";
+				invoker.adjustedRecoil += 0.01;
+				invoker.adjustedSpread+=0.1250;
+				A_PLAYSOUND("smg/fire", CHAN_WEAPON , 0.71, 1); // We play this effect again in Tick 2 of the fire state when dual wielding. We reduce the volume because it's going to stack.
+				A_RECOIL(0.3); // Little bit of player knockback when firing 2 SMG's
+			} 
+			else 
+			// Single
+			{
+				invoker.rumbleIntensity = 0.4;
+				A_PLAYSOUND("smg/fire", CHAN_WEAPON , 0.99, 1);
+				invoker.adjustedWeaponOffset = frandom(-1*invoker.weaponOffsetIncrement, invoker.weaponOffsetIncrement)+5;
+				int randomNum = 0;
+				if (randomNum == 0) { invoker.weaponSprite = "SMF1";}
+				if (randomNum == 1) { invoker.weaponSprite = "SMF2";}
+				if (randomNum == 2) { invoker.weaponSprite = "SMF3";}
+				if(checkIfZooming())
+				{
+					doAttackChecks();
+					invoker.weaponSprite = "SMZF";
+				}
+			}
+		}
+		TNT1 A 0 {
+			invoker.flashID = random(0,1);
+			invoker.weaponFrame = 0;
+		}
+		TNT1 A 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			invoker.flashID = random(0,2);
+			invoker.isFiring = 1;
+			ACS_NamedExecuteAlways("SpawnHudShake", 0, 3, 3, 5);
+			float amplifier = 0.0;
+			switch(getCvar("g_screenshake")) {
+				case 1:
+					if(invoker.dualWielding) 
+						amplifier = 0.3;
+					A_QuakeEx( 1, 1, 0, 2+amplifier, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 3, 0, 1+amplifier);
+					break;
+				case 2:
+					if(invoker.dualWielding) 
+							amplifier = 1;
+					A_QuakeEx( 1, 2, 0, 3+amplifier, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 3, 0, 1.1+amplifier);
+					break;
+			}
+			//emberEffect(0.2, 4);
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			invoker.weaponFrame++;
+
+			// Right Hand
+			if(invoker.flashID == 0) {	invoker.flashNumber = 0;} 
+			if(invoker.flashID == 1) {	invoker.flashNumber = 3;}
+			if(invoker.flashID == 2) {	invoker.flashNumber = 6;}
+				
+			S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15);
+			invoker.xPos = frandom(-3.2, 3.2);
+			invoker.yPos = frandom(-3.8, 3.8);
+			A_PLAYSOUND("weapon/mecha", 3, 0.2);
+			A_SetCrosshair(59);
+			invoker.playerIsFiring();
+			A_FireProjectile("muzzleFlashSpawnerSMG",0,0,random(invoker.xPos, invoker.yPos),0);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.01, 0,  frandom(-1*invoker.adjustedRecoil-0.4, invoker.adjustedRecoil+0.4));
+			S_WeaponOffset(frandom(4.5,5), invoker.adjustedWeaponOffset);
+			if(checkIfZooming())
+			{
+				S_WeaponOffset(frandom(1.5,2), invoker.adjustedWeaponOffset);
+			}
+			invoker.FiredShots++;
+			S_ZOOMFACTOR(0.982);
+			if(checkIfZooming())
+			{
+				S_ZOOMFACTOR(zoomrange - 0.07);
+			}
+			if(random(0,2) == 0)
+			{
+				A_RailAttack(-1, spawnofs_xy:frandom(8.2,8.9), 1, flags:RGF_NOPIERCING, pufftype:"", 0, spread_z:0, range:5000, sparsity:5, driftspeed:1,spawnClass:"RifleTracer",spawnofs_z: frandom(-1,-1.2));
+			}
+			A_AlertMonsters();
+			// Fire twice when dual wielded
+			FireBullets(-1*invoker.adjustedSpread, invoker.adjustedSpread, -1, invoker.weaponDamage, "HitPuffLiteSMG", flags:FBF_NORANDOM);
+		}
+	Fire_Continue:
+		TNT1 B 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			// We call this one 1 tick later so the sounds dont play at the same time.
+			if(invoker.dualWielding) 
+			{
+				invoker.playerIsFiring();
+				A_PLAYSOUND("smg/fire", CHAN_7 , 0.7, 1);
+			}
+
+			if(invoker.dualWielding)
+			{
+				FireBullets(-1*invoker.adjustedSpread, invoker.adjustedSpread, -1, invoker.weaponDamage, "HitPuffLiteSMG", flags:FBF_NORANDOM);
+			}
+		
+
+			if(invoker.flashID == 0) {	invoker.flashNumber = 2;} 
+			if(invoker.flashID == 1) {	invoker.flashNumber = 5;}
+			if(invoker.flashID == 2) {	invoker.flashNumber = 8;}
+				
+			S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15, falpha:0.25);
+			// Left hand
+			if(invoker.dualwielding) 
+			{
+				if(invoker.flashID == 0) {	invoker.flashNumber = 0;} 
+				if(invoker.flashID == 1) {	invoker.flashNumber = 3;}
+				if(invoker.flashID == 2) {	invoker.flashNumber = 6;}
+				S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15,xoffset:3,falpha:0.25, mirrored:true);
+			}
+
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.01, 0,  frandom(-1*invoker.adjustedRecoil-0.4, invoker.adjustedRecoil+0.4));
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			invoker.weaponFrame++;
+			S_WeaponOffset(frandom(6,7.5), invoker.adjustedWeaponOffset);
+			if(checkIfZooming())
+			{
+				S_WeaponOffset(frandom(2.3,3), invoker.adjustedWeaponOffset);
+			}
+			S_ZOOMFACTOR(0.990);
+			if(checkIfZooming())
+			{
+				S_ZOOMFACTOR(zoomrange - 0.05);
+			}
+		}
+		TNT1 C 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.01, 0,  frandom(-1*invoker.adjustedRecoil-0.4, invoker.adjustedRecoil+0.4));;
+
+/* 			if(invoker.flashID == 0) {	invoker.flashNumber = 1;} 
+			if(invoker.flashID == 1) {	invoker.flashNumber = 4;}
+			if(invoker.flashID == 2) {	invoker.flashNumber = 7;}
+			//S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15, xoffset:5,falpha:0.1); */
+			if(invoker.dualwielding) 
+			{
+				if(invoker.flashID == 0) {	invoker.flashNumber = 1;} 
+				if(invoker.flashID == 1) {	invoker.flashNumber = 4;}
+				if(invoker.flashID == 2) {	invoker.flashNumber = 7;}
+				S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15, xoffset:5, falpha:0.25, mirrored:true);
+			}
+			A_SetCrosshair(59);
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			invoker.weaponFrame++;
+			if(invoker.dualWielding) {
+				A_FireProjectile("RifleCaseSpawn",angle:5,useAmmo:0,spawnofs_xy:-4,spawnHeight:7, 0, 45);
+			}
+			A_FireProjectile("RifleCaseSpawn",angle:5,useAmmo:0,spawnofs_xy:15,spawnHeight:7, 0, 18);
+			S_WeaponOffset(frandom(4,4.5), invoker.adjustedWeaponOffset);
+			if(checkIfZooming())
+			{
+				S_WeaponOffset(frandom(1.5,2), invoker.adjustedWeaponOffset);
+			}
+			S_ZOOMFACTOR(0.995);
+			if(checkIfZooming())
+			{
+				S_ZOOMFACTOR(zoomrange - 0.02);
+			}
+			if(countinv("SMGAMMO") == 0)
+			{
+				A_PLAYSOUND("SMG/DEPLETE", CHAN_AUTO);
+			}
+		}
+		TNT1 A 0 {
+			// Dual Wield
+			if(invoker.dualWielding)
+			{
+				SetWeaponState("Refire_Dual");
+			} 
+			else 
+			// Single
+			{
+				if(checkIfZooming())
+				{
+					SetWeaponState("Refire_Zoomed");
+				}
+				else
+				{
+					SetWeaponState("Refire_Single");
+				} 	
+			}	
+		}
+		goto ReallyReady;
+
+	Altfire_Shockdart:
+		TNT1 A 0
+		{
+			if(countinv("ShockChargeCooldown") > 0)
+			{
+				dryFire();
+				SetWeaponState("ReallyReady");
+			}
+		}
+		// First we need to check if the player is dual wielding. If so, adjust sprites and prepare some things
+		TNT1 A 0{
+			invoker.rumbleIntensity = 0.4;
+			A_PLAYSOUND("smg/taserdart", CHAN_AUTO , 1.0, 0);
+			invoker.adjustedWeaponOffset = frandom(-1*invoker.weaponOffsetIncrement, invoker.weaponOffsetIncrement);
+			invoker.weaponSprite = "SMF1";
+		}
+		TNT1 A 0 {
+			invoker.flashID = random(0,1);
+			invoker.weaponFrame = 0;
+		}
+		TNT1 A 1 {
+			A_FireProjectile("TaserDart", 0, 0, 5);
+			A_GiveInventory("ShockChargeCooldown", 100000);
+			invoker.flashID = random(0,2);
+			invoker.isFiring = 1;
+			ACS_NamedExecuteAlways("SpawnHudShake", 0, 3, 3, 5);
+			float amplifier = 0.0;
+			if(getCvar("g_screenshake")> 0) {
+				A_QuakeEx(frandom(0.600000, 0.650000) + amplifier, frandom(0.600000, 0.650000) + amplifier, frandom(0.200000, 0.250000) , 4, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.300000, 0.350000), frandom(0.250000, 0.250000));
+			}
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			invoker.weaponFrame++;
+				
+			S_SelacoMuzzleFlash("SMUZ", 0, 0.15);
+			invoker.xPos = frandom(-3.2, 3.2);
+			invoker.yPos = frandom(-3.8, 3.8);
+			A_PLAYSOUND("weapon/mecha", 3, 0.2);
+			A_SetCrosshair(59);
+			invoker.playerIsFiring();
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.01, 0,  frandom(-1*invoker.adjustedRecoil-0.4, invoker.adjustedRecoil+0.4));
+			S_WeaponOffset(frandom(4.5,5), invoker.adjustedWeaponOffset);
+			if(checkIfZooming())
+			{
+				S_WeaponOffset(frandom(1.5,2), invoker.adjustedWeaponOffset);
+			}
+			invoker.FiredShots++;
+			S_ZOOMFACTOR(0.982);
+			A_AlertMonsters();
+		}
+		TNT1 B 1 {
+				
+			S_SelacoMuzzleFlash("SMUZ", 1, 0.15, falpha:0.25);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.01, 0,  frandom(-1*invoker.adjustedRecoil-0.4, invoker.adjustedRecoil+0.4));
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			invoker.weaponFrame++;
+			S_WeaponOffset(frandom(6,7.5), invoker.adjustedWeaponOffset);
+		}
+		TNT1 C 1 {
+			S_SelacoMuzzleFlash("SMUZ", 2, 0.15, falpha:0.25);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.01, 0,  frandom(-1*invoker.adjustedRecoil-0.4, invoker.adjustedRecoil+0.4));;
+			A_SetCrosshair(59);
+			X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+			invoker.weaponFrame++;
+			S_WeaponOffset(frandom(4,4.5), invoker.adjustedWeaponOffset);
+		}
+		goto reallyReady;
+
+	Refire_Single:
+		SMGI A 1 {
+			S_WeaponOffset(2);
+			A_Refire();
+		}
+		Goto ReallyReady;
+	Refire_Dual:
+		SMGD U 1 {
+			S_WeaponOffset(2);
+			A_Refire();
+		}
+		TNT1 A 0 A_SetCrosshair(59);
+		TNT1 A 0 S_WeaponOffset(1);
+		TNT1 A 0 A_Refire();
+		TNT1 A 0 A_SetCrosshair(59);
+		Goto ReallyReady;
+	Refire_Zoomed:
+		SMZI H 1 {
+			S_WeaponOffset(2);
+			A_Refire();
+		}
+		Goto ReallyReady;
+
+    AltFire:
+		// Check status for Dual Wielding, then switch accordingly.
+		TNT1 A 0 {
+			invoker.cancelAllAnimations();
+			if(altFireCheck("AltFireSMGControlledShots"))
+			{
+				setWeaponState("AltFire_AccurateShot");
+			}
+			if(altFireCheck("AltFireSMGDualWield"))
+			{
+				setWeaponState("AltFire_DualWield");
+			}
+			if(altFireCheck("AltFireSMGZoom"))
+			{
+				setWeaponState("SwapZoom");
+			}		
+			if(altFireCheck("AltfireSmgShockDart"))
+			{
+				setWeaponState("Altfire_Shockdart");
+			}	
+		}
+		goto reallyready;
+
+	SwapZoom:
+		TNT1 A 0 {
+			// Enter
+			if(!checkIfZooming()) 
+			{
+				SetWeaponState("AltFire_EnterZoom");
+			}
+			// Exit
+			else
+			{
+				SetWeaponState("AltFire_ExitZoom");
+			}	
+		}
+		goto reallyready;
+
+	AltFire_EnterZoom:
+		TNT1 A 0 {
+			A_PLAYSOUND("SMG/ZOOM", CHAN_AUTO, 0.7, pitch:frandom(0.9,1.0));
+			A_ZOOMFACTOR(zoomRange);
+			invoker.isZooming = true;
+		}
+		SMZI A 1 A_ZOOMFACTOR(zoomRange);
+		SMZI BCEG 1 {
+			if(!isAttackInput())
+			{
+				S_WeaponReady();
+			}
+		}
+		goto reallyReady;
+
+	AltFire_ExitZoom:
+		TNT1 A 0 {
+			A_PLAYSOUND("SMG/UNZOOM", CHAN_AUTO, 0.7, pitch:frandom(0.9,1.0));
+			A_ZOOMFACTOR(1.0);
+			invoker.isZooming = false;
+		}
+		SMZI F 1 A_ZOOMFACTOR(1.0);
+		SMZI DBA 1
+		{
+			A_ZOOMFACTOR(1.0);
+			if(!isAttackInput())
+			{
+				S_WeaponReady();
+			}
+		}
+		goto reallyReady;
+
+
+	AltFire_DualWield:
+		TNT1 A 0 {
+			a_stopsound(chan_7);
+			a_stopsound(chan_weapon);
+			// Exit
+			if(invoker.dualWielding) 
+			{
+				SetWeaponState("AltFire_ExitDualWield");
+			}
+			// Enter
+			if(!invoker.dualWielding && countinv("RifleReserve") > 0) 
+			{
+				SetWeaponState("AltFire_EnterDualWield");
+			}
+		}
+		goto reallyready;
+	AltFire_EnterDualWield:
+		TNT1 A 0 {
+			if(invoker.isFiring) {
+				invoker.cancelFiringLoop();
+				a_stopsound(chan_7);
+				a_stopsound(chan_weapon);	
+			}
+			invoker.SlidingSprite = "SMDS";
+			A_PLAYSOUND("SMG/ENTERDUAL", CHAN_AUTO, 0.8);
+		}
+		SMGD CEGIKLMNOPQRSTU 2;
+		TNT1 A 0 {
+			invoker.dualWielding = true;
+		}
+		goto ReallyReady;
+	AltFire_ExitDualWield:
+		TNT1 A 0 {
+			invoker.SlidingSprite = "SMSL";
+			A_PLAYSOUND("SMG/LEAVEDUAL", CHAN_AUTO);
+		}
+		SMGD TRPNLJIHGFEDCB 2 {
+			invoker.dualWielding = true;
+			if(invoker.isFiring) {
+				invoker.cancelFiringLoop();
+			}
+			a_stopsound(chan_7);
+			a_stopsound(chan_weapon);	
+		}
+		TNT1 A 0 {
+			invoker.dualWielding = false;
+		}
+		goto ReallyReady;
+
+	AltFire_AccurateShot:	
+        SMF1 A 0 A_JumpIfInventory("SMGAmmo",1,2);
+		TNT1 A 0 dryFire();
+        Goto reloadweapon;
+		SMF1 ABC 0;
+		SMF2 ABC 0;
+		SMF3 ABC 0;
+		TNT1 A 0 
+		{
+			A_SetCrosshair(57);
+			invoker.flashID = random(0,1);
+			invoker.weaponFrame = 0;
+			doAttackChecks();
+		}
+		TNT1 A 0 A_JumpIfInventory("ZoomMode", 1, "FireZoomed");
+		TNT1 A 0 A_JumpIfInventory("Zoomed",1,"Fire2");
+		TNT1 A 1 {
+
+			if(invoker.flashID == 0) {	invoker.flashNumber = 0;} 
+			if(invoker.flashID == 1) {	invoker.flashNumber = 3;}
+			if(invoker.flashID == 2) {	invoker.flashNumber = 6;}
+			S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15);
+
+			invoker.flashID = random(0,1);
+			A_PLAYSOUND("smg/fire", CHAN_WEAPON , 1.0, 1, 1, 0, 0.84);
+			invoker.isFiring = 1;
+
+			//emberEffect(0.2, 4);
+			X_SetOverlaySprite(1, "SMF2", invoker.weaponFrame);
+			invoker.weaponFrame++;
+			if(invoker.flashID == 0) {
+				A_overlay(-215, "flash1");
+			} else {
+				A_overlay(-215, "flash4");
+			}
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.01, 0, frandom(-1*invoker.adjustedRecoil-0.8, invoker.adjustedRecoil+0.8));
+			ACS_NamedExecuteAlways("SpawnHudShake", 0, 3, 3, 5);
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					A_QuakeEx(frandom(0.400000, 0.450000), frandom(0.400000, 0.450000), frandom(0.150000, 0.200000) , 3, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.100000, 0.150000), frandom(0.100000, 0.150000));
+					break;
+				case 1:
+					A_QuakeEx(frandom(0.800000, 0.850000), frandom(0.800000, 0.850000), frandom(0.300000, 0.350000) , 4, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.300000, 0.350000), frandom(0.250000, 0.250000));
+					break;
+			}
+
+			//invoker.xPos = frandom(-3.2, 3.2);
+			//invoker.yPos = frandom(-3.8, 3.8);
+			A_PLAYSOUND("weapon/mecha", 3, 0.3);
+			A_Takeinventory("SMGAmmo",1);
+			invoker.playerIsFiring();
+			invoker.adjustedSpread-=0.1;
+			A_FireProjectile("muzzleFlashSpawnerSMG",0,0,random(invoker.xPos, invoker.yPos),0);
+			if (getCVAR("g_weag_screenshakeponshake") == 2) {
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 2, 2, 2);
+				A_QuakeEx(1, 1, frandom(0.200000, 0.250000) , 4, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.200000, 0.250000), frandom(0.200000, 0.250000));
+			}
+			A_SELACORECOIL(frandom(-0.1, -0.13), 0, frandom(-0.4, 0.4));
+			S_WeaponOffset(2);
+			FireBullets(-1*invoker.adjustedSpread, invoker.adjustedSpread, -1, invoker.weaponDamage+1, "HitPuffLiteSMG", flags:FBF_NORANDOM);
+			invoker.FiredShots++;
+			S_ZOOMFACTOR(0.982);
+			A_AlertMonsters();
+		}
+	AltFire_Continue:
+		TNT1 B 1 {
+			if(invoker.flashID == 0) {	invoker.flashNumber = 1;} 
+			if(invoker.flashID == 1) {	invoker.flashNumber = 4;}
+			if(invoker.flashID == 2) {	invoker.flashNumber = 7;}
+			S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15);
+
+			A_SELACORECOIL(frandom(-0.1, -0.13), 0, frandom(-0.4, 0.4));
+			X_SetOverlaySprite(1, "SMF2", invoker.weaponFrame);
+			invoker.weaponFrame++;
+			S_WeaponOffset(3);
+			S_ZOOMFACTOR(0.990);
+	}
+		TNT1 C 1 {
+			if(invoker.flashID == 0) {	invoker.flashNumber = 2;} 
+			if(invoker.flashID == 1) {	invoker.flashNumber = 5;}
+			if(invoker.flashID == 2) {	invoker.flashNumber = 8;}
+			S_SelacoMuzzleFlash("SMUZ", invoker.flashNumber, 0.15);
+			A_SELACORECOIL(frandom(-0.1, -0.13), 0, frandom(-0.4, 0.4));
+			S_WeaponOffset(3);
+			//A_SetCrosshair(58);
+			X_SetOverlaySprite(1, "SMF2", invoker.weaponFrame);
+			invoker.weaponFrame++;
+			A_FireProjectile("RifleCaseSpawn",angle:5,useAmmo:0,spawnofs_xy:15,spawnHeight:7, 0, 18);
+			S_ZOOMFACTOR(0.995);
+		}
+		SMGI A 1 {
+			S_WeaponOffset(1);
+		}
+		SMGI A 1 {
+			A_Refire();
+		}
+
+		TNT1 A 0 S_WeaponOffset(3);
+		TNT1 A 0 A_Refire();
+		TNT1 A 0 A_SetCrosshair(59);
+		Goto ReallyReady;
+
+	MeleeAttack:
+		SMME A 0 {
+			A_ZOOMFACTOR(1.0, ZOOM_INSTANT);
+			invoker.isZOoming = false;
+			invoker.meleeSprite = "SMME";
+			if(invoker.dualWielding) 
+			{
+				invoker.meleeSprite = "SMDM";
+			}
+			invoker.weaponFrame = 0;
+		}
+		goto MeleeAttackExecute;
+
+	 Fire2:
+		TNT1 A 0 A_JumpIfInventory("ZoomMode", 1, "GoAuto");
+		TNT1 A 0 A_JumpIfInventory("AutoMode", 1, "GoBurst");
+		Goto ReallyReady;
+	NoMods:
+		TNT1 A 0 A_PRINT("\c[WHITE]No \c[RED]Weapon Behaviour Modifier \c[WHITE]slot installed. Insert one at the workshop!");
+		goto ReallyReady;
+
+
+	NoMods:
+		TNT1 A 0 A_PRINT("\c[OMNIBLUE]No \c[RED]Weapon Behaviour Modifier \c[OMNIBLUE]slot installed. Insert one at the workshop!");
+		goto ReallyReady;
+	GoBurst:
+		TNT1 A 0 A_Playsound("DMR/burst", CHAN_AUTO, 0.7);
+		TNT1 A 0 A_GiveInventory("ZoomMode", 1);
+		TNT1 A 0 A_TakeInventory("AutoMode", 1);
+		TNT1 A 0 A_SetCrosshair(0);
+		Goto ReallyReady;
+	GoAuto:
+		TNT1 A 0 A_Playsound("DMR/auto", CHAN_AUTO, 0.7);
+		TNT1 A 0 {
+			setZoomStatus(false);
+		}
+		TNT1 A 0 S_ZOOMFACTOR(1.0);
+		RIF7 CBA 2;
+		TNT1 A 0 A_GiveInventory("AutoMode", 1);
+		TNT1 A 0 A_TakeInventory("ZoomMode", 1);
+		TNT1 A 0 A_SetCrosshair(56);
+		goto ReallyReady;
+
+	SwapBurst:
+		TNT1 A 0 {
+			invoker.altFireMode =! invoker.altFireMode;
+			if (invoker.altFireMode == 0) {
+				A_PRINTBOLD("Auto Mode");
+				A_Playsound("DMR/auto", CHAN_AUTO, 0.7);
+			} else {
+				A_Playsound("DMR/burst", CHAN_AUTO, 0.7);
+				A_PRINTBOLD("Burst Mode");
+			}
+		}
+		RIF8 ABCCBA 1;
+		Goto ReallyReady;	
+
+	NoAmmo:
+		RIFG A 0 A_PlaySound("weapons/empty");
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+		TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		Goto ReallyReady;
+	
+	FireEmptyMag:
+		TNT1 A 0 dryFire();
+		SMGI A 1 S_WeaponReady();
+		goto reallyready;
+
+
+	ReloadWeapon:
+		SMGI A 0  { 	
+			A_STOPSOUND(CHAN_WEAPON);
+			A_STOPSOUND(CHAN_7);
+			if(invoker.isFiring) {
+				a_playsound("smg/end", CHAN_AUTO);
+				invoker.isFiring = 0;
+			}
+			if(invoker.dualWielding)
+			{
+				doWeaponReload(1);
+			}
+			else
+			{
+				doWeaponReload(0);
+			}
+			invoker.shotsFired = 0;
+		}
+		TNT1 A 0 {
+			if(invoker.dualWielding)
+			{
+				if(invoker.magRemoved) {
+					SetWeaponState("ReloadMagRemoved_DUAL");
+				}
+				setWeaponState("ReloadWeapon_Dual");
+				return;
+			}
+			if(invoker.magRemoved) {
+				SetWeaponState("ReloadMagRemoved");
+			}
+		}
+    ReloadWeapon_Single:
+		TNT1 A 0 S_WeaponOffset();
+        TNT1 AAA 0;
+		TNT1 A 0 A_SetPitch(+0.47 + pitch);
+		TNT1 A 0 A_SetAngle(+0.32 + angle);
+		TNT1 A 0 A_JumpIfInventory("MeleeButton", 1, "MeleeAttack");
+		SMR1 AACCEEGGKKNNRRSSTT 1 {
+			A_ZOOMFACTOR(1.0);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		SMR1 U 1 {
+			CheckReloadCancelling();
+			A_PlaySound("smg/eject", chan_auto, 0.4);
+			removeCurrentAmmo();
+			invoker.magRemoved = true;
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}		
+	ReloadContinue:
+		SMR1 UVVWW 1 {
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 A_FireProjectile("EmptyClipSMG",2,0,-5,-8, pitch:10);
+		SMR1 YYZZ 1 {
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+	ReloadMagRemoved:
+		SMR2 AABBCCDD 1 {
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		SMR2 E 1 {
+				A_PlaySound("smg/insert", chan_auto, 0.46);
+				insertNewAmmo();
+				invoker.magRemoved = false;
+				S_WeaponReady(WRF_NOFIRE);
+				S_WeaponOffset();
+				CheckReloadCancelling();
+		}
+		SMR2 EFFGGHH 1 {
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}	
+		SMR2 IIJJKKLLMMNN 1  {
+			if (CountInv("SMGAmmo") == 0) {
+				S_WeaponReady(WRF_NOFIRE);
+			} else {
+				S_WeaponReady();
+			}
+
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 {
+			loadChamber();
+		}
+		SMR2 OOPPQQRR 1  {
+			if (CountInv("SMGAmmo") == 0) {
+				S_WeaponReady(WRF_NOFIRE);
+			} else {
+				S_WeaponReady();
+			}
+
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 {
+			// Remove dual wield when reserves are empty.
+			if(invoker.dualwielding && countInv("RifleReserve") == 0) {
+				SetWeaponState("AltFire_ExitDualWield");
+			}
+		}
+		goto ReallyReady;
+
+	ReloadWeapon_Dual:
+		// Remove magazine and move down
+		SMDR AABBCCDDEEFFII 1 {
+			if (CountInv("SMGAmmo") == 0) {
+				S_WeaponReady(WRF_NOFIRE);
+			} else {
+				S_WeaponReady();
+			}
+			CheckReloadCancelling();
+			S_WeaponOffset(0, 24);
+		}
+		SMDR J 1 {
+			invoker.magRemoved = true;
+			CheckReloadCancelling();
+			removeCurrentAmmo();
+			S_WeaponOffset(0, -19);
+		}
+		SMDR J 1;
+		TNT1 A 0 {
+			switch(getCvar("g_screenshake")) {
+				case 1:
+					A_QuakeEx(frandom(0.400000, 0.450000), frandom(0.400000, 0.450000), frandom(0.150000, 0.200000) , 5, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.800000, 0.850000), frandom(0.800000, 0.850000));
+					break;
+				case 2:
+					A_QuakeEx(frandom(0.600000, 0.650000), frandom(0.600000, 0.650000), frandom(0.200000, 0.250000) , 4, 0, 20, 0, 0, 10, 10, 10, 6, frandom(1.300000, 1.350000), frandom(1.350000, 1.400000));
+					break;
+			}
+			A_PlaySound("smg/eject", chan_auto, 0.4);
+		}
+	ReloadMagRemoved_DUAL:
+		SMDR KK 1 {
+			S_WeaponOffset(0, -19);
+		}
+		TNT1 A 0 {
+			A_PlaySound("smg/eject", chan_auto, 0.4, pitch:0.96);
+		}
+		TNT1 A 0 {
+			A_FireProjectile("EmptyClipSMG",-8,0,5,-8, pitch:10);
+			A_FireProjectile("EmptyClipSMG",8,0,-5,-8, pitch:10);
+			S_WeaponOffset(0, 0);
+		}
+		SMDR LLMMNNOOQQRR 1 {
+			CheckReloadCancelling();
+			S_WeaponOffset(0, -9);
+		}
+		TNT1 A 0 {
+			loadChamber();
+		}
+		SMDR TTUUWWXXZZ 1;
+		SMD1 AABBCC 1;
+		// Wait timer
+		TNT1 A 4;
+		TNT1 A 0
+		{
+			invoker.magRemoved = false;
+			A_PlaySound("smg/insert", chan_auto, 0.4);
+			insertNewAmmo(1);
+		}
+		TNT1 A 5;
+		TNT1 A 0 {
+			S_WeaponOffset();
+			A_PlaySound("smg/insert", chan_auto, 0.43, pitch:0.93);
+		}
+		TNT1 A 2;
+		// Rise up
+		SMD1 KLMNOPQST 2 {
+			S_WeaponOffset();
+		}
+		goto reallyready;
+
+
+	 WeaponPickup:
+		RIFL A -1 bright;
+		Stop;
+
+	}
+
+	override void MarkPrecacheSounds() {
+		Super.MarkPrecacheSounds();
+		
+		// Mark looping sounds to prevent possible sticking from a late load
+		// in the background thread
+		MarkSound("smg/fire");
+		MarkSound("smg/end");	// Cache this one as well because it often is necessary to cancel the fire loop
+	}
+}
+
+class muzzleFlashSpawnerSMG : PlayerMuzzleflash {
+	default
+	{
+		PlayerMuzzleFlash.lightSize 125, 135;
+	}
+	override void SpawnLightEffect()
+	{
+		spawnLight(rColor:700, gColor:454, bColor:98, getLightSize(), 0, shadowRequirement:allowShadow, xOffset:frandom(-9,9), overbright: overbrightValue, divisionSpeed:1.85, weaponFlash:1);
+	}
+}
+
+class TaserDart : FasterProjectile
+{
+	default
+	{
+		projectile;
+		damageType "ShockDart";
+		damage 25;
+		speed 60;
+		scale 0.9;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 1 emitdefinition('SparkParticleSlowerDefinition', chance: 1, numTries: 3, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(1,2), velocity:(0,0,frandom(0,2)));
+		Looper:
+			VOXE L 1 BRIGHT emitdefinition('SparkParticleSlowerDefinition', chance: 1, numTries: 3, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(1,2), velocity:(0,0,frandom(0,2)));
+			loop;
+		xdeath:
+			TNT1 A 0 A_PLAYSOUND("smg/taserdartimpact", CHAN_AUTO, 1.0);
+		death:
+			TNT1 A 0 S_EXPLODE(5,50, damageType:"ShockDart");
+			TNT1 A 0 A_SPAWNITEMEX("PlasmaPuffTaser");
+			stop;
+	}
+}

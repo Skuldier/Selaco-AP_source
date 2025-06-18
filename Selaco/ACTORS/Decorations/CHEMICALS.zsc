@@ -1,0 +1,177 @@
+// TODO: Water Splashes should be color translated so it looks more like liquid and less like water
+class CHEMICAL_BOTTLE : PickupableDecoration
+{
+    string shotBottle;
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        shotBottle = getClassName();
+        shotBottle.appendFormat("_SHOT");
+    }
+    default {
+        mass 300;
+		+SHOOTABLE
+		+CANNOTPUSH
+        -pushable
+        +SelacoActor.decorativeactor;
+        +SelacoACtor.thruplayers;
+        +SELACOACTOR.allowGravityManipulation;
+        -NOBLOOD
+		+BloodSplatter
+		+NOBLOODDECALS
+		+USESPECIAL
+		PickupableDecoration.grabSound "pickup/dishwasher";
+		PickupableDecoration.landingSound "land/dishwasher";
+		Activation THINGSPEC_Switch;
+		Health 10;
+		BloodType "WaterSplashBaseSmallShort", "WaterSplashBaseSmallShort", "WaterSplashBaseSmallShort";
+		Radius 10;
+		Height 23;
+    }
+    states {
+        spawn:
+            VOXE L -1;
+            stop;
+		Death:
+			TNT1 A 0 {
+                A_playSound("bounce/jug", CHAN_AUTO, 1.0, pitch:frandom(0.75,0.9));
+				A_playSound("script/watersplash", CHAN_AUTO, 1.0, pitch:frandom(0.8,0.9));
+				A_SpawnItemEx("WaterSplashBaseBaby", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2); 
+                A_SPAWNITEMEX("WaterSplashEffect", 0, 0, 1);
+                A_SpawnProjectile(shotBottle, 5, angle:-180, flags: CMF_OFFSETPITCH  , pitch:frandom(-120,-170));
+			}
+			stop;
+    }
+}
+class CHEMICAL_BOTTLE_SHOT : SelacoActor
+{
+    default {
+		+MISSILE;
+        +THRUACTORS
+        +DOOMBOUNCE
+        radius 5;
+        height 5;
+        speed 6;
+        friction 0.6;
+        BounceFactor 0.5;
+        BounceCount 3;
+        SeeSound "bounce/jug";
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SETANGLE(angle+frandom(-35,35));
+            VOXE L 1 A_ChangeVelocity(frandom(1,8), 0, frandom(4,12), CVF_RELATIVE);
+        Looper:
+             VOXE L 2 {
+                A_SpawnDefinedParticle("waterParticleXDefinition", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2); 
+                A_SETPITCH(pitch+10);
+            }
+            loop;
+		Death:
+			VOXE L -1
+            {
+                A_playSound("bounce/jug", CHAN_AUTO, 1.0, pitch:frandom(1.1,1.2));
+                A_SETPITCH(0);
+            }
+			loop;
+    }
+}
+
+// STYLE 1
+class CHEMICAL_ACID     : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_ACIDJAR";
+    }
+}
+class CHEMICAL_ACID_SHOT     : CHEMICAL_BOTTLE_SHOT { }
+
+class CHEMICAL_SAFELAB  : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_CHEMICALNEUTRALIZER";
+    }
+}
+class CHEMICAL_SAFELAB_SHOT     : CHEMICAL_BOTTLE_SHOT { }
+
+class CHEMICAL_NAOH     : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_ACIDNEUTRALIZER";
+    }
+}
+class CHEMICAL_NAOH_SHOT     : CHEMICAL_BOTTLE_SHOT { }
+
+class CHEMICAL_OIL      : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_MACHINEOIL";
+    }
+}
+class CHEMICAL_OIL_SHOT     : CHEMICAL_BOTTLE_SHOT { }
+
+
+// STYLE 2
+class CHEMICAL_WHITE        : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_CHEMICAL";
+    }
+}
+class CHEMICAL_RED                  : CHEMICAL_WHITE { }
+class CHEMICAL_PINK                 : CHEMICAL_WHITE { }
+class CHEMICAL_GREEN                : CHEMICAL_WHITE { }
+class CHEMICAL_WHITE_SHOT           : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_RED_SHOT             : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_PINK_SHOT            : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_GREEN_SHOT           : CHEMICAL_BOTTLE_SHOT { }
+
+// STYLE 3
+class CHEMICAL_FREEZAH        : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_COOLANT";
+    }    
+}
+class CHEMICAL_3_GREEN       : CHEMICAL_WHITE { }
+class CHEMICAL_FREEZAH_SHOT      : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_3_GREEN_SHOT       : CHEMICAL_BOTTLE_SHOT { }
+
+// STYLE 4
+class CHEMICAL_GLO                  : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_WASHINGGEL";
+    }   
+}
+class CHEMICAL_4_GREEN                  : CHEMICAL_WHITE { }
+class CHEMICAL_4_GREEN_SHOT              : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_4_BLUE                  : CHEMICAL_WHITE { }
+class CHEMICAL_4_BLUE_SHOT              : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_GLO_SHOT                  : CHEMICAL_BOTTLE_SHOT { }
+
+// STYLE 5
+class CHEMICAL_5_OIL                 : CHEMICAL_BOTTLE { 
+    default 
+    {
+        tag "$OBJECT_OIL";
+    }   
+}
+class CHEMICAL_5_RATAWAY             : CHEMICAL_BOTTLE { 
+    default
+    {
+        tag "$OBJECT_POISON";
+    }
+}
+class CHEMICAL_5_GREEN               : CHEMICAL_WHITE { }
+class CHEMICAL_5_CHLORIDE            : CHEMICAL_BOTTLE { 
+    default
+    {
+        tag "$OBJECT_CHLORIDE";
+    }
+}
+class CHEMICAL_5_OIL_SHOT                 : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_5_GREEN_SHOT                 : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_5_RATAWAY_SHOT                 : CHEMICAL_BOTTLE_SHOT { }
+class CHEMICAL_5_CHLORIDE_SHOT                 : CHEMICAL_BOTTLE_SHOT { }

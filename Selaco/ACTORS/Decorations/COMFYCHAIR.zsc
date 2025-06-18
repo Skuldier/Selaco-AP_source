@@ -1,0 +1,136 @@
+class ComfyChair : PickupableDecoration {
+
+    string damageModel;
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        damageModel = "ComfyChair_damaged1";
+    }
+
+    override void spawnLandingEffects() {
+		A_SPAWNITEMEX("sparksnoflare", 10, 10 ,0);
+		A_SPAWNITEMEX("sparksnoflare", -10, -10 ,0);
+		A_SPAWNITEMEX("sparksnoflare", -10, 10 ,0);
+		A_SPAWNITEMEX("sparksnoflare", 10,-10 ,0);
+    }
+
+    default {
+        // FLAGS
+        +UseSpecial
+        -NOBLOOD
+        +SOLID
+        // PROPERTIES
+        SelacoActor.collisionSound "push/chair";
+        BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        Tag "$OBJECT_CHAIR";
+        Activation THINGSPEC_Switch;
+        PickupableDecoration.HoldHeight -17;
+        PickupableDecoration.landingSound "Officechair/land";
+        PickupableDecoration.grabSound "PICKUP/COMFYCHAIR";
+        DamageFactor "Shotgun", 4;
+        DamageFactor "BulletAlien", 10;
+        radius 13;
+        height 27;
+        PainChance 255;
+        PushFactor 1.1;
+        mass 370;
+        Health 10;
+        scale 1.06;
+        PushFactor 0.5;
+        SelacoActor.SpecialPushFactor 0.76;
+        +SelacoActor.SpecialPushable;
+    }
+
+	states {
+		spawn:
+			TNT1 A 0;
+			VOXE L -1 A_SETPITCH(0);
+			loop;
+        Death.GravityThud:
+        Death.ExplosiveImpact:
+            TNT1 A 0 A_SPAWNITEMEX("ComfyChair_damaged4a", 3, 0, 0, frandom(-2,2), frandom(4,6), 6);
+            TNT1 A 0 A_SPAWNITEMEX("ComfyChair_damaged4b", -3, 0, 0, frandom(-2,2), frandom(-4,-6), 6);
+            TNT1 AAAA 0 A_SPAWNITEMEX("Cardboard_Chunk", frandom(-36,36), frandom(-36,36), frandom(10,90));       
+            stop;
+        Death.SniperBullet:
+        Death.magnumbullet:
+        Death.Shotgun:
+            TNT1 AAAA 0 A_SPAWNITEMEX("Cardboard_Chunk", frandom(-12,12), frandom(-12,12), frandom(10,32));
+            TNT1 A 0 A_SPAWNITEMEX("ComfyChair_damaged3");         
+            stop;
+        Death:
+            TNT1 AA 0 A_SPAWNITEMEX("Cardboard_Chunk", frandom(-12,12), frandom(-12,12), frandom(10,32));
+            TNT1 A 0 A_SPAWNITEMEX(damageModel);
+            stop;
+	}
+}
+
+class ComfyChair_damaged1 : ComfyChair {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        damageModel = "ComfyChair_damaged2";
+    }
+}
+class ComfyChair_damaged2 : ComfyChair {
+    default {
+        SelacoActor.SpecialPushFactor 0.8;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        damageModel = "ComfyChair_damaged3";
+    }
+}
+
+class StarlightChair : ComfyChair { 
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        damageModel = "StarlightChair_damaged1";
+    }
+
+}
+class StarlightChair_damaged1 : ComfyChair { 
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        damageModel = "StarlightChair_damaged2";
+    }
+}
+class StarlightChair_damaged2 : ComfyChair { 
+    default {
+        SelacoActor.SpecialPushFactor 0.8;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        damageModel = "ComfyChair_damaged3";
+    }
+}
+
+class ComfyChair_damaged3 : ComfyChair {
+    default {
+        PushFactor 0.6;
+        SelacoActor.SpecialPushFactor 1.0;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+    }
+    default {
+        damageFactor "shotgun", 0.2;
+    }
+    states {
+        Death.Shotgun:
+        Death.SniperBullet:
+        Death.magnumbullet:
+        Death.ExplosiveImpact:
+            TNT1 A 0 A_SPAWNITEMEX("ComfyChair_damaged4a", 3, 0, 6, 0, frandom(2,5), 6);
+            TNT1 A 0 A_SPAWNITEMEX("ComfyChair_damaged4b", -3, 0, 6, 0, frandom(-2,-5), 6);
+            TNT1 AAAA 0 A_SPAWNITEMEX("Cardboard_Chunk", frandom(-12,12), frandom(-12,12), frandom(10,32));       
+            stop;
+        Death:
+            TNT1 AA 0 A_SPAWNITEMEX("Cardboard_Chunk", frandom(-13,13), frandom(-13,13), frandom(0,32));
+            TNT1 A 0 A_SPAWNITEMEX("ComfyChair_damaged4a", 3, 0, 6, 0, 0, 2);
+            TNT1 A 0 A_SPAWNITEMEX("ComfyChair_damaged4b", -3, 0, 6, 0, 0, 2);
+            stop;
+    }
+}

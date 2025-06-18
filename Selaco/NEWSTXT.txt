@@ -1,0 +1,2065 @@
+<h1>Patch Notes v0.90</h1>
+For a more detailed list, please visit the Steam Blog Post for this update!
+
+<h2>\c[yellow]Performance</h2>
+<h3>Main improvements</h3>
+- Brand new Particle System
+- Complete do-over for all particle effects
+- Improved rendering performance for Floor Decals
+- Improved floor decal spawning
+- Improved smoke culling
+- Blood effect overhaul
+- Improved Enemy AI logic
+
+<h3>Other Improvements</h3>
+- Updated glass effects to be more performant
+- Improved fire hydrant performance by culling water sprays for faraway players
+- Paint buckets now utilize an actual particle system instead of actors
+- UI elements are now precached and can be properly unloaded to save VRAM
+- Added a "Texture Quality" setting. This will slightly reduce sprite resolutions but drastically decrease VRAM usage. Use this if you have a GPU with low VRAM!
+- Numerous smaller improvements to reduce VRAM usage
+- Overhauled bullet puff code to be more performant and easier to maintain
+- Red blood decals are no longer flat meshes and now use the new decal rendering
+
+<h2>\c[yellow]Special Campaign</h2>
+<h3>Brand new Options Menu</h3>
+Added numerous presets!
+
+Minimal Preset
+- Keeps all possible randomization elements but makes them subtle. Use this if you want to utilize all the Special Campaign features while keeping randomization to a minimum.
+
+Default Preset
+- Uses all available randomization while keeping gameplay balance in mind. Use this if you want a random, yet balanced experience.
+
+Vanilla Preset
+- No new content and minimal randomization. An optimized preset for players who want to replay the Standard Campaign with a few surprises, including extra enemy spawns and shuffled item pickups.
+
+Vanilla Plus Preset
+- Very similar to Vanilla but adds Special Campaign-exclusive enemy types. An optimized preset for players who want something close to the Standard Campaign with slight alterations and a few new features.
+
+Controlled Chaos Preset
+- High randomization with all the bells and whistles. Designed to be chaotic but fair.
+
+Overkill Preset
+- All randomization cranked up to 11! This run will be chaotic, unpredictable, and probably very difficult.
+
+- Added Description Pane and Option Descriptions
+- Added Ammo Bearers
+- Added Armor Bearers
+- Added 'High-Tier Enemy Frequency'
+- Added Item Trails
+- Added Extra Cover and Extra Clutter settings
+- Added Immersive Mode
+- Added Heavy Gunners
+- Reworked Random Encounters
+- Added full localization support
+- Added 2 new Weapon Traits
+- Fixed an error where Random Encounter enemies could spawn in inaccessible areas
+- Fixed an error where Engineer Grenade Shells used the wrong model
+- Added proper ammo UI for weapons with the Bottomless Mags trait
+- Earthquakes no longer push Detonators, preventing potential softlocks
+- Fixed Triple Damage trait not applying its intended damage correctly
+- Combat Chests now have a distinct color and slight illumination, making them easier to spot
+- Fixed an error where Encounter Chests spawned enemies too close to the player
+- Fixed an error where Crawler Queens became invisible
+- Dawn's suit no longer references "+ Roaring Cricket" when Weapon Randomization Style is not set to "Vanilla"
+- Reduced healing sound volume for Life Leech and Life Siphon
+- Fixed an issue where Item Flares did not despawn properly. Most noticeable with red flares on Medkits
+- Ammo pickup counts are now biased toward slightly higher amounts, addressing scarcity issues
+- Disabled Soldier and Robotic spawns in Level 6-3
+
+<h2>\c[yellow]Player</h2>
+<h3>Fully Reworked Swimming</h3>
+- More natural swimming movement: the player now darts forward while swimming instead of moving at a constant velocity, better simulating the feel of real swimming
+- Added underwater swimming sounds
+- Crouching no longer slows swimming speed
+- Players are now forced into crouch mode while swimming
+- Removed view and weapon bobbing while swimming
+- Added a warning sound when the player is about to run out of oxygen
+- Added a warning sound when the player has run out of oxygen
+- New and improved exertion sounds when resurfacing after a long swim
+- Added dripping sound and visual effects when leaving the water
+- Most weapons can no longer be fired underwater. Since Selaco doesn't feature underwater combat, we focused on immersion here. If underwater combat is added in the future, we’ll revisit this
+- Vertical swimming movement speed is now equal to horizontal speed
+- Improved underwater bubble visuals
+
+<h3>Armor</h3>
+- Armor is now slightly less durable on higher difficulties. Recent buffs made it stronger than intended
+- Plasma Projectiles deal significantly less damage against Armored players, but deals more severe damage to the armor itself
+
+<h3>UC-11 Exon SMG</h3>
+- Increased weapon damage (21 -> 23)
+
+<h3>Roaring Cricket</h3>
+- Slightly louder firing sounds
+
+<h3>S-8 Marksman Rifle</h3>
+- Headshot damage now increases with distance, as originally intended. This feature broke during a previous system rework. Thanks to Discord user "Lush" for spotting it!
+
+<h3>Slide Proning</h3>
+Sliding under a tight area now puts Dawn into a prone position, allowing movement where you'd otherwise get stuck.
+
+<h3>Other Stuff</h3>
+- Dawn can no longer uncrouch when the ceiling is too low
+- Pain sounds now trigger more consistently when taking damage
+
+<h2>\c[yellow]Quality of Life</h2>
+- Further improved sign posting and navigation in numerous levels
+- Weapon Bar icons are now greyed out when the weapon has no ammo
+- Added "Mark all as read" button to the Wrist Codex
+- Added "Invert Y-Axis" setting to the Gamepad menu. This was always there, but it was buried deep into an Advanced Settings Menu where players could not find it.
+- Yellow Barrels now appear on the minimap. Now you can all stop losing them!
+- Machine Gun Ammo dropped by Enemy Soldiers now use a different voxel model to be more distinct from regular Machine Gun ammo pickups, resulting in less misleading +10 ammo pickups.
+
+<h2>\c[yellow]Immersion</h2>
+- More reactive Explosions
+- AddedInteractive Bullet Casings
+- In-game references has been spread out a little better
+
+<h3>Visual Effects</h3>
+- Added Railgun Beam effect
+- Improved visual effect for Railgun shot impacts
+- Improved visual effects for animated spark effects, looking a little less cartoony.
+- Added more gravity and bouncing variations for Spark particles
+- Added Red Spark effect when hitting Energy Shields
+- Improved Plasma Puff effects to be more visually pleasing and powerful
+- Added new Purple Blood wall decals
+- Adjusted illumination color for all blood effects to better match the purple blood color
+- Decal spray directions when hitting have been adjusted to be more believable and will no longer spray unreasonably far away
+- Improved bone gibs by being more performant and having better bouncing sounds
+- Applied a bit more texture to Gore Mist sprites
+- Improved (almost) every pick-up sound to be more snappy and satisfying to listen to
+- Improved gibbing sound effects to be slightly louder and slimey, with some being louder
+- Added a whole bunch of new bullet impact effects for Wood, Metal, Concrete and more. A shooter can never have enough bullet impacts!
+- Added a wooden thud effect when enemy corpses hit a wooden floor
+- Lamp/Light Textures now spawn glass effects when shot
+- Fully reworked Wire Texture to appear less out of place. It was an old asset that should have been updated sooner
+- Explosion effects now always face the player, even from above or below
+- Added a new destruction model for Computer Monitors, giving a bit more variety
+- Numerous posters and paintings have been given a full do-over
+
+<h3>Sound & Audio</h3>
+- Added sound effect when crouching
+- Added stepping sounds for walking over static paper decals
+- Added pushing effort sounds when pushing heavy objects like Heavy Barrels.
+- Improved Health Regeneration sound effects
+- Added sound effects for leaking waterpipes
+- Pain Sounds are now more reliable and always play as intended.
+- Pain Sounds no longer cancel eachother out
+- Brand new recordings for Pain, Death and Danger States sounds
+- Added new spark sound effects
+- Improved Bullet Whiz sound effect for bullets that pass the player
+- New Sound Effects for picking up Plasma Rifle ammo
+- Reduced audio volume of Rooftop Wind sound effects
+- Fully reworked the 'Warzone' soundscape ambient effect that plays in the background of some earlier levels
+
+<h3>Immersion & Interactions</h3>
+- Disabled Weapon Bobbing when not on the floor
+- Plants on Plant Pots now properly rotate along with the pot when picked up by the player
+- Enemy Flashlights now cause a shadow based on the player's Shadow Quality 
+- Spark Missile effects can no longer spawn underwater
+- Updated a whole lot of outdated posters in Pathfinder Memorial Hospital. They were showing their age!
+- Added Civilian Corpses. No longer is everybody be turned into a pile of red giblets; there's actual civilians now! 
+- Added Corpse Shadows for both enemies and civilians
+- Added a whole bunch of new Doodle Decorations, created by our patreons!
+- Jukeboxes stop playing music when destroyed
+- Vending Machines now spit Soda Cans when destroyed
+- Vending Machines now have increased Soda Can quantity. This was needed to make the previous change cooler, which is sometimes all that matters.
+
+<h3>Watermelons</h3>
+Never did we anticipate that Watermelons would become the strongest health source in the game, yet here we are.
+- Added 3 new voxels for destroyed Water Melons
+- Improved randomization for Water Melon Chunk angles to have more variance
+- Nerfed Water Melon health gain. (2hp -> 1hp). However, big chunks still give 2hp.
+- Watermelon effects are now more juicy
+
+<h2>\c[yellow]Mutators</h2>
+- New mutator: Save Scumming.
+The Save Scumming mutator allows players to save at any time, regardless of being in combat, or on the verge of dying from a nearby grenade.
+
+- Hardcore Mode
+Disabled Mercy System for Hardcore Mode. Getting hit on low health can now kill you right away and will no longer force you to a 1hp state first.
+
+<h2>\c[yellow]Enemies</h2>
+- Improved logic to reduce the amount of hesitation when pathfinding
+- Enemies now reload when their ammo is low and are not in direct line of sight with the player. Resulting in less awkward situations where enemies rush in with an empty weapon
+- Slightly increased hitbox height for Soldiers
+- Rendering tweaks to make Air Drones easier to see from below
+- Reduced Air Drone Rocket Projectile Speed (25 -> 20)
+- Reduced Plasma Trooper Projectile Size by 25%
+- Added flare effect on Plasma Trooper projectiles
+
+<h2>\c[yellow]Accessibility</h2>
+- Added an option to disable View Bobbing. This disables up/down movement while walking. Use this if the game is giving you motion sickness.
+- Improved camera tilting on Gamepad. In earlier versions, moving forward while the stick was slightly leaning towards one side would result in a wobbling effect. This has been fixed.
+
+<h2>\c[yellow]Bug Fixes & Other Improvements</h2>
+- Updated Plasma Rifle weapon bar icon
+- Improved camera tilting on Gamepad
+- Corrected broken audio mixing on kill notifications
+- Removed numerous Juggernaut brightmaps to save space
+- Fixed an error where the Weapon Wheel could be opened from the Main Menu
+- Fixed overlapping Mutator UI elements on lower resolutions
+- Fixed an error where Windows would stop capturing mouse input after closing the game
+- Tweaked DMR scope timings to better match the zoom effect
+- Keycards are now set to "Always Pickup" to reduce softlocks from sequence breaking
+- Destroyed Sentry Guns no longer block doorways, a common cause for soft locks
+- Weapon swapping with Bottomless Mags (Mutator or Weapon Trait) no longer forces a Weapon Reload
+- Fixed an error where Children Doodles briefly turned into an "X" when shredded
+- Fixed a crash caused by Stretchbeds if their hitbox was missing
+- Fixed an exploit allowing players to boost rate of fire by timing the 'Throw Equipment' button
+- Gravity Manipulator no longer picks up explosive plants, preventing potential softlocks
+- Fixed an error where Shooting Range menu info didn’t match actual settings, often causes by load games
+- Menus and intermission screens now close the automap
+- Fixed a crash caused by snipers targeting a non-existent entity
+- Fixed an error where Weapon Kits played a healing sound on pickup
+- Fixed overlapping pickup sounds
+- Fixed an error where throwing a grenade with the Grenade Launcher could lock weapon state, rendering all of your weapons unusable
+- Removed duplicate smoke sprite effect, reducing file size by a massive 650 bytes
+- DMR: Fixed an issue rapidly zooming in-and-out could result in a zoom with no scope overlay
+- Fixed an error where Stretchbeds spawned blood decals when shot
+- Playstation icons are now properly saturated
+- "Sitting Corpses" no longer spin when shot
+- Fixed crash when Weapon Mods had no ammo type assigned
+- Fixed error where purple blood splatters looped back to the first frame
+- Fixed rare crash caused by switching equipment when Dawn didn’t exist (???)
+- Fixed error where Crawler Mine corpses dealt incorrect damage type on impact
+- Fixed numerous typos in upgrade descriptions
+- Fixed error where rain splatters showed a white block texture
+- Removed the “Enemy Grenade (Unusable)” prompt
+- Fixed an error where Bottomless Mags reduced ammo in the Shooting Range
+- Fixed crash from Sentry Guns acquiring targets after becoming friendly turrets
+- Transitioning from in-game to Titlemap no longer briefly shows hexacons
+- Tweaked item flare offset for Large Plasma Ammo to prevent model clipping
+- Siegers are now easier to see from below thanks to forced XY billboarding
+- Added 'Drink' interaction label when looking at beer bottles
+- Fixed an error where UltimateSelacoBuilder was missing from the Steam download
+- Fixed a Level 1-3 bug where a one-way door could be closed from the wrong side
+- Fixed potential crashes caused by Pathnodes
+- Automap can no longer be opened when dead
+- Fixed graphical issue with the first frame of the Invasion Tier menu
+- Fixed "Pimp My Vacbot" neon sign appearing massive from behind
+- Added extra snipers when returning from the South Wing with a key in the Mall level
+- Cleaned up Level 5 map screen to hide unintended areas
+- Attempted fix for Mall level keycard not spawning correctly
+- Fixed numerous script oversights across the entire game
+- Fixed Plastic Shards despawning with Permanent Destruction enabled
+- Improved transition of Item Flares and Icons for smoother appearance
+- "Give All" now includes a Flashlight
+- Fixed Workshop Screen showing Xbox controls while using Playstation icons
+- Holding Jump in tight spaces no longer causes repeated jump sounds
+
+
+<h2>Patch Notes v0.89a - The Burger Flipper Mistake</h2>
+Zynzu's work on Burger Flipper had some unintended side-effects to our UI. We have deployed a quick patch to fix these issues.
+
+<h3>\c[yellow]Quick fixes</h3>
+- Fixed incorrect Weapon Wheel behavior on Gamepad
+- Fixed Pickup Icons not fading out as intended
+- Fixed broken character sequence in LANGUAGE
+- Fixed a crash caused by Crawler Mines being unable to find a path
+- Removed yellow text for ''Roadmap'' as it appeared a bit too attention grabby
+
+=========================================
+
+<h2>Patch Notes v0.89 - The Burger Flipper Update</h2>
+Zynzu Entertainment here!
+ 
+First off, a huge thank you for playtesting our mobile game "Burger Flipper" as we prepare to launch it to the masses of Selaco. We're at the home stretch and our best friends at Pluto Burger are eagerly awaiting the finished product.
+
+<h3>\c[yellow]Burger Flipper Additions\c-</h3>
+<h3>- Added Global Save System</h3>
+Progress is no longer tied to your local Datapad! If you were to, somehow, start a life, you can now continue where you left off. Just make sure to click the button to convert your existing save into a Cloud Save. Or Global Save... Whatever the term is post-Exodus.
+
+<h3>- Added a bunch of Cosmetic Burger Skins</h3>
+Now featuring Gwyn Burger, VAC-Burger, and more that we will not spoil. You will not believe what the last one is!
+
+<h3>- Added Achievement System</h3>
+Improve your Gamer cred by achieving Burger Flipping milestones.
+
+<h3>- Added Battle Pass</h3>
+Complete achievements to earn Points for your Battle Pass. Unlock exclusive new Skins and Gems to use in the store.
+
+<h3>- Added Golden Burger Events</h3>
+These rare burgers spawn periodically to boost burger flipping productivity—but they don’t stick around for long! Click fast or miss out.
+
+<h3>- Added In-Game Shop</h3>
+You can now spend your hard-earned Selver Credits on some in-game items.
+
+<h3>- Added Uninstall Button</h3>
+Our business experts said this was a terrible idea, but we did it anyway! Burger Flipper can now be uninstalled from your Datapad.
+
+<h3>- Added Prestige System</h3>
+Acquiring the final Production Building now lets you Prestige. Prestige resets your progress, but spawns more Golden Burgers, unlocks a new Mirror Universe Production Building, and gives more chances to earn rewards.
+
+<h3>- Added In-Game Advertisements</h3>
+Someone ask Charlie from PR if this is meant to be listed here. Probably not the feature everyone was waiting for.
+
+Thank you for reading and happy flipping!
+
+=========================================
+
+<h2>Patch Notes v0.88</h2>
+<h3>Summary</h3>
+This update isn't as massive as prior once due to Chapter 2 and Story Update focus, but still plenty of good stuff here that improves the core experience in a significant way. TL;DR for some of the highlights:
+
+- Vastly upgraded engine version
+- Added 'Early Access Roadmap' to the Main Menu
+- Added 'Game Detail' setting
+- Added Unlock notifications after beating this game.
+- Numerous Special Campaign improvements
+- Added 'No Health Regeneration' mutator
+- Added Bottomless Mags mutator
+- Lots of gameplay polish
+- Wires can now be shot to briefly electrocute enemies
+- A whole bunch of new environmental reactions and effects
+- Improved visual clarity for players with a Low Smoke Density setting
+- Additional improvements to level design and scripting
+- Another massive sound pass
+- Weapon buffs and nerfs
+- Improved numerous art assets
+- Added Visibility Welcome Screen that will be given to new players
+- Improved Error Handling
+- Added 'Strongbox' achievement
+- Audio pass for some robotic enemies
+- Small Shotgun buff
+- Performance optimizations- SPECIAL CAMPAIGN: Added Encounter Chests
+- SPECIAL CAMPAIGN: Added Grenadier Engineer
+
+<h3>Optimization</h3>
+- Upgraded the engine to the newest GZDoom version. This will now function as our new base to expand upon.
+- Added "Game Detail" setting. Adds additional environmental details that make the world more reactive. This includes additional bullet puff behavior, improved object collisions, bullet casing duration, and much more.
+- Reworked numerous actors to be more memory-efficient.
+- Added Background Model Loading to reduce traversal stutter.
+- Numerous UI elements are now loaded on a different CPU thread.
+- Upgraded numerous particle effects.
+- Reduced the number of CVAR checks to lower CPU load.
+- Particle effects are no longer stored in saved games, reducing file size and stutter duration when saving.
+- WINDOWS: Fixed an error where mouse inputs for cease to function correctly when Selaco was running on your system
+
+<h3>Special Campaign</h3>
+- Added Encounter Chests. These chests are spawned at random locations in Selaco. Interacting with an Encounter Chest spawns enemies around the room. Eliminate all enemies to get a reward.
+- Added Engineer Grenadiers.
+- Railgun Slugs can now spawn via the Randomizer.
+- Storage Cabinets are no longer empty.
+- Added numerous new Weapon Traits.
+- Improved spawning algorithms to consider density. Maps like the Mall will no longer see extreme amounts of enemies.
+- Reduced 'bias' to ensure Random Spawns are properly spread around the level rather than focused around certain spots.
+
+<h3>Mutators</h3>
+- Added "No Health Regeneration" mutator.
+- Added "Bottomless Mags" mutator - This mutator removes the reloading mechanic.
+- HARDCORE MODE: Removed spread and recoil limits. This makes weapons harder to control during sustained fire. 
+- HARDCORE MODE: Added option to disable spread and recoil limits.
+
+<h3>Gameplay</h3>
+- Reduced recoil build-up when zooming.
+- Shooting at wire textures will now create electricity hazards. This can be used to your advantage.
+- Explosion Area of Effect damage is now done with a spherical shape instead of a square. This makes explosion behavior more accurate.
+- Shock duration on enemies now depends on the amount of shock damage.
+- Reduced Airdrone bullet damage.
+- Alerted enemies will now enter Patrol Mode when the player exits the level.
+- Added 'Strongbox' achievement.
+- ENEMY SENTRY GUN: Gave them a much-needed sound pass.
+- ENEMY SENTRY GUN: Added self-lighting to make them easier to see.
+- ENEMY SENTRY GUN: Added a slight delay before they begin attacking.
+- ENEMY SENTRY GUN: Unalerted turrets can now be deactivated by pressing USE behind them.
+- NAILGUN: 'Twin Barrel' has been buffed. The second nail no longer deals reduced damage.
+- LANDMINES: Now require the 'Extractor' upgrade to be picked up. Sorry, they were overperforming!
+- ESG-24 SHOTGUN: Boosted damage per pellet (32 -> 34)
+<h3>UI</h3>
+- Added Unlock notifications after beating this game. This will now inform players about new features that become available.
+- Added Visibility Welcome Screen that will be shown to all players on startup. This allows players to choose between two visual modes: 'Spectacle' and 'Visibility'.
+- Added "Early Access Roadmap" button in the main menu.
+- Added a brand-new error system. This will make it easier for us to solve reported issues moving forward.
+- Added a warning prompt when loading a saved game that it's incompatible.
+- Improved ammo counter display for weapons that do not require reloading.
+- Save Game Menu descriptions now have a scroll bar.
+- LookAt prompts now have a smaller font when they have a lot of text.
+- Used mods are now shown in the Save Game Menu when selecting a save.
+- Localization support improvements.
+
+<h3>Art</h3>
+- Most of the music in Selaco has been re-exported from the source. The quality should be much higher now
+- Improved behavior of Stretcher actors. Rotating them will now display a proper animation and their hitboxes have been corrected
+- Ice Grenades now have a unique voxel model
+- Most weapons now have a layered gun sound, making them sound different depending on the amount of ammo left
+- Added particle effects when mines drill themselves into the floor
+- Added a new set of doodles
+- Improved visuals for Grenade Launcher explosions
+- Added carpet puffs when walking on carpet materials
+- Carpet textures now spawn a unique effect when hit by bullets
+- Added 'Cloth' material behavior
+- Added new dust decals
+- Level 1-1 and Level 1-2 have some additional ambient sounds
+- Hundreds of new sound effects have been added
+- Added animated smoke puffs 
+- Shocked enemies will now continue shocking when dead
+- Improved Roaring Cricket gun sound and trail visuals
+- Paper particles now seamlessly transition into paper decals when touching the floor
+- Repainted some older art assets 
+
+<h3>Modding</h3>
+- Fixed crashes when giving SelacoWeapon to enemies
+- Level Editor will now visually display Path Node Connections
+- Added more virtual functions that modders can override
+
+<h3>Bug Fixes</h3>
+- Fixed unintended horizontal lines on some smoke sprites. Let us know if you see any more! 
+- Reduced amount of trash that is spawned by the ENDLESS TRASH trait
+- Slugs no longer cost ammo in the Shooting Range
+- Players no longer take damage during the Intermission Screen
+- Fists no longer increments 'Shots Fired' stat
+- 'Deaf' enemies will no longer be alerted by sound
+- FIxed bug where keycard icons would 'jitter' on the HUD
+- Food items now have correct calorie properties. Water was never meant to add 50 calories.
+- Cars and their hitboxes no longer go out of sync during earthquakes
+- Lockers in Level 1-1 no longer close after 9000 ticks. They now stay open indefinitely
+- Fixed broken Windows Shutters in level 1-1
+- Weapon Traits no longer display incorrect values during the Special Campaign
+- 'Enable Bipod' upgrade has been renamed to 'Bipod'
+- Fixed error where 'Paintsplosion' trait would spawn Purple paint only.
+- Gravity Manipulator no longer behaves incorrectly when used without ammo
+- Fixed an error where Keyboards would sometimes be pushed by player collision
+- Knifes now correctly break apart when used against armored enemies
+- Knife kills against Siegers no longer turn them into Rifleman
+- Fixed a bug where Iron Fury did not ignite enemies correctly
+- Removed 'BEEP SPEED' debug in the console that was never meant to be there
+- Fixed rare crash caused by Ammo Warnings
+- World Items that cost 0 Selver Credits no longer displays your credit balance on the HUD
+- Fixed incorrect animation timing in Save Menu
+- Allied projectiles no longer spawn a smoke puff against killed enemies
+- Sentry Gun and Combat VAC-Bot kills no longer counts towards the UC-36 Kill stat
+- Plasma Area of Effect kills are now considered Plasma Rifle kills
+- Target Dummies no longer have rarities during the Special Campaign
+- Fixed 'Unknown Folder' crashes on Windows 11
+- Fixed potential crashes caused by Pathfinding
+- Fire Resistance for Juggernauts now works as intended
+
+<h1>Version 0.86</h1>
+<h3>General Improvements</h3>
+- Added a system that prevents floor decals from z-fighting
+- Added Light Effect Culling to give a slight performance boost during light heavy scenes (e.g. multiple enemies shooting at the player)
+- Added precaching for animated textures to reduce potential stutters
+- Updated an outdated texture that mentioned ``Teddy11`` instead of ``Teddy13``
+- Added transition effect when loading a saved game
+- Improved Plasma Rifle readability when firing
+- Minor artwork revisions
+- Audio readability improvements for damaged Fire Extinguishers
+- Slightly reduced the file size, yay!
+- Special Campaign: Squad Leaders no longer spawn when ``Spawn Additional Squad Leaders`` is disabled
+
+<h3>Plasma Rifle</h3>
+- Slight increase to Damage, Magazine Capacity and Ammo Pickup count
+- Added multiple Muzzle Flash variants when firing
+- Recolored Plasma Bolts to match the color of the Muzzle Flashes
+- Reduced visual clutter when firing Plasma Bolts
+- Added transparancy to secondary crosshair elements for improved readability
+- Fixed some inconsistancies in Upgrade descriptions
+
+<h3>UC-11 SMG</h3>
+- Shock Dart now has a small amount of Area of Effect to make landing shots easier
+- Fixed a bug where Shock Darts would not shock enemies when hit during a pain state
+
+<h3>Enemy Mines</h3>
+- Enemy Mine Beeps are now brighter.
+- Enemy Mine Beeps will no longer be dimmed when Dimmed Muzzleflashes is enabled
+
+<h3>Bug Fixes</h3>
+- Rain puddles no longer cause precaching issues
+- Toilet Paper spawns from Paper Dispensers can now be picked up
+- 'Panic Button' upgrade no longer persists and when disabled
+- Recovered a missing sound effect that was meant to play near ventilation shafts
+- Fixed a large number of crashes and stability issues
+- Fixed error where Metal Shrapnel particles coming from Metal Floors would never despawn
+- Fixed a very stupid performance oversight with Landmines
+- Fixed numerous startup issues
+- Weapon Kits no longer show Automap Notifications when Automap Updates is turned off
+- Fixed Rate of Fire exploit for Elephant Rounds
+- Fixed exploit where Elephant Rounds would not have any recoil
+- Fixed Elephant Rounds displaying incorrect stats on older Saved Games
+- Fixed error where the Overblown upgrade lied about adding +3 damage
+- Fixed bug where the Panic Button upgrade would persist even when disabled
+- Fixed a couple of menu quirks
+- Fixed an error where the Grenade Launcher would be missing Display Frames when equiped shortly after loading a saved game
+- (Linux) Fixed Linux mouse disappearing when clicking
+
+<h3>Ultimate Selaco Builder</h3>
+- Improved 'Custom Ambient Sound' to allow searching for sound names
+
+=========================================
+
+<h1>Version 0.86</h1>
+<h2>\c[yellow]Stability Patch\c-</h2>
+A quick update that focuses on bug fixes and stability.
+
+<h3>Special Campaign Improvements</h3> 
+- Added 'Compensate Item Pickups' setting.
+- Milestones are now available from the start.
+- Earthquakes no longer break car hitboxes.
+- Mammoth Turret is no longer pushed by earthquakes.
+- Slug Generator now actually works!
+- Fixed an error where enemies would spawn inside doorways.
+- Fixed an error where most custom enemies would not spawn.
+
+<h3>Game Improvements</h3>
+- Added in-game credits when entering Level 3-2.
+- Added new shotgun visual effects.
+- Prevented soft locks in Level 3-2b.
+
+<h3>Bug Fixes</h3>
+- Fixed issues where "Dim muzzle flashes" was not working as intended.
+- Fixed flames having a larger-than-intended damage radius.
+- Static crosshair is no longer additive, making it easier to see in bright environments.
+- Fixed an instance where enemies would not react to taking damage.
+- Tasked Zynzu Entertainment to fix numerous bugs related to Burger Flipper.
+- Fixed a bug where patrolling enemies would not have an animation.
+- Fixed metal signs having spark effects spawn at an incorrect offset.
+- Fixed a progression issue where the Tychus Challenge would not reward players with a Weapon Kit on repeat playthroughs.
+- Fixed an error where Rifle Start would take more credits than intended upon entering a new level.
+- Dawn no longer takes damage when slide-kicking into dinner plates.
+- Printers no longer turn into an 'X' sprite when destroyed by explosions.
+- Fixed a crash when punching crawler mines.
+- Fixed numerous typos.
+
+<h1>Version 0.87 - Stable</h1>
+<h2>\c[yellow]Summary\c-</h2>
+<h3>Added Special Campaign</h3> 
+A mix between New Game Plus and Randomizer Mode. Here are some of the highlights:
+- A fully customizable campaign experience
+- ARPG-style rarity system for both enemies and weapons
+- Weapon Trait system where weapons can have new effects and behaviors
+- Random Encounter system where new enemies can spawn into the level in real-time
+- New unique enemy variants of existing enemies
+- Randomization options including shuffled pickup locations, randomized weapon spawns, mystery boxes, and more
+
+<h3>Other major tweaks</h3>
+- Added support for Steam Cloud and GeForce NOW
+- Added Next Fest Demo for those who want to experience what Selaco was like 2.5 years ago
+- Added new achievement
+- Reworked Headshots
+- Smart Tutorial Prompts
+- Added behavior for shooting enemies in the legs
+- Drastically improved Sound Design
+- Added option to customize individual Mutators
+- Added two new mutators - 'Defensive Enemies' and 'Burger Flipper Tester'
+- Improvements to Game Balance
+- Improved numerous weapons
+- Improved gun sounds
+- Added two new upgrades
+- Added 'Custom Ammo' feature for the Shotgun
+- Level reworks for improved flow, navigation, and immersion
+- More stat tracking on your Wrist Codex
+- Gore improvements
+- Improved enemy behavior and added new abilities
+- Melee Improvements
+- Tons of bug fixes and optimization efforts
+
+That's the summary. Now for the detailed notes!
+
+<h2>\c[yellow]Summary\c-</h2>
+Added Special Campaign (A fusion between New Game Plus and Randomizer Mode)
+- New Game Special allows players to replay the campaign but with unique Endgame Content and Randomization.
+- The following options are available in New Game Special:
+
+- Random Encounters
+    | Add Random Encounters
+    | Weaken Random Encounter Enemies
+
+- Random Spawns
+    The following options have 6 settings: 'None', 'Less', 'Normal', 'More', 'Way More', and 'Ridiculous'
+    | Spawn Additional Enemies
+    | Spawn Additional Traps
+    | Spawn Additional VAC-Bots
+    | Spawn Additional Item Crates
+    | Spawn Additional Hazards
+    | Spawn Additional Ammo and Items
+    | Spawn Additional Health and Armor
+    | Spawn Additional Clutter Objects
+    | Spawn Mystery Boxes
+    | Spawn Allied NPCs (Locked until Chapter 2)
+
+- Additional Spawns
+    | Allow Squad Leader Spawns
+    | Allow Zombie Spawns
+    | Allow Robot Spawns
+    | (Exclusive) Allow Nailgunners
+    | (Exclusive) Allow Stinger Soldiers
+    | (Exclusive) Allow Burst Rifle Soldiers
+    | (Exclusive) Allow Crawler Queen
+
+- Weapons
+    | Weapon Spawn Style [Vanilla, Swapped, Full Random]
+    | Allow Heavy Weapons (Locked until Chapter 2)
+
+- Events
+    | Allow Zombie Invasions
+    | Allow Crawler Mine Ambushes
+    | Allow Saw Drone Ambushes
+
+- Tier-Based Spawns
+    Adds Action-RPG Style Rarity Colors to both Enemies and Weapons. Higher rarity types are less frequent but are more powerful.
+    | Enabled Tiered Weapons
+    | Enable Tiered Enemies
+    | Tiered Progression
+
+- Additional Settings
+    | Randomize Food Items
+    | Randomize Enemy Types
+    | Randomize Enemy Locations
+    | Randomize Pickup Amounts
+    | Shuffle Item Pickup Locations
+    | Start with all Tech Modules
+    | Earthquakes
+    | Skip Opening Scene
+
+<h3>Cloud Gaming</h3>
+- Added support for GeForce NOW and Steam Cloud
+
+<h3>Achievements</h3>
+- Added 'Embrace The Chaos' achievement
+
+<h3>Nextfest Demo</h3>
+- The original Nextfest Demo can now be played by selecting `Nextfest 2022` as a Steam Beta.
+Important: This demo is outdated. It will work on Steam Deck, but has not been Steam Deck verified. Please do not report any bugs regarding the demo.
+
+<h3>Save Protection</h3>
+- Loading a Saved Game created by a Checkpoint will now give players two seconds of immunity against enemy attacks.
+- This is exclusively applied to Checkpoints. Quick Saves will [u]not[/u] offer Save Protection.
+
+<h3>Smart Tutorial Prompts</h3>
+- Tutorial Prompts now only appear once. After starting a new Campaign, you will no longer get tutorials you've already seen before.
+- Added option to reset Tutorial Progress in Options -> Interface. Use this if you prefer to get all the tutorials again.
+
+<h3>Improved Headshots</h3>
+- Added unique visual and sound effects when hitting enemy soldiers.
+- Hitmarker tweaks to make headshots easier to read.
+- Headshots no longer cause enemies to enter their sideways Stumble animation.
+- Added 'Enable Headshot Sounds' setting in the Sound Menu.
+
+<h3>Melee Attacks</h3>
+
+- The camera no longer sloppily snaps onto the target in a single frame. Instead, there is now a clean transition to make it more similar to the HALO series.
+- Increased Melee Lunge Distance and Lunge Speed.
+- Melee detection has been rewritten to be more reliable.
+
+<h3>Frost Icons</h3>
+This is a temporary solution.
+- Frozen enemies will now display an icon above their head to indicate that they are frozen.
+- In the future, enemy sprites will instead be recolored to appear frozen. Due to one of our optimization efforts, the engine does not support Color Translations at this time.
+
+<h3>Load Game Menu</h3>
+- Added 'Campaign Type' information to the Save Game Description. This will show whether the save is for a Standard Campaign or a Special Campaign.
+- Added Mutator List information to Save Game description.
+
+<h3>Weapon Wheel</h3>
+- SPECIAL CAMPAIGN: Weapon Wheel now shows Weapon Stats when selecting a weapon.
+- The Weapon Wheel now always shows 10 Weapon Slots regardless of whether the player owns the weapon.
+
+<h3>Leg Shots</h3>
+- Enemies now react to being shot in the leg.
+- Shooting an enemy in the leg while they are moving has a very high chance to cause them to stumble. This is a pain animation that lasts longer than other pain animations.
+- Leg Shots deal 25% less damage compared to bodyshots.
+- Enemies are now less likely to trigger a stumble animation from body shots, but it's still possible.
+
+<h3>Accessibility</h3>
+- Added 'Reduced Explosion Volume' option
+
+<h2>\c[yellow]Immersion\c-</h2>
+<h3>Sound Design</h3>
+Continued trying to give Selaco the richest soundscape in an indie shooter, ever.
+- Aforementioned Headshot improvements
+- Improved door sounds
+- Went nuts on the audio design for bullet impacts and whizzes 
+- All guns now have a unique dry fire sound effect
+- Added sound effect when loading a saved game
+- Added mechanical sound effect when shooting at Crawler Mines
+- Added new sound effects for bouncing pieces of debris and metal
+- Added additional delayed sound effects when talking over glass shards
+- Improved oomph for Fire Extinguisher explosions
+- Improved sound effect when walking over glass
+- Some props have increased sound variants when shot
+- Some weapons have their firing sound improved
+- Particle improvements
+
+<h3>Enemy callouts / AI</h3>
+- Enemies now call out your flashlight usage.
+- Enemies will now request status updates after losing sight of their target.
+- Enemies now respond to sound when unalerted
+
+<h3>Interaction</h3>
+- Drawings can now be torn down with the Use key
+- The portrait in Dawn's room can now be downloaded to your datapad in a higher resolution
+- Brooms can now be pulled from walls with the Use key
+- Dinner Plates are now thrown like a frisbee
+
+<h3>Effects & Details</h3>
+- Improved particle effects when destroying glass objects
+- Some spark effects now shrink as they fade out
+- Added maggot particle effects that some of the later enemies can spawn when hit or gibbed
+- Maggots can crawl across the floor
+- Ceiling Fans are now interpolated to appear smoother
+- Added cork voxel when destroying wine bottles
+- Added Perfume Sprayer voxel for destroyed Perfume Bottles
+- Reworked explosions further
+- Spark Effects have improved visuals
+
+<h3>Other</h3>
+- Pickup prompts now fade out when holding an object for a couple of seconds
+- Tweaked one of our book cover illustrations to look less like some disrespectful doctor. 
+
+<h2>\c[yellow]Mutators\c-</h2>
+<h3>Mutator Menu</h3>
+- Reworked some UI elements on the Mutator Menu
+- Added support for configurable mutators.
+
+<h3>New Mutator: Defensive Enemies</h3>
+- All Enemy Soldiers are more defensive than usual. They are more likely to keep their distance and surround the player, and less likely to push and be aggressive.
+- This makes Selaco slightly slower-paced while still maintaining a similar level of difficulty.
+
+<h3>New Mutator: Burger Flipper Tester</h3>
+- Dawn starts the campaign with the Burger Flipper Test Build installed on her Wrist Computer
+- Locked by default. Unlocked by finding Burger Flipper in level 3-2
+
+<h3>Hard-Boiled Mode</h3>
+- Added Customization Option: Decreased stagger chances on enemies is now optional (Default: ON)
+- Now requires completing Chapter 1 on Captain difficulty or above. Players who already unlocked it in an older version do not have to unlock it again.
+
+<h3>Hardcore Mode</h3>
+- Added Customization Option: Hardcore Reloading has returned! 
+- If you preferred the original approach where reloads would discard the remaining ammo of a magazine, it can now be enabled again. (Default: OFF)
+
+
+<h2>\c[yellow]Weapons, Items and Player</h2>
+<h2>\Game Balance</h2>
+<h3>Upgrading</h3>
+- Most Weapon Upgrades now require 50 Selver Credits on top of their respective Weapon Parts.
+
+<h3>Slidings</h3>
+- Increased Dodge Chance from 50% to 75%
+- Added sound and visual effects when evading bullets while sliding
+- Increased enemy knockback by slide kicks by 33%
+
+<h3>Weapon Melee Attacks</h3>
+- Reduced melee knockback by 25%.
+
+<h3>Shock Damage</h3>
+- Enemies hit by Chain Lightning have a much shorter Shock Duration. The initial enemy hit by Shock Damage remains the same as before
+- Enemies in a Shocked state now have their hitboxes updated. Before, projectiles had a tendency to pass through their head and not connect
+
+<h2>Weapon Balance & Improvements</h2>
+<h3>ESG-24 Shotgun</h3>
+- Improved weapon sounds
+- Reworked Recall Upgrade: Killing an enemy at Point Blank range with a Shotgun will now disable Slide Cooldowns for 2.5 seconds, allowing for more slides.
+- Added chance to spawn a cosmetic bullet tracer effect
+- Re-rendered most of the sprite work to make them more appealing to look at.
+New Weapon Kit: High-Velocity Slug - You can find this upgrade in Level 2-1
+
+<h3>UC-36 Assault Rifle</h3>
+- Added chance to spawn a cosmetic bullet tracer effect
+
+<h3>24MM HW-Penetrator</h3>
+Needed a bit more oomph to become more than just a mobile turret launcher
+- Reworked gun sounds
+- Increased Base Spread (395 -> 425)
+- Increased Stabilization Speed by (0.6 -> 1.0)
+- Increased Damage (32 -> 33)
+- ZOOMING: Spread has been greatly reduced when zooming (0.75x -> 0.4x)
+- ZOOMING: Fire Rate is now reduced when zooming, but nails traverse much faster.
+- SHOTGUN MODULE: Increased spread by 25% to encourage taking a bit more risk when utilizing its power
+- SHOTGUN MODULE: Added Knockback when firing, pushing you slightly backwards (firing while running backwards will speed you up)
+-New Upgrade: Twin Barrels - While firing from the hip, an additional nail is fired. However, Rate of Fire is slightly reduced and the second nail does not inherit any of the Penetrator upgrades
+
+<h3>Grav-VI Plasma Rifle</h3>
+- Raised weapon sound volume
+- Added Area of Effect damage when gibbing Enemy Soldiers. Dawn is not affected by this damage
+New Upgrade: Overblown -  Plasma Bolt kills have 25% increased Damage and Area of Effect 
+
+<h3>Landmines</h3>
+It felt like landmines were a bit too powerful, so we've decided to make a few tiny tweaks.
+- Explosion Radius upgrade has its radius reduced (110 -> 60)
+- Landmine Capacity reduced (3 -> 2). You can still get a capacity of 3 by finding a Grenade Bandolier
+
+<h2>\c[yellow]Other Improvements\c-</h2>
+<h3>Levels</h3>
+- Navigation in numerous areas have been reworked, especially Water Treatment
+- Improved Courtyard encounter zone in Level 2-2
+- Added path nodes to Level 3-2 to allow for combat during a Special Campaign
+- A full resolution sample of the 'Dawn&Mom' portrait can now be downloaded to the Datapad
+
+<h3>Statistics & Milestones</h3>
+- Added 'Legs shot' statistic
+- Added 'Target Dummies destroyed' statistic
+- Added 'Heads kicked' statistic
+- Added 'Walls humped' statistic
+- Added 'Weapon Kits Collected' statistic
+- Added 'Melee Hits' statistic
+- Added 'Slide Kick Hits' statistic
+- Added 'Enemies Shocked' statistic
+- Added 'Junction Boxes Destroyed' statistics
+- Added Jump Counter - Yes, you can now keep track of how often you jump.
+- Added Milestone for collecting Weapon Kits
+- Added Milestone for eliminating Snipers
+
+<h3>Steam Deck</h3>
+- Added an option to reduce FOV all the way to 60. Due to the smaller screen, higher FOV ended up making the game harder to read
+- Numerous improvements to performance and stability
+
+<h3>UI / Interface</h3>
+- Weapon Kit prompts now show a label informing the player what their current Alt Fire is
+- Added icons to the Settings menu
+- Added brand new menu where players can select their Campaign Style (Standard Campaign, Special Campaign. In the future this will also include Incursion Mode)
+- Fully redrawn Dawn's intermission illustrations 
+- 'Credits' and 'News & Updates' are no longer visible in the menu when playing a campaign
+- Extended Bullet Casings is no longer considered 'Experimental'. It has proven to be very stable and not impact the framerate as much as we had thought
+- Level and Chapter completion screens now have to icon to show the current game mode (Standard Campaign / Special Campaign)
+- Added support for UI shake in intermission screens
+- Fixed menu stuttering when switching graphical presets
+
+<h3>Dinner plates</h3>
+- Improved destruction effects
+- Dinner Plates are now thrown faster and spin around like a frisbee, knocking over any enemy it hits.
+
+<h3>Enemy Damage</h3>
+- Added new bone pieces that spawn when gibbing enemies
+- Added bounce effects for bone sprites
+- Added more Bone Pieces when killing enemy soldiers with Acid
+- Improved visual effects when shooting at Red Blooded enemies
+- Improved visual effects when shooting at Robotic enemies
+
+<h3>Linux</h3>
+- Updated Linux Workshop Downloader binary
+
+<h2>\c[yellow]Enemy Changes\c-</h2>
+<h3>All Enemies</h3>
+- Improved patrol system.
+- When the enemy no longer sees the player at their last known position, enemies will now enter Patrol Mode.
+- Enemies in Patrol Mode have a slightly reduced Field of View and wander around the encounter zone looking for the player.
+- Chapter 2 will further improve upon this system.
+- Enemy Soldiers can now crouch
+- Enemy Soldiers can now throw grenades at Player Allies (Turrets, allied NPC's, Nail Turrets and more)
+
+<h3>Juggernaut</h3>
+- Added Headshot Hitbox
+
+<h3>Siegers</h3>
+- Added Nailgun Death animation for Siegers
+
+<h3>Engineers</h3>
+- Now have more accurate shotgun reloading where they must insert the shells one by one (before they were inserted in pairs of two). Interrupting the reload after an engineer inserted two shots allows him to fire two shots.
+- Audio changes
+
+<h3>Crawler Mine</h3>
+- Crawler Mines now flash a red dynamic light when they are about to explode
+
+<h3>Squad Leaders</h3>
+- Increased Damage Reduction for enemies buffed by a Squad Leader (25% -> 35%)
+- Squad Leaders now prefer to fight from long range and will no longer rush to the player.
+
+<h3>Plasma Troopers</h3>
+- No longer have Frag Grenades
+- Now have a Crawler Bomb. A grenade that spawns 2 mini-crawlers upon detonation.
+
+<h3>New Enemy Type: Mini-Crawler Mines</h3>
+- Spawned by Crawler Bombs from Plasma Troopers
+- Mini-Crawler Mines are smaller and have less health
+
+<h3>All Zombies</h3>
+- Increased hitbox height
+
+<h3>Ranged Zombie</h3>
+- Color Corrected their attacks
+
+<h3>\c[yellow]Bug Fixes\c-</h3>
+- Railgun Wallcrack in Starlight now has a correct hitbox, no longer requiring players to shoot slightly under it.
+- Improved Wall Detection for brooms
+- Fixed an error where Gwyn Machines could crash the game due to an out of bounds array reference
+- Fixed a large number of errors where Juggernauts would trigger animations they did not have
+- Fixed invisible screwdrivers
+- Fixed an inconsistency where the DMR Extended Magazine upgrade description mentioned '6' instead of '4'
+- Fixed Wall Paintings being far too slippery after being destroyed
+- Fixed a floating rain sprite in Level 3-2. Thank you for reporting this at least 5 times a day!
+- Fixed a bug where Red Blooded enemies would gib with purple fog
+- Fixed Plant Debris always showing an incorrect sprite
+- Fixed an error where enemies lost their headshot hitbox during their Taser animation
+- Fixed a rare crash when shocking Crawler Mines
+- Removed numerous debugs that were never meant to be shown in the console
+- Fixed a rare bug where enemies killed by electricity would instead become invincible
+- Chair feet no longer spawn smoke puffs when picked up
+- Fixed a rare bug where Burrowed Crawlermines would become invisible during a chase
+- Fixed a bug where picking up Weapon Parts at the same time as they were spawned would not despawn the gear decorations around it
+- Fixed Whiteboard hitbox not matching the height of the voxel
+- Fixed a crash caused by pressing START on Gamepad/Steam Deck before the game had time to properly initialize
+- Fixed an error where left-sided lists were partially unclickable when the Interface Setting was set to 'Small'
+- Enemy Speech Systems can now re-initialize when new voice lines are added, making older save files more stable.
+- (Steam Deck) fixed missing symbols in On Screen Keyboard
+- Fixed an error where Soldiers would consider a Pathnode as an enemy when failing to find a path
+- Corrected more Keyboard positions to no longer appear under desks. If you find any more, let us know!
+- Opening the Weapon Station for the first time with a UC-36 equipped no longer plays the Zoom/Unzoom sound
+- Throwing toilets against enemies no longer crashes the game[/url]
+- Fixed a bug where Starlight Purple's lipstick drawing could be torn by pressing USE
+- Fixed an error where saves were improperly ordered
+- Fixed Trashbins being more slippery than intended when pushed
+- Fixed an error where enemies would be able to fire a shot when out of ammo. This would not spawn a projectile, but would spawn muzzle flash effects
+- Corrected some questionable word choices for the Plasma Rifle AOE Invasion Tier
+- Fixed an error where multiple Weapon Kits can be enabled at once on repeat playthroughs
+- Juggernauts no longer turn into gigantic Riflemen when electrocuted by a Junction Box
+- Removed lots and lots of Spawn calls towards actors that do not exist
+- Dry firing while zooming with the Roaring Cricket will no longer unzoom the player
+- Light Poles can no longer be picked up by the Gravity Manipulator
+- Fixed a bug where the Shotgun Module would not spawn in the Safe Room Extension after beating the Tychus challenge
+- Fixed a sound error where both 'Remove window' and 'Switch tab' sound effects were played when switching tabs on the Wrist Codex
+- Fixed numerous z-fighting issues involving floor decals
+- Fixed Water Bottle collision box being much smaller than intended
+- Fixed an error where Paint Buckets crushed by a door became invincible
+- Fixed an error where there was a very brief 1-tick delay before Paint Buckets got destroyed
+- Fixed an error where Computer Monitor pieces had a spawn offset that was far too high
+- Fixed Level 1-3 having an impassable desk that blocked objects.
+- Fixed an error where picking up transparent voxels would be made fully opaque when dropped
+- Fixed an error where Yellow Reagent barrels would be invisible when far away
+- Fixed overlapping UI elements on Steam Deck
+- Fixed yet another instance of a Brick Duplication glitch
+- Walking over a large number of Paper Decals will no longer flood the audio channels with paper noises
+- Fixed an error where ignition sounds would stack when an enemy kept getting burned
+- Attempted fix for Plant Factory Elevator Panels moving out of position (We have been unable to reproduce this, but did find a quirk in the code. Let us know if it happens again!)
+- Fixed a bug where two or more options at once would show up as selected in the Main Menu
+- Fixed a crash caused by Paper Dispensers trying to reference a Toilet Roll that no longer exists
+- Fixed a rare crash caused by walking on glass shards
+- Fixed oversight where Slide Jump hits would register as a regular melee hit, eliminating the Slide Kick benefits
+- Rephrased 'Bullets Evaded' to 'Shots Evaded'
+- Fixed an error where Slide Jump Attacks were considered "Weapon Melee Attacks" and not "Slide Attacks"
+
+
+
+<h1>Version 0.86.03 - Beta Patch 3</h1>
+
+- Balance: Slightly increased Ammo Chances on the default 'Spawn Additional Ammo' setting
+- Fixed numerous errors where randomization elements were unintentionally applied to Standard Campaign
+- Fixed an error where Standard Mode would remove the UC-36
+- Fixed numerous instances where Juggernauts could turn into a gigantic Riflemen
+- Fixed an error where where stats would show up as 0 on new randomizer weapons
+- Fixed an error where Knockover Rounds could knock over a Juggernaut
+- Fixed a bug where picking up Weapon Parts at the same time as they were spawned would not despawn the gear decorations around it
+- Fixed an error where 'Skip Opening Scene' would disallow usage of the first Fire Extinguisher
+
+<h1>Version 0.86.02 - Beta Patch 2</h1>
+Improvements!
+
+- Weapon pickup prompt now shows weapon values of your current weapon.
+- Reworked melee camera motion to be much less jarring.
+- Swapped weapon pickups no longer slide across the floor.
+- Fixed a crash caused by starting a special campaign with Item Scarcity enabled.
+
+<h1>Version 0.86.01 - Beta Patch 1</h1>
+Fixed a few very bad bugs that needed immediate addressing. Thank you for bringing these up!
+
+- Fixed an error where Sentry Guns would not spawn with a turret on them.
+- Fixed an error where "Randomize Enemy Locations" was always enabled regardless of the setting.
+- Removed numerous debug messages that weren't meant to be in the game.
+- Fixed a bug where Grenade Launchers with a rarity higher than Common had a broken magazine size.
+- Fixed a crash that occurred when opening a saved game that once had tutorial popups that no longer exist.
+- Fixed a bug where playing the game with "Skip Opening Scene" disabled would prevent players from progressing.
+
+<h1>Version 0.86 - Beta</h1>
+Thank you for participating in the Beta for the Special Campaign.
+
+Usually we put our changelogs here, but since the Content Patch is still being worked on, having to actively maintain a public log will only slow us down. Once the update is ready, we'll publish a proper changelog with most of the changes we've made over the months!
+
+If you have any feedback about the Special Campaign, whether technical of from a gameplay standpoint, you can contact us on the Steam Forums, Reddit and Discord!
+
+<h1>Version 0.85 - Quality of Life patch</h1>
+
+Happy Three-Month Selaco Anniversary to those who celebrate.
+
+For a more detailed changelog, we highly recommend reading the version we posted on our Steam Community page!
+
+<h2>\c[yellow]Summary\c-</h2>
+- Lots of Quality of Life improvements, including backpack reloading, 'Last Weapon' button and more.
+- Added Smart Ammo Pickups
+- Adjustable difficulty during a campaign
+- Improvements to immersion
+- Reworked Mutator menu with 3 new mutators
+- AI Improvements
+- Stagger Rework
+- Weapon and enemy balance changes
+- Further improved level design
+- Vastly improved soundscape with more ambient noises, reworked sound effects, and more
+- Rain reworks
+- Fan Art Kit
+
+<h2>\c[yellow]Quality of Life\c-</h2>
+<h3>Checkpoints</h3>
+-  Additional checkpoints have been added to the levels.
+
+<h3>Last-Used Weapon Button</h3>
+A 'Last-Used Weapon' keybind has been added
+-  Keyboard / Mouse users: The default bind is 'T', but this can be customized.
+-  Gamepad / Steam Deck users: Tapping the weapon wheel button now selects the previous weapon. Holding the weapon wheel button opens the weapon wheel as usual.
+
+<h3>Grenade Throwing</h3>
+The grenade throwing system was old and a rather sloppy left-over from the days where Selaco was a low quality Doom mod. We have decided to rework this system to make it more snappy and responsive!
+-  Completely reworked logic for how grenade throws are detected.
+-  Grenade throwing now happens much faster with less windup time.
+-  Fixed an error where hitting the grenade button twice would throw another grenade after your previous one.
+
+<h3>Backpack Reloading</h3>
+This is a system that many shooters have running in the background. Half-Life 2 is one example. We've added something similar to the game as well.
+-  Unequipped weapons will now automatically reload when not used for a duration of time.
+-  Backpack reloading is disabled for Hardcore Mode.
+-  Added 'Enable Backpack Reloading' option in Gameplay. This is on by default.
+
+<h3>Smart Ammo Pickups</h3>
+- Ammo pickups will remain if the full capacity of the pickup is not used. This allows for less ammo to be wasted when picking up ammo while nearing the ammo capacity.
+
+<h3>Dodge Improvements</h3>
+In Version 0.84, we introduced a mechanic where making a Sideways Dash would momentarily have bullets phase through you. Visual feedback on whether a dodge was successful was lacking and had to be addressed.
+
+The following things have been added when players do a successful dodge move
+- Added a bullet whiz sound effect
+- Added a slight rolling effect to the camera
+- Added a subtle screen effect
+- Added 'Shots Evaded' stat tracker for the Statistics screen
+
+<h3>Stagger Rework</h3>
+On higher difficulties, the shooting experience became a lot less fun due to enemies being less likely to stagger. We have addressed this. However, as shown later in the changelog, we've made some difficulty tweaks to compensate.
+-  Removed per-difficulty Stagger Chances entirely. Weapons will no longer 'feel' weaker on higher difficulties.
+-  Enemies are more likely to stagger when shot by automated weapons.
+
+<h3>Map Screen</h3>
+-  Explosive charges are now visible on the automap once you have been close to them.
+
+<h3>Adjustable Difficulty</h3>
+-  Added a 'Change Difficulty' menu that can be accessed during the campaign.
+-  The lowest selected difficulty during the campaign will be shown on the Chapter 1 completion screen (e.g., playing on Captain, switching to Lieutenant, then switching back to Captain will be considered a Lieutenant playthrough).
+-  The difficulty cannot be changed during SMF.
+
+<h3>Healing Stations</h3>
+In Selaco, all life is precious! The Allied Coalition for Expansion has taken additional steps to ensure Security Agents remain in healthy condition.
+-  All Safe Rooms now have a Healing Station installed which can be used for free (eat that, Gwyn!).
+-  Interacting with a Healing Station administers first aid to the player, restoring 10 HP.
+-  Healing Stations have a limited supply of first aid. When depleted, they cannot be used anymore.
+
+<h3>Weapon Kits</h3>
+-  Taking weapon kits you already own will now give 100 Selver Credits. This should provide players with more money to spend on repeat playthroughs.
+
+<h3>Menu</h3>
+-  Most menu descriptions now show the default value.
+-  Moved some things around in the Audio Menu. Volume controls are now on top and device settings are below it.
+
+<h3>Other Stuff</h3>
+-  Health for allies is now displayed as a percentage instead of a flat number (e.g., "315 HP" is now shown as "100% HP").
+-  Added engine support for real-time pitch shifting on sound effects that are already playing. This is not used currently, but will be used in the future.
+
+<h3>NEW MUTATOR: Extra Ammo</h3>
+-  All ammo pickups in Selaco contain 50% additional ammo. Powerful ammo types like Acid Shells, Railgun Slugs, and more are ignored.
+
+<h3>NEW MUTATOR: Legacy Ammo Pickups</h3>
+-  As stated above, v0.85 introduces Smart Ammo Pickups. Use this mutator if you prefer the traditional approach to ammo pickups.
+
+<h3>NEW MUTATOR: Half-Like</h3>
+-  Aims to make Selaco more seamless with fewer distractions that get between you and your goal.
+-  Removes the 'Secrets Found' stats and no longer informs you when a secret is found.
+-  The intermission screen is no longer shown when completing a level.
+-  The Chapter Completion screen no longer shows the secret counter.
+-  Entering a new level no longer prints the level number. It only prints the area you just entered.
+
+<h3>Mutator Menu Rework</h3>
+-  Given the quantity of mutators nowadays, a scrollbar has been added to scroll through mutators.
+-  Added category labels to improve navigation. So far, the categories are "Game Modes", "Booster", "Difficulty Modifiers", and "Misc".
+-  Added a 'NEW' label for Mutators that are newly added to the game.
+
+<h2>\c[yellow]Immersion\c-</h2>
+-  Added collision sound effects when colliding with common props (crates, barrels, etc.).
+-  Added an Object Bumping system. Small props will now get kicked out of the way when walking over them.
+-  Added Material-Based Body Impacts. Depending on the material an enemy dies on, different effects will spawn (e.g., wood on wooden surfaces, grass blades on grass surfaces).
+-  Improved footstep sounds and completely reworked ventilation footstep sounds.
+-  Boosted the volume of most ambient effects. They were too subtle and barely audible without headphones.
+-  You can now rip posters apart by interacting with them. This adds nothing of value to the game but it's fun.
+-  Hundreds of new sound effects have been added, and many outdated sound effects have been reworked to match our newer standards.
+-  Added true fall damage for props and decoration actors. For example, bumping a mug off a table will now shatter it once it hits the floor. Prior to this, this was only possible when the player threw them manually.
+- Added vacuum cleaning sound for VAC-Bots
+- Added proper death sound for Sentry Guns
+- Added oil-like decals around the floor for killed robotic enemies
+
+<h3>Muzzle Flashes</h3>
+- Player muzzle flashes now fade out a little slower than usual. This makes them more appealing to look at in darker areas
+- The Lighting Quality setting now determines the size of the muzzle flashes.
+    - LOW and MEDIUM will produce a slightly smaller light effect
+    - ULTRA will now produce a brighter light effect
+
+
+<h3>Rain effects</h3>
+-  Added rain puddles.
+-  Added Sound Effects when walking over rain
+-  Added additional rain splatter effects.
+-  Added a 'Rain Quality' setting. Higher values add more rain and spawn additional effects.
+-  Added proper directional wind sound effects.
+-  Other smaller enhancements.
+
+<h3>Explosion Effects</h3>
+-  Explosion effects now take the floor type into consideration. Explosions on a metal surface will spawn pieces of burned metal, wood will spawn plank pieces, etc.
+-  Added shattering wood sound effects when explosions happen on wooden surfaces.
+-  Enemies killed by grenades now have death animations and no longer always gib.
+
+<h3>Bullet Impacts</h3>
+-  Greatly improved impact effects when firing at wood surfaces.
+-  Added a 'Metal Chunk' particle effect that occasionally appears when firing at metal surfaces.
+-  Improved particle effects when firing at reinforced windows.
+
+
+<h2>\c[yellow]Balance & Difficulty\c-</h2>
+<h3>Captain Difficulty</h3>
+-  Increased global enemy damage by 10% to compensate for the vastly increased stagger chances.
+
+<h3>Admiral Difficulty</h3>
+The goal of Admiral is to provide a challenging experience even for veteran players of Selaco. Given the changes in v0.85 that make the game slightly easier, this difficulty needed some further tweaking to maintain its high challenge level.
+-  Enemies can now deal Critical Strikes. Every bullet has a 10% chance to be a Critical Strike, dealing 25% more damage than regular attacks. Engineers cannot deal Critical Strikes.
+-  Increased global enemy damage by 15% to compensate for the vastly increased stagger chances.
+-  Enemies are 10% more likely to throw grenades.
+
+<h3>Juggernaut</h3>
+A while back we removed his explosive resistance. This was a bad idea and made them pushovers.
+-  Juggernaut now has 75% Damage Resistance against Explosive Damage.
+-  Juggernauts no longer take full damage from Ice Grenade. The main draw for Ice Grenades against Juggernauts is to cripple his movement abilities and reduce his rate of fire, not dealing damage.
+
+<h3>Riflemen</h3>
+-  Increased enemy grenade chance by 5%
+-  Ammo Drop Chance reduced from 25 to 20
+
+<h3>Hard-Boiled!</h3>
+-  Reduced chance for enemies to drop Weapon Parts.
+
+<h2>\c[yellow]Weapons & Items\c-</h2>
+<h3>UC-36 Assault Rifle</h3>
+-  Significantly reduced damage randomization. Damage now ranges from 24-32, rather than a dice roll selecting between 14, 32 or 48 damage. This makes the UC-36 more consistent and reliable.
+-  Decreased hip fire spread (320 -> 290).
+-  Very minor increase (0.1s) in reload time to make the animation look better.
+-  Added an improved sound effect when ammo for the UC-36 is running low.
+-  FRAMEWORK UPGRADE: Gives slightly more bonus damage (1 -> 2).
+-  INCREASED CALIBER: Gives slightly more bonus damage (1-> 2).
+
+<h3>UC-11 Compact SMG</h3>
+-  Like the UC-36, reduced the amount of randomized damage per bullet to be more consistent.
+-  MAGNETIC ROUNDS: Increased damage against small robots from 30% to 60%.
+-  ZOOM: Improved zoom accuracy.
+
+<h3>GRAV-VI Plasma Rifle</h3>
+The plasma bolt hitbox was very small and did not match up with the size of the sprite, making it far too easy to miss targets. This has been fixed.
+- Increased Plasma Bolt hitbox (7 -> 17)
+
+<h3>S-8 Marksman Rifle</h3>
+-  DMR now respects the zoom/toggle zoom setting.
+-  EXTENDED ZOOM: Now requires the melee button to be pressed to zoom further instead of the Zoom button.
+
+<h3>Roaring Cricket</h3>
+-  Knocking enemies over is no longer baseline.
+-  Added 'Knockback' Upgrade. This will be the first upgrade players can get in a Safe Rooms for 60 Weapon Parts.
+-  HAIR TRIGGER: Now requires 250 Weapon Parts instead of 60. 
+
+<h3>24mm HW-Penetrator</h3>
+A powerful weapon with a near guaranteed chance to stagger enemies. However, given the Stagger rework, its value has dropped a bit. Upping the damage to compensate!
+-  Increased base damage (28 -> 33).
+-  NAIL BOMB: Decreased damage per nail (28 -> 23)
+
+<h3>Landmines</h3>
+- ANNIHILATION MODE: Explosion Range reduced (50% -> 15%)
+- ANNIHILATION MODE: Explosion Damage reduced (25% -> 15%)
+
+<h3>Flashlight</h3>
+It was a bit too short.
+- Increased Flashlight Battery Capacity (100 -> 135)
+- Increased Flashlight Battery Recharge Rate (10 -> 20)
+
+<h3>Space Bro</h3>
+-  Removed difficulty scaling. Space Bro will now play identically across all difficulties.
+
+<h2>\c[yellow]A.I Improvements\c-</h2>
+<h3>Enhanced Grenade Throwing</h3>
+Grenade throwing logic for enemies has been improved.
+-  Soldiers can now throw grenades at the player's last known position. This allows the soldier to flush out the player if they choose to hide.
+-  Soldiers are much better at ensuring the grenade lands near the player.
+-  'Hot Drops' have a slightly longer fuse timer to allow more time for the player to evade.
+
+<h3>Stealth Kills</h3>
+-  Stealth kills are now more reliable, and melee kills from the back will now insta-kill the enemy.
+-  This will become more useful later on in development when enemies have a proper patrolling system.
+
+
+<h2>\c[yellow]Levels\c-</h2>
+<h3>NOTE:</h3> A large amount of stuff has changed. A lot of it unfortunately went undocumented. You may notice plenty of changes while playing through the game again!
+-  Moved Exodus Mall Gwyn Station to the entrance of the mall for easier access
+-  Fixed a lot of texture alignment errors
+-  Fixed numerous soft locks
+-  Continued to make improvements toward navigation, signposting, and the general quality of the game.
+-  ...And at least a hundred other things.
+
+
+<h2>\c[yellow]General Improvements\c-</h2>
+<h3>Performance</h3>
+-  Further optimizations have been applied to smoke and particle effects.
+
+<h3>Misc</h3>
+-  Added controller rumble when running through glass.
+-  Improved visuals when throwing trash in dumpsters.
+-  Combat VAC-Bots are now replaced with a regular VAC-Bot when destroyed. However, their turret is gone.
+-  Picking up a Combat VAC-Bot will no longer have Dawn point the barrel towards her face. Instead, she will always point it towards the enemy.
+-  Added a proper voxel model for dropped miniguns.
+-  Added version number to the main menu.
+-  Added 'Steam Workshop' info screen to the main menu.
+-  Reduced the file size of the game by cleaning up unused assets. This may have saved a bit of VRAM too!
+
+
+<h2>\c[yellow]Bug Fixes\c-</h2>
+<h3>General Fixes</h3>
+-  Attempted fix for floors and ceilings being black. If you've used the 'vk_device 1' fix before and suddenly have this problem again, you may have to return to 'vk_device 0' to fix the issue again.
+-  Fixed an oversight where some secret items could not be picked up when Manual Pickup Mode was used.
+-  Fixed 'Stutter Stepping' problem with enemy soldiers.
+-  WorkShopDownloader.exe will now properly launch without Steam.
+-  Removed 'Fullscreen' setting on Steam Deck which caused the game to become unplayable.
+-  Fixed a bug where the DMR bipod would attach while zooming.
+-  Fixed a bug where the DMR bipod animation could cancel important animations.
+-  The 'Subtitle' option now actually works.
+-  Fixed an error where the Headshot Death animation for Siegers would not cause them to explode.
+-  Fixed an error where Siegers would not explode when something obstructs them on their way down.
+-  Fixed strange infinite-zoom glitch when exiting out of a slide.
+-  Fixed an error where the UC-36 Auxiliary Launcher would not fire without a loaded magazine.
+-  Fixed an error where dying with the Weapon Kit prompt open would lock your game.
+-  Fixed an error where one of the enemy voice lines would not play.
+-  Fixed scaling error where the keybinds on the automap would not show up correctly on 4:3 monitors.
+-  Burning people will no longer awkwardly run on desks and other pieces of decoration/furniture.
+-  Kickable doors no longer become unkickable after being lit on fire.
+-  Dawn can now kick doors while on fire.
+-  Fixed trash bin duplication glitch.
+-  Fixed an error where destroyed trash bins were very likely to clip into the wall when shot.
+-  Entering a new level while crouching will now keep you crouched.
+-  Fixed the achievement 'NotEvenRemotelyFair.wad' not triggering as intended.
+-  Fixed a crash when soldiers tried to call out a dead player without a squad.
+-  Fixed an error where fast weapons would cause Shooting Range targets to get knocked over further than intended.
+-  Fixed an error where Dual SMGs would miscount the 'Shots missed' stat.
+-  Fixed a crash when reloading the grenade launcher while on a ladder.
+-  Fixed a bug where Dual SMGs firing sound would keep looping when unequipped during firing.
+-  Fixed a bug where melee kills were not correctly displayed on the Stats screen.
+-  Fixed a bug where grenade launcher ammo would not properly return when leaving the shooting range.
+-  Shooting Range dummies no longer spin into the floor when hit at high rates of fire.
+-  Burning aliens no longer spawn red blood decals.
+-  Fixed a rare crash that happened when landmines exploded when the player was dead.
+-  Tweaks to the sound engine to not play 'empty' sound effects.
+-  Fixed an error where throwables could 'sleep' unintentionally.
+-  Fixed a really silly bug where Iron Fury did not do anything.
+-  Fixed a visual error where the ''1'' in the upgrade menu was poorly aligned.
+-  Nailgun alt-fires now properly alert enemies.
+-  Fixed a bug where numerous gibs would spawn out of bounds.
+-  Removed Gas Mask breathing sounds when Dawn is dead.
+-  Fixed a typo in the credits (Sorry, Nick Palsmeier!).
+-  Combat VAC-Bots no longer shoot at dead targets endlessly.
+-  Fixed an SMF error where an entire encounter would refuse to alert themselves if the player attacked them from one specific sector.
+
+
+<h2>\c[yellow]Modding\c-</h2>
+-  Tons of functions are now virtual, allowing modders to override them and/or make changes to the code for their mod.
+-  Modders can now add mutators and put them into categories
+
+
+
+<h1>Version 0.84 - Content Patch #1</h1>
+<h2>\c[yellow]Summary\c-</h2>
+- The official soundtrack is now available on Steam!
+- Added Steam Trading Cards and Points Shop
+- Added "Resume Game" button in the main menu
+- Added level versioning system
+- Added "Hard-Boiled!" mutator
+- Added "Armor Up" mutator
+- New weapon upgrades
+- Weapon kit reworks
+- Improved navigation in the earlier levels
+- Improved general "feel" of the game
+- Improved map screen
+- Improved visual effects
+- Improved movement options
+- (Experimental) Added "Extended Bullet Casings" graphical setting
+- Blood is now 0.2% more purple.
+- And more!
+
+<h2>\c[yellow]Quality of Life\c-</h2>
+<h3>Map Screen</h3>
+- Added map icon for weapon kits. They will appear once you have been in their line of sight.
+- Added map icon for secrets that have been discovered.
+- Added map icon for friendly sentry guns.
+- Added option to add textures to the map screen.
+
+<h3>Steam Point Shop</h3>
+Not really a change to the game itself, but still worth mentioning!
+- Added Steam Trading Cards
+- Added Selaco themed backgrounds, stickers and emoji's to the Steam Point Shop 
+
+<h3>Save System</h3>
+- Quicksaves and autosaves have been reworked to function properly with Steam Cloud saving. Previously, when using two different machines, some autosaves/quicksaves could be overwritten in the wrong order, which was very confusing.
+- Save files will be migrated to a single folder. The first time you launch Selaco, all saves will be backed up and migrated into the program folder so they can properly be synchronized between platforms.
+- Steam Deck/Linux and Windows should now be able to synchronize saves correctly.
+
+<h3>Time Saving</h3>
+- Added "Skip Spash Screens" options to go straight to the menu after loading the game
+
+<h3>Level Versioning System</h3>
+- This system allows us to update the game, including levels, while retaining full saved game compatibility.
+- There are some limitations. Any level you have visited in your saved game will still be identical to the version from before the update. Level versioning is only applied to new levels that have not been loaded in your saved game before.
+- While we have thoroughly tested this with our playtesters, errors may occur when traveling to previously loaded levels. If this happens, please let us know!
+
+<h3>Credits and Weapon Part UI Elements</h3>
+- Credits and Weapon Parts are no longer shown on the HUD at all times.
+- Picking up Credits or Weapon Parts will now briefly show your total amount on the HUD.
+- Hovering over purchasable items (Gwyn Machines, Purchase Panels) will briefly show the amount of credits.
+- You can now see your currency at any time on the Datapad screen.
+
+<h2>\c[yellow]Mutators\c-</h2>
+<h3>Updated Mutator Menu</h3>
+- We've reworked the difficulty screen to now have a dedicated Mutator button.
+- Added a system that allows for unlockable Mutators. This will be explored further later on in our Early Access or v1.0 release.
+
+<h3>New Mutator: Hard-Boiled\c-</h3>
+Unlocked by beating Chapter 1.
+- All enemies are stronger with slightly more health, pain resistance, ability chances, and mobility options (strafe and flank chances).
+- Dawn spawns with the highest possible Tech Module, making all upgrades purchasable right away.
+- Killed enemies drop credits and/or Weapon Parts.
+- Pathfinder Memorial's Saferoom is unlocked right from the start.
+- Enemies will have other surprises that we will not spoil.
+
+<h3>New Mutator: Armor Up\c-</h3>
+- Booster Mutator that increases armor durability by 25%.
+
+<h3>Hardcore Mode</h3>
+- Save price decreased from 400 to 300.
+- Removed Hardcore Mode Mag Dumping. Rather than throw away all the ammo, it will now use the same approach as Traditional Mode. We understand that some people liked this approach, so we are considering adding it back as a separate mutator!
+
+
+<h2>\c[yellow]WEAPONS, ITEMS & PLAYER\c-</h2>
+<h3>All Weapons</h3>
+- Added ability to zoom in and out while firing.
+
+<h3>S-8 Marksman Rifle</h3>
+- Added distance-based headshot damage. Using the DMR at long range will now eliminate soldiers with a single headshot.
+- Slightly increased Reload Speed
+
+<h3>Plasma Rifle</h3>
+- Increased base damage (43 -> 48)
+- Increased stagger chance per shot (50 -> 70)
+- Added sound and lighting effects when killing soldiers with the Plasma Rifle
+
+<h3>Grenade Launcher</h3>
+- Increased self-damage by 25%. It was never meant to deal this little damage to the player.
+
+<h3>Penetrator</h3>
+- Added an extra sound effect while reloading
+- Nail Turret: Reduced damage (21 -> 12)
+- Nail Turret: Increased Ammo Capacity (20 -> 25)
+DEV NOTE:
+Sorry guys, but the Nail Turret was penetrating a little harder than intended
+
+<h3>UC-36 Assault Rifle</h3>
+- Reduced maximum spread (5.2 -> 4.8) for improved sustained fire.
+- WEAPON KITS:
+    | Added 'Burst Fire (Hip)'. Replaces primary fire with a burst fire. This deals +1 damage per shot.
+    | Added 'Burst Fire (Zoom)'. Replaces zoom fire with a zoomed burst fire. This has 25% increased accuracy.
+    | Removed traditional 'Burst Fire'.
+    | 'Scarab Mode' no longer carries over across new campaigns. This upgrade was never meant to be found without cheats.
+- Added 'UC-36B Framework' upgrade. This is a free upgrade once you hit Tech Module 3.
+- Auxiliary launcher now deals 25% additional grenade damage.
+- Improved firing sound to be a bit more punchy.
+- Reduced 'Increased Caliber' costs (500 -> 350).
+
+<h3>ESG-24 Shotgun</h3>
+- Added 'Quick Swap' upgrade for faster weapon switching to the shotgun.
+- Added 'Improved Pump Grip' upgrade for faster shotgun pumping.
+- Double Barrel Mode tweak: The first shot has reduced recoil to make it easier to connect both shots.
+- Added 'backpack pumping'. Unequiping the Shotgun before pumping will now automatically load a shell. [This is disabled for Hardcore Mode]
+
+<h3>SMG</h3>
+- Added 'Mule Stock' upgrade. This will decrease spread but add a little bit of recoil that requires control.
+- Added 'Magnetic Rounds'. This increases damage against small robotic enemies, making the SMG even more suitable for clearing Crawler Mines and Saw Drones.
+- 'Extended Barrel' now reduces spread by 45 instead of 85. Combined with Mule Stock, you will be able to reduce spread further than before.
+- DUAL WIELD: Slightly increased spread per shot
+
+<h3>Fists</h3>
+- Added kicks! Hit the melee button when you have your fists out.
+DEV NOTE:
+We fully understand people want a dedicated kick button for all weapons. We are looking into some options here.
+
+<h3>Armor Shards</h3>
+- Increased pick-up radius to be less clunky.
+
+<h3>Selver Coins</h3>
+- Added sound effect when credits spawn into the level (e.g from crates or Hard-Boiled kills)
+
+<h3>Dawn</h3>
+- Increased movement speed by 7.5%
+- Added 'Invincibility Frames' while dashing. The first couple of frames while dashing will now make Dawn immune to bullets. Any other hazards (like Area of Effect damage or fire) will still hurt Dawn. This effect is brief, but if you can time this with incoming attacks, a lot of damage can be mitigated.
+- With dashes being a bit more useful than usual, its cooldown has been increased by 20%.
+- Reduced full slide cooldown (3.0s -> 2.5s) to allow for a bit more sliding
+
+<h3>Armor</h3>
+- Increased armor durability on Captain, Admiral, and Selaco Must Fall. With the significant increase in damage, they began to lose their worth.
+
+<h2>\c[yellow]ENEMIES\c-</h2>
+
+<h3>Cloning Plant Enemies</h3>
+- Melee Types have their health reduced (150 -> 120)
+- Ranged Types have their damage reduced (8 -> 6)
+- Ranged Types have their health reduced (130 -> 110)
+- Dawn can now slide through Plant Enemies. This will allow players to evade when cornered.
+
+<h3>Riflemen</h3>
+- Riflemen are now a bit more mobile, mostly in terms of strafing ability
+- Their 'martyrdom' grenades that can drop when killed, now explode sooner. They are currently far too slow and barely serve a threat.
+- Added visible grenade pin when a 'Martyrdom' grenade is triggered
+
+<h3>Engineers</h3>
+- Increased Turret Deployment Chance (4% -> 6%).
+
+<h3>Siegers</h3>
+Far too tanky with the amount of mobility and damage they could deal.
+- Health Reduced (110 -> 90)
+- Siegers are a bit more mobile than before.
+- Improved visual spectacle when a Sieger explodes.
+- Fixed an error where his explosion would not deal damage.
+- Fixed an error where they would spawn more gibs than intended (4 arms or 4 legs)
+
+<h3>Plasma Troopers</h3>
+- Reduced Projectile Speed (30-> 26)
+- Reduced Armor Penetration (-15% -> -25%) (Meaning Plasma Attacks deal an additional 25% less damage when using armor)
+
+<h3>Juggernauts</h3>
+- Increased Leap Explosion Damage (90 -> 110)
+- Decreased Leap Explosion Area of Effect (380 -> 280)
+
+<h3>All Robotic Enemies</h3>
+- Added black splatter effect when shooting robots
+
+<h3>Airdrones</h3>
+- They no longer look away before firing a rocket at you
+
+<h3>Selaco Must Fall</h3>
+Too many players managed to beat it, which is not something we tolerate in this mode.       
+- Sieger Projectile Speed has been increased by 2.5x
+- Enemy Mines now spawn 3 crawler mines when destroyed
+- Crawler Mines may now fire an occassional Plasma Bolt
+- Added 10% chance for Engineers to fire a rocket instead of a regular shotgun attack
+- Enemy Landmines have a much smaller light on them and no longer have Self Lighting
+- Saw Drones no longer feel any pain
+- (Rare) Some enemies now spawn with 50% extra health (Juggernauts excluded)
+DEV NOTE:
+Next patch will make it worse, strap in.
+
+<h3>Admiral Difficulty</h3>
+- Increased Global Damage by 5%
+
+<h2>\c[yellow]LEVELS\c-</h2>
+Many levels have been improved in more ways than mentioned in this list.
+
+<h3>Pathfinder Memorial Hospital</h3>
+- Streamlined the Lockdown Sequence before fighting Juggernaut. It should now be way easier to navigate through.
+- Fixed some very unfortunate softlocks
+- Removed an outdated shotgunner that spawned behind the player in Level 1-3
+- Corrected Cabinet Card position. Both cards were always meant to be close to the two Storage Cabinets.
+- Slightly raised the doorway before the first Crawler Mine Encounter to make it more obvious the player needs to slide under it
+
+<h3>Water Treatment Plant</h3>
+- Fixed an error where decorations could be brought into the Safe Room Elevator.
+- Removed Glass Pane that required destroying in order to progress.
+- Damaged Koalas are now valid for the Nailbomb Secret.
+- Added a unique mechanical sound effect when the bridge lowers/raises
+
+<h3>Parking Garage</h3>
+- The Pluto Burger gauntlet has been enhanced and now lasts a little longer.
+- (SMF) Fixed a gunner getting stuck in geometry.
+- Fixed some fences not blocking the player.
+- Added an extra Koala in the Parking Garage for reasons
+
+<h3>Liancria Office Complex</h3>
+- Minor encounter reworks to make combat more dynamic.
+
+<h3>Sal's Lair</h3>
+- Texture change for the Keypad that opens the door towards HQ.
+- Fixed a broken midtexture.
+- Fixed an error where 2 objectives were in the incorrect order.
+- The Junction Box is now a little easier to spot
+
+<h3>Plant Cloning Facility</h3>
+- Added a brand new music track during the final gauntlet.
+- Fixed a softlock on Floor B2.
+- Added obstruction warning when closing the Plant Stamper machine with the barrel on the door.
+- Fixed an error where Aos would repeat a structural integrity message when opening/closing a junction box.
+
+<h3>Bonus Level: Starlight</h3>
+- Starlight Green: Fixed an error where the blue keycard icon would persist.
+- Starlight Green: Fixed an error where a shutter texture did not block the player.
+
+<h3>Shooting Range</h3>
+- Grenades are now infinite during a Shooting Range session.
+
+<h3>Burger Flipper</h3>
+- Fixed a typo.
+
+<h2>\c[yellow]OTHER COOL STUFF\c-</h2>
+<h3>Statistics</h3>
+The following stats have been added to the Statistics Tab on your Wrist Codex:
+- Added per-weapon 'Shots Fired' stats.
+- Added per-weapon Kill stats.
+- Added 'Upgrades bought' stat.
+- Added 'Squad Leaders Killed' stat.
+- Added 'Signs Removed' stat. You can finally know how many signs you have pulled from the wall.
+
+<h3>Milestones</h3>
+We made an oversight; 2 enemy types were not added to the Milestone system:
+- Added 'Gunners Killed' milestone.
+- Added 'Squad Leaders Killed' milestone.
+
+<h3>Gore System</h3>
+- Applied more speed variations between different chunks of gore.
+- Explosive Kills now apply more force to spawned gibs.
+- Added more splatter and fog effects for moving parts. This is increased per Blood Quality level.
+- Added 'Dense Purple Fog' clouds for Sieger Deaths.
+- Made 'Armor Fog' darker. It was probably still using our old spritework where everything was brighter.
+- Added more disgusting noises when gibbing enemies.
+- Added sound effects when gibbing corpses
+- Applied a bit more friction to enemy corpses to make them appear heavier
+
+<h3>Minor Additions</h3>
+- You can now pet VAC-Bots an infinite amount of times by pressing USE on them
+- Added visible muzzle flash for Dawn's third-person sprite (visible in mirrors).
+- Air Drones now have a water splash effect when colliding with a water surface.
+- Delete Key can now be bound in Controls menu.
+- Your current Security Level is now visible on the Wrist Computer screen
+- Added visible Grenade Pin when throwing Ice Grenades.
+- Added 'Extended Bullet Casings' graphical setting.
+- Added Custom, 35, and 45 FPS Settings (NOTE: Due to how GZDoom works, we cannot go below 35FPS).
+- Shocked and Frozen Enemies now take 1.25x more damage.
+
+<h3>Minor but noteworthy Corrections</h3>
+- Performance optimization for bullet casings.
+- Fixed far, far too many typos.
+- Added ambient sound for Junction Boxes.
+- Shotgun Shells no longer bounce weirdly
+- Renamed 'Rifle Start' to 'Rifle Reset'.
+- Gave Koalas a major health buff.
+- Static Crosshair option now shows Throw meter.
+- Revised artwork involving the house of a sponge.
+- Ice Grenade HUD indicator now has a proper icon that no longer resembles a Flare.
+- Fixed a bug where soldiers refused to move when they had lost sight of the player. This often resulted in enemies not appearing as dynamic as intended. Whoops!
+- Tweaked Locked Door parameters to be far more likely to appear on the Automap once close.
+
+<h3>UltimateSelacoBuilder (Level Editor)</h3>
+- All enemies are now properly shown in the editor
+- Added 'HOWTOUSE_SELACOBUILDER.TXT' to explain how to set things up. This is a temporary solution until we get something better going!
+- Added 8 different types of Cardboard Boxes
+- Added Kickable Door actor
+
+<h3>Bug Fixes</h3>
+- Fixed an error where 'Reset Defaults' in the Keybind menu did not have a proper description
+- Fixed numerous instances where hitscan attacks were blocked by level geometry.
+- Lab Equipment no longer 'slides' when shot.
+- Fixed an error where 'Reduced Impact shake' resulted in more impact shake.
+- Reduced Water Cooler step height to prevent it from climbing onto desks.
+- Gravity Manipulator can no longer pick up Junction Boxes.
+- Juggernauts no longer burn permanently.
+- Fixed an error where Vending Machine purchases were not tracked on the stats page.
+- Fixed a bug where destructible Metal Bars would move without being destroyed.
+- Fixed an error where dead ACE Security Guards could be picked up with the Gravity Manipulator.
+- Fixed a mismatch where the Plasma Rifle's Projectile Velocity description was showing an incorrect value.
+- Returning to Level 1 after Level 2 no longer prevents Milestones from displaying or accumulating.
+- Fixed a number of instances where effects could accumulate in areas the player has left, causing the game to gradually slow down.
+- Fixed severed heads not bouncing correctly.
+- Fixed a freeze that could happen when a projectile targets itself (!?).
+- Fixed Dawn getting stuck when transitioning from Level 1 to Level 2 and standing on the edge of the Planter.
+- Bandoliers now count as a secret when picked up while having a full grenade supply.
+- Fixed tutorial sizing when loading a savegame on a machine with a different screen resolution than when saved.
+- Small props are now correctly destroyed under doors.
+- Fixed a VM abort when punting the throwing knife.
+- Punted knives now properly kill enemies.
+- Fixed an infinite loop that could occur when crushing a broken trash bin under a door/ceiling.
+- Fixed Rifle Start/Rifle Reset not removing weapons at incorrect times.
+- Stat categories added in updates will now apply to old save files.
+- Fixed a potential crash when pressing TAB in the train menu.
+- Fixed an error where Completed Map markers would appear far too tiny on the map.
+- Fixed added Recoil stats showing as green instead of red in the Workshop.
+- Fixed some Workshop mods not appearing in the Mod list under Options.
+- Fixed an oversight where the screenshake settings ignored fist attacks
+- Starting a new game will no longer create two autosaves.
+
+<sep/>
+
+
+<h1>Version 0.83c - EA Update 3 (June 8, 2024)</h1>
+<h3>Minor Additions</h3>
+- Added chance for broken microwaves to have a burger inside of them
+- Set default sound output rate to 48000hz
+- Added a dropdown option for audio sample rate
+
+<h3>Bug Fixes</h3>
+- 'Mysterious Books' in LibTerra are no longer moved by explosions
+- Fixed Junk not being permanent with Permanent Destruction turned on
+- Fixed an error where the Explosive Radius upgrade for the Landmines would end up getting twice as big as intended
+- Fixed an error that caused Soldier and Gunner sprites to look like Dawn when being pinned by the Penetrator
+- Fixed a crash that could occur when gibbing an enemy with the Penetrator
+- Fixed a crash caused by a broken reference to Blood Pools
+- Fixed a VM abort that could happen when clicking a Burger Flipper upgrade
+- Fixed a crash caused by kicking a park bench with the Railgun equipped
+- Fixed a VM abort caused by BattleSquad when enemies re-aquire a target on Dawn
+- Fixed a VM abort when changing levels while holding a Fire Extinguisher in Riflestart mode
+- Fixed a crash when transitioning a Sentry Turret between maps in 05C
+- Fixed Dawn possibly being on fire forever
+- Removed very outdated 'cover flip' tutorial
+- Added limiter to gore to preventing infinite spawns in the rare instance that certain gore objects get stuck
+- Added some debug commands to clean up blood left behind by infinite blood spawns. If you are experiencing extreme FPS loss in one particular area, try the following command in the console while in the problematic map: "netevent debug_purplespot_delete"
+
+<sep/>
+
+
+<h1>Version 0.83b - EA Update 2 (June 6, 2024)</h1>
+A quick patch to address an issue that didn't make its way into Update 1
+
+<h3>Gameplay</h3>
+- Increased Enemy Footstep sound volume by 30%. We anticipate that this will make it easier to pinpoint enemy locations and anticipate incoming ambushes
+
+...That's it! Time to work on our modding tools and slowly start putting our first major content update together!
+
+
+<sep/>
+
+
+<h1>Version 0.83a - EA Update 1 (June 3, 2024)</h1>
+This patch focuses entirely on balance changes and bug fixes. We always intended for Selaco to be difficult, that will always the case, but we've taken some steps to make things more fair. Especially on lower difficulty modes which are meant to be more accessible. Thanks for the feedback everyone!
+
+Please bare in mind that most Balance Changes will only be applied on a brand new save!
+
+<h2>\c[yellow]BALANCE\c-</h2>
+<h3>Armor</h3>
+- Increased Player Armor durability by 20%, resulting in longer lasting power.
+
+<h3>UC-36 Assault Rifle</h3>
+- Decreased Spread Per Shot for increased sustained accuracy
+
+<h3>Difficulty Tweaks</h3>
+Lower difficulties have been made a little easier.
+- (Ensign) Further reduced Enemy Health by 25%, further reduced Enemy Damage by 20%
+- (Lieutenant) Further reduced Enemy Health by 15%, further reduced Enemy Damage by 15%
+- (Commander)Further reduced enemy damage by 10%
+
+<h3>Enemy Soldiers</h3>
+- Increased Stagger chances for most low tier enemies
+- Reduced movement speed for Engineers, and Rifleman who got an Attacker role
+
+<h2>\c[Yellow]QUALITY OF LIFE\c-</h2>
+<h3>Improved Autosaves</h3>
+- Added system where entering older levels will create an autsave
+- Fixed an error where the game would not autosave before the first Juggernaut Fight
+
+<h3>Improved Keycards</h3>
+- Drastically improved the Sight Range for Keycards, causing them to appear on the Automap much sooner. This was always meant to happen, but due to an oversight the distance was 256 units, instead of 1536.
+
+<h3>Reworked Weapon Station Elements</h3>
+- Some portions of the Weapon Station UI have been touched up a bit
+
+<h3>Cloud Saving</h3>
+- Corrected Cloud Save directory. Due to an error this was not working. Please let us know if it works now!
+
+<h2>\c[yellow]BUG FIXES\c-</h2>
+- Fixed a crash that could be caused by some objects failing to penetrate glass 
+- Fixed credits being invisible at the end of the Episode 
+- Fixed an infinite loop if a crushed soda can is crushed again by a door 
+- Added some missing Patreon backer credits
+- Fixed a crash caused by Crawler Mines attacking a dead player
+- Toolbox Drawers no longer have an overly generous hitbox
+- Fixed typo where the Cricket Headshot upgrade mentioned 30% more damage instead of 60%.
+
+
+<sep/>
+
+
+<h1>Version 0.81 - Playtest #5 Update III</h1>
+Last build before we send review copies around! Thank you everyone for being such troopers during the playtesting phase! Lets give this thing one last look. Below a list of addressed feedback and fixed issues
+
+- Added Level Editor (Ultimate Selaco Builder). It can be found in the game directory. This level editor is based on GZDoomBuilder and Ultimate Doom Builder. All credits belong to them!
+
+<h3>AI & Enemy behavior</h3>
+- Added enemy sniper callouts
+- Added more dynamic combat VO, including weapon usage, additional 'man down' reports, new death screams and so much more
+- Added a whole bunch of scripted VO that take place before encounters so we can stop using those gamified beeping noises before doors open Still a few of them, but far less so
+
+<h3>Invasion Tiers</h3>
+- Added 'Smoke Grenade' Invasion Tier This will grant Riflemen and Enforcers the ability to deploy Smoke Grenades 
+- Added 'Increased Pellet' Invasion Tier, causing shotgunner attacks to fire two additional pellets
+
+<h3>Hardcore Mode</h3>
+- Hardcore Mode saves are now labeled in the Load Game menu
+- Fixed Hardcore Mode giving an outdated level loading screen on some occassions
+- Fixed a bug where Gwyn kept scamming players who wanted to save the game in Hardcore Mode
+
+<h3>Juggernauts</h3>
+- Removed Damage Resistances from Explosive Damage
+
+<h3>MGL-2 Grenade Launcher</h3>
+- Significantly reduced Ammo Swapping speed
+- Fixed an error where reloading with the Speed Loader without ammo would freeze tha game
+
+<h3>Gwyn Machine</h3>
+- Reworked 'Full Restore' It now heals in increments of 25 and allows overhealing to +50 of your maximum health
+
+<h3>Siegers</h3>
+- Siegers now spread their mines more to cover more ground
+- Gave Sieger Mines a damage boost
+
+<h3>Parking Garage</h3>
+- Added safety checks to ensure Wave 2 only spawns once
+- Added arg0 to player start to allow level selections
+- Fixed kill trackers
+
+<h3>Starlight</h3>
+- Fixed an error where music would not play in Starlight Purple and Starlight Blue
+- Fixed an error where Keypad textures would appear all over the map
+- Fixed some accidental 'No Automap' flags that prevented areas from showing up on the map
+- Added failsafes to prevent the Heavy barrel in Starlight Red from mysteriously moving to a different spot 
+
+<h3>Propane Tanks</h3>
+- Fixed a bug where Propane Tank would not start flying into the direction of the bullet when shot
+- Propane Tank Containers no longer block player movement 
+
+<h3>Minor Additions</h3>
+- Added 'Controlled Shots' Weapon Kit for SMG
+- Added 'Proximity Bomb' Weapon Kit for Grenade Launcher
+- Added voice lines when attempting to open Security Doors
+- Added new bullet whizzle sound effects on impact
+- Added a voxel model for Wilson
+
+<h3>Other Fixes</h3>
+- Fixed a rare bug that caused Engineers to despawn when getting too close to the player
+- Fixed a crash causes by throwing laptops at enemies with the Gravity Manipulator
+- Fixed an error where automap breadcrumbs would never despawn
+- Fixed an error where fishtanks were immune to explosions
+- Fixed danger indicators jittering on floor edges
+- Fixed an error where Plasma Rifle AOE would damage allies (and themselves!)
+- Fixed an error where Item Capacity upgrades would not display a message
+- Removed unintended debugs when throwing items with the Gravity Manipulator
+- Supply Chests can no longer be picked up with the Gravity Manipulator
+- Fixed an error where the 'Spawn Dirt Overlay' setting would not work
+- Fixed an error where 'Small Wire' was called a Wrench in the pickup label
+- Fixed an error where Dawn would not make death sounds when killed
+- Camera's now properly display a noise screen on their respective monitor when destroyed
+- Fixed a rare crash when opening Gwyn Machines with a gamepad
+- Car explosions now deal damage to glass
+- 'Removed dumb debugs again' - Cockatrice
+- Fixed an error where Juggernauts would speak like Rifleman
+- Fixed an error where Invasion Tier thumbnails were cropped incorrectly
+- Fixed an error where Weapon Kits would not give a proper notification
+- Fixed some bleeding pixels on the K32OFONT
+- Fixed an error where the right stick would not work in the 'firstrun' menu
+- Fixed Steam Deck default selection for First Fun
+- Fixed an error where shocking the Juggernaut would turn him into an oversized Rifleman
+- Yellow Barrels can no longer be punted with Slidings
+- Fixed an error that made backtracking between Level 3 to Level 2 impossible
+- Fixed a bug where players would take armor damage from destroying wall cracks with the Master Key
+- Fixed an error where DMR shots would not one-hit kill sniper enemies
+- Fixed an error where 'give all' would crash the game when used before acquiring a suit
+- Fixed an error where Sentry Guns would lose their body when hit by Shock Damage
+- Fixed an error where the Danger Close upgrade would unintentionally add 250 more damage to grenade explosions
+- Fixed an error where extinguisher pickup sound volume was almost impossible to hear
+
+
+<sep/>
+
+
+<h1>Version 0.80b - Playtest #5 Update II</h1>
+<h3>Support</h3>
+- Added Linux Support
+- Added Steam Deck support. This build will be sent to Valve for verification so plz test!
+
+<h3>Safe Room Extension</h3>
+- Actors can now be transported by train
+- fixed our worse misaligned texture problem yet
+
+<h3>Invasion Tiers</h3>
+- Added Invasion Tier 8 -> 'Rifleman: Increased Caliber'. This increases their damage output by +1 and appears after Level 4-1. 
+
+<h3>Datapad</h3>
+- Improved some icons
+- Corrected DD/MM/YYYY and MM/DD/YYYY inconsistancies in the datapad. Hopefully I caught them all.
+
+<h3>Juggernaut</h3>
+- Fixed an error where weakened Juggernauts could be stunlocked with melee attacks
+
+<h3>Art </h3>
+- Calender and Weatherman textures now display more accurate information
+- Added icon for Sieger Bomb invasion tier
+
+<h3>Pathfinder Memorial
+</h3> First Medkit secret is now marked as as secret item,r ather than the sector it is in
+- Fixed broken camera
+- removed pointless light inside the MRI closet
+- fixed 'in' holographic text not spinning around correctly
+
+<h3>Utility Area</h3>
+Fixed a stuck Toolbox
+- Made a fence impassable
+- Fixed some railings that weren't solid
+- Fixed Spa having two rooms called '2'
+- Removing overhanging tree shadows
+- retextured casks in Broken Seal
+- Fix erroneus sector damage under a door
+- Crawler Mine cutscene door now opens later to allow Wilson escorting
+- Updated pathnodes to prevent encounter cheesing
+
+I give up, Reformedjoe added fixes to almost every level so I'm giving up keeping up a log. Moving on!
+
+<h3>Other fixes</h3>
+- Fixed a VM Abort caused by the Roaring Cricket
+- Removed 'Read Foreward' (nice typo Cock) from the menu since the TOS is no longer in the game
+- Fixed a bug where the extinguisher would not swap to the previous weapon when dropped
+- Fixed a timing error in the Tutorial Handler
+- Fixed a bug where fish kept disappearing
+- Combat Milestones page are now only available after Level 2
+- Removed unintended pickup prompt from Foam Tanks
+- Fixed some errors with the Quality Menu
+- Slight tweak to vertical offset for Weapon Sprites
+- Selaco.ini is now called Selaco-EA.ini to hopefully prevent further issues. (This means your settings will reset!)
+- Bruteforced some precache states to reducestutters
+- Fixed an error where permanent underwater sounds would play
+- Fixed an error where enemies didn't check for the Shield Invasiontier prior to placing one 
+- Disabled level script where actors would 'shake'. This caused many actors to be on awkward positions and wasn't ideal. Cool effect, just far from flawless.
+- Fixed 'recovered logs' typo
+- Fixed a bug where Gwyn would not save your game in Hardcore Mode
+- Fixed a missing null check with the DMR silencer
+
+
+<sep/>
+
+
+<h1>Version 0.80a - Playtest #5 Update I</h1>
+Back to making in-game changelogs again! Because this is so much cooler than reading things on a discord.
+
+<h3>Pathfinder Memorial</h3>
+- Fixed glass decals persisting on the window after blowing up the MRI
+
+<h3>Utility Area</h3>
+- Added tutorial prompt to introduce players to Milestones
+- Added 'Blowback' Shotgun alt fire to Level 2-3.
+- Fixed Level 2-1 not having a natural spawn, causing a crash when going there directly through console / level select
+
+<h3>Minor Tweaks</h3>
+- Added Per Pixel Lighting to destructible doors in Level 6-3
+- Reworded Sentry Gun prompt to no longer mention 'Hacking'.
+- Sentry Guns now display 'Activate' instead of 'Convert'
+- Added proper VO for enemies when killing the player
+
+<h3>Parking Garage</h3>
+- Fixed mirror that ignores r_reflections
+
+<h3>Fixes</h3>
+- Slightly increased damage dealt to player armor
+- Turret Pieces no longer despawn when thrown
+- Corrected error for SPACE BRO achievement name
+- Fixed invasion tiers appearing earlier than intended (Unconfirmed)
+- Book and Magazine voxels no longer collide with the player
+- Fixed more datapad typos
+- Fixed a crash that occured when soldiers tried to reply to a Shotgun callout
+
+
+<sep/>
+
+
+<h1>Version 0.74b</h1>
+<h3>Safe Room</h3>
+- Shooting Range is now available after obtaining Tech Module 3
+- Added 'Shotgun Module' for Nailgun
+
+<h3>Level 3-1 (Parking Garage)</h3>
+- Slight difficulty decrease for the first encounter
+- Added additional cover
+- Added additional credits
+
+<h3>Level 3-2 (Streets)</h3>
+Tweaks for the final gauntlet
+- Added additional cover and added more sight blocks
+- Added additional hazards to use against enemies
+- Increased delay for when new enemies spawn
+- Added additional signposting for when the gauntlet is finished
+- Detail pass for the secret Bathroom
+- Fixed an error where 2 light shafts were still visible during the Blackout Sequence
+- Fixed z-fighting light issue in the Generator room
+- Fixed an error where the Sentry Gun cache could be reused for infinite sentry guns
+
+<h3>Level 3-3 (Sal's Bar)</h3>
+- Fixed some blocking
+- Fixed an error where the Wine Rack would not open when loading a saved game
+- Made the Junction Box more obvious
+- Fixed ``Stay`` button in the intermission screen not doing anything
+- Added additional credits
+
+<h3>Level 3-4 (Headquarter)</h3>
+- Added line blocker to prevent sliding under unintended areas
+- Improved visual guidance towards the locked door
+
+<h3>Level 4-1 (Office Complex)</h3>
+- Fixed an invisible Wall Crack
+
+<h3>Level 4-2 (Administration)</h3>
+- Added 'Shooting Range invitation' datapad
+
+<h3>Cars</h3>
+- Added beeping noise when cars are about to explode. This will eventually be replaced with a more fitting sound effect
+- Cars that are close to exploding will now emit a very strong black smoke cloud
+
+<h3>Dawn</h3>
+- Increased Slide Height to prevent sliding through unintended gaps. (ViewHeight remains the same)
+
+<h3>Grenade Launcher</h3>
+- Added dynamic light to grenade shells
+- Fixed an error where Ice Decals only used 1 of the 10 available sprite variations
+- Added more 'oomph' to the explosions
+
+<h3>SPACE BRO:tm:</h3>
+- Fixed layout issue with the Pause Menu
+- Reduced SPACE BRO price (10 -> 2)
+
+<h3>Improvements / Additions</h3>
+- Improved sound effect for drinking stuff
+- Added 'Unionize!' achievement
+
+<h3>Fixes</h3>
+- Objects can no longer be carried into the Safe Room Extension
+- Fixed an animation error where breathing frames would 'reset' when trying to reload the weapon without meeting reload conditions
+- Fixed an error where the Shotgun would give a 'Chamber Empty' warning instead of 'No Ammo'  warning when out of ammo
+- Added Tech Module to the Level 4 Saferoom. This was meant to be here.
+- Fixed a scrolling inconsistency with the Datapad
+- Fire Sounds no longer get very loud when multiple fire sprites are close to each other
+- Fire sprites now have a random starting point in their animation for more variation
+- Fixed an error where the Penetrator 'Spike Radius' upgrade made nails smaller instead of bigger
+- Fixed Light Pole hitbox being larger than intended
+- Light Pole hitbox now scales depending on mesh size
+- Sentry Gun Base no longer disappears when hit by a thrown object
+- Sentry Gun Turret Piece will now explode when Master object stops existing for whatever reason.
+- Removed a debug icon for the Juggernaut
+- Fixed an error where Thrown Objects would allow a Juggernaut to get knocked over
+- Fixed an error where Juggernauts would slip on Banana Peels
+- Fixed a typo in one of the Datapads
+- Dawn now drops any object she's holding in her hand while attempting to climb a ladder
+- Melee while holding an object will now drop the object
+- Pressing 'New Campaign' repeatedly will now longer reset the fade-out animation
+- Fixed 'Milestones' being in the incorrect sequence order when playing with a gamepad
+- Swapping Grenade Types with the Grenade Launcher no longer shows an overly large icon
+- Fixed a bug where Enemy Landmines would explode without meeting all of it's condition
+- Fixed faucets water sprays using an incorrect spawning offsets
+- Smaller waterdrops now result in smaller splashes upon impact
+- Fixed Static Crosshairs from not working
+- Fixed Intermission screen not playing any music
+
+
+<sep/>
+
+
+<h1>Version 0.72b</h1>
+Next patch will include two new levels! The rest of the patch focuses around bug fixes and gameplay tweaks.
+
+<h3>Improvements / noteworthy changes</h3> 
+- Improved the Yellow Barrel section 
+- Challenges now reward Weapon Parts instead of Credits 
+- Removed Credit rewards from fulfilling Level Completions (e.g Unlock all Cabinet Doors, Locate all secrets) 
+- Added proper model for Yellow Barrels. No more [Placeholder Object]! 
+- Small improvement to Fire Effects 
+- Added a new spark sprite when hitting metal surfaces 
+- Improved gore effects for explosive kills. More splatters and velocity for the gibbing 
+- Tweaks to fog layer on Rooftops to provide better performance 
+- Slightly reduced Jump Delay to allow for faster consecutive jumps 
+- Added visual Ambush Warnings around incoming ambush spots 
+- Added small scorchmark effect for bouncing Honeycomb Cases 
+- Removed "Sector layers" being visible in the map. This made the Map Screen more visually noisy than intended. 
+- Added option to show portal sectors in the Automap 
+
+<h3>Penetrator</h3> 
+Mostly changes related to visual feedback 
+- Improved bullet casings to make them more visible during fire 
+- Tweaked firing sound for additional 'oomph' 
+- Muzzle flash lighting improvements. A slightly smaller but much stronger light 
+- Adjusted spike impact effects to look more meaty 
+
+<h3>Propane Tanks</h3>
+They no longer suck 
+- Can now be picked up 
+- Gas leak is now on the point of impact 
+- When in the container, it behaves like it always does. 
+- When out of the container, it will fly towards the opposite direction of the leak and explodes whenever it touches anything. 
+- Picking it up from the container when it sizzles makes it behave like an impact grenade when thrown 
+- Reduced Self Lighting value to make them appear less out of place 
+
+<h3>Air Drones</h3> 
+- Them being robots, it made sense for them to be pixel accurate, but it didn't result in enough environmental destruction. Small tweaks and a minor buff! 
+- Increased attack spread (2 -> 5) 
+- Increased damage (3 -> 5) 
+- Slightly reduced projectile speed (230 -> 200) 
+- Removed 'Prepping a rocket' debug message 
+- Removed placeholder rocket marker 
+- Significantly shrunk rocket hitbox to prevent it from hitting walls too often. 
+
+<h3>Soldier</h3> 
+- Slightly increased grenade chances. Grenades are fun. 
+- Slightly increased grenade throwing velocity to make them land closer to the player. 
+
+<h3>Fixes</h3> 
+- 'Completed Objective' in the Datapad's Objective tab, now shows all campaign objectives that you've completed 
+- Bricks will no longer break when thrown near Level Transition actors 
+- Automap Legend is now shown by default 
+- Fixed some poor texture alignment 
+- Fixed a number of graphical problems with fonts on certain resolutions 
+- Fixed secret trigger that could be skipped by slide jumping 
+- Fixed Water Treatment having an unintended non-solid platform 
+- Improved wording for Melee Booster upgrade 
+- Fixed a Crawler Mine getting stuck in the Ventilation Shaft on higher difficulties 
+- Fixed sector in Water Treatment giving unintended Shock Damage 
+- Fixed a few missing textures 
+- Fixed error where weapon reloads would not cancel when latching onto a ladder 
+- Fixed some missing spark effects during the Basement Gauntlet fight 
+- Fixed an unintended damaging floor in Water Treatment 
+- Fixed gamepad scrolling for Invasion Tier menu 
+- Fixed Level Transition markers not having a label in the Automap 
+- Fixed an error where Buddha (invincible) actors could get crushed by elevators and doorways 
+- Fixed an instance where the Workshop Uploader would crash when no items were in the STAGING folder 
+- Added support for non-square icons in the Automap legend 
+- Minor updates and revisions to artwork
+
+
+<sep/>
+
+
+<h1>Version 0.72a</h1>
+<h3>Our very first Playtest patch! Focused primarily on bug fixes and some minor QoL!</h3>
+
+- Added Linux / Native Steam Deck build 
+- Disabled DiscordRPC for playtest reasons. 
+- Added tutorial message when encountering the first Alien Mine (Traditional Mode only)
+- Added visible wire for the Shootable Button 
+- Yellow Barrel can now be held up a little bit higher 
+- Slightly adjusted autosave timing for the first Crawler Mine encounter 
+- Slide Attacks while being on fire will now mitigate incoming fire damage 
+- Dashes now reduce one 'Burn Tick' from the timer. 
+- Added Autosave before entering The Broken Seal bar 
+- Fixed an error where gore effects have a tendency to lean over edges 
+- Fixed a bug where Gwyn does not trash talk when leaving without buying an item 
+- Fixed Wood Decals to appear less out of place 
+- Fixed issue where spark effects would clip into the wall for the Shootable Button 
+- Fixed an issue where most Light Shaft actors did not properly touch the ceiling. 
+- Fixed an unintended floating screen & keyboard in the Crawler Mine encounter zone 
+- Fixed Earthquakes causing some actors to reside in weird places 
+- Fixed missing sound effect before the first Crawler Mine encounter 
+- Fixed an issue where Glass Decals would appear when destroying on Reinforced Glass that is no longer there. 
+- Fixed "Controlled Contruction" typo 
+- Fixed "Datacanter" typo 
+- Fixed Static Discharge description typo 
+- Fixed 'Myth, Busted' achievement not being given accordingly 
+- Fixed a texture issue with Ammo Cache panels 
+- Fixed an issue where kicking doors with Interaction Animations disabled would freeze your Weapon State 
+- Added 'Thanks for playing' message when completing the level
+
+
+<sep/>
+
+
+<h1>Version 0.74 - Playtest #2</h1>
+Playtest Version for Level 3 and Level 4.

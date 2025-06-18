@@ -1,0 +1,1598 @@
+
+class JetpackSmokeCloud: ExplosionSmoke
+{
+	override void tick()
+	{
+		super.tick();
+		scale*=1.02;
+		A_FADEOUT(0.01, FTF_REMOVE);
+	}
+
+	default {
+		+ROLLSPRITE;
+		Speed 1;
+		Alpha 0.3;
+		Scale 0.3;
+		SelfLighting "505050";
+	}
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				A_SETROLL(random(0,360));
+			}
+			SMK3 B 10;
+			SMK3 CDEFGHIJKLM 2;
+			Stop;
+	}
+}
+
+class SiegerExplosion : SelacoActor {
+	default {
+		+NOINTERACTION
+		+missile
+		DamageType "SiegerKaboom";
+	}
+	states{
+		Spawn:
+			TNT1 A 0;
+			TNT1 AAAAAAAAAA 0 A_SpawnDefinedParticle("SuperGorePurpleMistLongerDefinition", frandom(-130,130), frandom(-130,130), frandom(-10, 140));
+			TNT1 A 0 S_EXPLODE(181, 300, 1);
+			stop;
+	}
+}
+
+class SiegerFlyForwardDecoration : actor {
+	override void tick() {
+		super.tick();
+		A_SPAWNITEMEX("JetpackSmokeCloud", 0, 0, 16);
+	}
+
+	default {
+		scale 0.39;
+		yscale 0.26;
+		+NOGRAVITY
+		+MISSILE;
+	}
+	states {
+		Spawn:
+			TNT1 A 0 A_SETSIZE(-1, 28);
+			SISP JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ 2 A_CHANGEVELOCITY(0.6, 0, 0, CVF_RELATIVE);
+			TNT1 A 0 A_SETSIZE(-1, 55);
+			loop;
+		Death:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class Sieger : EnemySoldier
+{
+
+	static const string headshotDeathAnimationsEngineer[] = {"DeadSiegerHeadshot4"};
+	static const string nailgunDeathAnimation[] = {"SiegerNailgun1"};
+	
+	override string GetHeadshotDeadAnimation() {
+		string deathAnimationToUse = headshotDeathAnimationsEngineer[random(0,headshotDeathAnimationsEngineer.size()-1)];
+		return deathAnimationToUse;
+	}
+	override string GetnailgunDeathAnimation() {
+		string deathSprite = nailgunDeathAnimation[random(0,nailgunDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	const MINE_DEPLOY_MAX = 5;
+	const MINE_DEPLOY_PER_SALVO = 5;
+	const MINE_DEPLOY_CHANCE = 90;
+	bool deployingMines;
+	int mineSalvo;
+	int minesDeployed;
+
+	mixin AI_AltitudeCorrection;
+	Array<State> availableMoves;
+	float DeathDirection;
+	int direction;
+	int directionToCheck;
+	bool isDead;
+	int ticker;
+	int volleyAttackAngle;
+	int sprayFlashYPosition;
+	
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		setOffsetInfo();
+		
+		currentAmmo = MagazineSize;
+		MaxburstLength = 6;
+		burstLength = random(4,MaxburstLength);
+		isFrightened = false;
+		A_PLAYSOUND("sieger/jetpack", CHAN_7, 0.7, 1, 1.0, 0, frandom(0.7,1.2));
+	}
+
+	void approveSiegerMineDeployment()
+	{
+		if(CheckInvasionTier(INVTIER_SIEGERBOMBS) && random(0,100) <= MINE_DEPLOY_CHANCE && minesDeployed < MINE_DEPLOY_MAX)
+		{
+			deployingMines = true;
+		}
+	}
+
+	void spawnJetPackEffects()
+	{
+		if(level.time % 2 == 0)
+		{
+			A_SPAWNITEMEX ("JetpackSmokeCloud", -12, 7, 40, frandom(-0.9,-1.2), 2, -1.7);
+			EmitDefinition("ShortMetalShrapnelParticle360Definition", chance: 0.75, numTries: 9, offset: (-10,0,30));
+		}
+		else
+		{
+			A_SPAWNITEMEX ("JetpackSmokeCloud", -12, -7, 40, frandom(-0.6,-0.8), -2, -1.7);
+		}
+	}
+
+	override void tick() {
+		super.tick();
+		spawnJetPackEffects();
+
+		if(Health > 0 && !isFrozen) {
+			checkAltitude(); // AI_AlitudeCorrection
+			if(random(0,100) <= 5)
+			{
+				A_CHANGEVELOCITY(frandom(-1.5,1.5),frandom(-1.5,1.5), frandom(-4,4));
+			}
+			if(random(0,100) <= 7)
+			{
+				A_CHANGEVELOCITY(frandom(-1,1),frandom(-1,1), frandom(-1,1));
+			}
+		}
+		if(isDead) {
+			ticker++;
+			if(ticker % random(2,4) == 0) {
+				for(int i=0;i<=random(1,2);i++) {
+					A_SPAWNITEM("SMALLEXPLOSION", frandom(-30,30), frandom(-30,30), frandom(-1,15));
+				}
+			}
+		}
+
+		deployMines();
+	}
+
+	void deployMines()
+	{
+		// Throw mines
+		if(deployingMines && level.time % 5 == 0)
+		{
+			minesDeployed++;
+			mineSalvo++;
+			A_SPAWNITEMEX("SiegerMine", -8, 0, 32, frandom(-18,18), frandom(-18,18), 4);
+			if(mineSalvo >= MINE_DEPLOY_PER_SALVO)
+			{
+				deployingMines = false;
+				mineSalvo = 0;
+			}
+		}
+	}
+
+	void prepareAttack()
+	{
+		A_PLAYSOUND("sieger/preperation", CHAN_AUTO, 1.0, 0, 0.6);
+	}
+
+	void executeNextMove(State nextMove)
+	{
+		SetState(nextMove);
+	}
+
+	void decideSprint()
+	{
+		A_FACETARGET();
+		if(random(0,1) == 0)
+		{
+			availableMoves.clear();
+			if(CheckIfwallClear(90, 290))
+			{
+				availableMoves.push(FindState('SprintLeft'));
+				availableMoves.push(FindState('MoveLeft'));
+			}
+			if(CheckIfwallClear(270, 290))
+			{
+				availableMoves.push(FindState('MoveRight'));
+				availableMoves.push(FindState('SprintRight'));
+			}
+			if(availableMoves.size() > 0)
+			{
+				executeNextMove(availableMoves[random(0,availableMoves.size()-1)]);
+			} 
+			else 
+			{
+				setStateLabel("see");
+			}
+		}
+	}
+
+	bool checkIfClearDeath(int direction) {
+	// 1 = Check wall to the left
+	// 2 = Check wall to the right
+	// 3 = Check wall to the front
+	// 4 = Check wall to the back
+		
+
+		// TODO: OLD CODE - REWRITE PROPERLY.
+			String hittex;
+			FLineTraceData RemoteRay;
+			if (direction == 1) {
+				LineTrace(angle - 90,40, pitch,offsetz: height-12,data: RemoteRay);
+			}
+			if (direction == 2) {
+				LineTrace(angle - 270,40, pitch,offsetz: height-12,data: RemoteRay);
+			}
+			if (direction == 3) {
+				LineTrace(angle, 40, pitch,offsetz: height-12,data: RemoteRay);
+			}
+			if (direction == 4) {
+				LineTrace(angle - 180, 40, pitch,offsetz: height-12,data: RemoteRay);
+			}
+			//Console.PrintF("Texture: ", hittex);
+			if (RemoteRay.HitType == TRACE_HitWall)
+			{
+				return true;
+			}
+		return false;
+	}
+
+	Default {
+		+NOGRAVITY;
+		+INTERPOLATEANGLES;
+		+FLOAT;
+		+FORCEXYBILLBOARD
+		-SelacoEnemy.AllowStealthKill;
+		+SelacoEnemy.FlyingEnemy;
+
+		SelacoEnemy.WeaponDamage 3;
+		SelacoEnemy.WeaponDamageOffset 1;
+		SelacoEnemy.ArmorPenetration 80;
+
+        SelacoEnemy.AirResistance 0.03;
+        SelacoEnemy.AirSpeedCap 45;
+		EnemySoldier.DisplayName "$CHARACTER_SIEGER";
+		EnemySoldier.MagazineSize 50;
+		EnemySoldier.CombatDistance 200;
+		SelacoEnemy.PainChanceAdjustment 0;
+		SelacoEnemy.shockLength 35;
+
+		SelacoEnemy.ENEMY_IdentifierTag "SIEGER";
+		EnemySoldier.SPRITE_Walking "SIGI";
+		EnemySoldier.SPRITE_Idle "SIGI";
+		EnemySoldier.SPRITE_Pain "SPOS";
+		EnemySoldier.SPRITE_Shocked "SISH";
+		EnemySoldier.SPRITE_PainHeadshot "ENHE";
+		EnemySoldier.SPRITE_AlertAllies "SHIC";
+
+		radius 20;
+		height 55;
+		scale 0.43;
+		painchance 150;
+		yscale 0.32;
+		Health 100;
+		gravity 0.7;
+		speed 7;
+		Painchance 156;
+		Painchance "MeleeImpact", 256;
+		monster;
+		MASS 1500;
+		Painchance "shotgun", 0;
+		Painchance "magnumbullet", 0;
+		BloodType "Selaco_PurpleBlood_Armor", "PurpleSPlatterReplacer", "SawBlood";
+		EnemySoldier.RateOfFire 4;
+		selflighting "858585";
+	}
+
+	void FireShardCannon(int scriptID, int xMuzzleLocation, int yMuzzleLocation, int ROF, int shotaccuracy, int projectileAngle = -999) {// Shoot the weapon
+		A_SetTics(ROF);
+		if(isTargetVisible()) {
+			actor firedProjectile;
+			string projectileActor = "SiegerTracer";
+			yMuzzleLocation+=6;
+			A_FACETARGET(max_pitch:0);
+			A_PlaySound("sieger/shot", CHAN_AUTO, 1.0, 0, 0.6);
+			//A_SpawnProjectile("GunFireSmoke", yMuzzleLocation, 0, 0, 0, 0, 0);
+			shotaccuracy = random(shotaccuracy*-1, shotaccuracy);
+
+			A_PLAYSOUND("SIEGER/SHOT/DISTANCE", CHAN_AUTO, 0.5, pitch:frandom(1.11, 1.22));
+
+			spawnLight(40, 120, 400, 60, 0, shadowRequirement:-1 ,overbright:0, divisionSpeed:1.4);
+
+			firedProjectile = A_FireEnemyWeapon(projectileActor, yMuzzleLocation, xMuzzleLocation, shotaccuracy, CMF_TRACKOWNER | CMF_SAVEPITCH | CMF_OFFSETPITCH, frandom(-1, 1));
+			if(firedProjectile)
+			{
+				if(skill == SKILL_SMF)
+				{
+					A_CHANGEVELOCITY(frandom(-9,9), frandom(-9,9), frandom(-2,2), CVF_RELATIVE);
+					firedProjectile.A_SCALEVELOCITY(2.5);
+				}
+				firedProjectile.master = self;
+				firedProjectile.pitch = pitch;
+			}
+            [muzzleFlashSuccess, muzzleFlashActor] = A_SPAWNITEMEX("AlienMuzzleBlue", 2, xMuzzleLocation, yMuzzleLocation, 0, 0, flags:SXF_SETMASTER);
+            let muzzleFlashProperties = AlienMuzzle(muzzleFlashActor);
+            muzzleFlashProperties.effectOffset = (3, xMuzzleLocation, yMuzzleLocation);
+			currentAmmo--;
+			//CONSOLE.PRINTF("Ammo: %d", currentAmmo);
+			A_SpawnItem ("RifleCaseSpawnEnemy", 0, 30,0);
+			pitch = 0;
+			if(currentAmmo == 0)
+			{
+				SetStateLabel("ReloadWeapon");
+			}
+		}
+
+		burstLength--;
+		if (burstLength > 0) {
+			switch (scriptID) {
+				case 0: break;
+				case 1: SetStateLabel("AttackLeft"); break;
+				case 2: SetStateLabel("AttackForward"); break;
+				case 3: SetStateLabel("AttackRight"); break;
+				case 4: SetStateLabel("AttackBackward"); break;
+				case 7: SetStateLabel("AttackStationary"); break;
+			}
+		}
+		if (burstLength <= 0) {
+			burstLength = random(5,MaxburstLength);
+		}
+	}
+
+	States
+	{
+		Precache:
+			SISH ABCDEFGH 0;
+			stop;
+
+    Spawn:
+		TNT1 A 0;
+		TNT1 A 0 {
+			A_Look();
+		}
+		POSS B 1;
+	goto Stand;
+	
+	Stand:
+		TNT1 A 0 A_CheckSight("Stand2");
+		SIGI AAABBBCCCDDDEEEDDDCCCBBB 3
+		{
+			A_Look();
+		}
+		Loop;
+
+
+	See:
+		TNT1 A 0 {
+			alertAllies();
+			killStrafeNodes();
+			SetSeenPlayer();
+
+			bNoPain = false;
+		}
+		SIGF ABCD 2 A_CHASE;
+	FlyForward:
+		TNT1 A 0 {
+			//A_PRINTBOLD("Attack Cooldown Period");
+		}
+		SIGF EEEEEEEEEEEEEE 1 
+		{
+			talk(SOLDIER_PURSUIT);
+			A_CHASE(null, null);
+		}
+	FlyForwardAttackMode:
+		TNT1 A 0 {
+			//A_PRINTBOLD("Ready to attack");
+		}
+		SIGF EEEEEEEEEE 1 A_CHASE("TransitionToAttack", "TransitionToAttack");
+		loop;
+
+	SprintRandom:
+		//
+		SIGF A 2 decideSprint();
+		SIGF A 1 {
+			if(random(0,1) == 0)
+			{
+				setStateLabel("AttackRight");
+			} else
+			{
+				setStateLabel("AttackLeft");
+			}
+		}
+		goto see;
+	SprintRight:
+		TNT1 A 0 A_SetAngle(angle-90);
+		goto SprintExecute;
+	SprintLeft:
+		TNT1 A 0 A_SetAngle(angle + 90);
+		goto SprintExecute;
+
+	SprintExecute:
+		TNT1 A 0 {
+			A_PLAYSOUND("sieger/dodge", CHAN_AUTO, 0.2, 0, 0.4, 0, frandom(1.3,1.5));
+			bNoPain = true;
+			vel*=0.8;
+			approveSiegerMineDeployment();
+		}
+		TNT1 A 0 A_SETSIZE(-1, 28);
+		SISP ABCDEFH 2 A_CHANGEVELOCITY(12, 0, 0.6, CVF_RELATIVE | CVF_REPLACE);
+		SISP J 2 A_CHANGEVELOCITY(24.5, 0, 0.7, CVF_RELATIVE | CVF_REPLACE);
+		SISP KMOQS 2 A_CHANGEVELOCITY(-0.6, 0, -0.4, CVF_RELATIVE);
+		TNT1 A 0 {
+			A_FACETARGET();
+			A_SETSIZE(-1, 55);
+			S_AlertEnemies();
+		}
+		TNT1 A 0 A_SETSIZE(-1, 55);
+		goto FlyForwardAttackMode;
+	SprintForward:
+		TNT1 A 0 A_SETSIZE(-1, 28);
+		SISP ACEFH 2 A_CHANGEVELOCITY(7.5, 0, 4.0, CVF_RELATIVE | CVF_REPLACE);
+		SISP JJJJJJJJJJJJJJJJJJJJJJJJ 2 
+		{
+			bNoPain = true;
+			A_CHANGEVELOCITY(1.5, 0, 0.5, CVF_RELATIVE | CVF_REPLACE);
+		}
+		TNT1 A 0 {
+			bNoPain = false;
+			roll = 0;
+		}
+		SISP KMOQS 2 A_CHANGEVELOCITY(-1., 0, -0.2, CVF_RELATIVE);
+		TNT1 A 0 A_SETSIZE(-1, 55);
+		TNT1 A 0 S_AlertEnemies();
+		goto FlyForwardAttackMode;
+
+	FlyForward:
+		SIGF E 1 A_CHASE("TransitionToAttack", "TransitionToAttack");
+		loop;
+
+	Missile:
+	TransitionToAttack:
+		  TNT1 A 0 {
+			talk(SOLDIER_ATTACK);
+			if(currentAmmo <= 0)
+			{
+				setStateLabel("ReloadWeapon");
+			}
+			//A_PRINTBOLD("Entering Attack Mode.");
+			int validDirections;
+			// Here we check for valid moves before executing them. Clear the previous list.
+			availableMoves.clear();
+			availableMoves.push(FindState('AttackStationaryPrep'));
+			// Check if there's collison with the left wall
+			if(CheckIfwallClear(90, 160))
+			{
+				validDirections++;
+				//A_PRINTBOLD("LEFT SAFE!");
+				availableMoves.push(FindState('GoLeftForAttack'));
+			}
+
+			// Check if there's collison with the right wall
+			if(CheckIfwallClear(270, 160))
+			{
+				validDirections++;
+				//A_PRINTBOLD("RIGHT SAFE!");
+				availableMoves.push(FindState('GoRightForAttack'));
+			}
+
+			// Spray fire if target is close and walls are clear
+			if(Distance2DSquared(target) < 350**2 && CheckIfwallClear(80, 80) && CheckIfwallClear(250, 80))
+			{
+				availableMoves.push(FindState('VolleyAttack'));
+			}
+
+			//Check to see if the player is far. In this case, we are biased and increase the odds of this happened.
+			if(Distance2DSquared(target) > 600**2)
+			{
+				availableMoves.push(FindState('GoForward'));
+				availableMoves.push(FindState('GoForward'));
+				availableMoves.push(FindState('GoForward'));
+				availableMoves.push(FindState('GoForward'));
+			}
+
+			// Target is very close, go back!
+			if(Distance2DSquared(target) < combatDistance**2)
+			{
+				availableMoves.clear();
+				availableMoves.push(FindState('GoBack'));
+			}
+
+			executeNextMove(availableMoves[random(0,availableMoves.size()-1)]);
+		  }
+		goto GoForward;
+	LeftBlocked:
+	GoLeftForAttack:
+		SIGL A 1 {
+			//A_PRINTBOLD("Moving left.");
+			A_FACETARGET();
+			vel*=0.8;
+			createStrafeNodes(STF_RIGHT, 4);
+			prepareAttack();
+			approveSiegerMineDeployment();
+		}
+		SIGL ABCDEEEEEEEEEE 1 {
+			A_SPAWNITEMEX("1tickBlueFlare", 20, -6, 42);
+			if(level.time % 7 == 0)
+			{
+				if(checkGeometryCollision(-1, 90)) {
+					//A_PRINTBOLD("AttackStationary FROM GO LEFT.");
+					setStateLabel("AttackStationary");
+				}
+				if(!ValidateStrafe())
+				{
+					//A_PRINTBOLD("AttackRight FROM GO RIGHT.");
+					vel = (0,0,0);
+					setStateLabel("AttackRight");
+				}
+			}
+			A_CHANGEVELOCITY(0, 4.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+			A_CHANGEVELOCITY(0, 0, frandom(-0.3,0.3));
+			A_FACETARGET();
+		}
+		SIGL E 1 {
+			killStrafeNodes();
+			createStrafeNodes(STF_RIGHT, 4);
+		}
+		goto attackLeft;
+	MoveLeft:
+		TNT1 A 0 {
+			bNoPain = true;
+			vel*=0.8;
+			A_CHANGEVELOCITY(0, 31.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+		}
+		SIGL ABCDEEEEEEE 1 {
+			//A_PRINTBOLD("Calm Evade Left");
+			if(level.time % 7 == 0)
+			{
+				if(checkGeometryCollision(-1, 50)) {
+					bNoPain = false;
+					setStateLabel("See");
+				}
+				if(!ValidateStrafe())
+				{
+					bNoPain = false;
+					setStateLabel("See");
+				}
+			}
+			A_CHANGEVELOCITY(0, 6.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+		}
+		SIGL E 1 {
+			bNoPain = false;
+			killStrafeNodes();
+		}
+		goto See;
+
+	RightBlocked:
+	GoRightForAttack:
+		SIGR A 1 {
+			//A_PRINTBOLD("Moving right.");
+			vel*=0.8;
+			A_FACETARGET();
+			createStrafeNodes(STF_LEFT, 6);
+			prepareAttack();
+			approveSiegerMineDeployment();
+		}
+		SIGR ABCDEEEEEEEEEE 1 {
+			A_SPAWNITEMEX("1tickBlueFlare", 10, 10, 42);
+			if(level.time % 3 == 0)
+			{
+				if(checkGeometryCollision(-1, 50)) {
+					//A_PRINTBOLD("AttackStationary FROM GO RIGHT.");
+					setStateLabel("AttackStationary");
+				}
+				if(!ValidateStrafe())
+				{
+					vel*=0.8;
+					//A_PRINTBOLD("AttackLeft FROM GO RIGHT.");
+					setStateLabel("AttackLeft");
+				}
+			}
+			A_CHANGEVELOCITY(0, -4.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+			A_CHANGEVELOCITY(0, 0, frandom(-0.3,0.3));
+			A_FACETARGET();
+		}
+		SIGR E 1 {
+			killStrafeNodes();
+			createStrafeNodes(STF_LEFT, 4);
+		}
+		goto AttackRight;
+	MoveRight:
+		TNT1 A 0 {
+			bNoPain = true;
+			vel*=0.8;
+			A_CHANGEVELOCITY(0, -31.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+		}
+		SIGR ABCDEEEEEEE 1 {
+			//A_PRINTBOLD("Calm Evade Right");
+			if(level.time % 3 == 0)
+			{
+				approveSiegerMineDeployment();
+				if(checkGeometryCollision(-1, 50)) {
+					bNoPain = false;
+					setStateLabel("See");
+				}
+				if(!ValidateStrafe())
+				{
+					bNoPain = false;
+					setStateLabel("See");
+				}
+			}
+			A_CHANGEVELOCITY(0, -7.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+		}
+		SIGL E 1 {
+			bNoPain = false;
+			createStrafeNodes(STF_LEFT, 4);
+		}
+		goto See;
+
+	AttackLeft:
+		SIGL E 1 {
+			//A_PRINTBOLD("ATTACK LEFT.");
+			A_CHANGEVELOCITY(0, 4.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+			A_CHANGEVELOCITY(0, 0, frandom(-0.4,0.4));
+		}
+		TNT1 A 0 {
+			if(isDawnNear(200)) {
+				SetStateLabel("GoBack");
+			}
+			if(checkGeometryCollision(-1, 50) || !ValidateStrafe()) {
+				////A_PRINTBOLD("Collision");
+				setStateLabel("See");
+			}
+			checkAmmo();
+		}
+		SIGL E 0 {
+			A_SetTics(invoker.RateofFire);
+		}
+		SIGL E 1 {
+			A_FACETARGET();
+			FireShardCannon(1, 4, 40, 7, 1);
+		}
+		SIGL E 2 A_FACETARGET;
+		TNT1 A 0 {
+			decideSprint();
+		}
+		Goto ReturnToChaseFromLeft;
+
+	AttackRight:
+		SIGR E 1 {
+			//A_PRINTBOLD("Engage target (Moving right)");
+			A_CHANGEVELOCITY(0, -7.2, vel.z, CVF_RELATIVE | CVF_REPLACE);
+			A_CHANGEVELOCITY(0, 0, frandom(-0.3,0.3));
+		}
+		TNT1 A 0 {
+			if(isDawnNear(200)) {
+				SetStateLabel("GoBack");
+			}
+			if(checkGeometryCollision(-1, 50) || !ValidateStrafe()) {
+				setStateLabel("See");
+			}
+			checkAmmo();
+		}
+		SIGR E 0 {
+			A_SetTics(invoker.RateofFire);
+		}
+		SIGR E 1 {
+			A_FACETARGET();
+			FireShardCannon(3, 4, 40, 7, 1);
+		}
+		TNT1 A 0 {
+			if(checkGeometryCollision(-1, 50) || !ValidateStrafe()) {
+				setStateLabel("RightSideCollision");
+			}
+			checkAmmo();
+		}
+		SIGR E 1 A_FACETARGET;
+		TNT1 A 0 {
+			decideSprint();
+		}
+		Goto ReturnToChaseFromRight;
+
+	GoForward:
+		TNT1 A 0 {
+			vel = vel*0.5;
+			prepareAttack();
+		}
+		SIFF ABCDEEEEEEEEEEEEE 1 
+		{
+			A_FACETARGET();
+			A_SPAWNITEMEX("1tickBlueFlare", 10, 6, 45);
+		}
+		goto AttackForward;
+
+	AttackStationaryPrep:
+		TNT1 A 0 {
+			//A_PRINTBOLD("Engage Target (Stationary, slight motion)");
+			vel = vel*0.5;
+			prepareAttack();
+		}
+		SISA AAABBBCCCDDDEEEFFFGGG 1 {
+			A_SPAWNITEMEX("1tickBlueFlare", 10, 6, 45);
+			A_FACETARGET();
+		}
+		TNT1 A 0 
+		{
+			burstLength = 5;
+		}
+	AttackStationary:
+		SISA G 1;
+		TNT1 A 0 {
+			//A_CHANGEVELOCITY(0, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+			if(isDawnNear(200)) {
+				SetStateLabel("GoBack");
+			}
+		}
+		SISA G 0 {
+			A_SetTics(3);
+		}
+		SISA G 1 {
+			A_FACETARGET();
+			FireShardCannon(7, 4, 50, 3, 3);
+		}
+		SISA G 2;
+		TNT1 A 0 {
+			decideSprint();
+		}
+		SISA FFFEEEDDDCCCBBBAAA 1 
+		{
+			A_FACETARGET();
+		}
+		Goto ReturnToChaseForward;
+	
+	VolleyAttack:
+		TNT1 A 0 {
+			invoker.volleyAttackAngle = -60;
+			sprayFlashYPosition = 20;
+			A_FACETARGET();
+		}
+		SIFP ABCD 3; 
+		SIFP EFGHIJKL 5 {
+			//FireShardCannon(7, 4, 50, 3, 3);
+			FireShardCannon(0, invoker.sprayFlashYPosition, 38, 5, 0, invoker.volleyAttackAngle);
+			invoker.volleyAttackAngle+=13;
+			invoker.sprayFlashYPosition-=6;
+		}
+		SIFP MNO 4;
+		SIGF EDCBA 3;
+		SIGF A 90;
+		goto see;
+	
+	AttackForward:
+		SIFF E 1;
+		TNT1 A 0 {
+			A_CHANGEVELOCITY(6.8, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+			checkAmmo();
+			if(checkGeometryCollision(-1, 50)) {
+				//A_PRINTBOLD("Return to chase mode from Forward");
+				setStateLabel("ReturnToChaseForward");
+			}
+			if(isDawnNear(100)) {
+				SetStateLabel("GoBack");
+			}
+		}
+		SIFF E 0 {
+			A_SetTics(invoker.RateofFire);
+		}
+		SIFF E 1 {
+			A_FACETARGET();
+			FireShardCannon(2, 4, 40, 7, 1);
+		}
+		SIFF E 2;
+		TNT1 A 0 decideSprint();
+		SIFF E 0 A_FACETARGET;
+		Goto ReturnToChaseForward;
+	
+	AttackBackward:
+		SIFB E 1;
+		TNT1 A 0 {
+			if(isDawnNear())
+			{
+				talk(SOLDIER_RETREAT);
+			}
+			if(checkGeometryCollision(-1, 90)) {
+				//A_PRINTBOLD("Return to chase mode from Forward");
+				setStateLabel("ReturnToChaseBackward");
+			}
+			A_CHANGEVELOCITY(-3.3, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+			checkAmmo();
+		}
+		SIFB E 0 {
+			A_SetTics(invoker.RateofFire);
+		}
+		SIFB E 1 {
+			A_FACETARGET();
+			FireShardCannon(4, 4, 40, 7, 1);
+		}
+		SIFF E 2 A_FACETARGET;
+		Goto ReturnToChaseBackward;
+
+	GoBack:
+		SIFB ABCDE 1;
+		goto AttackBackward;
+
+	ReturnToChaseForward:
+		SIFF EDCBA 1;
+		goto See;
+
+	ReturnToChaseBackward:
+		SIFB EDCBA 1;
+		goto See;
+
+	ReturnToChaseFromLeft:
+		TNT1 A 0 {
+			//A_PRINTBOLD("Return to Chase Mode from left");
+		}
+		SIGL EDCBAAA 2 
+		{
+			A_CHANGEVELOCITY(0, -0,9, 0, CVF_RELATIVE || CVF_REPLACE);
+			if(CheckIfwallClear(90, 250))
+			{
+				SetStateLabel("AttackStationaryPrep");
+			}
+		}
+		goto See;
+	LeftSideCollision:
+		TNT1 A 0 {
+			//A_PRINTBOLD("Recovering from near collision (Left wall)");
+		}
+		SIGL EDCBAAA 2 A_CHANGEVELOCITY(0, -1.4, 0, CVF_RELATIVE || CVF_REPLACE);
+		TNT1 A 0 {
+			A_CHANGEVELOCITY(0, 0, 0, CVF_RELATIVE || CVF_REPLACE);
+			if(CheckIfwallClear(90, 250))
+			{
+				SetStateLabel("AttackStationaryPrep");
+			}
+		}
+		goto See;
+
+	ReturnToChaseFromRight:
+		TNT1 A 0 {
+			//A_PRINTBOLD("Return to Chase Mode from Right");
+		}
+		SIGR EDCBAAA 2 
+		{
+			A_CHANGEVELOCITY(0, 1.2, 0, CVF_RELATIVE || CVF_REPLACE);
+			if(CheckIfwallClear(270, 250))
+			{
+				SetStateLabel("AttackStationaryPrep");
+			}
+		}
+		goto See;
+	RightSideCollision:
+		TNT1 A 0 {
+			//A_PRINTBOLD("Recovering from near collision (Right wall)");
+		}
+		SIGR EDCBAAA 2 A_CHANGEVELOCITY(0, 1.4, 0, CVF_RELATIVE || CVF_REPLACE);
+		TNT1 A 0 {
+			if(CheckIfwallClear(270, 250))
+			{
+				SetStateLabel("AttackStationaryPrep");
+			}
+			A_CHANGEVELOCITY(0, 0, 0, CVF_RELATIVE || CVF_REPLACE);
+		}
+		goto see;
+
+	CannotSeeTarget:
+		P055 B 1;
+		goto See;
+
+
+  ReloadWeapon:
+		TNT1 A 0;
+		TNT1 A 0 {
+			vel*=0.8;
+			bNoPain = true;
+			talk(SOLDIER_RELOAD);
+		}
+		TNT1 A 0;
+        SIRE A 3 A_CHANGEVELOCITY(0, frandom(-4,4), frandom(-4,4), CVF_RELATIVE);
+        //TNT1 A 0 A_PlaySound("ReloadWeapon");
+		
+		TNT1 A 0;
+		TNT1 A 0 A_PlaySound("RIFCL_OU", CHAN_AUTO, 0.95);
+        SIRE ABC 4;
+		TNT1 A 0 
+		{
+			A_SpawnProjectile("EmptyClipSpawn", 38, 0, random(-11, 11), 0);
+			A_CHANGEVELOCITY(0, frandom(-2,2), frandom(-2,2), CVF_RELATIVE);
+		}
+        SIRE DEF 4;
+		TNT1 A 0 A_PlaySound("RIFCL_IN", CHAN_AUTO, 0.92);
+        SIRE GHJL 4;
+		TNT1 A 0 
+		{
+			A_CHANGEVELOCITY(0, frandom(-2,2), frandom(-2,2), CVF_RELATIVE);
+		}
+		SIRE MNOPQ 4;
+        TNT1 A 0 {
+			bNoPain = false;
+			invoker.currentAmmo = invoker.MagazineSize;
+		}
+        Goto SeeContinue;
+
+	Pain.LandOnYourAss:
+		goto pain;
+
+
+	Death.Knife:
+		goto death.head;
+    Death.KillMe:
+    Death.Avoid:
+	    TNT1 A 0;
+		//TNT1 A 0 A_ChangeFlag("SOLID", 0);
+		TNT1 A 0 {
+			bThruActors = true;
+			bCountkill = false;
+		}
+		TNT1 A 0 A_SpawnItemEx ("SOLDIER",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION |SXF_TRANSFERSPECIAL| SXF_TRANSFERAMBUSHFLAG ,0);
+        Stop;
+	
+	Pain.ExtremePunches:
+	Pain.ExplosiveImpact:
+	Pain.Explosive:
+	Pain.explosiveimpact:
+	Pain.SniperBullet:	
+	Pain.MagnumStagger:
+	Pain:	
+		TNT1 A 0 A_PlaySound("grunt/pain", CHAN_VOICE);
+		TNT1 A 0 A_Jump(256, "Pain.Left", "Pain.Right", "SprintRandom", "SprintRandom", "SprintRandom", "SprintRandom", "SprintRandom");
+		SIP1 ABCDEEEDCB 2;
+		TNT1 A 0 A_Jump(170, "FlyLeft_rapid", "FlyRight_rapid");
+	    Goto See;
+
+	Pain.MeleeImpactTaser:
+		TNT1 A 0;
+	Pain.StunningShock:
+		TNT1 A 0 {
+			bNoPain = true;
+		}
+	Pain.ShockedStandActual:
+		 TNT1 A 0 {
+			sprite = GetSpriteIndex(invoker.SPRITE_Shocked);
+		 }
+	Pain.ShockedStandActualLooper:
+		TNT1 A 0 {
+			vel = (0,0,0);
+			bNoPain = true;
+			int random = random(0,3);
+			if (random == 0) {shockFrame = 0;}
+			if (random == 1) {shockFrame = 2;}
+			if (random == 2) {shockFrame = 4;}
+			if (random == 3) {shockFrame = 6;}
+		}
+		TNT1 A 2 {
+			shockEffects(60);
+			frame = shockFrame;
+		}
+		TNT1 A 0 {
+			shockFrame++;
+		}
+		TNT1 A 2 {
+			shockEffects(60);
+			frame = shockFrame;
+		}
+		TNT1 A 0 {
+			shockRemainder--;
+			if(random(0, 100) >= 99 && shockAmplified) {
+				setStateLabel("stomped");
+			}
+			if(shockRemainder == 0) {
+				SetStateLabel("Pain.LandOnYourAss");
+			}
+		}
+		loop;	
+
+	Pain.head:
+		TNT1 A 0 {
+			bNoPain = true;
+		}
+		SIPH ACEDCB 2;
+		TNT1 A 0 A_Jump(128, "SprintRandom", "SprintRandom");
+		goto Pain.end;
+
+	Pain.Left:
+		SIP1 ACEDCB 2;
+		goto Pain.end;
+
+	Pain.Right:
+		SIP2 ACEDCB 2;
+		goto Pain.end;
+	
+	Pain.end:
+		TNT1 A 0 {
+			bNoPain = false;
+		}
+		TNT1 A 0 A_Jump(50, "FlyLeft_rapid", "FlyRight_rapid", "SprintRandom");
+	    Goto See;
+
+	Pain.MeleeImpactExtinguisher:
+	Pain.MeleeImpact:	
+		TNT1 A 0 {
+			
+			A_PAIN();
+			vel = (0,0,0);
+			A_CHANGEVELOCITY(-15,0,0, CVF_RELATIVE);
+		}
+		SIFB ABCDEEDCBA 2;
+		goto See;
+
+	Insta:
+		TNT1 A 1 A_DamageSelf(200);
+
+
+	// DIALOGS;
+	Dialog.executed:
+		TNT1 A 0 A_PlaySound("grunt/radio4");
+		goto Stand;
+
+	Pain.Heal:
+		//TNT1 A 0 HealThing(250);
+		//TNT1 A 0 A_SpawnItemEx("HealingIcon", -7, 0, 80);
+		Goto Stand;
+
+    Pain.Melee:
+		TNT1 A 0;
+		POSS G 3 A_Pain;
+		Goto See;
+        TNT1 A 0;
+        TNT1 A 0 A_Pain;
+        Goto See;
+
+		GotoStealthKill:
+		TNT1 A 1;
+		TNT1 A 0 S_EXPLODE(100, 1, 1);
+		TNT1 A 1;
+		Goto See;
+
+	Pain.MeleeSlide:
+		TNT1 A 0 ThrustThingZ(0,7,0,1);
+		goto PainFalling;
+	PainFalling:
+         TNT1 A 0 ThrustThingZ(0,7,0,1);
+		 POS4 U 1 A_FACETARGET;
+         POS4 UUU 1 {
+			 if (CheckWallSmash() && !invoker.wallsmashed) {
+				 invoker.wallsmashed = true;
+				 SpawnSmashParticles();
+				  SetStateLabel("GetupFast");
+			 }
+			 ThrustThing(angle*256/360+128, 10, 0, 0);
+		 }
+         POS4 UUUVVVWWWXXXYYY 1 {
+			 if (CheckWallSmash() && !invoker.wallsmashed) {
+				 invoker.wallsmashed = true;
+				 SpawnSmashParticles();
+				SetStateLabel("GetupFast");
+			 }
+		 }
+		 TNT1 A 0 {
+			 invoker.wallsmashed = false;
+		 }
+		 Goto FallingAfterImpact;
+
+	PainRolling:
+		TNT1 A 0 {
+			A_PLAYSOUND("grunt/Pain");
+			invoker.wallsmashed = false;
+		}
+		//TNT1 A 0 A_SpawnProjectile ("PurpleBloodChunk2", 35, 0, random (0, 360), 2, random (0, 160));
+		//TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 35, 0, random (0, 360), 2, random (0, 160));
+		TNT1 A 0 A_RECOIL(19);
+        POS5 AAABBBCCCDDD 1 {
+			 if (CheckWallSmash() && !invoker.wallsmashed) {
+				 invoker.wallsmashed = true;
+				 SpawnSmashParticles();
+				 A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(6, 12), frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+				 SetStateLabel("GetupFast");
+			 }
+		}
+		POS5 DDDFFFHHHIIJJJKKK 1 {
+			 if (CheckWallSmash() && !invoker.wallsmashed) {
+				 invoker.wallsmashed = true;
+				 SpawnSmashParticles();
+				 A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(6, 12), frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+				 SetStateLabel("GetupFast");
+			 }
+		}
+		TNT1 A 0 {
+			invoker.wallsmashed = true;
+			SetStateLabel("GetupFast");
+			return;
+		}
+	goto stand;
+	FallingAfterImpact:
+		ID11 F 1 A_CheckFloor ("GetUp");
+		NULL A 0 A_JumpIf (vel.z == 0, "GetUp");
+		Loop;
+
+	GetUp:
+		TNT1 A 0 A_Stop;
+		TNT1 A 0 A_PlaySound("IMPACT/BODYDROP",6);
+		ID11 RRRRRRRRRR 5 A_JumpIf(vel.z < 0, "FallingAfterImpact");
+		TNT1 A 0 A_SetSize(-1, 46);
+		TNT1 A 0 {
+			bNoPain = false;
+			bSolid = false;
+			bGhost = true;
+		}
+		ID11 Q 10;
+		TNT1 A 0 {
+			bSolid = true;
+			bFORCEXYBILLBOARD = true;
+		}
+        Goto See;
+
+
+
+	 Death.Melee:
+        POS4 UUVWXY 3;
+		TNT1 A 0 A_PlaySound("IMPACT/BODYDROP",6);
+		TNT1 A 0 A_SpawnItem("DeadAlien1");
+        Stop;
+
+
+   Death.Trample:
+   Death.Down:
+		POSS I 0 A_Scream;
+		TNT1 A 0 A_Stop;
+		POSS J 0 A_NoBlocking;
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 2, 0, random (0, 360), 2, random (0, 40));
+		ID11 F 12;
+		POSS K 3;
+        TNT1 A 0 A_SpawnItem("DeadAlien1");
+        Stop;
+
+
+	Death.Shotgun:
+	goto Death;
+		TNT1 A 0 A_StopSound(CHAN_VOICE );
+		TNT1 AAAAAAAA 0 A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(24, 48), frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+	    TNT1 A 0 A_Jump(42, "Death.Landmine","Death.Landmine","Death.Landmine","Death.Shotgunontheface", "Death.SSG");
+	    TNT1 A 0 A_JumpIfCloser(90, "Death.Blast", "Death.Stomp");
+		Goto Death;
+
+	Xdeath:
+	Death.SniperBullet:
+    Death.magnumbullet:
+	Death:
+		TNT1 A 0 {
+			isDead = true;
+			A_FaceTarget();
+			vel = (0,0,0);
+			if(isFrozen) {setStateLabel("death.frostexplosion");}
+		}
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 32, 0, random (0, 360), 2, random (0, 160));
+		TNT1 AAAAAAAAAAAAAAA 0 A_SpawnDefinedParticle("PurpleSplatterEffectDefinition", random(-5, 5), random(-3,3),random(25,40), random(-3,3), random(-3,3),random(1,6));
+		TNT1 AAAA 0 A_SpawnDefinedParticle("PurpleBloodMissileDefinition", frandom(-4, 4), frandom(-4, 4),frandom(0, 2), frandom(-4, 4), frandom(-4, 4), frandom(0, 5), random(0,360));
+		TNT1 A 0 {
+			bNOBLOCKMONST = true;
+			 A_SpawnProjectile("xdeath1Alien", 40, 0, random (0, 360), 2, random (0, 160));
+		}
+		TNT1 A 0 {
+			EmitDefinition('BlueSparkShardTracerDefinition', 1.0, 50);
+		}
+		TNT1 A 0 A_PLAYSOUND("SIEGER/DEATHFLY", CHAN_AUTO, 1.0, 0, 0.45, 0, frandom(0.8,1.0));
+		TNT1 A 0 A_JUMP(256, "ScrewDeath", "WallDeathRight", "WallDeathLeft");
+	WallDeathLeft:
+		TNT1 A 0 A_Scream;
+		TNT1 A 0 A_SetScale(scale.x *-1, scale.y);
+		TNT1 A 0 {
+			invoker.direction = 0;
+			invoker.DeathDirection = 1.5;
+			invoker.directionToCheck = 2;
+		}
+		goto WallDeathLooper;
+	WallDeathRight:
+		TNT1 A 0 A_Scream;
+		TNT1 A 0 {
+			invoker.direction = 1;
+			invoker.DeathDirection = -1.5;
+			invoker.directionToCheck = 1;
+		}
+		goto WallDeathLooper;
+	WallDeathLooper:
+		TNT1 A 0 
+		{
+			vel = (0,0,0);
+		}
+		SID2 AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJKKKK 1 {
+			bNoGravity = true;
+			for(int i = 0; i < 2; i++) {
+				EmitDefinition("SparkOrbSlowDefiniton", 1.0, 2, pitch:-90, offset:(frandom(-25,25), frandom(-10,10), frandom(0,height)), particleSpawnOffsets:25);
+			}
+			A_SPAWNITEMEX("SpawnImpactSmokeSmallSuperShort", 0, 0, 40);
+			A_SPAWNITEMEX("SpawnImpactSmokeSmallSuperShort", 0, 0, 40);
+			A_CHANGEVELOCITY(0, invoker.DeathDirection, -0.2, CVF_RELATIVE);
+			if (checkIfClearDeath(invoker.directionToCheck) || vel.x == 0 && vel.y == 0) {
+				A_SPAWNITEMEX("ExplosionWithLotsOfSparks");
+				A_SPAWNITEMEX("SiegerExplosion");
+				SetStateLabel("death.stomp");
+				return;
+			}
+		}
+		TNT1 A 0 A_SPAWNITEMEX("SiegerExplosion");
+		TNT1 A 0 A_SPAWNITEMEX("ExplosionWithLotsOfSparks");
+		goto death.stomp;
+	ScrewDeath:
+		TNT1 A 0 {
+			vel = (0,0,0);
+			bNoGravity = false;
+		}
+		TNT1 A 0 A_CHANGEVELOCITY(0, 1.1, -0.7, CVF_RELATIVE);
+		SID1 ABC 2;
+	ScrewDeathLoop:
+		SID1 DEFGHIJKLMDEFGHIJKLM 2 {
+			if(level.time % 4 == 0)
+			{
+				A_CHANGEVELOCITY(0, 1, -1.1, CVF_RELATIVE);
+			}
+			A_CHANGEVELOCITY(0, 1, -1.1, CVF_RELATIVE);
+			for(int i = 0; i < 3; i++) {
+				EmitDefinition("SparkOrbSlowDefiniton", 1.0, random(1,2), pitch:-90, offset:(frandom(-25,25), frandom(-10,10), frandom(0,height)), particleSpawnOffsets:25);
+			}
+			if (bIsOnFloor() || (vel.z == 0)) {
+					A_SPAWNITEMEX("ExplosionWithLotsOfSparks");
+					A_SPAWNITEMEX("SiegerExplosion");
+					SetStateLabel("death.stomp");
+					return;
+			}
+		}
+		loop;
+
+
+	FlyToWallLeft:
+		TNT1 A 0 A_Scream;
+		TNT1 A 0 
+		{
+			vel = (0,0,0);
+		}
+		JETB CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 3 {
+			ThrustThing(angle*256/360+64, 6, 0, 0);
+			bNoGravity = true;
+			for(int i = 0; i < 3; i++) {
+				EmitDefinition("SparkOrbSlowDefiniton", 1.0, random(1,2), pitch:-90, offset:(frandom(-25,25), frandom(-10,10), frandom(0,height)), particleSpawnOffsets:25);
+			}
+			if (checkIfClearDeath(2)) {
+				A_SPAWNITEMEX("ExplosionWithLotsOfSparks");
+				A_SPAWNITEMEX("SiegerExplosion");
+				SetStateLabel("death.stomp");
+				return;
+			}
+		}
+		TNT1 A 0 A_SPAWNITEMEX("SiegerExplosion");
+		TNT1 A 0 A_SPAWNITEMEX("ExplosionWithLotsOfSparks");
+		goto death.stomp;
+
+	FlyRight:
+		JETB BBCCCC 3 {
+			A_SetTics(invoker.RateOfFire);		
+			A_FACETARGET();
+			ThrustThing(angle*256/360+64, 1, 0, 0);
+			FireShardCannon(4, 5, 36, 7, 2);
+		}
+		JETB BA 2;
+		goto Idle;
+
+	FlyLeftAmbush:
+		JETB DDEEE 2 {
+			A_SetTics(invoker.RateOfFire);		
+			A_FACETARGET();
+			ThrustThing(angle*256/360+192, 2, 0, 0);
+		}
+		JETB BA 2;
+		goto Idle;	
+	FlyLeft:
+		JETB A 5;
+		JETB DDEEEEE 3 {
+			A_SetTics(invoker.RateOfFire);	
+			A_FACETARGET();
+			ThrustThing(angle*256/360+192, 1, 0, 0);
+			FireShardCannon(4, 5, 36, 7, 2);
+		}
+		JETB BA 2;
+		goto Idle;
+	FlyLeft_rapid:
+		JETB A 2;
+		JETB DE 2 {
+			A_SetTics(invoker.RateOfFire);		
+			A_FACETARGET();
+			ThrustThing(angle*256/360+192, 4, 0, 0);
+			FireShardCannon(4, 5, 36, 7, 2);
+		}
+		JETB BA 2;
+		goto Idle;
+
+	FlyRight_rapid:
+		JETB BC 2 {
+			A_SetTics(invoker.RateOfFire);		
+			A_FACETARGET();
+			ThrustThing(angle*256/360+64, 4, 0, 0);
+			FireShardCannon(4, 5, 36, 7, 2);
+		}
+		JETB BA 2;
+		goto Idle;
+
+
+	Death.Crippled:
+		TNT1 A 0 A_StopSound(CHAN_VOICE );
+		PSSR ABCDE 3;
+		//TNT1 A 0 A_PlaySound("grunt/death");
+        stop;
+
+	Death.Rare:
+	
+TNT1 A 0 A_StopSound(CHAN_VOICE );
+	    TNT1 A 0;
+		TNT1 A 0 A_FACETARGET;
+
+		TNT1 A 0 A_Scream;
+		TNT1 A 0 A_NoBlocking;
+		Stop;
+	Death.FlyForward:
+	TNT1 A 0 A_StopSound(CHAN_VOICE );
+		TNT1 A 0 {
+			bSolid = false;
+		}
+		TNT1 A 0 A_PLAYSOUND("grunt/death");
+		TNT1 A 0 A_SpawnProjectile ("PurpleBloodChunk2", 35, 0, random (0, 360), 2, random (0, 160));
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 35, 0, random (0, 360), 2, random (0, 160));
+		TNT1 A 0 A_RECOIL(-22);
+        POS4 KLMN 3 A_SpawnDefinedParticleProjectile("PurpleBloodMissileDefinition", 15, 0, random (0, 360), 2, random (0, 40));
+		POS4 OPQRST 3 A_JumpIf((Vel.y == 0), "DSFStop2");
+		Goto DSFStop2+1;
+	Death.MeleeImpact:
+	TNT1 A 0 A_StopSound(CHAN_VOICE );
+	Death.FlyBack:
+    TNT1 A 0 {
+		bSolid = true;
+	}
+	TNT1 A 0 A_StopSound(CHAN_VOICE );
+		TNT1 A 0 A_PLAYSOUND("grunt/death");
+		TNT1 A 0 A_SpawnProjectile ("PurpleBloodChunk2", 35, 0, random (0, 360), 2, random (0, 160));
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 35, 0, random (0, 360), 2, random (0, 160));
+		TNT1 A 0 A_RECOIL(7);
+        POS4 KLMN 3 {
+			A_SpawnDefinedParticleProjectile("PurpleBloodMissileDefinition", 15, 0, random (0, 360), 2, random (0, 40));
+			A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(6, 12),  frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+		}
+		POS4 OPQRST 3 {
+			A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(6, 12), frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+			if (CheckWallSmash() && !invoker.wallsmashed) {
+				 invoker.wallsmashed = true;
+				 SpawnSmashParticles();
+				 A_SpawnItem("DeadAlien1");
+			 }
+		}
+		Goto DSFStop2+1;
+	DeathMirror:
+		TNT1 A 0 A_NoBlocking;
+		TNT1 A 0 A_Scream;
+		Stop;
+
+	XDeath:
+
+		TNT1 A 0 A_Recoil(2);
+		TNT1 A 1 A_ClearTarget;
+  	    TNT1 A 0 A_XScream;
+		TNT1 A 0 A_NoBlocking;
+		TNT1 A 0;
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 42, 0, random (0, 290), 2, random (10, 60));
+		TNT1 A 0 A_SpawnProjectile ("XDeath3Alien", 42, 0, random (0, 290), 2, random (10, 60));
+		TNT1 A 0 A_SpawnProjectile ("XDeath2Alien", 42, 0, random (0, 190), 2, random (10, 60));
+        TNT1 A 0 A_SpawnProjectile ("AlienXDeath", 2, 0, random (0, 360), 2, random (0, 160));
+		Stop;
+	}
+}
+
+class SiegerMine : SelacoActor {
+	
+	bool surfaceHit;
+	float soundPitch;
+	bool isDeployed;
+
+	actor stickyFlareActor;
+	bool stickyFlareSuccess;
+
+	const DETONATION_RADIUS = 150;
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		[stickyFlareSuccess, stickyFlareActor] = A_SPawnItemEx("stickyFlare", flags:SXF_SETMASTER);
+		if(stickyFlareActor)
+		{
+			stickyFlareActor.master = self;
+		}
+		A_PLAYSOUND("SIEGER/MINE/DEPLOY", CHAN_AUTO, 1.0, 0, 0.7, pitch:frandom(0.9,1.1));
+	}
+
+	override void tick()
+	{
+		super.tick();
+
+		if(vel.z == 0 && !isDeployed)
+		{
+			isDeployed = true;
+			A_PLAYSOUND("sieger/landminedeploy", CHAN_AUTO, 1.0, 0, 0.7);
+            A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+            A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+            A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+			setStateLabel("PrimeMine");
+
+			// Make it shootable
+			A_ChangeLinkFlags(0);
+			bShootable = true;
+			bBuddha = false;
+			A_SETSIZE(15,15);
+			bThruPlayers = true;
+			bMissile = false;
+			bThruDecorations = true;
+		}
+	}
+
+    override void grabbedTelek() {
+        Super.grabbedTelek();
+        bFriendly = true;
+    }
+
+    override void releaseTelek() {
+        Super.releaseTelek();
+		bFriendly = false;
+    }
+
+    override void throwTelek()
+    {
+        Super.throwTelek();
+		bThruDecorations = false;
+		damageType = "ExplosiveImpact";
+		SetDamage(damage*5);
+        bFriendly = true;
+    }
+
+
+	default {
+		+SelacoActor.AllowGravityManipulation;
+		+SelacoActor.PreventSleep
+		+BOUNCEONWALLS;
+		BounceType "Hexen";
+		gravity 0.6;
+		radius 5;
+		height 5;
+		health 35;
+		mass 10000;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+		PainSound "impact/hardmetal"; 
+		damageType "ExplosionSiegerMine";
+		painchance "ExplosionSiegerMine", 0;
+		damageFactor "ExplosionSiegerMine", 0;
+		bouncefactor 0;
+		bouncecount 2;
+		damage 150;
+		WallBounceFactor 0.5;
+		speed 15;
+		scale 1;
+		+MISSILE;
+		+USEBOUNCESTATE
+		+NOBLOODDECALS
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				soundPitch = 1;
+			}
+			VOXE L 1;
+			loop;
+		death:
+			TNT1 A 0
+			{
+				if(isDeployed)
+				{
+					setState(findState("Detonate"));
+				}
+			}
+			VOXE L 1;
+		PrimeMine:
+			VOXE L 35;
+		PrimeTick:
+			// Prime
+			VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 10 {
+				A_SPAWNITEMEX("stickyFlareLarge");
+				A_LookEx(LOF_NOSOUNDCHECK,0,DETONATION_RADIUS,0,360,"Detonate");
+				A_PLAYSOUND("SIEGER/MINE/BEEP", CHAN_AUTO, 0.15, 0, 1.1, pitch:soundPitch);
+			}
+			TNT1 A 0
+			{
+				soundPitch = 1.1;
+			}
+			VOXE LLLLLL 4
+			{
+				A_LookEx(LOF_NOSOUNDCHECK,0,DETONATION_RADIUS,0,360,"Detonate");
+				A_SPAWNITEMEX("stickyFlareLarge");
+				A_PLAYSOUND("SIEGER/MINE/BEEP", CHAN_AUTO, 0.15, 0, 1.1, pitch:soundPitch);
+			}
+		Detonate:
+			// Explode
+			TNT1 A 0 {
+				S_EXPLODE(damage, 150);
+				spawnLight(900, 370, 90, 90, 0, shadowRequirement:-1 ,overbright:0, divisionSpeed:1.05, zOffset:height+13);
+				int particleQuality = GetCvar("r_particleintensity");
+                for(int x=0;x<particleQuality*2;x++) {
+                    A_SpawnItemEx ("LargeExplosionSmokeSlow",frandom(-45,45), frandom(-45,45), frandom(0,32),frandom(0.1,0.7), 0, frandom(-0.6,0.6), angle:random(0,360));
+                }
+				for(int x=0;x<7;x++)
+				{
+					A_SPAWNITEMEX("ScatterSmoke",frandom(-10,10), frandom(-10,10), frandom(0,25),frandom(0.1,0.4), 0, frandom(-0.3,0.3), angle:random(0,360));
+				}
+                if(CheckProximity("Dawn", DETONATION_RADIUS, 1)) {
+                    ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 6);
+                    ACS_NamedExecuteAlways("SpawnHudShake", 0, 10, 10, 35);
+					Dawn.ShakeWeapon(10,10);
+                }
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(2, 2, 2, 14, 0, 300, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+                }
+				A_PLAYSOUND("STICKYBOMB/EXPLODE", CHAN_AUTO, 1.0, 0, 0.9, pitch:frandom(0.67,1.06));
+			}
+			stop;
+	}
+}
+
+class stickyFlare : SelacoActor
+{
+
+	override void tick()
+	{
+		super.tick();
+		if(getClassName() == "stickyFlare")
+		{
+			if(master)
+			{
+				A_WARP(AAPTR_MASTER,0,0,0, 0, WARPF_USECALLERANGLE | WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+			}
+			else
+			{
+				destroy();
+			}
+		}
+	}
+
+	default 
+	{
+		+NOINTERACTION;
+		+SelacoActor.PreventSleep
+		Renderstyle "add";
+		alpha 0.25;
+		scale 0.5;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			PGEY A -1 bright;
+			stop;
+	}
+}
+
+class stickyFlareLarge : stickyFlare
+{
+	default 
+	{
+		alpha 0.7;
+		scale 0.75;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			PGEY A 1 bright;
+			PGEY AAAAA 1 A_FADEOUT(0.13, FTF_REMOVE);
+			stop;
+	}
+}

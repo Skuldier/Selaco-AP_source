@@ -1,0 +1,2355 @@
+class FastModeClutter : DecorationObject {
+	default {
+		Activation THINGSPEC_Default;
+	}
+
+    states {
+        destroy:
+            TNT1 A 1;
+            stop;
+    }
+}
+
+class FasterModeClutter : FastModeClutter {
+
+}
+
+
+mixin class NoInteractionClutter {
+
+}
+
+class PaperStack : PickupableDecoration
+{
+    default {
+        +NOBLOODDECALS
+		+SELACOACTOR.decorativeActor
+		+SelacoActor.AllowRandomizerReplacement;
+		-PUSHABLE
+		+CANPASS
+		+usespecial
+        +shootable
+		PickupableDecoration.ThrowVel 7;
+		PickupableDecoration.MaxThrowVel 20;
+		PickupableDecoration.HoldDistance 35;
+		-PickupableDecoration.CanDamageGlass;
+		+PickupableDecoration.NoThrowDamage;
+        Radius 10;
+        Height 6;
+		mass 150;
+        Health 10;
+        scale 0.8;
+        deathsound "dest/paper";
+        Bloodtype "PaperPieceUp", "PaperPieceUp", "PaperPieceUp";
+    }
+    States
+    {
+        Spawn:
+            VOXE L -1;
+            loop;
+        Looper:
+            VOXE L -1;
+            loop;
+		Throw:
+            TNT1 A 0 A_SpawnProjectile ("PAPERSMOKE", 5, 0, random (0, 10), 2, random (0, 10));
+            VOXE L 3 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6);
+			VOXE LLLLLLL 1 {
+				EmitDefinition('PaperPieceParticleDefinition', 1.0, 5);
+				A_FADEOUT(0.15);
+			}
+			stop;
+        Death:
+			TNT1 A 0 A_SPAWNITEMEX("PaperPieceUp");
+            TNT1 A 0 A_SpawnProjectile ("PAPERSMOKE", 5, 0, random (0, 10), 2, random (0, 10));
+            VOXE L 1 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6);
+            stop;
+        Destroy:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class PaperDecal : SelacoActor {
+	mixin Steppable;
+	override void postbeginPlay() {
+		passiveStepSound = "STEP/PAPERSTACK";
+		//bSteppableAlerts = false;
+		becomeSteppable(50, 2);
+	}
+
+	default {
+		//$Category SelacoDecorations
+		scale 1.0;
+		height 2;
+		radius 25;
+		DistanceCheck "r_ThingLOD";
+		tag "Paper Decals";
+	}
+	states {
+		spawn:
+			TNT1 A 0;
+			PDEC A -1 {
+				SleepIndefinite();
+			}
+			stop;
+	}
+}
+
+
+//19920
+class GWYN_BOTTLE : Interactable {
+	const AMOUNT_OF_SOAP = 8;
+	int amountDispensed;
+
+	override void Activate(actor Activator) {
+		super.Activate(Activator);
+		A_StartSound("script/SOAPEMPT", CHAN_AUTO, 0, 0.7, 0.7);
+	}
+
+	default {
+		+SHOOTABLE
+		+BloodSplatter
+		+NOBLOODDECALS
+		+USESPECIAL
+		tag "$OBJECT_SOAPBOTTLE";
+		scale 0.10;
+		Activation THINGSPEC_Switch;
+		Health 10;
+		BloodType "", "", "";
+		Radius 5;
+		Height 10;
+	}
+	states {
+		Spawn:
+			GWYY A 0;
+		Idle:
+			GWYY A -1;
+			stop;
+		Inactive:
+		Active:
+			TNT1 A 0 {
+				amountDispensed++;
+				if(amountDispensed <= AMOUNT_OF_SOAP) {
+					SetStateLabel("Dispense");
+				}
+			}
+			GWYY BCDEEEEEDCB 1;
+			goto Idle;
+		Dispense:
+			TNT1 A 0 A_PlaySound("script/SOAPDISP",CHAN_AUTO, 0.6	, 0, 1.0, false, frandom(0.9, 1.0));
+			GWYY BCD 1;
+			TNT1 A 0 A_SPAWNITEMEX("GWYNSOAP", 2, 1, 5);
+			GWYY EEEEEDCB 1;
+			goto Idle;
+		Death:
+			TNT1 A 0 A_playSound("script/GWYNBRK");
+			TNT1 A 0 {
+				if(amountDispensed <= AMOUNT_OF_SOAP) {
+					A_SpawnItemEx("WaterParticleXSmall", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2);
+				}
+				A_SpawnItemEx("WaterParticleXSmall", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2);
+			}
+			stop;
+	}
+}
+//19924
+class Dishwasher : PickupableDecoration {
+	default {
+		tag "$OBJECT_DISHWASHERLIQUID";
+		+SHOOTABLE
+		-SOLID
+		+CANNOTPUSH
+		+BloodSplatter
+		+NOBLOODDECALS
+		+USESPECIAL
+		PickupableDecoration.grabSound "pickup/dishwasher";
+		PickupableDecoration.landingSound "land/dishwasher";
+		Activation THINGSPEC_Switch;
+		Health 10;
+		mass 300;
+		BloodType "WaterSplashBaseSmallShort", "WaterSplashBaseSmallShort", "WaterSplashBaseSmallShort";
+		Radius 5;
+		Height 10;
+	}
+	states {
+		Idle:
+		Spawn:
+			VOXE L -1;
+			stop;
+		Death:
+			TNT1 A 0 {
+				A_playSound("script/GWYNBRK");
+				A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2); 
+			}
+			stop;
+	}
+}
+
+class ToiletCleaner : DishWasher {
+	default {
+		tag "$OBJECT_TOILETCLEANER";
+	}
+}
+
+class WindowCleaner : DishWasher {
+	default {
+		tag "$OBJECT_TOILETCLEANER";
+	}
+}
+
+class MugGrenade : MugSpawner {
+	states {
+		spawn:
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1  {
+				mugToSpawn = MugList[random(0, MugList.size()-1)];
+				A_SpawnItemEx(mugToSpawn, frandom(-45,45),frandom(-45,45),frandom(0,60),frandom(-5,5),frandom(-5,5),frandom(3,7));
+			}
+			stop;
+	}	
+}
+
+class WineBottle : Bottle1 {
+	default {
+		//category SelacoDecorations
+		+SelacoActor.thruplayers;
+		+SelacoActor.Decorativeactor;
+		-pushable;
+		Renderstyle "normal";
+		alpha 1.0;
+		friction 0.25;
+		tag "$OBJECT_WINEBOTTLE";
+		radius 6;
+		Health 1;
+		height 15;
+		scale 1.85;
+	}
+}
+//16272
+class WineGlass : MUG_BASE
+{
+	default {
+		tag "$OBJECT_WINEGLASS";
+		DistanceCheck "r_ThingLOD";
+		Alpha 0.8;
+		height 14;
+		radius 6;
+		+PUSHABLE
+		+SelacoActor.thruplayers
+		+SHOOTABLE
+		+BLOODSPLATTER
+		+NOBLOODDECALS
+		BloodType "", "", "";
+		Scale 1;
+	}
+	States
+	{
+		Death.Shotgun:
+		Death.ExplosiveImpact:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 5);
+			goto Death.Finish;
+		Death.Finish:
+		Death.FallDamage:
+		Death:
+			TNT1 A 0 A_SPAWNITEMEX("WaterSplashBaseSmall", 0, 0, 1);
+			TNT1 A 0 A_playSound("dest/glassm", CHAN_5, 0.8, pitch:frandom(1.1,1.25));
+			TNT1 A 0 A_SPAWNITEMEX("WaterSplashEffect", 0, 0, 0, 0, 0, 1);
+			TNT1 A 0 {
+				EmitDefinition('GlassParticleSmall360Definition', 1.0, 27, angle: 0, speed: 2);
+				EmitDefinition('GlassParticleSmall360BriefDefinition', 1.0, 42, angle: 0, speed: 2);
+			}
+			stop;
+	}
+}
+
+class GenericCorkBottle : WineGlass {
+	default {
+		tag "$OBJECT_BOTTLE";
+	}
+}
+
+//16273
+class DrinkingGlass : WineGlass  {
+	default {
+		tag "$OBJECT_DRINKINGGLASS";
+	}
+}
+
+
+class JUG_BASE : PickupableDecoration {
+	default {
+       +solid;
+        -NOBLOOD;
+		+PickupableDecoration.dumpsterCompatible;
+		PickupableDecoration.HoldDistance 40;
+		PickupableDecoration.FallDamageThreshold FALLTHRESHOLD_CRATE;
+		PickupableDecoration.grabSound "PICKUP/MUG";
+		+SELACOACTOR.ThruDecorations;
+		+SELACOACTOR.thruplayers;
+		tag "$OBJECT_COFFEEPOT";
+        mass 250;
+        Health 10;
+        radius 6;
+        height 10;
+        scale 0.65;
+	}
+	states{
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1;
+			stop;
+		Death.FallDamage:
+			TNT1 AAA 0 A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Shotgun:
+		Death.ExplosiveImpact:
+			TNT1 AAA 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 5);
+			goto Death.Finish;
+		Death:
+			TNT1 AAA 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Finish:
+		    TNT1 AAAAAAAAAAAAAAAA 0 A_SpawnProjectile("SmallGlassParticleSpawner", frandom(-0.5, 0.5), random(-1, 1), random(3, 360), CMF_AIMDIRECTION , frandom(-30,-90));
+			TNT1 A 0 A_SPAWNITEMEX("Jugpiece", 0, 0, 16, frandom(-1,1), frandom(-1,1), 4);
+			TNT1 A 0 A_playSound("dest/glassm");
+			stop;
+	}
+}
+
+class CoffeePot : JUG_BASE {
+	default {
+		tag "$OBJECT_COFFEEJUG";
+	}
+}
+
+class TeaPot : JUG_BASE {
+	default {
+		tag "$OBJECT_TEAJUG";
+	}	
+}
+
+
+class grasspatchmesh : actor {
+	states {
+		spawn: 
+			VOXE L -1;
+			stop;
+	}
+}
+
+class ToiletPaper : PickupableDecoration {
+
+	override void tick() {
+		super.tick();
+		if(WaterLevel > 0) {
+			if(getClassName() == "ToiletPaper") {
+				bNoInteraction = true;
+				A_SPAWNITEMEX("ToiletPaperWet");
+				SetStateLabel("Destroy");
+			}
+			if(getClassName() == "KitchenRoll") {
+				bNoInteraction = true;
+				A_SPAWNITEMEX("KitchenRollWet");
+				SetStateLabel("Destroy");
+			}
+		}
+	}
+
+		//category SelacoDecorations
+	default {
+
+		+NOBLOODDECALS
+		-solid
+		-PUSHABLE
+		-NOBLOOD
+		+shootable
+		+Rollsprite
+		+SelacoActor.AllowRandomizerReplacement
+		+SelacoActor.DecorativeActor;
+		+SelacoActor.thruplayers
+		-INTERPOLATEANGLES;
+		tag "$OBJECT_TOILETPAPER";
+		scale 1;
+		health 10;
+		painchance 255;
+		radius 8;
+		height 8;
+		mass 150;
+		PickupableDecoration.HoldDistance 40;
+		PickupableDecoration.HoldHeight -2;
+	 	PickupableDecoration.dumpsterSound "trashbin/paper";
+		+PickupableDecoration.dumpsterCompatible;
+		Activation THINGSPEC_Switch;
+		deathsound "dest/paper";
+		Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP";
+	}
+	States {
+    	Spawn: 
+            VOXE L -1;
+			loop;
+        Death:
+			TNT1 A 0 A_SPAWNITEMEX("PaperChunk_UP");
+			TNT1 A 0 A_SpawnProjectile ("ToiletPaperEmpty", 4, 0, frandom(170, 190));
+            TNT1 A 0 A_SpawnProjectile ("PaperDustEffect", frandom(5,15), 0, random (0, 10), 2, random (0, 10));
+            VOXE L 1 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6);
+            stop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class ToiletPaperWet : ToiletPaper {
+	override void BeginPlay() {
+		super.BeginPlay();
+		A_playSound("script/GWYNBRK");
+		A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2);
+	}
+}
+
+class KitchenRoll : ToiletPaper {
+		//category SelacoDecorations
+	default {
+		scale 1.1;
+		height 14;
+		tag "$OBJECT_KITCHENROLL";
+	}
+	states {
+        Death:
+			TNT1 A 0 A_SPAWNITEMEX("PaperChunk_UP");
+			TNT1 A 0 A_SpawnProjectile ("KitchenRollEmpty", 4, 0, frandom(179, 181));
+            TNT1 A 0 A_SpawnProjectile ("PAPERSMOKE", 5, 0, random (0, 10), 2, random (0, 10));
+            VOXE L 1 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6);
+            stop;
+	}
+}
+
+class KitchenRollWet : KitchenRoll {
+	override void BeginPlay() {
+		super.BeginPlay();
+		A_playSound("script/GWYNBRK");
+		A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2);
+	}
+}
+
+
+class MagazineSpawner : actor {
+	static const String MagazineList[] =
+		{
+			"MAGAZINE_HUNTER",
+			"MAGAZINE_MARSTHETIC",
+			"MAGAZINE_DAWN",
+			"MAGAZINE_MUSICALPLANET",
+			"MAGAZINE_FASHIONSHOW",
+			"MAGAZINE_WEAPONLIFE",
+			"MAGAZINE_VISION",
+			"MAGAZINE_SOLDIERS",
+			"MAGAZINE_STARSHIP",
+			"MAGAZINE_EARTH",
+			"MAGAZINE_HEADSHOT",
+			"MineralExpoFlyer",
+			"ColorfulCureFlyer",
+			"BurgerJunkieFlyer"
+		};
+	string magToSpawn;
+
+	override void PostBeginPlay() {
+		magToSpawn = MagazineList[random(0, MagazineList.size()-1)];
+		super.PostBeginPlay();
+	}
+
+	default {
+    	scale 0.65;
+	}
+
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 0  {
+				A_SpawnItemEx(magToSpawn);
+			}
+			stop;
+	}
+}
+
+class MAGAZINE_DAWN : PickupableDecoration
+{
+	default {
+		tag "$OBJECT_MAGAZINE_SELACOTODAY";
+        +shootable;
+        -NoInteraction;
+        +NOBLOODDECALS;
+		+SelacoActor.thruplayers;
+		-solid
+		-PUSHABLE
+		radius 7;
+		height 9;
+		friction 0.8;
+		mass 150;
+		PickupableDecoration.grabSound "PCKBOOK";
+        PickupableDecoration.dumpsterSound "trashbin/paper";
+		PickupableDecoration.landingSound "landing/paper";
+		+PickupableDecoration.dumpsterCompatible;
+        PickupableDecoration.HoldDistance 30;
+		+PickupableDecoration.NoThrowDamage;
+        +HITSCANTHRU;
+        +SelacoACtor.EnemyProjectilePassThru;
+        deathsound "dest/paper";
+        Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP";
+        health 1;
+        scale 0.8;
+        yscale 1.3;
+    }
+	States {
+		Spawn:
+			VOXE L -1;
+			stop;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("PaperChunk_UP");
+			TNT1 AAAA 0 A_SpawnProjectile("PaperDustEffectShorter", frandom(5,15), 0, random (0, 10), 2, random (0, 10));
+			TNT1 A 0 A_PlaySound("dest/paper", CHAN_5, 0.6);
+			stop;
+	}
+}
+
+class MAGAZINE_MARSTHETIC : MAGAZINE_DAWN { 
+	default {
+		tag "$OBJECT_MAGAZINE_FASHIONMAGAZINE";
+	}
+}
+class MAGAZINE_HEADSHOT : MAGAZINE_DAWN
+{
+	default {
+		tag "$OBJECT_HEADSHOT_MAGAZINE";
+	}
+}
+
+class MAGAZINE_STARLIGHT : MAGAZINE_DAWN
+{
+	default {
+		tag "$OBJECT_MAGAZINE_STARLIGHT";
+	}	
+}
+
+class MAGAZINE_HUNTER : MAGAZINE_DAWN {
+	default {
+		tag "$OBJECT_MAGAZINE_COMICBOOK";
+	}
+ }
+
+class MAGAZINE_MUSICALPLANET : MAGAZINE_DAWN {
+	default {
+		tag "$OBJECT_MAGAZINE_MUSICMAGAZINE";
+	}
+ }
+
+class MAGAZINE_FASHIONSHOW : MAGAZINE_DAWN {
+	default {
+		tag "$OBJECT_MAGAZINE_FASHIONMAGAZINE";
+	}
+ }
+
+class MAGAZINE_DAWNTagged : MAGAZINE_DAWN { }
+
+class MAGAZINE_WEAPONLIFE : MAGAZINE_DAWN { 
+	default {
+		tag "$OBJECT_MAGAZINE_WEAPONSMAGAZINE";
+	}
+ }
+
+class MAGAZINE_VISION : MAGAZINE_DAWN {
+	default {
+		tag "$OBJECT_MAGAZINE_MOVIEMAGAZINE";
+	}
+ }
+
+class MAGAZINE_SOLDIERS : MAGAZINE_DAWN { 
+	default {
+		tag "$OBJECT_MAGAZINE_WEAPONSMAGAZINE";
+	}
+}
+
+class MAGAZINE_STARSHIP : MAGAZINE_DAWN {
+	default {
+		tag "$OBJECT_MAGAZINE_COMICBOOK";
+	}
+ }
+
+class MAGAZINE_EARTH : MAGAZINE_DAWN {
+	default {
+		tag "$OBJECT_MAGAZINE";
+	}
+}
+
+class MAGAZINE_BOXERSOFEARTH : MAGAZINE_DAWN
+{
+	default {
+		tag "$OBJECT_MAGAZINE";
+	}
+}
+
+class GenericPerfumeBottle : PickupableDecoration
+{
+	string smokePuffColor;
+	Property SmokePuffColor : smokePuffColor;
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		for(int x=0;x<8;x++)
+		{
+			A_SPAWNITEMEX(smokePuffColor, frandom(-3,3), frandom(-3,3), frandom(1,9), frandom(0.1,0.15), 0, frandom(0,0.15), angle:random(0,360));
+		}
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+	default {
+        +solid;
+        -NOBLOOD;
+		GenericPerfumeBottle.smokePuffColor "PerfumeSmokeBlue";
+		+PickupableDecoration.dumpsterCompatible;
+		PickupableDecoration.HoldDistance 40;
+		PickupableDecoration.FallDamageThreshold FALLTHRESHOLD_WEAK;
+		PickupableDecoration.grabSound "PICKUP/MUG";
+		tag "$OBJECT_PERFUME";
+		bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+        mass 100;
+        Health 10;
+        radius 9;
+        height 12;
+        scale 0.65;
+    }	
+
+    states
+    {
+		Death.FallDamage:
+			TNT1 A 0 A_DamageSelf(500);
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Shotgun:
+		Death.ExplosiveImpact:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 5);
+			goto Death.Finish;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Finish:
+		    TNT1 A 0
+            {
+				A_SPAWNITEMEX("Sprayer", 0, 0, 2, frandom(3,7), 0, frandom(2,8), angle:random(0,360));
+                EmitDefinition('GlassParticleSmall360Definition', 1.0, 16, angle: 0, speed: 2);
+				EmitDefinition('GlassParticleSmall360BriefDefinition', 1.0, 5, angle: 0, speed: 2);
+            }
+			TNT1 A 0 A_playSound("dest/glassm");
+			stop;
+    }
+
+}
+
+class JeanLucc : GenericPerfumeBottle {
+	states {
+		Idle:
+			VOXE L -1;
+			loop;
+		Spawn:
+            VOXE L -1;
+			goto Idle;
+		Destroy:
+			TNT1 A 0;
+			stop;
+		Death.FallDamage:
+			TNT1 A 0 A_DamageSelf(500);
+			TNT1 A 0 A_SpawnItemEx("JeanLuccLit", 0, 0, 16, frandom(-2,2), frandom(-2,2), 0.2);
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Shotgun:
+		Death.ExplosiveImpact:
+			TNT1 A 0 A_SpawnItemEx("JeanLuccLit", 0, 0, 16, frandom(-2,2), frandom(-2,2), frandom(7,10));
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 5);
+			goto Death.Finish;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("JeanLuccLit", 0, 0, 16, frandom(-2,2), frandom(-2,2), 4);
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.Finish:
+		    TNT1 A 0 {
+				EmitDefinition('BlueGlassDefinition', chance:1.0, numTries:27);
+			}
+			TNT1 A 0 A_playSound("dest/glassm");
+			stop;
+	}
+}
+
+class Debugger : PickupableDecoration {
+
+	string deathModel;
+	property DeathModel : deathModel;
+
+	default {
+		tag "$OBJECT_BUGSPRAY";
+		DamageFactor "fire", 255;
+		PickupableDecoration.grabSound "PICKUP/MUG";
+        PickupableDecoration.dumpsterSound "trashbin/paper";
+		PickupableDecoration.landingSound "impact/thincan";
+		Debugger.deathModel "DebuggerDown";
+		+SelacoActor.thruplayers
+		scale 0.7;
+		radius 5;
+		height 20;
+		health 1;
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1 {
+				// Debugger joke, blame @Cockatrice
+				if(developer > 0) {
+					A_SetScale(3);
+					A_SETSIZE(10, 30);
+				}
+				A_SETPITCH(0);
+			}
+		Death.Shotgun:
+		Death.ExplosiveImpact:
+			TNT1 A 0 A_SpawnItemEx(deathModel, 0, 0, 16, frandom(-2,2), frandom(-2,2), 4);
+			TNT1 A 0 A_SpawnItemEx("DebuggerLit", 0, 0, 16, frandom(-2,2), frandom(-2,2), 4);
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 5);
+			goto Death.Finish;
+		Death:
+			TNT1 A 0 A_SpawnItemEx(deathModel, 0, 0, 16, frandom(-2,2), frandom(-2,2), 4);
+			TNT1 A 0 A_SpawnItemEx("DebuggerLit", 0, 0, 16, frandom(-2,2), frandom(-2,2), 4);
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death.fire:
+			TNT1 A 0 A_AlertMonsters();
+			TNT1 A 0 A_SpawnItemEx("debuggerDownSmoker", 0, 0, 16, frandom(-2,2), frandom(-2,2), 12);
+			TNT1 A 0 {
+				for(float x=40.0;x<=360.0;x=x+40.0) {
+					A_SPAWNITEMEX("FireballProjectile", 10,0,23,25,0,0,x,0);
+				}
+			}
+		stop;
+		Death.Finish:
+			TNT1 A 0 A_playSound("dest/glassm");
+			stop;
+	}
+}
+
+class TornadoSpray : Debugger
+{
+
+	override void itemThrownInDumpster(actor dumpster)
+	{
+		super.itemThrownInDumpster(dumpster);
+		if(dumpster)
+		{
+			dumpster.setStateLabel("TornadoStart");
+		}
+	}
+	
+	default
+	{
+		+PickupableDecoration.dumpsterCompatible;
+		Debugger.deathModel "TornadoSprayDown";
+		tag "$OBJECT_TORNADOSPRAY";
+	}
+}
+
+class BAG_BASE : PickupableDecoration {
+
+	const PAPER_CHANCE = 10;
+
+	static const String BagList[] =
+		{
+			"BAG_FALLOUT",
+			"BAG_GREEN",
+			"BAG_YELLOW",
+			"BAG_PURPLE",
+			"BAG_BLUE"
+	};	
+
+	String bagToSpawn;
+	override void PostBeginPlay() {
+		bagToSpawn = BagList[random(0, BagList.size()-1)];
+		if(args[0] == 1)
+		{
+			bagToSpawn = "BAG_SPACEBRO";
+		}
+		super.PostBeginPlay();
+	}
+
+	default {
+		+SHOOTABLE;
+		+SOLID;
+		-NOBLOOD;
+		+BloodSplatter;
+		+NOBLOODDECALS;
+		+SelacoActor.AllowRandomizerReplacement;
+		+SelacoActor.thruplayers
+		Health 80;
+		DamageFactor "BulletAlien", 2;
+		painchance 255;
+		mass 400;
+		radius 16;
+		height 11;
+		tag "$Dufflebag";
+		painSound "impact/dufbag";
+		PickupableDecoration.grabSound "PICKUP/BAG";
+		PickupableDecoration.landingSound "impact/bag";
+		+SelacoActor.AllowGravitymanipulation;
+		BloodType "BulletImpactEffectCloth", "BulletImpactEffectCloth", "BulletImpactEffectClothBulletImpactEffectCloth";
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(getClassName() == "BAG_BASE") {
+					A_SPAWNITEMEX(BagToSpawn,0,0,0,0,0,0,SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+					destroy();
+				}
+			}
+			VOXE L -1;
+			loop;
+		Pain:
+			TNT1 A 0
+			{
+				A_SETANGLE(angle+random(3,7));
+			}
+			TNT1 A 0 A_PAIN();
+			goto spawn;
+		Death:
+			TNT1 AAA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(-10,10), frandom(-20,20), random(-5,20));
+			TNT1 A 0
+			{
+				if(random(0,100) <= PAPER_CHANCE)
+				{
+					emit('PaperPieceParticle', 1.0, random(10,20));
+				}
+				A_PLAYSOUND("destroy/dufflebag", CHAN_AUTO, 0.5);
+				for(int x=0;x<15;x++)
+				{
+					A_SPAWNITEMEX("ClutterSprites", random(-15,15), random(-15,15), random(5,20), frandom(0.2,7), 0, frandom(1,12), angle:random(0,360));
+				}
+			}
+			TNT1 A 0;
+			stop;
+		// Used for SE_06A's sliding door
+		ShrinkSize:
+			TNT1 A 0
+			{
+				A_SETSIZE(7, -1);
+			}
+			goto spawn;
+	}
+}
+
+class BAG_BLUE : BAG_BASE {
+
+}
+
+class BAG_GREEN : BAG_BASE {
+
+}
+
+class BAG_YELLOW : BAG_BASE {
+
+}
+
+class BAG_FALLOUT : BAG_BASE {
+
+}
+
+class BAG_PURPLE : BAG_BASE {
+
+}
+
+class BAG_SPACEBRO : BAG_BASE {
+
+}
+
+// EFFECTS
+class BrokenplasticPiece : SELACOACTOR {
+	default {
+        radius 6;
+        height 10;
+        scale 0.65;
+		+ROLLSPRITE
+		+DOOMBOUNCE
+		+USEBOUNCESTATE
+		+missile
+		BounceFactor 0.6;
+		Gravity 0.7;
+		BounceCount 3;
+	}
+
+	states {
+		Spawn:
+			VOXE L 0;
+			VOXE L 1 {
+				A_ChangeVelocity(frandom(-4,4), frandom(-4,4), 3);
+			}
+		Looper:
+			VOXE L 4 {
+				A_SetAngle(angle + 25);
+				A_SETROLL(roll+25);
+			}
+			loop;
+		Bounce:
+			TNT1 A 0 A_PLAYSOUND("bounce/plasticsmall", CHAN_AUTO, 1.0, 0, 0.9, 0, frandom(0.9,1.1));
+			goto Looper;
+		Death:
+			TNT1 A 0 {
+				A_PLAYSOUND("bounce/plasticsmall");
+			}
+			VOXE L 1700 {
+				A_SETROLL(0);
+				A_SetPitch(45);
+			}
+			stop;
+	}
+}
+
+class JeanLuccLit : BrokenplasticPiece {
+	
+}
+
+class BaronOfGelLit : BrokenplasticPiece {
+	
+}
+
+class JugPiece : BrokenplasticPiece {
+
+}
+
+class DebuggerLit : BrokenplasticPiece {
+	states {
+		Death:
+			TNT1 A 0 {
+				A_PLAYSOUND("bounce/plasticsmall");
+			}
+			VOXE L 1700 {
+				A_SETROLL(0);
+				A_SetPitch(0);
+			}
+	}
+}
+
+class DebuggerDown : BrokenplasticPiece {
+	default {
+		-SOLID;
+		+THRUACTORS;
+	}
+	int totalTicks;
+	override void BeginPlay() {
+		super.BeginPlay();
+		A_PlaySound("Steam/Loop", CHAN_5, 1, 1, 1);
+	}
+
+	override void tick() {
+		super.tick();
+
+		if(totalTicks % 2 && totalTicks < 180) {
+			A_SpawnItemEx("SteamParticle", 3, 0, 0, 0, 0, 2);
+			A_SetAngle(angle+15, SPF_INTERPOLATE);
+			A_CHANGEVELOCITY(frandom(-0.6,0.8), frandom(-0.7,0.7), frandom(-0.2,0.7));
+		}
+		if (totalTicks >= 100) {
+			A_StopSound(CHAN_5);
+		} else {
+			totalTicks++;
+		}
+	}
+	
+	states {
+		Bounce:
+			TNT1 A 0 A_PLAYSOUND("bounce/plasticsmall", CHAN_AUTO, 1.0, 0, 0.9, 0, frandom(0.9,1.1));
+			TNT1 A 0 SetStateLabel("Looper");
+		Death:
+			TNT1 A 0 {
+			 	A_PLAYSOUND("bounce/plasticsmall", CHAN_AUTO, 1.0, 0, 0.9, 0, frandom(1.7,1.9));
+			}
+			VOXE L 90 {
+				A_SETROLL(0);
+				A_SetPitch(0);
+			}
+			VOXE L 1300
+			{
+				sleepIndefinite();
+			}
+	}
+}
+
+class TORNADOSPRAYDOWN : DebuggerDown { }
+
+class DebuggerDownSmoker : DebuggerDown {
+
+	override void BeginPlay() {
+		A_PLAYSOUND("dest/mortar1", CHAN_AUTO, 1.0, 0, 0.7);
+	}
+
+	override void tick() {
+		super.tick();
+
+		if(totalTicks % 2 && totalTicks < 180) {
+			A_SpawnItemEx("SteamParticle", 3, 0, 0, 0, 0, 2);
+			A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick");
+			A_SetAngle(angle+15, SPF_INTERPOLATE);
+			A_CHANGEVELOCITY(frandom(-0.6,0.8), frandom(-0.7,0.7), frandom(-0.2,0.7));
+		}
+		if (totalTicks >= 100) {
+			A_StopSound(CHAN_5);
+		} else {
+			totalTicks++;
+		}
+	}
+}
+
+class Toilet : Interactable {
+
+	const MAX_ITEMS_FLUSHED = 3;
+
+	int DestructionParticleAngle;
+	vector3 oldPosition;
+	int oldAngle;
+    int currentFrame;
+    int objectsFlushed;
+    int blockedSprays;
+    int aliveticks;
+    int flushCooldown;
+    int particleIntensity;
+    int particleFailChance;
+
+    const maxFrames = 2;
+
+	bool isGrabbedByTelek;
+	bool firstGrab;
+    bool insertedDishliquid;
+
+	bool noWaterSprayOnDeath;
+    bool toiletBlocked;
+    actor flushedObject;
+
+	property DestructionParticleAngle : DestructionParticleAngle;
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		Stats.AddStat(STAT_TOILETS_DESTROYED, 1, 0);
+		bPreventSleep = true;
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+		int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		applyToiletDamage(damageType);
+		return res;
+	}
+
+	void applyToiletDamage(Name damageType = "BulletAlien")
+	{
+        // Damage the toilet
+        if(currentFrame < maxFrames && health > 0) {
+            currentFrame++;
+            A_PlaySound("dest/plate",CHAN_AUTO, 0.45, 0, 0.9, false, frandom(0.86, 1.1));
+        } else {
+            die(self, self);
+        }
+
+        for(int x=0;x<20;x++) {
+            A_SpawnDefinedParticle("WaterSplatterEffectDefinition", frandom(-1, 1), frandom(-1,1), random(1,15), frandom(-2,2), frandom(-2,2), frandom(1,4), angle:random(0,359));
+        }
+
+        if(damageType == "SHOTGUN") {
+			for(int x = 0; x<=4;x++) {
+				A_SpawnDefinedParticle("BulletImpactEffectConcreteDefinition", frandom(-8,8), frandom(-8,8), frandom(0,32));
+			}
+			EmitDefinition('WaterSplatterEffectSmallDefinition', chance: 1.0, numTries: 36, angle:random(-55,55), pitch:frandom(-15, -45), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)), velocity:(0, 0, frandom(1,2)));	
+            emit('ToiletChunk', chance: 1.0, numTries: 16, angle:frandom(-1*destructionParticleAngle,destructionParticleAngle), speed:5, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)), velocity:(0,0,4));
+        }
+		if(damageType == "ExplosiveImpact") {
+			noWaterSprayOnDeath = true;
+            emit('ToiletChunkWild', chance: 1.0, numTries: 12, random(-1*destructionParticleAngle,destructionParticleAngle), speed:13, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+        } else {
+			emit('ToiletChunk', chance: 1.0, numTries: 18, random(-1*destructionParticleAngle,destructionParticleAngle), speed:0, offset:(frandom(0,6), frandom(-3,3),frandom(10,24)));
+		}
+        
+        if(currentFrame == 2) {
+            ActivationType = THINGSPEC_DEFAULT;
+            bUseSpecial = false;
+            flushCooldown = 0;
+        }
+	}
+
+
+    override void grabbedTelek()
+    {
+		Super.grabbedTelek();
+		isGrabbedByTelek = true;
+		oldAngle = angle;
+		oldPosition = (pos.x, pos.y, pos.z);
+		firstGrab = true;
+		setStateLabel("TelekGrab");		
+    }
+
+	override void releaseTelek()
+	{
+		Super.releaseTelek();
+		isGrabbedByTelek = false;
+	}
+
+    override void tick() {
+        super.tick();
+
+        // Short time-out between flushes.
+		if (flushCooldown > 0) {
+			flushCooldown--;
+			if (flushCooldown == 1) {
+				bUseSpecial = true;
+				ActivationType = THINGSPEC_Switch;
+			}
+		}
+
+        // Flush the object down the drain
+        if(flushedObject) {
+            flushActor();
+        }
+
+        // Behavior when flushing a blocked toilet.
+        // Probably a bit overkill but hey it's funny.
+        if(toiletBlocked && blockedSprays < 60) {
+			setupToiletExplosion();
+        }   
+    }
+
+
+	void setupToiletExplosion()
+	{
+        blockedSprays++;
+
+        // Spray water, but only if not dishwasher
+        if(!insertedDishliquid) {
+            sprayBrokenWater();
+            sprayBrokenWater();
+		
+        } else {
+			spraySoapBubbles();
+        }
+        if(blockedSprays > 40) {
+            scale = (scale.x + 0.023, scale.y );
+        }
+        if(blockedSprays > 41 && insertedDishliquid) {
+            aliveticks = 0;
+            A_CHANGEVELOCITY(0,0,0.3);
+        }
+        if(blockedSprays == 59) {
+			explodeToilet();
+        }
+	}
+
+
+	// Shatter the toilet in pieces!
+	void explodeToilet()
+	{
+        Die(self, self);
+        // Give Achievement for blowing up a toilet without using guns.
+        LevelEventHandler leh = LevelEventHandler.instance();
+        leh.SetAchievement("GAME_MYTH");
+
+        A_PlaySound("dest/plate",CHAN_AUTO, 0.4, 0, 0.9, false, frandom(0.86, 0.9));
+		EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 130, angle:random(0,359), pitch:-70, speed:5, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+        emit('ToiletChunkWild', chance: 1.0, numTries: 130, angle:random(0,359), speed:6, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+		for(int x=0; x<getCvar("r_smokequality")*4;x++) {
+			A_SpawnItemEx("SmokeScatteredCloud", frandom(-20,20), frandom(-20,20), frandom(0,37), frandom(1,3), angle:random(0,360));
+		}
+        A_PlaySound("Destruction/explosion",CHAN_AUTO, 0.9, 0, 0.9, false, 1.3);
+        if(getCvar("g_Screenshake") >= 1) {
+            A_QuakeEx(4, 4, 1, 35, 0, 7000, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+        }
+
+        // If you play on SMF, you signed up for this. Now it's an actual explosion.
+        if(skill == SKILL_SMF) {
+            smfExplosion();
+        }
+	}
+
+    void flushActor() {
+		bPreventSleep = true;
+        flushedObject.angle += 35;
+        flushedObject.vel.z = -0.4;
+        if(flushedObject.alpha <= 0.03) {
+            // Dishwasher blocks toilet right away.
+            if(insertedDishliquid) {
+                toiletBlocked = true;
+            }
+			bPreventSleep = false;
+            flushedObject.destroy();
+            flushedObject = null;
+        } else {
+            flushedObject.A_FADEOUT(0.03);
+        }
+    }
+
+	void spraySoapBubbles()
+	{
+		bPreventSleep = true;
+        for(int x=0;x<3;x++) {
+            A_SPAWNITEMEX("WATERBUBBLE", frandom(-3, 3), frandom(-1,1), random(1,48), frandom(-2,2), frandom(-2,2), frandom(1,6), angle:random(0,359));
+        }
+	}
+
+	// Die!
+	void smfExplosion()
+	{
+        A_SPAWNITEMEX("PrettyExplosionParticleRain");
+        A_EXPLODE(320,320);
+        emit('ToiletChunk', chance: 1.0, numTries: 32, angle:random(0,359), speed:-3, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)), velocity:(-4,-4,16));
+        for(int x=0;x<92;x++) {
+            A_SpawnDefinedParticle("waterParticleXDefinition", frandom(-5, 5), frandom(-5,5), random(1,48), frandom(-3,3), frandom(-3,3), frandom(1,6));
+        }
+        ACS_NamedExecuteAlways("SpawnHudShake", 0, 8, 8, 35);
+		Dawn.ShakeWeapon(8,8);
+        ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 12);
+	}
+
+	// Toilet flush
+    override void Activate(actor activator) {
+        A_PLAYSOUND("script/flush", CHAN_AUTO);
+        Stats.AddStat(STAT_TOILETS_FLUSHED, 1, 0);
+        flushCooldown = 65;
+        bUseSpecial = false;
+        ActivationType = THINGSPEC_DEFAULT;
+		if(getClassName() != "Urinal") { 		// Urinals dont spray water.
+			for(int x=0;x<17;x++) {
+				A_SPAWNITEMEX("WaterParticleXSmallNoVelocity", frandom(-0.1, 0.1), frandom(-0.1,0.1), random(11,13), frandom(0.1,0.1), frandom(-0.2,0.2), frandom(1,2.5));
+			}
+		}
+		findFlushableActor();
+    }
+
+	void findFlushableActor()
+	{
+        if(objectsFlushed <= MAX_ITEMS_FLUSHED) {
+            FLineTraceData RemoteRay;
+
+			// Fire linetraces within a circle to find an actor
+            for(int i=-8;i<8;i+=2) {
+                for(int j=0;j<=360;j+=36) {
+                    LineTrace(j ,10, -90, flags:TRF_SOLIDACTORS, offsetz: height, offsetforward:i, data: RemoteRay);
+				
+					// Check if the actor is valid
+                    if (RemoteRay.HitType == TRACE_HitActor && CheckValidActor(RemoteRay.HitActor)) {
+                        flushedObject = RemoteRay.HitActor;
+
+						// Smooth rotations and avoid unintended collisions
+                        flushedObject.bInterpolateAngles = true;
+                        flushedObject.bNoInteraction = true;
+
+						// Bubble up the toilet and break apart!
+                        if(flushedObject is "DISHWASHER" || flushedObject is "Toiletcleaner") {
+                            insertedDishliquid = true;
+                        }
+
+						// Notify the toilet an object got flushed.
+                        objectsFlushed++;
+                        return;
+                    } 
+                }
+            }
+        // Toilet is full, spit a bunch of water instead.
+        } else {
+            toiletBlocked = true;
+        }
+	}
+
+	virtual void sprayBrokenWater() {
+		if(!particleIntensity) {
+			particleIntensity = getCvar("r_particleintensity");
+		}
+		if(!noWaterSprayOnDeath) {
+			if(random(0,100) <= 25) {
+				vector3 sprayDirection = vecFromAngle(random(0,360), pitch+random(-40,100));
+				A_SprayDecal("watersplash", 160, offset:(0,0,frandom(-20,85)), direction:sprayDirection);
+			}
+			A_SpawnDefinedParticle("WaterSplatterEffectDefinition",0, 0, 4, frandom(-1,1), frandom(-1,1), frandom(0,2));
+			EmitDefinition("waterParticleXToiletSpray", 1.0, 7, speed:2, additionalAngleScale:0.5, additionalAngleChance:0.25);
+		}
+	}
+
+    // Validate if the actor should be flushed or not
+    bool CheckValidActor(actor foundTarget) {
+        if(foundTarget && foundTarget is "SelacoActor" && ((foundTarget.radius < 10 && foundTarget is "PickupableDecoration") || SelacoActor(foundTarget).bForceFlushable)) {
+            return true;
+        }
+        return false;
+    }
+
+    default {
+        +SHOOTABLE
+        +NOBLOODDECALS;
+        +SOLID;
+        +USESPECIAL;
+		+DONTTHRUST
+		+SELACOACTOR.allowGravityManipulation;
+        Activation THINGSPEC_Switch;
+		Toilet.DestructionParticleAngle 360;
+        SelacoActor.UseTag "$INTERACT_FLUSH";
+        tag "$OBJECT_TOILET";
+        mass 750;
+        health 150;
+        height 20;
+        radius 15;
+        BloodType "BulletImpactEffectConcrete", "BulletImpactEffectConcrete", "BulletImpactEffectConcrete";
+    }
+    states {
+        Spawn:
+            VOXE A 1 {
+				roll = 0;
+                frame = currentFrame;
+            }
+            loop;
+		TelekGrab:
+			VOXE LLLLLLLLLLLLLLLLLLLLLLL 1 
+			{
+				if(!isGrabbedByTelek)
+				{
+					roll = 0;
+					setStateLabel("Spawn");
+				}
+				angle = oldAngle;
+				roll=frandom(-5,5);
+				frame = currentFrame;
+				SetOrigin(oldPosition, true);
+			}
+			TNT1 A 0
+			{
+				A_QuakeEx(1, 1, 1, 5, 0, 700, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+				SetOrigin(oldPosition, true);
+				angle = oldAngle;
+				A_SPAWNITEMEX("ToiletLeftover");
+				firstGrab = true;
+				A_PlaySound("dest/plate",CHAN_AUTO, 1.0, 0, 0.9, false, frandom(0.86, 0.9));
+				EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 14, angle:random(0,359), pitch:35, speed:2, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+            	emit('ToiletChunk', chance: 1.0, numTries: 18, angle:random(0,359), speed:1, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));	
+				for(int x=0;x<25;x++)
+				{
+					A_SPAWNITEMEX("WaterParticleXSmall", frandom(-15, 15), frandom(-15,15), random(0,35), frandom(-4,4), frandom(-4,4), frandom(0,4));
+				}
+			}
+			VOXE L 1 
+			{
+				currentFrame = 2;
+				if(!isGrabbedByTelek)
+				{
+					roll = 0;
+					setStateLabel("Spawn");
+				}
+				angle = oldAngle;
+				roll=frandom(-5,5);
+				frame = currentFrame;
+				SetOrigin(oldPosition, true);
+			}
+		TelekGrabLoop:
+			VOXE L 1
+			{
+				frame = 2;
+				if(!isGrabbedByTelek)
+				{
+					frame = currentFrame;
+					EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 14, angle:random(0,359), pitch:35, speed:2, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+            		emit('ToiletChunk', chance: 1.0, numTries: 35, angle:random(0,359), speed:1, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+					A_PlaySound("dest/plate",CHAN_AUTO, 1.0, 0, 0.7, false, frandom(0.66, 0.7));		
+					applyToiletDamage();
+					destroy();
+				}
+			}
+			loop;
+		Xdeath:
+			TNT1 A 0 
+			{
+				frame = 2;
+			}
+        Death:
+            TNT1 A 0;
+            TNT1 A 0 {
+				if(isGrabbedByTelek)
+				{
+					particleIntensity = getCvar("r_particleintensity");
+					currentFrame = 0;
+					while(currentFrame < maxFrames)
+					{
+						// Too extreme lol. Maybe as a mutator
+						//A_Explode(300,200, XF_HURTSOURCE, damageType:"ExplosiveImpact");
+						//A_SPAWNITEMEX("SelacoExplosionPerformanceNoDebris");
+						health = 1;
+						EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 14, angle:random(0,359), pitch:35, speed:2, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+            			emit('ToiletChunk', chance: 1.0, numTries: 35, angle:random(0,359), speed:1, offset:(frandom(-3,3), frandom(-3,3),frandom(10,24)));
+						A_PlaySound("dest/plate",CHAN_AUTO, 1.0, 0, 0.7, false, frandom(0.66, 0.7));		
+						applyToiletDamage();
+						applyToiletDamage();
+					}
+					for(int x=0;x<particleIntensity*10;x++) {
+						A_SPAWNITEMEX("WaterParticleXSmall", frandom(-1, 1), frandom(-1,1), random(1,3), frandom(-3,3), frandom(-3,3), frandom(-4,4));
+					}
+					destroy();
+				}
+				bSolid = false;
+				bThruactors = true;
+                A_PLAYSOUND("SCRIPT/faucet1", CHAN_5, 0.7, 0, 0.6);
+                A_PlaySound("script/waterdrip", CHAN_6, 1.0, 1, 0.6);
+                A_PlaySound("dest/plate",CHAN_AUTO, 0.4, 0, 0.9, false, frandom(0.66, 0.7));
+            }
+			VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 {
+				sprayBrokenWater();
+			}
+            TNT1 A 0 {
+				bPreventSleep = false;
+                A_STOPSOUND(CHAN_5);
+                A_STOPSOUND(CHAN_6);
+				sleepIndefinite();
+            }
+            VOXE L -1;
+            stop;
+    }
+}
+
+class ToiletLeftover : SelacoActorStatic
+{
+	states {
+		Spawn:
+			VOXE L -1;
+			stop;
+	}
+}
+
+
+class PAPERBINDER_BASE : PickupableDecoration
+{
+	int frameID;
+
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		frameID = random(0,6);
+		vel = (0,0,0);
+	}
+
+	default
+	{
+		tag "$OBJECT_PAPERBINDER";
+		radius 10;
+		height 6;
+		health 5;
+		mass 150;
+		friction 0.1;
+		mass 200;
+		+SELACOACTOR.thruplayers;
+		+SELACOACTOR.decorativeActor
+        +HITSCANTHRU;
+        +SelacoACtor.EnemyProjectilePassThru;
+		+NOBLOODDECALS
+		+SHOOTABLE
+		+CANPASS
+		PickupableDecoration.grabSound "PCKBOOK";
+        PickupableDecoration.dumpsterSound "trashbin/paper";
+		PickupableDecoration.landingSound "landing/paper";
+        BounceSound "impact/box";
+		BloodType "Cardboard_Chunk", "Cardboard_Chunk", "Cardboard_Chunk";
+	}
+
+	states
+	{
+		Pickup:
+		Putdown:
+		Throw:
+		Spawn:
+			TNT1 A 0;
+			VOXE A -1
+			{
+				frame = frameID;
+			}
+        Death:
+			TNT1 AAA 0 A_SPAWNITEMEX("Cardboard_Chunk");
+			TNT1 A 0 A_SPAWNITEMEX("PaperPieceUp");
+            TNT1 A 0 A_SpawnProjectile ("PAPERSMOKE", 5, 0, random (0, 10), 2, random (0, 10));
+            VOXE L 1 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6);
+            stop;
+        Destroy:
+            TNT1 A 0;
+            stop;
+	}	
+}
+
+class PAPERBINDER_VERTICAL : PAPERBINDER_BASE
+{
+	default
+	{
+		height 15;
+		radius 7;
+	}
+}
+
+class PAPERBINDER_LARGE				: PAPERBINDER_BASE { 
+	default
+	{
+		height 6;
+	}
+}
+class PAPERBINDER_MEDIUM 			: PAPERBINDER_BASE { 
+	default
+	{
+		height 5;
+	}
+}
+class PAPERBINDER_SMALL 			: PAPERBINDER_BASE { 
+	default
+	{
+		height 3;
+	}
+}
+class PAPERBINDER_LARGE_STANDING 	: PAPERBINDER_VERTICAL { }
+class PAPERBINDER_MEDIUM_STANDING 	: PAPERBINDER_VERTICAL { }
+class PAPERBINDER_SMALL_STANDING	: PAPERBINDER_VERTICAL { }
+
+class DONKMONKPAINTINGSPAWNER : SelacoActor {
+    actor painting;
+    bool paintingsuccess;
+    default {
+        +NOINTERACTION
+    }
+
+	override void BeginPlay()
+	{
+		super.BeginPlay();
+        int spritenumber = args[0];
+        [paintingsuccess, painting] = A_SPAWNITEMEX(frameSprites[spritenumber],-5,0,0,0,0,0,0,SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+		if(paintingsuccess)
+        {
+			if(args[1] == 1)
+			{
+				painting.A_SETRENDERSTYLE(alpha, STYLE_ADD);
+				painting.selfLighting = "964d03";
+			}
+            painting.roll = roll;
+            if(roll != 0)
+            {
+               painting.health = 2; 
+            }
+        }
+	}
+    
+	override void postBeginPlay()
+	{
+		if(user_static)
+		{
+			SelacoActor(painting).bNoInteraction = true;
+			SelacoActor(painting).bShootable = false;
+			SelacoACtor(painting).A_ChangeLinkFlags(1);
+			SelacoActor(painting).sleepIndefinite();
+		}
+		super.postBeginPlay();
+	}
+
+	static const String frameSprites[] =
+		{
+			"DONKMONKPAINTING1", "DONKMONKPAINTING2", "DONKMONKPAINTING3",
+            "DONKMONKPAINTING4", "DONKMONKPAINTING5", "DONKMONKPAINTING6", "DONKMONKPAINTING7"
+		};
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class DONKMONKPAINTING1 : SquarePainting1 { 
+	default
+	{
+		scale 1.0;
+	}
+}
+class DONKMONKPAINTING2 : DONKMONKPAINTING1 { }
+class DONKMONKPAINTING3 : DONKMONKPAINTING1 { }
+class DONKMONKPAINTING4 : DONKMONKPAINTING1 { }
+class DONKMONKPAINTING5 : DONKMONKPAINTING1 { }
+class DONKMONKPAINTING6 : DONKMONKPAINTING1 { }
+class DONKMONKPAINTING7 : DONKMONKPAINTING1 { }
+
+class WaterMelon : Interactable
+{
+	default
+	{
+		tag "$OBJECT_WATERMELON";
+		SelacoActor.UseTag "$ACT_BREAKAPART";
+		+SHOOTABLE;
+		+NOBLOOD;
+		health 5;
+		+USESPECIAL;
+		Activation THINGSPEC_Switch;
+	}
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+		Active:
+			TNT1 A 0
+			{
+				A_SpawnDefinedParticle("MelonSplatterDefinition",frandom(-4,4), frandom(8,-8), frandom(2,height), frandom(-2,2), frandom(-2,2), frandom(0,4));
+				A_PLAYSOUND("dismember/limb", CHAN_AUTO,  1.0, pitch:frandom(0.8,0.9));
+				A_SPAWNITEMEX("WaterMelonChunk_1", 7, 7, 3, frandom(1,2), 0, frandom(1,3), angle:frandom(70,100));
+				A_SPAWNITEMEX("WaterMelonChunk_2", 7, -7, 3, frandom(1,2), 0, frandom(1,3), angle:frandom(170,190));
+				A_SPAWNITEMEX("WaterMelonChunk_3", -7, 7, 3, frandom(1,2), 0, frandom(1,3), angle:frandom(260,290));
+				A_SPAWNITEMEX("WaterMelonChunk_4", -7, -7, 3, frandom(1,2), 0, frandom(1,3), angle:frandom(350,370));
+			}
+			stop;		
+		Death:
+			TNT1 A 0
+			{
+				A_SpawnDefinedParticle("MelonSplatterDefinition",frandom(-4,4), frandom(8,-8), frandom(2,height), frandom(-2,2), frandom(-2,2), frandom(0,4));
+				A_PLAYSOUND("dismember/limb", CHAN_AUTO,  1.0, pitch:frandom(0.8,0.9));
+				A_SPAWNITEMEX("WaterMelonChunk_1", 7, 7, 3, frandom(1,6), 0, frandom(5,9), angle:frandom(35,65));
+				A_SPAWNITEMEX("WaterMelonChunk_2", 7, -7, 3, frandom(1,6), 0, frandom(5,9), angle:frandom(65,175));
+				A_SPAWNITEMEX("WaterMelonChunk_3", -7, 7, 3, frandom(1,6), 0, frandom(5,9), angle:frandom(190,284));
+				A_SPAWNITEMEX("WaterMelonChunk_4", -7, -7, 3, frandom(1,6), 0, frandom(5,9), angle:frandom(285,350));
+			}
+			stop;
+	}
+}
+
+class WaterMelonChunk_1 : SelacoActorDecorationMissile
+{
+	default
+	{
+		Seesound "gibs/bounce";
+	}
+
+    override void loopingEffects()
+    {
+        A_SpawnDefinedParticle("MelonSplatterDefinitionTrail",frandom(-4,4), frandom(8,-8), frandom(2,height), frandom(-1,1), frandom(-1,1), frandom(-0.2,0.2));
+    }
+
+    override void bounceEffects()
+    {
+		A_PLAYSOUND("gibs/bounce");
+    }
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		A_SETANGLE(random(0,360));
+	}
+
+	states
+	{
+		death:
+			TNT1 A 0 A_SPAWNITEMEX("WaterMelonChunk_1_eatable");
+			stop;
+	}
+}
+
+class WaterMelonChunk_2 : WaterMelonChunk_1 { 
+	states
+	{
+		death:
+			TNT1 A 0 A_SPAWNITEMEX("WaterMelonChunk_2_eatable");
+			stop;
+	}
+}
+class WaterMelonChunk_3 : WaterMelonChunk_1 { 
+	states
+	{
+		death:
+			TNT1 A 0 A_SPAWNITEMEX("WaterMelonChunk_3_eatable");
+			stop;
+	}
+}
+class WaterMelonChunk_4 : WaterMelonChunk_1 { 
+	states
+	{
+		death:
+			TNT1 A 0 A_SPAWNITEMEX("WaterMelonChunk_4_eatable");
+			stop;
+	}
+}
+
+class LED_Container_Small : SelacoActor
+{
+
+	override void postbeginPlay()
+	{
+		super.PostBeginPlay();
+		A_PLAYSOUND("SCRIPT/CONTAINERFAN", CHAN_5, 0.3, 1, 1.35);
+	}
+
+	override void wake()
+	{
+		super.wake();
+		A_PLAYSOUND("SCRIPT/CONTAINERFAN", CHAN_5, 0.3, 1, 1.35);
+	}
+
+	override void sleep(int ticks)
+	{
+		A_STOPSOUND(CHAN_5);
+		super.sleep(ticks);
+	}
+
+
+
+	mixin MEDIUM_METAL_PROP;
+	default
+	{
+		SelacoActor.SleepDistance 512;
+		health 125;
+		mass 1800;
+		radius 24;
+		height 22;
+	}
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+        Death:
+            TNT1 A 0 
+            {
+				A_StartSound("destruction/glassbreak", volume: 0.65, attenuation: 1.35);
+                A_PLAYSOUND("DEST/CASEBREAK", CHAN_AUTO, 1.0, pitch:frandom(0.8,1.0));
+				for(int x;x<10;x++)
+				{
+					EmitDefinition('GlassParticleSmall360BriefDefinition', 1.0, 5, angle: 0, speed: 2, offset: (frandom(-5,5), frandom(-5,5), random(-5,5)));
+					EmitDefinition('GlassParticleSmall360Definition', 1.0, 4, angle: 0, speed: 2, offset: (frandom(-5,5), frandom(-5,5), random(-5,5)));
+				}
+            }
+            TNT1 A 0 {
+				EmitDefinition('PaperParticleChunkDefinition', 1.0, 100, offset:(frandom(-10,10), frandom(-10,10), frandom(10,30)));
+			}
+            TNT1 A 0 A_SPAWNITEMEX("LED_CONTAINER_PIECE_1", frandom(-4,2), frandom(-2,2), frandom(5,30), frandom(2,5), 0, frandom(1,9), angle:random(0,360));
+            TNT1 A 0 A_SPAWNITEMEX("LED_CONTAINER_PIECE_2", frandom(-4,2), frandom(-2,2), frandom(5,30), frandom(2,5), 0, frandom(1,9), angle:random(0,360));
+            TNT1 A 0 A_SPAWNITEMEX("LED_CONTAINER_PIECE_3", frandom(-4,2), frandom(-2,2), frandom(5,30), frandom(2,5), 0, frandom(1,9), angle:random(0,360));
+            TNT1 A 0 A_SPAWNITEMEX("LED_CONTAINER_PIECE_4", frandom(-4,2), frandom(-2,2), frandom(5,30), frandom(2,5), 0, frandom(1,9), angle:random(0,360));
+            TNT1 A 0 A_SPAWNITEMEX("LED_CONTAINER_PIECE_5", frandom(-4,2), frandom(-2,2), frandom(5,30), frandom(2,5), 0, frandom(1,9), angle:random(0,360));
+			stop;
+	}
+}
+
+class LED_Container_Medium : LED_Container_Small { 
+	default
+	{
+		radius 32;
+	}
+}
+
+class LED_Container_Large : LED_Container_Small {
+	default
+	{
+		radius 40;
+	}
+
+}
+
+class LED_Container_Large_RED : LED_Container_Large { }
+
+class LED_CONTAINER_PIECE_1 : SelacoActorDecorationMissile { 
+    // Executes while falling
+    override void loopingEffects()
+    {
+
+    }
+
+    override void bounceEffects()
+    {
+        for(int x=0;x<=3;x++) {
+            A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+        }
+        EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 15, angle:random(0,259), pitch:frandom(-25, -15), speed:frandom(1.4,2.5), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)), velocity:(frandom(0.4,1), frandom(0.4,1), frandom(1,4)));
+        A_PlaySound("impact/metal",CHAN_AUTO, 0.25, 0, 1.0, false, 1.75);
+    }
+}
+class LED_CONTAINER_PIECE_2 : LED_CONTAINER_PIECE_1 { }
+class LED_CONTAINER_PIECE_3 : LED_CONTAINER_PIECE_1 { }
+class LED_CONTAINER_PIECE_4 : LED_CONTAINER_PIECE_1 { }
+class LED_CONTAINER_PIECE_5 : LED_CONTAINER_PIECE_1 { }
+
+class DEMOLITIONCHARGE : Interactable
+{
+
+	bool success;
+	Actor cardIconSpawn;
+	bool shownOnMap;
+	bool awaitOverclock;
+	void primeCharge()
+	{
+		bUseSpecial = false;
+		EmitDefinition('ShortSpark360ParticleDefinition', chance: 0.75, numTries: 45, angle:-180, pitch:0, speed:-3);
+		ActivationType = THINGSPEC_DEFAULT;
+		A_PLAYSOUND("DEMOLITIONCHARGE/PLANT", CHAN_AUTO, 1);
+		A_SPAWNITEMEX("BodyImpactSmokeSmall", 1, 0, 0, 1, 3, 3);
+		A_SPAWNITEMEX("BodyImpactSmokeSmall", 1, 0, 0, 1, -3, 3);
+		A_SPAWNITEMEX("BodyImpactSmokeSmall", 1, 0, 0, 1, 3, -3);
+		A_SPAWNITEMEX("BodyImpactSmokeSmall", 1, 0, 0, 1, -3, -3);
+		A_SETRENDERSTYLE(1.0, STYLE_NORMAL);
+		setStateLabel("Primed");
+	}
+
+	void placeCharge06C()
+	{
+		EmitDefinition('ShortSpark360ParticleDefinition', chance: 0.75, numTries: 45, angle:-180, pitch:-90, speed:-3);
+		A_PLAYSOUND("DEMOLITIONCHARGE/PLANT", CHAN_AUTO, 0.5, pitch:1.25);
+		useTag = stringtable.localize("$ACT_OVERCLOCK");
+		awaitOverclock = true;
+		A_SETRENDERSTYLE(1.0, STYLE_NORMAL);
+		setStateLabel("WaitForOverclock");		
+	}
+
+	void overclockCharge06C()
+	{
+		bUseSpecial = false;
+		ActivationType = THINGSPEC_DEFAULT;
+		A_PLAYSOUND("script/overclock", CHAN_AUTO, 0.5, pitch:1.35); 
+		setStateLabel("OverclockBeep");	
+		ACS_Execute(args[0]);
+	}
+
+	CONST TICKS_TILL_DETONATION = 17;
+	int detonationTicks;
+	
+	int detonationACSScript;
+
+	override void postbeginPlay()
+	{
+		if(args[0] == 0)
+		{
+			console.printf("\c[red]Demolition Charge has no ID. This makes it worthless!");
+		}
+		detonationACSScript = args[0];
+	}
+
+	default
+	{
+		tag "$OBJECT_DEMOLITIONCHARGE";
+		SelacoActor.UseTag "$ACT_PLANT";
+		renderstyle "Add";
+		alpha 0.4;
+		+THRUACTORS
+		+NOGRAVITY;
+		+DONTTHRUST;
+		+USESPECIAL
+		Activation THINGSPEC_Switch;
+		+SELACOACTOR.PreventSleep
+	}	
+	states
+	{
+        Spawn:
+            TNT1 A 0;
+            VOXE L 2 BRIGHT A_LookEx(LOF_NOSOUNDCHECK, 0, 1536, 0, 5000, "ShowIcon");
+            loop;
+        ShowIcon:
+            VOXE L -1 BRIGHT {
+				if(!invoker.shownOnMap) {
+					invoker.shownOnMap = true;
+					Notification.QueueNew('MapNotification', "Automap Updated", StringTable.localize("$MAPICON_CHARGETARGET"), "ICO1MX", 0);
+					[invoker.success, invoker.cardIconSpawn] = A_SpawnItemEx("ExplosiveTargetIcon", tid:tid);
+				}
+			}
+			loop;
+		Inactive:
+		Active:
+			TNT1 A 0
+			{
+				if(awaitOverclock)
+				{
+					overclockCharge06C();
+					return;
+				}
+				PlayerPawn pawn=players[0].mo;
+				let d = Dawn(pawn);
+				if(d.countinv("HasDemolitionCharges") == 1 || args[1] == 0)
+				{
+					if(cardIconSpawn)
+					{
+						cardIconSpawn.destroy();
+					}
+					//Things behave differently in 06C.
+					if(level.mapName ~== "SE_06C")
+					{
+						placeCharge06C();
+						return;
+					}
+					primeCharge();
+				}
+				else
+				{
+					A_PRINTBOLD(string.format("\c[orange]%s", stringtable.localize("$ERROR_NODEMOCHARGES")));
+				}
+			}
+			goto spawn;
+		Primed:
+			VOXE B 20;
+		Primed:
+			VOXE B 3;
+			VOXE A 7
+			{
+				detonationTicks++;
+				if(detonationTicks >= TICKS_TILL_DETONATION-8)
+				{
+					A_SETTICS(3);
+				}
+				if(detonationTicks >= TICKS_TILL_DETONATION)
+				{
+					ACS_Execute(detonationACSScript, 0);
+					setStateLabel("Detonate");
+				}
+				A_PLAYSOUND("DEMOLITIONCHARGE/BEEP", CHAN_AUTO, 0.5);
+				spawnLight(rColor:355, gColor:100, bColor:100, 45, 0, shadowRequirement:2, xOffset: 5, overbright: 0, divisionSpeed:1.45, alwaysShow:1,weaponFlash:1, ignoreLightLimit: 1, zOffset:10);
+			}
+			loop;
+		WaitForOverclock:
+			VOXE B -1;
+			loop;
+		OverclockBeep:
+			VOXE A 7
+			{
+				spawnLight(rColor:355, gColor:100, bColor:100, 45, 0, shadowRequirement:2, xOffset: 5, overbright: 0, divisionSpeed:1.45, alwaysShow:1,weaponFlash:1, ignoreLightLimit: 1, zOffset:10);
+			}		
+		OverclockBeepLoop:
+			VOXE B 35;
+			VOXE A 7
+			{
+				A_PLAYSOUND("script/overclockbeep");
+				spawnLight(rColor:355, gColor:100, bColor:100, 45, 0, shadowRequirement:2, xOffset: 5, overbright: 0, divisionSpeed:1.45, alwaysShow:1,weaponFlash:1, ignoreLightLimit: 1, zOffset:10);
+			}
+			loop;
+		Detonate:
+			TNT1 A 0
+			{
+				A_EXPLODE(400, 250);
+			}
+			TNT1 A 4 A_SPAWNITEMEX("PrettyExplosionParticleRainPerformance", 15, -30, frandom(-30,30));
+			TNT1 A 4 A_SPAWNITEMEX("PrettyExplosionParticleRainPerformance", 15, 0, frandom(-30,30));
+			TNT1 A 4 A_SPAWNITEMEX("PrettyExplosionParticleRainPerformance", 35, 30, frandom(-30,30));
+			stop;
+	}
+}
+
+
+class alarmclock : Interactable
+{
+	const TRIGGER_DISTANCE_DEFAULT = 500;
+	const REACTION_DELAY = 5;
+	int triggerDistance;
+	bool playerNear;
+	int reactionTick;
+	bool disabled;
+	bool alarmActive;
+	bool startCountdown;
+
+	int clockFrame;
+	int seconds;
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		clockFrame = 4;
+		triggerDistance = (args[0] == 0) ? TRIGGER_DISTANCE_DEFAULT : args[0];
+	}
+
+	override void tick()
+	{
+		super.tick();
+
+		if (alarmActive && reactionTick < REACTION_DELAY)
+		{
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			reactionTick++;
+			if (reactionTick == 5 && distance2DSquared(d) < triggerDistance*triggerDistance)
+			{
+				startleDawn();
+			}
+		}
+
+		if(!playerNear)
+		{
+			checkForActivation();
+		}
+		if(alarmActive)
+		{
+			doBeeping();
+		}
+		if(startCountdown)
+		{
+			doCountdown();
+		}
+	}
+
+	void doCountdown()
+	{
+		if(level.Time % 35 == 0)
+		{
+			seconds++;
+		}
+
+		// Increment the timer
+		if(seconds == 60)
+		{
+			seconds = 0;
+			clockFrame+=2;
+		}
+		if(clockFrame == 14)
+		{
+			startCountdown = false;
+		}
+	}
+
+	override void activate(actor activator)
+	{
+		A_PLAYSOUND("script/alarmclockdisable", CHAN_5, 0.7);
+		alarmActive = false;		
+	}
+
+
+	// Has Dawn entered the room? Start clock countdown.
+	void checkForActivation()
+	{
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+		if(level.time % 18 == 0)
+		{
+			// Player got close, start the countdown.
+			if(!playerNear && distance2DSquared(d) < triggerDistance*triggerDistance && checkSight(d))
+			{
+				bPreventSleep = true;
+				playerNear = true;
+				setStateLabel("WaitFor7AM");
+			}
+		}
+	}
+
+	// 7 AM has hit! Wake up nerd
+	void doBeeping()
+	{
+		if(level.time % 18 == 0)
+		{
+			if(alarmActive)
+			{
+				A_PLAYSOUND("script/alarmclock", CHAN_5, 0.8);
+			}
+		}
+	}
+
+	// Alarm goes off, Dawn is close.
+	void startleDawn()
+	{
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+		d.dawnTalk("dawn/startle_geez", "$DIALOG_06C_DAWN_STARTLE", 3.0, 1);
+		// Yes, she startles with screenshake.
+        if(getCvar("g_Screenshake") >= 1) 
+		{
+            d.A_QuakeEx(1, 1, 1, 6, 0, 300, 0, 0, 0, 0, 0, 0, 1, 1, 1);
+        }
+	}
+
+	default
+	{
+		SelacoActor.UseTag "$INTERACT_TURNOFF";
+		tag "$OBJECT_ALARMCLOCK";
+		-USESPECIAL
+		Activation THINGSPEC_DEFAULT;
+		SelacoActor.SleepDistance 900;
+		BloodType "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+		+SHOOTABLE;
+		health 10;
+		radius 10;
+		height 10;
+	}
+
+	states
+	{
+		Spawn:
+			VOXE BC 18;
+			loop;
+		WaitFor7AM:
+			VOXE BCBCBCBCBCBC 18;
+			goto TurnOnAlarm;
+		TurnOnAlarm:
+			TNT1 A 0
+			{
+				bUseSpecial = true;
+				activationType = THINGSPEC_ACTIVATE;
+				alarmActive = true;
+				startCountdown = true;
+			}
+			goto realtimeCountdown;
+		realtimeCountdown:
+			VOXE A 18
+			{
+				frame = clockFrame-1;
+			}
+			VOXE B 18
+			{
+				frame = clockFrame;
+			}
+			loop;
+		Active:
+			goto realtimeCountdown;
+		death:
+			TNT1 AAAA 0 A_SpawnItemEX("SmallExplosion", frandom(-10,10), frandom(-10,10));
+			stop;
+	}	
+}
+
+class BottleCap : SelacoActorDecorationMissile
+{
+	override void bounceEffects()
+	{
+		A_PlaySound("bounce/bottlecap", CHAN_AUTO, 0.4, pitch:frandom(1.0,1.3));
+		A_SPAWNITEMEX("BodyImpactSmokeUltraTiny", 0, 0, 0, frandom(-0.2,0.2), frandom(-0.2,0.2), frandom(0.1,0.2));
+	}
+
+	override void deathEffects()
+	{
+		A_SETROLL(random(-20,20));
+	}
+	
+
+	default
+	{
+		radius 2;
+		height 2;
+		Seesound "";
+	}
+}
+
+class WATERBOTTLE_CAP : bottleCap 
+{
+	override void bounceEffects()
+	{
+		A_PlaySound("bounce/plasticsmall", CHAN_AUTO, 0.4, pitch:frandom(1.0,1.3));
+		A_SPAWNITEMEX("BodyImpactSmokeUltraTiny", 0, 0, 0, frandom(-0.2,0.2), frandom(-0.2,0.2), frandom(0.1,0.2));
+	}
+}
+
+
+class BottlecapStatic : SelacoActorStatic
+{
+	override void postbeginPlay()
+	{
+		A_SETROLL(random(-20,20));
+	}
+}
+
+class EmptyBeer : DrinkingGlass
+{
+	default
+	{
+		tag "$OBJECT_BEERBOTTLE";
+	}
+}
+
+class PUNCHINGTARGET : SelacoActor
+{
+	bool isPunchable; // Player inserted money in slot machine
+	bool obliterated;  // Destroyed by a strong melee attack
+	vector3 spawnCoordinates;
+	vector3 newOffset;
+	
+	const IMPACT_VELOCITY = 3.6;
+	const PITCH_SHIFT = 15;
+
+	override void postBeginPlay()
+	{
+		super.postbeginPlay();
+		WorldOffset.z+=5;
+		newOffset = WorldOffset;
+		spawnCoordinates = pos;
+	}
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		if(inflictor && isPunchable && (damageType == "DawnFist" || damageType == "MeleeImpact"))
+		{
+
+			bool hasConfidenceBooster = source.countInv("ConfidenceBooster");
+			bool hasMegapowder = source.countInv("MegaPowderAmount");
+			bool usedWinningAttack = (inflictor is "MeleeKick" || (inflictor is "WeaponMeleeUppercut"));
+			// If Melee, Kick, Protein Shake or Confidence Booster
+			if(hasConfidenceBooster || hasMegapowder || usedWinningAttack)
+			{
+				obliterated = true;
+				ACS_NamedExecute("RJDawnPunched", 0, 1000);
+			} 
+			else
+			{
+
+				ACS_NamedExecute("RJDawnPunched", 0, 800);
+			}
+
+			inflictor.A_SPAWNITEMEX("MeleeImpactEffect", 5);
+			A_playSound("PUNCHCONTRAPTION/HIT", CHAN_5);
+			isPunchable = false;
+			setStateLabel("Punch");
+
+		}
+        return res;
+    }
+
+	default
+	{
+		radius 6;
+		height 6;
+		+NOGRAVITY;
+		+INTERPOLATEANGLES
+		+DONTTHRUST;
+		+BUDDHA
+		+SHOOTABLE
+		+NOBLOODDECALS
+		bloodtype "BulletImpactEffectPlasticStationary";
+	}
+	states
+	{
+		MakePunchable:
+			TNT1 A 0
+			{
+				isPunchable = true;
+			}
+		Spawn:
+			VOXE L -1;
+			stop;
+		Punch:
+			VOXE LLLLL 1
+			{
+				bInterpolateAngles = false; // It feels punchier when it doesn't interpolate.
+				WorldOffset.z+=2.5;
+				if(obliterated)
+				{
+					A_SPAWNITEMEX("PaperDustEffectShorter", frandom(-10,10), frandom(-10,10), frandom(10,32));
+				}
+				A_CHANGEVELOCITY(IMPACT_VELOCITY, 0, 0, CVF_REPLACE | CVF_RELATIVE);
+				pitch-=PITCH_SHIFT;
+			}
+			VOXE L 30
+			{
+				bInterpolateAngles = true;
+				A_CHANGEVELOCITY(0, 0, 0, CVF_REPLACE | CVF_RELATIVE);
+			}
+			TNT1 A 0
+			{
+				A_PLAYSOUND("PUNCHCONTRAPTION/RETURN", CHAN_5, 0.3, pitch:1.2);
+			}
+			VOXE LLLLLLLLLLLLLLLLLLLLLLLLL 1
+			{
+				WorldOffset.z-=0.5;
+				A_CHANGEVELOCITY(-1*(IMPACT_VELOCITY*0.2), 0, 0, CVF_REPLACE | CVF_RELATIVE);
+				pitch+=PITCH_SHIFT*0.2;
+			}
+			VOXE L 10
+			{
+				pitch = 0;
+				WorldOffset = newOffset;
+				SetOrigin(spawnCoordinates, true); // Revert to spawn position just in case
+				A_CHANGEVELOCITY(0, 0, 0, CVF_REPLACE | CVF_RELATIVE);
+			}
+			goto spawn;
+	}
+}
+
+class Bottle1 : PickupableDecoration {
+	//category SelacoDecorations
+	default
+	{
+		-Solid
+		-NOBLOOD
+		+PickupableDecoration.dumpsterCompatible;
+		tag "$OBJECT_BOTTLE";
+		Renderstyle "Translucent";
+		mass 150;
+		alpha 0.3;
+		radius 6;
+		Health 1;
+		height 15;
+		scale 1.3;
+		SelacoActor.collisionSound "PUSH/MUG";
+		PickupableDecoration.HoldDistance 40;
+		PickupableDecoration.FallDamageThreshold FALLTHRESHOLD_WEAK;
+		PickupableDecoration.grabSound "PICKUP/MUG";
+		PickupableDecoration.landingSound "OBJECT/DROP/PLATE";
+	}
+
+	States {
+		Spawn:
+            VOXE L -1;
+			loop;
+		Death.FallDamage:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmallShort", 0, 0, 0, frandom(-2,2), frandom(-2,2), 2);
+			goto Death.Finish;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("WaterSplashBaseSmall", 0, 0, 4, frandom(0.2,0.3), frandom(0.2,0.3), 2);
+		Death.Finish:
+			TNT1 A 0 A_KillChildren;
+			TNT1 A 0 A_SPAWNITEMEX("WaterSplashEffect", 0, 0, 0);
+			TNT1 A 0 {
+				bSolid = true;
+			}
+			TNT1 A 0 A_playSound("dest/glassm", CHAN_AUTO, 0.83, 0, 0.9, 0, frandom(0.9,1.1));
+			TNT1 A 0 {
+				EmitDefinition('GlassParticleSmall360Definition', 1.0, 27, angle: 0, speed: 2);
+				EmitDefinition('GlassParticleSmall360BriefDefinition', 1.0, 42, angle: 0, speed: 2);
+			}
+			stop;
+	}
+}
+
+class EnemyGrenadeDecorationMissile : SelacoActorDecorationMissile
+{
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		angle+=frandom(0,360);
+		pitch+=frandom(0,360);
+	}
+
+	override void bounceEffects()
+	{
+		A_SCALEVELOCITY(0.85);
+		EmitDefinition('DebrisChunkParticleUpwardShortDefinition', chance: 1.0, numTries: 6, speed:frandom(0.5,2.5), flags:PE_ABSOLUTE_PITCH, scaleBoost:0.6);
+		EmitDefinition('ShortSparkShrinkDefinition', chance:1.0, numTries: 15, pitch:-frandom(-70,-110), speed:4, flags:PE_ABSOLUTE_PITCH);
+		A_PLAYSOUND("ENEMY/GRENADE/BOUNCE", CHAN_AUTO, 0.4, pitch:frandom(1.1,1.3));
+		A_SPAWNITEMEX("BodyImpactSmokeUltraTiny", 0, 0, 0, frandom(-0.3,0.3), frandom(-0.3,0.3), frandom(0.1,0.25));
+	}
+
+	override void deathEffects()
+	{
+		bounceEffects();
+		A_SPAWNITEMEX("EnemyGrenadeDecoration");
+		destroy();
+	}
+
+	default
+	{
+		gravity 0.5;
+		bounceCount 3;
+		seeSound "";
+		bounceSound "";
+	}
+}
+
+class EnemyGrenadeDecoration : Interactable
+{
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		SetTag(string.format("\c[darkgrey]%s (%s)", getTag(), stringtable.localize("$UNUSABLE")));
+	}
+
+	default
+	{
+		tag "$OBJECT_ALIENGRENADE";
+/* 		+USESPECIAL
+		Activation THINGSPEC_SWITCH; */
+	}
+	states
+	{
+		Inactive:
+		active:
+		Spawn:
+			VOXE L -1;
+	}
+}

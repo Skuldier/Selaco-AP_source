@@ -1,0 +1,300 @@
+
+nosave int g_tos = 0;
+nosave int g_promptSpectacle = 0;
+nosave int g_promptridiculous = 1;
+nosave bool g_iniexists = false;
+nosave noarchive bool g_steamdeck = false;
+server int g_launch_count = 0;
+server noarchive int g_first_menu = 0;
+
+nosave int particlePhysics = 1; // Advanced Particles
+nosave int smokeeffects = 1;
+nosave int PhysicsLimit = 1500;
+nosave int om_showHUDBorder = 1;
+nosave int g_GameDetail = 2;
+nosave int g_showobjectives = 1;
+nosave int g_showtooltips = 2;
+nosave int g_chasecamtransparency = 0;
+nosave int r_persistantParticles = 1;
+nosave int r_waterquality = 3;
+nosave float g_hudopacity = 1;
+nosave int lightingquality = 3;
+nosave int r_enableFog = 1;
+nosave int r_smokequality = 3;
+nosave int r_smokeDensity = 1;
+nosave int r_particleIntensity = 3;
+nosave int debugmode = 1;
+nosave int r_fogeffects = 1;
+nosave int r_lightshafts = 1;
+nosave int r_fireeffects = 1;
+nosave int r_snoweffects = 1;
+nosave float g_vignetting = 0.4;
+nosave int r_particleLifespan = 2;
+nosave int r_FlashlightShadows = 0;
+nosave float g_smallweapons = 0;
+nosave int g_spriteshadows = 1;
+nosave int g_legacyUC36Sound = 0;
+nosave int g_jumpingsounds = 1;
+nosave int g_clearview = 1;
+nosave int g_impactshake = 2;
+nosave int g_reloadindicator = 1;
+nosave int g_enableFootsteps = 1;
+nosave int g_centerProjectiles = 0;
+nosave int g_pickupmode = 0;
+nosave int g_permanentDestruction = 0;
+nosave int g_permanentGore = 0;
+nosave int r_brighter_enemies = 1;
+//nosave int r_shadowQuality = 2;  // Now defined in source code
+nosave string GAME_LASTWEAPON;
+nosave int g_crouchoncover = 1;
+
+
+nosave int r_rain_distance = 3000;
+nosave int r_ThingLOD = 1800;
+nosave int r_ThingLODImportant = 1800;
+nosave int r_trashLOD = 900;
+nosave int r_carSmokeLOD = 1500;
+nosave int r_gameplayobjectLOD = 4096;
+nosave int r_bloodquality = 2;
+nosave int r_muzzleflashShadows = 0;
+nosave int g_autosaves = 1;
+nosave int g_itemicons = 2;
+nosave int g_breadcrumbs = 1;
+nosave int g_weakspotmarker = 1;
+nosave int g_screenshake = 2;
+nosave int g_slidezooming = 1;
+nosave int g_damageshake = 1;
+nosave int g_damagemarkers = 2;
+nosave int g_enemyglow = 0;
+nosave int g_showLevelTriggers = 1;
+nosave int g_dangerstates = 1;
+nosave int g_strafemode = 1;
+nosave int g_dangervignette = 1;
+nosave int g_weaponsway = 1;
+nosave int g_interactionanimations = 1;
+nosave int g_ironsights = 0;
+nosave int g_toggleZoom = 0;
+nosave int g_backpackReloading = 1;
+nosave bool tp_show_notes = true;
+nosave int g_skipintro = 0;
+nosave int g_extendedbrass = 0;
+nosave float g_zoomsensitivity = 0.75;
+
+// ACCESSIBILIY
+nosave int g_dimMuzzleFlashes = 0;
+nosave int g_photosensitivitymode2 = 0;
+nosave int g_cameramotion = 1;
+nosave int g_censoredmode = 0;
+
+// AUTOMAP
+nosave int g_enablemapicons = 1;
+nosave int g_showcompletedicons = 1;
+nosave float g_iconsize = 2;
+nosave int g_automapupdates = 1;
+
+// AI stuff
+nosave int ai_improvedpathfinding = 1;
+nosave int g_attackIndicators = 1;
+nosave int g_shotgunshellindicator = 1;
+nosave int g_statusindicator = 1;
+nosave int g_responsiveMovement = 0;
+nosave int g_showChallenges = 2;
+nosave int g_dangerindicators = 1;
+nosave int g_resetMusic = 0;
+
+nosave int r_filmgrain = 1;
+nosave float r_filmgrain_intensity = 0.025;
+nosave float r_filmgrain_scale = 0.4;
+nosave int r_filmgrain_time = 2;
+
+nosave int r_rainshader = 1;
+nosave int r_rainQuality = 2;
+
+user int devmode = 0;
+
+// GRENADE
+nosave int g_impactgrenades = 0;
+
+user int cl_spriteshadowdistance = 1500;
+user int cl_maxspriteshadows = 200;
+
+// AUDIO
+nosave int snd_subtitles = 2;
+nosave float snd_hitmarkervolume = 0.5;
+user bool snd_subtitlebg = false;
+user int snd_subtitlesize = 2;
+nosave int snd_hitmarkersound = 2;
+nosave int snd_silentdawn = 0;
+nosave int snd_audioducking = 1;
+nosave int snd_chatteramount = 85;
+nosave float snd_dialogvolume = 1.00;
+nosave int snd_tinnituseffect = 1;
+nosave int snd_reducedexplosionvolume = 0;
+nosave int snd_headshotSound = 1;
+nosave int r_reflections = 1; // Reflective floors ceiligns or mirrors.
+
+// Mode (0 = Crop, 1 = Scale)
+nosave noarchive int widemode         = 1;
+
+// Number of credit pages
+nosave noarchive int creditpages = 0;
+
+user bool g_displaynametags = true;
+
+//Screen Tilting
+user int disable_screentilt = 0;
+user float qtilt_strength = 1.0;
+user bool cl_MoveTilt = true;
+
+// Damage Overlay
+user int g_damageoverlay = 1;
+
+// HUD General
+user float hud_scaling = 0.89;    // hud_scalefactor and hud_scale already exist!?
+user int hud_enabled = 1;      // 1 is enabled, anything below is disabled
+nosave bool g_overlay_healing = true;
+nosave bool g_overlay_frozen = true;
+nosave bool g_overlay_armor = true;
+nosave bool g_overlay_dirt = true;
+nosave bool g_overlay_steam = true;
+nosave bool g_overlay_dash = true;
+nosave int  g_screenbloodeffects = 1;
+nosave bool g_showDeathTips = true;
+nosave int g_show_gamepad_keys = 1;
+nosave float hud_inset_x = 0;
+nosave float hud_inset_y = 0;
+nosave bool g_always_show_currency = false;
+
+//Weapon Sway
+user int disable_weaponsway = 0;
+
+// HUD Shake
+user float hud_shakefactor = 1.0;
+user float hud_momentum = 1.0;
+user float hud_impactshake = 1.0;
+
+// News
+user int news_counter = 0;
+
+// New Game
+user int new_game_mode = 0;     // 0 = Traditional, 1 = Hardcore, 2 = Randomized
+user int new_game_pistol = 0;   // 0 = Normal, 1 = Pistol Starts
+user int new_game_scarcity = 0;
+
+// COCKUI stuff
+user float ui_scaling = 1.0;
+user bool bruverclock = false;
+user float hud_meter_scaling = 1.0;         // Scale of HUD meters like dash cooldown etc
+nosave float m_sensitivity_ratio = 0.5;     // Y ratio to X
+nosave bool m_sensitivity_linked = true;    // Link X and Y sensitivity in the menus, use the offset to keep track of the difference when sliding
+nosave int g_saveindex = 0;                 // Save file index, for automatic naming
+nosave bool workshop_show_stats = false;    // Show weapon stats in the workshop
+
+nosave int g_wheel_action = 1;              // 1 = Last Weapon swap
+
+// HARDCORE CUSTOMINZATION
+server noarchive int g_hardcoremode_reloading = 0;
+server noarchive int g_hardcoremode_ignoreWeaponLimits = 1;
+
+// GAMEPAD STUFF
+nosave int AIMASSIST_STYLE = 1;
+nosave bool AIMASSIST_ENABLE = true;
+nosave float AIMASSIST_STRENGTH = 0.15;
+nosave bool g_gamepad_advanced = false;
+nosave int g_gamepad_use_psx = 0;
+nosave int AIMASSIST_ASSISTEDMODE = 0;
+nosave int AIMASSIST_RINGER = 0;
+
+nosave int AI_showlinks = 0;
+nosave int AI_showlinkwidth = 0;
+nosave int AI_showlinkheight = 0;
+nosave int AI_showpaths = 0;
+nosave int AI_showSquadInfo = 0;
+
+user bool am_legend = true;
+
+// XMAS
+server noarchive latch int g_playChristmasEvent = 0;
+server noarchive latch int g_promptXMAS = 0;
+
+// MODIFIER START
+// Modifier initiators should include latch
+server noarchive latch int g_scarcityMode = 0;
+server noarchive latch int g_ExtraAmmo = 0;
+server noarchive latch int g_rifleStart = 0;
+server noarchive latch int g_hardcoreMode = 0;
+server noarchive latch int g_randomizer = 0;
+server noarchive latch int g_freshStart = 0;
+server noarchive latch int g_playtestStart = 0;
+server noarchive latch int g_harshInvasion = 0;
+server noarchive latch int g_hardboiled = 0;
+server noarchive latch int g_armorup = 0;
+server noarchive latch int g_halflikemode = 0;
+server noarchive latch int g_legacypickups = 0;
+server noarchive latch int g_defensiveEnemies = 0;
+server noarchive latch int g_burgerflipperStart = 0;
+server noarchive latch int g_bottomlessmags = 0;
+server noarchive latch int g_nohealthregeneration = 0; //
+server noarchive latch int g_allowsavescumming = 0;
+
+// Mutator configuration CVARs should not include latch
+// HARDBOILED
+server noarchive int g_hardboiled_painchances = 1;
+
+// RANDOMIZER
+server noarchive float dummy = 0;
+server noarchive float randomizer_trapChance = 1;
+server noarchive float randomizer_vacbotChance = 0.25;
+server noarchive float randomzier_itemCrateChance = 2;
+server noarchive float randomizer_extraEnemyChance = 1.5;
+server noarchive float randomizer_coverChance = 0;
+server noarchive float randomizer_clutterChance = 0;
+server noarchive float randomizer_hazardChance = 0.5;
+server noarchive float randomizer_healthChance = 1;
+server noarchive int randomizer_weaponSpawnStyle = 2;
+server noarchive int randomizer_allowZombieInvasions = 1;
+server noarchive int randomizer_allowHeavyWeapons = 0;
+server noarchive int randomizer_allowCrawlerWaves = 1;
+server noarchive int randomizer_allowSawdroneWaves = 1;
+server noarchive int randomizer_allowEngineerGrenadier = 1;
+server noarchive int randomizer_worldDespawnPercentage = 80;
+server noarchive int randomizer_compensatePickups = 1;
+server noarchive int randomizer_randomizeFood = 1;
+server noarchive int randomizer_shufflePickups = 1;
+server noarchive int randomizer_relocateEnemySpawns = 1;
+server noarchive int randomizer_allowGifts = 1;
+server noarchive float randomizer_ammoFrequency = 3;
+server noarchive int randomizer_earthquakeFrequency = 0;
+server noarchive int randomizer_randomEncounterFrequency = 180;
+server noarchive int randomizer_shuffleEnemyTypes = 1;
+server noarchive int randomizer_allowZombies = 1;
+server noarchive int randomizer_allowRobots = 1;
+server noarchive int randomizer_allowShardTrails = 1;
+server noarchive int randomizer_allowNailgunSoldiers = 1;
+server noarchive int randomizer_allowStingerSoldiers = 1;
+server noarchive int randomizer_allowCrawlermineQueen = 1;
+server noarchive int randomizer_allowBurstrifleSoldiers = 1;
+server noarchive int randomizer_allowHeavyGunners = 1;
+server noarchive int randomizer_TieredEnemies = 1;
+server noarchive int randomizer_TieredWeapons = 1;
+server noarchive int randomizer_WeakenRandomEncounters = 1;
+server noarchive int randomizer_allowSquadLeaders = 1;
+server noarchive int randomizer_quickstart = 1;
+server noarchive int randomizer_randomPickupAmounts = 1;
+server noarchive int randomizer_allowTieredProgression = 1;
+server noarchive int randomizer_maxOutTechModules = 0;
+server noarchive int randomizer_allowCombatChests = 1;
+server noarchive int randomizer_allowAmmoBearers = 1;
+server noarchive int randomizer_allowArmorBearers = 1;
+server noarchive int randomizer_immersiveMode = 0;
+server noarchive float randomizer_hightierFrequency = 1.0;
+
+// Shooting range holders
+server int shootingrangeMode = 0;
+server int shootingRangeDistance = 0;
+server int shootingRangeMovingTargets = 1;
+server int shootingRangeSpawnRate = 1;
+server int shootingRangeTimeLimit = 30;
+
+// Particle testing
+nosave bool g_useNewParticles = true;

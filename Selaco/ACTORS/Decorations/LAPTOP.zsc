@@ -1,0 +1,304 @@
+// TODO:
+// Arg[0] for color selection
+// Arg[1] to decide whether or not the laptop is opened -- DONE
+// Animated bootup screen -- DONE
+class LaptopBase : interactable {
+
+    const LAPTOP_OPENPITCH = -105;
+    actor laptopTop;
+
+    actor laptopScreen;
+    bool successScreen;
+
+    bool osBooted; // Did the laptop boot into the OS?
+    bool isAnimating;
+    bool laptopOpen;
+
+    int delayer; //Used to delay animations
+    int pitchTarget;
+    float pitchSpeed;
+
+    default {
+        SelacoActor.UseTag "$ACT_OPEN";
+        tag "$OBJECT_LAPTOP";
+        BloodType "stacked_sparks_lite", "stacked_sparks_lite", "stacked_sparks_lite";
+        height 13;
+        radius 20;
+        health 10;
+        mass 400;
+        +SOLID;
+        +USESPECIAL
+        +SHOOTABLE;
+        +INTERPOLATEANGLES;
+        -SELACOACTOR.SlopeAlignment;
+        +SelacoActor.ThruPlayers
+        Activation THINGSPEC_SWITCH;
+    }
+    states {
+        Inactive:
+        Active:
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+        Death:
+        	TNT1 A 0 { 
+                if(laptopTop && !laptopTop.bDestroyed) laptopTop.destroy();
+                if(laptopScreen && !laptopScreen.bDestroyed) laptopScreen.destroy();
+
+				for(int x=1;x<getCvar("r_ParticleIntensity");x++) {
+                    A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+				A_PLAYSOUND("dest/compcase", CHAN_AUTO, 0.4, pitch:frandom(1.1,1.35));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+			}
+            stop;
+    }
+}
+
+class LAPTOP_BOTTOM : LaptopBase {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        bool ignored;
+        [ignored, laptopTop] = A_SPAWNITEMEX("LAPTOP_TOP", 0, 0, 0, flags:SXF_SETMASTER);
+        [ignored, laptopScreen] = A_SPAWNITEMEX("LAPTOP_SCREEN", 0, 0, 0, flags:SXF_SETMASTER);
+        if(args[0] == 1) {
+            usetag  ="$ACT_CLOSE";
+            laptopOpen = true;
+            osBooted = true;
+            if(laptopScreen)
+            {
+                laptopScreen.SetStateLabel("OSBooted");
+                laptopScreen.pitch = LAPTOP_OPENPITCH;
+            }
+            if(laptopTop)
+            {
+                laptopTop.pitch = LAPTOP_OPENPITCH;
+            }
+        }
+    }
+
+    override void deactivate(actor deactivator) {
+        activate(deactivator);
+    }
+
+    override void activate(actor activator) {
+        super.activate(activator);
+        // Set new attributes
+        usetag  ="$ACT_CLOSE";
+        activationType = THINGSPEC_DEFAULT;
+        bUseSpecial = false;
+
+        // Prep animation
+        pitchSpeed = -4.1;
+        laptopOpen = !laptopOpen;
+        isAnimating = true;
+        delayer = 0;
+        if(laptopOpen) {
+            //laptopScreen.A_SetTranslucent(2.0, style_add);
+            A_PLAYSOUND("LAPTOP/open", CHAN_AUTO, 0.6);
+            usetag  ="$ACT_CLOSE";
+            pitchTarget = LAPTOP_OPENPITCH;
+        } else {
+            if(laptopScreen)
+            {
+                laptopScreen.A_SetTranslucent(0);
+            }
+            laptopTop.A_STOPSOUND(CHAN_5); // Exist to prevent overlap with the OS Booting sound
+            if(osBooted) {
+                osBooted = false;
+                A_PLAYSOUND("LAPTOP/OSSHUTDOWN", CHAN_6, volume: 0.5);
+            }
+            usetag  ="$ACT_OPEN";
+            pitchTarget = 0;
+        }
+    }
+
+    void adjustScreen(StateLabel frameState) {
+        isAnimating = false;
+        activationType = THINGSPEC_SWITCH;
+        bUseSpecial = true;
+        if(laptopScreen)
+        {
+            laptopScreen.setStateLabel(frameState);
+        }
+    }
+
+    // Animation sequence of opening the laptop
+    void openLaptop() {
+        // Snap laptop open
+        if(delayer == 0) {
+            laptopTop.pitch = -3.9;
+        }
+        if(delayer == 1) {
+            laptopTop.pitch = -2.4;
+        }
+        if(delayer == 2) {
+            laptopTop.pitch = -3.0;
+        }
+        // Now slowly open it up until max is reached
+        if(delayer == 14) {
+            if(laptopScreen)
+            {
+                laptopScreen.A_SetTranslucent(1.0);
+            }
+            A_PLAYSOUND("LAPTOP/MOTION", CHAN_AUTO, volume:0.3,pitch:1.5);
+        }
+        if(delayer > 15) {
+            laptopTop.pitch+=pitchSpeed;
+            pitchSpeed+=0.052;
+            if(laptopTop.pitch <= pitchTarget) {
+                osBooted = true;
+                adjustScreen("Frame2");
+            }
+        }
+        delayer++;
+    }
+
+    override void tick() {
+        super.tick();
+
+        // Open
+        if(laptopTop && laptopTop.pitch > pitchTarget && isAnimating) {
+            openLaptop();
+        }
+
+        // Close
+        if(laptopTop && laptopTop.pitch < pitchTarget && isAnimating) {
+            laptopTop.pitch +=5;
+            pitchSpeed-=1.825;
+            if(laptopTop.pitch >= pitchTarget) {
+                laptopTop.pitch = 0;
+                A_PLAYSOUND("LAPTOP/close", CHAN_AUTO, volume:0.8);
+                adjustScreen("Frame1");
+            }
+        }
+
+        // Screen should always share the same pitch as the top.
+        if(laptopScreen) {
+            laptopScreen.pitch = laptopTop.pitch;
+        }
+    }
+
+}
+
+class LAPTOP_TOP : LaptopBase {
+
+    override void postbeginPlay()
+    {
+        if(master) {
+            warp(Master, -10, 0, 1, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        }
+    }
+
+    override void tick() {
+        super.tick();
+        if(master) {
+            warp(Master, -10, 0, 1, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        }
+    }
+    default {
+        +NOINTERACTION
+        +NOGRAVITY
+        -USESPECIAL;
+        activation THINGSPEC_DEFAULT;
+    }
+}
+
+class LAPTOP_SCREEN : LAPTOP_TOP {
+
+    override void postbeginPlay()
+    {
+        if(master) {
+            warp(Master, -10.6, 0, 2.15, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        }
+    }
+
+    default {
+        +FLATSPRITE
+        scale 1.001;
+        alpha 1.0;
+    }
+    override void tick() {
+        super.tick();
+        if(master) {
+            warp(Master, -10.6, 0, 2.15, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        }
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 A -1;
+            stop;
+        Frame1:
+            TNT1 A 0;
+            TNT1 A -1 bright;
+            stop;
+        Frame2:
+            STLB A 5 bright;
+            TNT1 A 0 {
+                A_PLAYSOUND("ambient/redbeep3", CHAN_5, volume:0.15, pitch:1.5);
+                A_SPAWNITEMEX("RedFlare3Small", -4 ,0 ,19);
+            }
+            STLB BCDEFF random(6,25) bright;
+            STLB A 15 bright;
+            TNT1 A 0 {
+                A_PLAYSOUND("LAPTOP/OSBOOT", CHAN_5, volume: 0.5);
+            }
+            STLA AAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEFAAABCDEF 2 BRIGHT;
+            STLA AAAAAABBCCDDEEFFGGHHIJJ 1 BRIGHT a_fadeout(0.036,0);
+            TNT1 A 0 {
+                alpha = 0;
+            }
+            STLB A 30 BRIGHT;
+            TNT1 A 0 {
+                SetStateLabel("FrameOS");
+            }
+        FrameOS:
+            TNT1 A 0
+            {
+                if(master is "LAPTOP_BOTTOM_RED")
+                {
+                    setStateLabel("PasswordScreen");
+                }
+            }
+            STLC AAAAAAAAA 1 BRIGHT {
+                A_FADEIN(0.1);
+            }
+        OSBooted:
+            STLC A -1 BRIGHT;
+        PasswordScreen:
+            STLC ZZZZZZZZZ 1 BRIGHT {
+                A_FADEIN(0.1);
+            }
+            STLC Z -1 BRIGHT;
+        Frame3: // Booted OS
+            VOXE C -1 BRIGHT;
+            stop;
+    }
+} 
+
+class LAPTOP_BOTTOM_RED : LAPTOP_BOTTOM {
+    default {
+        +BUDDHA;
+    }
+    override void PostBeginPlay() {
+        bool ignored;
+        [ignored, laptopTop] = A_SPAWNITEMEX("LAPTOP_TOP_RED", 0, 0, 0, flags:SXF_SETMASTER);
+        [ignored, laptopScreen] = A_SPAWNITEMEX("LAPTOP_SCREEN", 0, 0, 0, flags:SXF_SETMASTER);
+        if(args[0] == 1) {
+            laptopOpen = true;
+            osBooted = true;
+            laptopScreen.pitch = LAPTOP_OPENPITCH;
+            laptopTop.pitch = LAPTOP_OPENPITCH;
+            laptopScreen.SetStateLabel("Frame3");
+        }
+    }
+}
+
+class LAPTOP_TOP_RED : LAPTOP_TOP {
+
+}

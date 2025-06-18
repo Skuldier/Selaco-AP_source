@@ -1,0 +1,167 @@
+// A simple upgrade object that stores stats for transferring between weapons
+// Hard defines a number of stats instead of upgrades values
+// Weapon will always use these stats as a base before applying upgrades
+class WeaponStats : WeaponUpgrade {
+    int damageAbs, magazineSizeAbs, kickbackAbs, pelletsAbs, fireRateAbs, areaOfEffectAbs, projectileSpeedAbs;
+	float recoilAbs, spreadAbs, stabilizationAbs, headshotMultiplierAbs;
+
+    property DamageAbs                  : damageAbs;
+    property ProjectileSpeedAbs         : projectileSpeedAbs;
+    property HeadshotMultiplierAbs      : headshotMultiplierAbs;
+    property MagazineSizeAbs            : magazineSizeAbs;
+    property KickbackAbs                : kickbackAbs;
+    property PelletsAbs                 : pelletsAbs;
+    property RecoilAbs                  : recoilAbs;
+    property SpreadAbs                  : spreadAbs;
+    property FireRateAbs                : fireRateAbs;
+    property AreaOfEffectAbs            : areaOfEffectAbs;
+    property StabilizationAbs           : stabilizationAbs;
+
+    default {
+        -WeaponUpgrade.WorkshopPreview;
+    }
+    
+
+    // Roll some random stats based on the existing weapon stats
+    void rollStats(int rarity, class<SelacoWeapon> weaponClass) {
+		float valueRangeMin;
+		float valueRangeMax;
+        let w = GetDefaultByType(weaponClass);
+
+        // @Cockatrice - I think these values are going to need some tweaking
+		switch(rarity) {
+			case RARITY_COMMON:     // Common sucks! lol.
+				valueRangeMin = 0.9;
+				valueRangeMax = 1.0;
+				break;
+			case RARITY_UNCOMMON:   // He's the opposite of common
+				valueRangeMin = 1.05;
+				valueRangeMax = 1.15;
+				break;
+			case RARITY_RARE:       // I like my steak
+				valueRangeMin = 1.15;
+				valueRangeMax = 1.2;
+				break;
+			case RARITY_EPIC:       // Win
+				valueRangeMin = 1.2;
+				valueRangeMax = 1.25;
+				break;
+			case RARITY_LEGENDARY:  // Fail
+				valueRangeMin = 1.25;
+				valueRangeMax = 1.3;
+				break;
+		}
+
+        
+        // Fire rate is a visual stat, we won't modify that unless we can figure out a better way to do it
+        //fireRateAbs = int ( w.weaponFireRate / frandom(valueRangeMin, valueRangeMax) );
+
+        // Assign defaults
+        spreadAbs = w.weaponSpread;
+        recoilAbs = w.weaponRecoil;
+        magazineSizeAbs = SelacoWeapon.getDefaultMagazineSize(weaponClass);
+        kickbackAbs = w.weaponKickback;
+        pelletsAbs = w.weaponPelletAmount;
+        projectileSpeedAbs = w.weaponProjectileSpeed;
+        stabilizationAbs = w.weaponStabilizationSpeed;
+        areaOfEffectAbs = w.weaponAreaOfEffect;
+        headshotMultiplierAbs = w.weaponHeadshotMultiplier;
+        damageAbs = w.weaponDamage;
+
+        // TODO: Come up with a randomness curve, so stats are weighted in one direction instead of
+        // regularly maxing out many or all stats at the same time
+        int numRandomStats = random(rarity + 2, rarity + 5);
+        switch(rarity) {
+            case RARITY_COMMON:     // Common sucks! lol.
+				numRandomStats = min(numRandomStats, 2);
+				break;
+			case RARITY_UNCOMMON:   // He's the opposite of common
+                numRandomStats = min(numRandomStats, 3);
+				break;
+        }
+
+        Array<int> statsToRandomize;
+        for(int x = 0; x < 10; x++) {
+            // Try not to include stats that are zeroed, so we aren't wasting a random stat
+            if(checkBaseStat(x, weaponClass)) statsToRandomize.push(x);
+        }
+
+        for(int x = 0; x < numRandomStats && x < statsToRandomize.size(); x++) {
+            int idx = random(0, statsToRandomize.size() - 1);
+            int statIndex = statsToRandomize[idx];
+            statsToRandomize.delete(idx);
+            randomizeStat(statIndex, valueRangeMin, valueRangeMax, weaponClass);
+        }
+    }
+
+
+    bool checkBaseStat(int statIndex, class<SelacoWeapon> weaponClass) {
+        let w = GetDefaultByType(weaponClass);
+        int magazineSize = SelacoWeapon.getDefaultMagazineSize(weaponClass);
+
+        switch(statIndex) {
+            case 1:
+                return w.weaponSpread != 0;
+            case 2:
+                return w.weaponRecoil != 0;
+            case 3:
+                return magazineSize != 0;
+            case 4:
+                return w.weaponKickback != 0;
+            case 5:
+                return w.weaponPelletAmount != 0;
+            case 6:
+                return w.weaponProjectileSpeed != 0;
+            case 7:
+                return w.weaponStabilizationSpeed != 0;
+            case 8:
+                return w.weaponAreaOfEffect != 0;
+            case 9:
+                return w.weaponHeadshotMultiplier != 0 || weaponClass is 'RoaringCricket' || weaponClass is 'Rifle' || weaponClass is 'DMR';
+            default:
+                return w.weaponDamage != 0;
+        }
+    }
+
+
+    void randomizeStat(int statIndex, double valueRangeMin, double valueRangeMax, class<SelacoWeapon> weaponClass) {
+        let w = GetDefaultByType(weaponClass);
+        int magazineSize = SelacoWeapon.getDefaultMagazineSize(weaponClass);
+        
+        switch(statIndex) {
+            case 1:
+                spreadAbs = w.weaponSpread / frandom(valueRangeMin, valueRangeMax);
+                break;
+            case 2:
+                recoilAbs = w.weaponRecoil / frandom(valueRangeMin, valueRangeMax);
+                break;
+            case 3:
+                magazineSizeAbs = int( frandom(valueRangeMin, valueRangeMax) * magazineSize );
+                break;
+            case 4:
+                kickbackAbs = int ( w.weaponKickback / frandom(valueRangeMin, valueRangeMax) );
+                break;
+            case 5:
+                pelletsAbs = int ( frandom(valueRangeMin, valueRangeMax) * w.weaponPelletAmount );
+                break;
+            case 6:
+                projectileSpeedAbs = int ( frandom(valueRangeMin, valueRangeMax) * w.weaponProjectileSpeed );
+                break;
+            case 7:
+                stabilizationAbs = frandom(valueRangeMin, valueRangeMax) * w.weaponStabilizationSpeed;
+                break;
+            case 8:
+                areaOfEffectAbs = int ( w.weaponAreaOfEffect / frandom(valueRangeMin, valueRangeMax) );
+                break;
+            case 9:
+                headshotMultiplierAbs = frandom(valueRangeMin, valueRangeMax) * w.weaponHeadshotMultiplier;
+                if(headshotMultiplierAbs == 0 && (weaponClass is 'RoaringCricket' || weaponClass is 'Rifle' || weaponClass is 'DMR')) {
+                    // Add some random headshot increases to the weapon
+                    headshotMultiplierAbs = frandom(valueRangeMax, valueRangeMax) * 0.15;
+                }
+            default:
+                damageAbs = int( frandom(valueRangeMin, valueRangeMax) * w.weaponDamage );
+                break;
+        }
+    }
+}

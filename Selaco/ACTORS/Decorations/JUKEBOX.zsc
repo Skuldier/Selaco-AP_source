@@ -1,0 +1,225 @@
+class Jukebox : Purchasable
+{
+    int trackOrder;
+    actor ScreenActor;
+    bool ScreenActorSpawned;
+    array<WOODSPEAKER> pairedSpeakers;
+    override void PostBeginPlay()
+    {
+        super.postbeginPlay();
+        [ScreenActorSpawned, ScreenActor] = A_SPAWNITEMEX("Jukebox_Screen", 4, 0, 48, flags: SXF_SETMASTER);
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(ScreenActor) {
+            ScreenActor.A_Warp(AAPTR_MASTER, 4, 0, 48, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+        }
+    }
+
+    // Play music on all paired speakers
+    void playMusicOnSpeakers(string soundName)
+    {
+        pairedSpeakers.clear();
+        // Look for nearby speakers and pair them
+		ThinkerIterator it = ThinkerIterator.Create("WoodSpeaker", 2500);
+		WoodSpeaker woodSpeaker = WoodSpeaker(it.Next());
+		for (; woodSpeaker; woodSpeaker = WoodSpeaker(it.Next())) {
+            if(woodspeaker.health > 0)
+            {
+                pairedSpeakers.push(woodSpeaker);
+            }
+		}
+
+        // Play given track on all speakers
+        for(int x=0;x<pairedSpeakers.size();x++)
+        {
+            WoodSpeaker speaker = pairedSpeakers[x];
+            //If no sound is given, stop sound instead.
+            speaker.A_PLAYSOUND(soundName, CHAN_5, 0.7, 0, 1.0);
+            if(!soundName)
+            {
+                speaker.A_STOPSOUND(CHAN_5);
+            }
+        }
+
+    }
+
+    override void approvedPurchase(actor purchaser) {
+        if(trackOrder == 0)
+         {
+            usetag = "$INTERACT_CYCLE";
+            playMusicOnSpeakers("music/jukebox1");
+            ScreenActor.SetStateLabel("Track1");
+         }
+        if(trackOrder == 1)
+         {
+            ScreenActor.SetStateLabel("Track2");
+            playMusicOnSpeakers("music/jukebox2");
+         }
+         
+        // When playing final track, the next activation will be free to deactivate the song
+        if(trackOrder == 2)
+         {
+            ScreenActor.SetStateLabel("Track3");
+            price = 0;
+            usetag = "$INTERACT_TURNOFF";
+            SetTag("$OBJECT_JUKEBOX_STANDALONE");
+            playMusicOnSpeakers("music/jukebox3");
+         }
+
+         // Turn off
+         if(trackOrder == 3)
+         {
+            ScreenActor.SetStateLabel("Spawn");
+            price = 2;
+            trackorder = -1;
+            usetag = "$INTERACT_TURNON";
+            SetTag("$OBJECT_JUKEBOX");
+		    setPurchasableTag();
+            playMusicOnSpeakers("");
+         }
+         trackOrder++;
+    }
+
+	override void die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        if(ScreenActor)
+        {
+            screenActor.destroy();
+        }
+        A_STOPSOUND(CHAN_5);
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    default 
+    {
+        +SOLID
+        +SHOOTABLE
+        +USESPECIAL
+        +NOBLOODDECALS;
+        Purchasable.price 2;
+        Activation THINGSPEC_SWITCH;
+        tag "$OBJECT_JUKEBOX";
+        SelacoActor.UseTag "$INTERACT_TURNON";
+        radius 30;
+        height 60;
+        health 50;
+        mass 2500;
+        PainChance 255;
+        PainSound "impact/crate";
+        DeathSound "impact/woodbreak";
+        BloodType "BrownCloudParticles", "BrownCloudParticles", "BrownCloudParticles";
+    }
+    states
+    {
+        Pain:
+            TNT1 A 0 A_PAIN();
+        Active:
+        Inactive:
+        Spawn:
+            VOXE L -1;
+            stop;
+        Death:  
+            TNT1 A 0
+            {
+                A_PLAYSOUND("destruction/equipmentfailure", CHAN_AUTO);
+                A_PlaySound("impact/lightwood", CHAN_AUTO, 0.7, 0, 1.0, pitch:frandom(1.1,1.2));   
+                for(int x=0;x<getCvar("r_ParticleIntensity");x++) {
+                    A_SpawnProjectile("circuitboardsmall", random(6,10), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+                for(int x=0;x<35;x++)
+                {
+                    A_SPAWNITEMEX("LargeGlassParticle1", frandom(-15,15),frandom(-15,15), frandom(25,48), frandom(-2,2), frandom(-2,2), frandom(0,4));
+                } 
+                A_SpawnItemEx("Jukebox_broken");
+                setStateLabel("KillMusic");
+            }
+            stop;
+        KillMusic:
+            TNT1 A 0
+            {
+                for(int x=0;x<pairedSpeakers.size();x++)
+                {
+                    WoodSpeaker speaker = pairedSpeakers[x];
+                    if(speaker)
+                    {
+                        speaker.A_STOPSOUND(CHAN_5);
+                        speaker.A_PLAYSOUND("JUKEBOX/BREAK", CHAN_AUTO, 1.0, 0, 0.5);
+                    }
+                }
+            }
+            goto spawn;
+    }
+}
+
+class Jukebox_broken : Jukebox
+{
+    default
+    {
+        BloodType "BulletImpactEffectWood", "BulletImpactEffectWood", "BulletImpactEffectWood";
+        -Usespecial
+        activation THINGSPEC_DEFAULT;
+        +BUDDHA
+        mass 5000;
+    }
+}
+
+class Jukebox_Screen : SelacoActor 
+{
+    default 
+    {
+        +NOBLOODDECALS;
+        +WALLSPRITE;
+        +NOINTERACTION;
+        Scale 0.385;
+        xScale 0.44;
+        renderStyle "Add";
+        Selflighting "5bc0eb";
+    }
+    states
+    {
+        Spawn:
+            JKBO A -1;
+            stop;
+        Track1:
+            JKBO C -1;
+        Track2:
+            JKBO B -1;
+        Track3:
+            JKBO D -1;
+            loop;
+    }
+}
+
+class WOODSPEAKER : SelacoActor {
+    default 
+    {
+        radius 20;
+        height 30;
+        +SHOOTABLE;
+        +NOBLOODDECALS;
+        +NOGRAVITY;
+        health 1;
+        BloodType "BulletImpactEffectWood", "BulletImpactEffectWood", "BulletImpactEffectWood";
+    }
+    states 
+    {
+        spawn:
+            VOXE L -1;
+            stop;
+        Death:
+            TNT1 AAAAAAAAAA 0 A_SPAWNITEMEX("PlankSpawner");
+            VOXE B -1 
+            {
+                A_CHANGEVELOCITY(1,0,0, CVF_RELATIVE);
+                A_SETANGLE(angle+frandom(-35,35));
+                A_STOPSOUND(CHAN_5); // Stop the music for this speaker :(
+                A_PlaySound("impact/lightwood", CHAN_AUTO, 0.7, 0, 1.0, pitch:frandom(1.1,1.2));   
+                for(int x=0;x<getCvar("r_ParticleIntensity");x++) {
+                    A_SpawnProjectile("circuitboardsmall", random(6,10), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+            }
+            stop;
+    }
+}

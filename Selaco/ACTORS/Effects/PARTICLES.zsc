@@ -1,0 +1,4409 @@
+mixin class particleCvarCheck {
+	void giveParticleChance() {
+		static const int spawnChanceSettings[] = {15, 30, 45, 70, 100 };
+		let spawnSetting = GetCVar("r_particleIntensity");
+		if(spawnSetting < 0 || spawnSetting > 5) { spawnSetting = 3; }
+		spawnChance = spawnChanceSettings[spawnSetting - 1];
+	}
+
+	void giveLivespan() {
+		static const int lifespanSettings[] = {1, 60, 160, 900, 3500 };
+		let lifespanSetting = GetCVar("r_particleLifespan");
+		if(lifespanSetting < 0 || lifespanSetting > 5) { lifespanSetting = 3; }
+		lifespan = lifespanSettings[lifespanSetting - 1];
+
+	}
+
+	void giveWaterAmount() {
+		static const int waterSettings[] = {1, 2, 3, 4, 5 };
+		let waterSetting = GetCVar("r_waterquality");
+		if(waterSetting < 0 || waterSetting > 5) { waterSetting = 3; }
+		waterCount = waterSettings[waterSetting - 1];
+	}
+
+}
+
+Class SteamParticle : actor
+{
+	override void tick()
+	{
+		super.tick();
+		A_FADEOUT(0.016, FTF_REMOVE);
+	}
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		A_SETROLL(random(-45,45));
+	}
+
+	default {
+		Height 5;
+		Radius 5;
+		+Missile;
+		+ROLLSPRITE;
+		+NoGravity;
+		+NOINTERACTION;
+		+NoBlockMap;
+		RenderStyle "add";
+		Scale 0.4;
+		Alpha 0.30;
+	}
+  States
+  {
+	Spawn:
+		TNT1 A 0;
+		STEM ABCDEFGHIJKLLLLLLLLL 2;
+		Stop;
+  }
+}
+
+class SteamParticleLarger : SteamParticle
+{
+	default
+	{
+		scale 0.5;
+	}
+}
+Class PaperParticle : Actor {
+	mixin particleCvarCheck;
+	int watercount, lifespan, spawnChance;
+	int dice;
+	int firstTick;
+
+	override void postbeginPlay() {
+		super.postBeginPlay();
+		giveParticleChance();
+	}
+
+	void ShootPaperParticles(string spritetex) {
+			frame = framenumber;
+			A_FADEOUT(0.04);
+			A_ChangeVelocity(
+				(0.15* frandom(xVelocityMax*-1, xVelocityMax)), 
+				(0.15*frandom(xVelocityMax*-1, xVelocityMax)), 
+				0.2 * frandom(zvelocity1,zvelocity2));
+
+			A_SETROLL(roll + random(8,20), SPF_INTERPOLATE);
+			zVelocityTics++;
+			if (zVelocityTics == 12) {
+				zvelocity1 = -1;
+				zvelocity2 = -1;
+				xVelocityMax = 3;
+			}
+	}
+
+	int framenumber;
+	float zVelocity1;
+	float zVelocity2;
+	int zVelocityTics;
+	int xVelocityMax;
+	int timer;
+	default {
+		Scale 0.16;
+		DistanceCheck "r_thingLOD";
+		+NOBLOCKMAP;
+		+MISSILE;
+		+NOINTERACTION
+		+INTERPOLATEANGLES
+		PROJECTILE;
+		+FORCEXYBILLBOARD;
+		+CLIENTSIDEONLY;
+		+THRUACTORS;
+		+ROLLSPRITE;
+		-NOGRAVITY;
+		Gravity 0;
+		mass 1;
+		speed 0.2;
+		radius 5;
+		height 5;
+	}
+
+}
+
+class KitchenRollEmpty : SelacoActor {
+	bool spawnPaperChunks;
+	default {
+		+MISSILE
+		+DOOMBOUNCE
+		+THRUACTORS
+		+USEBOUNCESTATE
+		gravity 0.85;
+		gravity 0.8;
+		BounceFactor 0.5;
+		BounceCount 5;
+		radius 5;
+		height 5;
+		speed 6;
+		SeeSound "impact/thincan";
+	}	
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(getCvar("r_particleintensity") >= 3) {
+					spawnPaperChunks = true;
+				}
+			}
+			TNT1 A 0 A_CHANGEVELOCITY(0,0,5);
+			VOXE L 1;
+		Looper:
+			VOXE L 2 {
+				if(spawnPaperChunks) {
+					EmitDefinition('PaperParticleChunkDefinition', 1.0, 4);
+				}
+				A_SETPITCH(Pitch + 20);
+			}
+			loop;
+		Death:
+			VOXE L -1 A_SETPITCH(0);
+			stop;
+	}
+}
+
+class ToiletPaperEmpty : KitchenRollEmpty {
+
+}
+
+
+class ComputerMonitorPiece1 : SelacoActor {
+
+	default {
+		+MISSILE
+		+DOOMBOUNCE
+		+THRUACTORS
+		+USEBOUNCESTATE
+		gravity 0.85;
+		BounceFactor 0.5;
+		BounceCount 3;
+		radius 5;
+		height 5;
+		scale 0.28;
+		speed 4;
+	}
+
+	void sleepWhenPossible() {
+		if(pos.z <= floorz && vel.length() < 0.001) SleepIndefinite();
+	}
+
+	states {
+		spawn:
+			VOXE L 0;
+			TNT1 A 0 {
+				A_CHANGEVELOCITY(0, 0, frandom(4,8));
+				gravity = frandom(0.65, 0.7);
+				A_SETPITCH(0);
+				A_SETANGLE(angle + frandom(-5,5));
+				SetStateLabel("Looper");
+			}
+		looper:
+			VOXE L 2 {
+				emitdefinition('SparkParticleSlowerDefinition', chance: 0.75, numTries: 1, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(1,2), velocity:(0,0,frandom(0,2)));
+				A_SETPITCH(pitch + 25);
+			}
+			loop;
+        Bounce:
+			TNT1 A 0 A_PLAYSOUND("dest/compcase", CHAN_AUTO, 0.36, pitch:frandom(1.1,1.35));
+            TNT1 A 0 {
+                emitdefinition('SparkParticleSlowerDefinition', chance: 0.75, numTries: 2, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(0.3,0.6), velocity:(0,0,frandom(0,2)));
+				A_SPAWNITEMEX("YellowFlareSmallBB", 0, 0, 0);
+                SetStateLabel("Looper");
+            }
+			goto looper;
+		death:
+			VOXE L 0 {
+				A_SETPITCH(0);
+				if (random(0,1) == 1) {
+					setStateLabel("ActuallyDeath");
+				}
+			}
+			VOXE LLLLLL random(60,90) {
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+				A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+				A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition");
+				A_SpawnProjectile ("SparkEmberUpward", 0, -5, random (0, 70), 2, random (0, 190));
+			}
+		actuallyDeath:
+			VOXE L 1 {
+				A_SETPITCH(0);
+				sleepWhenPossible();
+			}
+			loop;
+	}
+}
+
+class ComputerMonitorPiece2 : ComputerMonitorPiece1 {
+	int looperTotal;
+	default {
+		speed 3;
+	}
+	states {
+		spawn:
+			VOXE L 0;
+			TNT1 A 0 {
+				A_CHANGEVELOCITY(frandom(2,3), 0, frandom(4,10));
+				A_SETPITCH(270);
+				SetStateLabel("Looper");
+			}
+		stop;
+		looper:
+			VOXE L 1 {
+				A_SETPITCH(pitch + 15);
+				A_SETANGLE(angle + 15);
+				if (invoker.looperTotal < 25) {
+					emitdefinition('SparkParticleSlowerDefinition', chance: 0.5, numTries: 1, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(0.3,1.6), velocity:(0,0,frandom(0,2)));
+					invoker.looperTotal++;
+				}
+			}
+			loop;
+        Bounce:
+			TNT1 A 0  A_PLAYSOUND("dest/compcase", CHAN_AUTO, 0.36, pitch:frandom(1.1,1.35));
+            TNT1 A 0 {
+                emitdefinition('SparkParticleSlowerDefinition', chance: 0.75, numTries: 3, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(1,2), velocity:(0,0,frandom(0,2)));
+				EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 8, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(-1, -2), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+				A_SPAWNITEMEX("YellowFlareSmallBB", 0, 0, 0);
+                SetStateLabel("Looper");
+            }
+			goto looper;
+		death:
+			VOXE L 1 {
+				A_PLAYSOUND("dest/compcase", CHAN_AUTO, 0.36, pitch:frandom(1.1,1.35));
+				A_SETPITCH(0);
+			}
+		WaitForFloor:
+			VOXE L 1 {
+				if(pos.z <= floorz && vel.length() < 0.001) {
+					sleep(200);
+					SetStateLabel("ActuallyDeath");
+				}
+			}
+			loop;
+		ActuallyDeath:
+			VOXE L 0;	// Necessary
+			VOXE L 1 {
+                if(getCvar("g_permanentDestruction"))
+                {
+                    sleepindefinite();
+                }
+            }
+			stop;
+	}
+}
+class ComputerMonitorPiece3 : ComputerMonitorPiece2 {
+
+}
+
+
+class WeaponEmber : actor {
+	int tick;
+	default {
+		speed 20;
+		radius 8;
+		height 1;
+		Gravity 0.6;
+		RenderStyle "Add";
+		Scale 0.025;
+		Alpha 0.9;
+		+MISSILE
+   		+CLIENTSIDEONLY
+   		+NOTELEPORT
+   		+NOBLOCKMAP
+ 		+BLOODLESSIMPACT 
+   		+FORCEXYBILLBOARD
+  		+CLIENTSIDEONLY
+    	+DONTSPLASH
+   		+GHOST
+   		+NOGRAVITY
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_CHANGEVELOCITY(frandom(1.4,8.6), frandom(-4,4), frandom(-2,2), CVF_RELATIVE | CVF_REPLACE);
+      		SPRK SSS 1 Bright A_FadeOut(0.02);
+	  		SPRK SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS 1 Bright {
+				  A_FadeOut(0.08);
+				  invoker.tick++;
+			  }
+        	stop;
+    	Death:
+       		Stop;
+	}
+}
+
+Class PaperChunk_small : PaperParticle
+{
+	States
+	{
+     Spawn:
+		PAPR A 0;
+		TNT1 A 0 {
+			invoker.dice = random(0, 100);
+			invoker.framenumber = random(0,3);
+			invoker.zvelocity1 = 2;
+			invoker.zvelocity2 = zvelocity1*-1;
+			invoker.xVelocityMax = 5;
+		}
+	ParticlePhysics:
+	See:
+		TNT1 A 0 A_SetScale(0.1* frandom(1, 5), 0.1* frandom(1, 5));
+		PAPR AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 4 {
+			ShootPaperParticles("PAPR");
+		}
+		Stop;
+	KillIt:
+	Death:
+	    TNT1 A 0;
+		stop;
+	}
+}
+
+class PaperPieceForward : PaperPiece {
+	override void movePaper() {
+		timer++;
+		frame = framenumber;
+		if(timer > 120) {
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}
+		A_SETPITCH(Pitch+3);
+		A_SETANGLE(angle+3);
+		A_ChangeVelocity((0.09* frandom(xVelocityMax*-1, xVelocityMax)), (0.04*frandom(xVelocityMax*-1, xVelocityMax)), 0.01 * frandom(zvelocity1,zvelocity2));
+		A_SETROLL(roll + random(5,8), SPF_INTERPOLATE);
+		zVelocityTics++;
+		if (zVelocityTics == 25) {
+			zvelocity1 = -0.5;
+			zvelocity2 = -0.5;
+			xVelocityMax = 3;
+		}	
+	}	
+
+	states {
+     Spawn:
+		PAPP A 0;
+		TNT1 A 0 {
+			invoker.dice = random(0, 100);
+			invoker.framenumber = random(0,3);
+			invoker.zvelocity1 = 2;
+			invoker.zvelocity2 = zvelocity1*-1;
+			invoker.xVelocityMax = 5;
+			A_CHANGEVELOCITY(frandom(-0.5, 0.5),frandom(-0.5, 0.5), frandom(0.1,0.2));
+			A_SETPITCH(random(0,360));
+			giveLivespan();
+			giveParticleChance();
+			if (dice > spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+			setStateLabel("see");
+		}
+	}
+
+}
+
+class PaperPieceUp : SelacoActor {
+	default
+	{
+		SelacoActor.SleepDistance 0;
+		+NOINTERACTION;
+	}
+	States {
+		spawn:
+      		TNT1 A 0;
+      		TNT1 AA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(-20,20), frandom(-20,20), random(0,29));
+			TNT1 AAAAA 0 A_SpawnProjectile("SmokeTrailPiece", 0, 0, random (0, 60), 2, random (0, 60));
+			TNT1 A 0
+			{
+				EmitDefinition('PaperPieceParticleDefinition', 1.0, 30);
+			}
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+Class PaperPiece : PaperParticle
+{
+	actor paperActor;
+	bool success;
+
+	string paperSprite;
+	property PaperSprite : paperSprite;
+
+	override void Tick() {
+		movePaper();
+		if(Pos.Z <= FloorZ && timer > 6) {
+			die(self,self);
+		}
+		super.tick();
+	}
+
+	bool bIsOnFloor() {
+		return (Pos.Z == FloorZ);
+	}
+
+	virtual void movePaper() {
+		timer++;
+		if(timer > 260) {
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}
+		A_SETPITCH(Pitch+3, SPF_INTERPOLATE);
+		A_SETANGLE(angle+3,SPF_INTERPOLATE);
+		A_ChangeVelocity((0.04* frandom(xVelocityMax*-1, xVelocityMax)), (0.04*frandom(xVelocityMax*-1, xVelocityMax)), 0.08 * frandom(zvelocity1,zvelocity2));
+		A_SETROLL(roll + random(5,8), SPF_INTERPOLATE);
+		zVelocityTics++;
+		if (zVelocityTics == 25) {
+			zvelocity1 = -0.5;
+			zvelocity2 = -0.5;
+			xVelocityMax = 3;
+		}	
+	}
+
+	default {
+		PaperPiece.PaperSprite "PAPP";
+		-WALLSPRITE;
+		+FLATSPRITE;
+		+NoBlockmap
+		+NoInteraction
+		+INTERPOLATEANGLES
+		+INVISIBLEINMIRRORS
+		scale 0.16;
+	}
+	States
+	{
+     Spawn:
+		PAPP A 0;
+		TNT1 A 0 {
+			invoker.dice = random(0, 100);
+			invoker.framenumber = random(0,3);
+			invoker.zvelocity1 = 2;
+			invoker.zvelocity2 = zvelocity1*-1;
+			invoker.xVelocityMax = 5;
+			A_CHANGEVELOCITY(frandom(-0.8, 1.2),frandom(-0.8, 1.2), frandom(0.4,1.0));
+			A_SETPITCH(random(0,360));
+			giveLivespan();
+			setStateLabel("see");
+		}
+	See:
+		PAPP A -1 {
+			sprite = getSpriteIndex(paperSprite);
+			frame = framenumber;
+		}
+		loop;
+	KillIt:
+	Death:
+		TNT1 A 0 {
+			// Only show paper pieces that actually manages to get some air time.
+			if(timer > 6 ) {
+				A_PLAYSOUND("impact/paperlanding", CHAN_AUTO, 0.6, 0, 1.0, pitch:frandom(1.2, 1.4));
+				[success, paperActor] = A_SPAWNITEMEX("paperDecalSingle", flags:SXF_SETMASTER);
+				if(paperActor) {
+					paperDecalSingle(paperActor).frameID = framenumber;
+				}
+			}
+			destroy();
+		}
+		stop;
+	}
+}
+
+class PaperPieceLow : PaperPiece {
+	states {
+		Spawn:
+			PAPP A 0;
+			TNT1 A 0 {
+				invoker.dice = 200;
+				invoker.framenumber = random(0,3);
+				invoker.zvelocity1 = 1.5;
+				invoker.zvelocity2 = zvelocity1*-1;
+				invoker.xVelocityMax = 5;
+				A_CHANGEVELOCITY(frandom(-0.5, 0.5),frandom(-0.5, 0.5), frandom(0.4,0.7));
+				A_SETPITCH(random(0,360));
+				setStateLabel("see");
+			}
+	}
+}
+
+class BookPieceLow : PaperPieceLow
+{
+	default
+	{
+		PaperPiece.paperSprite "BKPG";
+	}
+	states 
+	{
+		Spawn:
+			PAPP A 0;
+			TNT1 A 0 
+			{
+				invoker.dice = 200;
+				invoker.framenumber = random(0,16);
+				invoker.zvelocity1 = 1.5;
+				invoker.zvelocity2 = zvelocity1*-1;
+				invoker.xVelocityMax = 5;
+				A_CHANGEVELOCITY(frandom(-0.5, 0.5),frandom(-0.5, 0.5), frandom(0.4,0.7));
+				A_SETPITCH(random(0,360));
+				setStateLabel("see");
+			}
+		Death:
+			TNT1 A 0 
+			{
+				// Only show paper pieces that actually manages to get some air time.
+				if(timer > 6 ) {
+					A_PLAYSOUND("impact/paperlanding", CHAN_AUTO, 0.6, 0, 1.0, pitch:frandom(1.2, 1.4));
+					[success, paperActor] = A_SPAWNITEMEX("BookPaperSinglePiece");
+					if(paperActor) {
+						BookPaperSinglePiece(paperActor).frameID = framenumber;
+					}
+				}
+				destroy();
+			}
+			stop;
+	}
+}
+
+Class Flowerchunk_small : PaperParticle
+{
+	States
+	{
+	Index:
+		BLAD A 0;
+     Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			invoker.dice = random(0, 100);
+			invoker.framenumber = random(0,2);
+			invoker.zvelocity1 = 2;
+			invoker.zvelocity2 = zvelocity1*-1;
+			invoker.xVelocityMax = 9;
+			setStateLabel("See");
+		}
+	ParticlePhysics:
+	See:
+		TNT1 A 0 A_SetScale(0.1* frandom(2, 3.2));
+		BLAD AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 5 {
+			ShootPaperParticles("BLAD");
+			A_SetRoll(roll + random(3,8));
+		}
+		Stop;
+	KillIt:
+	Death:
+	    TNT1 A 0;
+		stop;
+	}
+}
+
+Class Flowerchunk_short : Flowerchunk_small
+{
+
+	override void tick()
+	{
+		super.tick();
+		A_FADEOUT(0.006, FTF_REMOVE);
+	}
+
+	states
+	{
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 {
+				invoker.dice = random(0, 100);
+				invoker.framenumber = random(0,2);
+				invoker.zvelocity1 = 2;
+				invoker.zvelocity2 = zvelocity1*-1;
+				invoker.xVelocityMax = 3;
+				setStateLabel("See");
+			}
+		See:
+			TNT1 A 0 A_SetScale(0.1* frandom(2, 3.2));
+			BLAD AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 5 {
+				ShootPaperParticles("BLAD");
+				A_SetRoll(roll + random(3,8));
+			}
+			Stop;	
+	}
+}
+
+Class CardboardChunk_small : PaperChunk_small {
+/* 	States
+	{
+     Spawn:
+		TNT1 A 0;
+		PAPR EFGH 0;
+		TNT1 A 0 {
+			invoker.dice = random(0, 100);
+			invoker.framenumber = random(5,6);
+			invoker.zvelocity1 = 1;
+			invoker.zvelocity2 = zvelocity1*-1;
+			invoker.xVelocityMax = 1;
+		}
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("ParticlePhysics")==1,"ParticlePhysics");
+		TNT1 A 1;
+	Death:
+	    TNT1 A 0;
+		stop;
+	ParticlePhysics:
+	See:
+		TNT1 A 0 A_SetScale(0.1* random(1, 5), 0.1* random(1, 5));
+		PAPR AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 3 {
+			ShootPaperParticles("PAPR");
+		}
+		Stop;
+	} */
+} 
+
+class Cardboard_Chunk_Less : actor {
+	mixin ParticleDefinitionEmitter;
+	default {
+		+NOINTERACTION;
+	}
+	States {
+		spawn:
+			TNT1 AA 0 A_SpawnProjectile("BrownCloudSmall", 0, 0, random (0, 120), 2, random (0, 60));
+			TNT1 A 0 {
+				EmitDefinition('CardboardChunkSmallDefinition', 0.75, 36);
+			}
+			stop;
+	}
+}
+
+
+Class TrashbagChunk_small : CardboardChunk_small {
+	default {
+		Translation "0:255=%[0,0,0]:[0.1,0.1,0.1]";
+	}
+} 
+
+// Fires a missile that spawns smoke in the progress.
+class WallShrapnel : actor
+{
+	SmokeHandler sh;
+	int smokeQuality;
+	string smokeSprites;
+
+	override void beginPlay() {
+		SmokeHandler sh = SmokeHandler.instance();
+		smokeQuality = sh.currentSmokeSetting+1;
+	}
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		smokeSprites = "SmokeTrailPieceSmall";
+		if(smokeQuality <= 1)
+		{
+			destroy();
+		}
+		A_ScaleVelocity(frandom(1.0,1.3));
+	}
+
+	default {
+		+THRUGHOST
+		+DOOMBOUNCE
+		+MISSILE
+		-NOGRAVITY
+		Radius 4;
+		Height 4;
+		Speed 8;
+		RenderStyle "none";
+		bouncefactor 0.3;
+		Gravity 0.3;
+		Alpha 1.0;
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 0; 
+		TNT1 A 1 A_SpawnItem (smokeSprites);
+	LoopUntilDepleted:
+		TNT1 A 1 {
+			A_SpawnItem (smokeSprites);
+			smokeQuality--;
+			if(!smokeQuality) {
+				die(self,self);
+			}
+		}
+		loop;
+	
+	Death:
+		TNT1 A 0;
+		Stop;
+	}
+}
+
+class GlassPuffSmoke : WallShrapnel
+{
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		smokeSprites = "SmokeTrailPieceGlasswindow";
+	}
+
+	default
+	{
+		speed 2;
+	}
+}
+
+// Fires a missile that spawns smoke in the progress.
+class WoodShrapnel : WallShrapnel
+{
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		smokeSprites = "SmokeTrailPieceSmallWood";
+	}
+}
+
+class WallShrapnelLonger : WallShrapnel {
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		smokeQuality+=3;
+	}
+}
+
+
+Class CardboardChunk_small_Short : CardboardChunk_small {
+	States
+	{
+     Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			invoker.dice = random(0, 100);
+			invoker.framenumber = random(4,6);
+			invoker.zvelocity1 = 2;
+			invoker.zvelocity2 = zvelocity1*-1;
+			invoker.xVelocityMax = 4;
+		}
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("ParticlePhysics")==1,"ParticlePhysics");
+		TNT1 A 1;
+	Death:
+	    TNT1 A 0;
+		stop;
+	ParticlePhysics:
+	See:
+		TNT1 A 0 A_SetScale(0.1* random(1, 5), 0.1* random(1, 5));
+		PAPR AAAAAAAAAAAAAAAAAA 3 {
+			ShootPaperParticles("PAPR");
+		}
+		Stop;
+	}
+}
+
+Class DebriesChunk : actor
+{
+	mixin SleepDebugger;
+	mixin particleCvarCheck;
+	int watercount, lifespan, spawnChance;
+
+	int frameNumber;
+	float particleSize;
+	int dice;
+	
+
+	virtual void getParticleCount(float xSpeed1, float xSpeed2, float ySpeed1, float ySpeed2, float zSpeed1, float zSpeed2, float size1, float size2) {
+		
+		particleSize = frandom(size1, size2);
+		A_ChangeVelocity(frandom(xSpeed1, xSpeed2), frandom(ySpeed1, ySpeed2), frandom(zSpeed1, zSpeed2), CVF_RELATIVE);
+		// Particle Count
+		frameNumber = random(0, 4);
+	
+
+		// Particle Life time
+		giveLivespan();
+		dice = random(0, 100);
+		if (dice > 50) {
+			A_SetScale(particleSize, particleSize);
+		} else {
+			A_SetScale(particleSize *-1, particleSize);
+		}
+			
+	}
+
+
+	void sleepWhenPossible() {
+		if(pos.z <= floorz && vel.length() < 0.001) SleepIndefinite();
+	}
+		
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		/*if(pos.z <= floorz || GetAge() > lifespan * 10) {
+			
+		}*/
+		A_PrintBold(String.Format("Death! %s", MeansOfDeath));
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+	
+	Default {
+		Scale 0.21;
+		+noteleport;
+		+missile;
+		+DoomBounce;
+		DistanceCheck "r_thingLOD";
+		+DONTSPLASH;
+		+CANNOTPUSH	
+		+forcexybillboard;
+		+THRUACTORS;
+		+ROLLSPRITE;
+		+CLIENTSIDEONLY;
+		+NOBLOCKMAP;
+        -ACTIVATEIMPACT;
+        -ACTIVATEMCROSS;
+        -ACTIVATEPCROSS;
+		BounceFactor 0.58;
+		WallBounceFactor 0.1;
+		BounceCount 5;
+		Speed 2;
+		Gravity 0.84;
+		height 5;
+		radius 5;
+	}
+
+	States
+	{
+     Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			 getParticleCount(3.0, 4.0, 3.06, 4.2, 1.3, 2.3, 0.25, 0.42);
+			 A_SetAngle(random(0, 360));
+			 BounceFactor = frandom(0.3, 0.6);
+		}
+	SpawnBricks:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex("DUST");
+		}
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("ParticlePhysics")==1,"ParticlePhysics");
+	/*Death:
+	    TNT1 A 0;
+		stop;*/
+	ParticlePhysics:
+	//Death:
+		TNT1 A 0;
+		TNT1 A 0 {
+			bMissile = true;
+			bBounceonfloors = true;
+			bBounceonWalls = true;
+		}
+	Bounce:
+		TNT1 A 1 {
+			A_SetTics(1);
+			A_SETROLL(ROLL + FRANDOM(20,35));
+			Frame = invoker.frameNumber;
+		}
+		loop;
+	Death:
+		TNT1 A 1 {
+			if(random(0,3) == 3) {a_playsound("chunk/impact", CHAN_AUTO, 1.0, 0, 0.8, 0, frandom(0.8, 1.1));}
+			Frame = invoker.frameNumber;
+			A_SetTics(60);
+		}
+	WaitForFloor:
+		TNT1 A 1 {
+			Frame = invoker.frameNumber;
+			if(GetAge() > lifespan * 20 || pos.z <= floorz && vel.length() < 0.001) {
+				SetStateLabel("RealDeath");
+				return;
+			}
+		}
+		loop;
+	RealDeath:
+		TNT1 A 1 {
+			Frame = invoker.frameNumber;
+			if(pos.z <= floorz) {
+				bNointeraction = true;
+				Sleep(lifespan);	// This frame should stay visible and dormant now while asleep
+			}
+		}
+		// Fade out
+		TNT1 AAAAAAAAAAA 1 {
+			Frame = invoker.frameNumber;
+			bNointeraction = true;
+			A_SetTics(1);
+			A_FADEOUT(0.1);
+		}
+		stop;
+	KillIt:
+		stop;
+	}	
+}
+
+class DebriesChunkShort	: DebriesChunk {
+
+	override void getParticleCount(float xSpeed1, float xSpeed2, float ySpeed1, float ySpeed2, float zSpeed1, float zSpeed2, float size1, float size2) {
+		particleSize = frandom(size1, size2);
+		A_ChangeVelocity(frandom(xSpeed1, xSpeed2), frandom(ySpeed1, ySpeed2), frandom(zSpeed1, zSpeed2), CVF_RELATIVE);
+		frameNumber = random(0, 4);
+
+		
+		dice = random(0, 100);
+		if (dice > 50) {
+			A_SetScale(particleSize, particleSize);
+		} else {
+			A_SetScale(particleSize *-1, particleSize);
+		}
+
+		// Not sure why we are doing this twice, size is also adjusted above along with spawn chance
+		// Isn't this also overriding the dice roll above?
+		if (dice > spawnChance) {
+			SetStateLabel("KillIt");		
+		}
+	}
+}
+
+Class DebriesChunkVariableSize : DebriesChunk {
+	states {
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 {
+				getParticleCount(-3.0, 3.0, -3.06, 3.06, 3.3, 10.3, 0.45, 0.62);
+				A_SetAngle(random(0, 360));
+				BounceFactor = frandom(0.3, 0.6);
+				SetStateLabel("SpawnBricks");
+			}
+	}
+}
+
+Class DebriesChunkUp : DebriesChunk {
+	states {
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 {
+				getParticleCount(-3.0, 3.0, -3.06, 3.06, 3.3, 10.3, 0.25, 0.42);
+				A_SetAngle(random(0, 360));
+				BounceFactor = frandom(0.3, 0.6);
+				SetStateLabel("SpawnBricks");
+			}
+	}
+}
+
+Class DebriesChunkUpSlow : DebriesChunk {
+	states {
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 {
+				getParticleCount(-0.2, 0.2, -0.2, 0.2, 0.5, 0.9, 0.25, 0.42);
+				A_SetAngle(random(0, 360));
+				BounceFactor = frandom(0.3, 0.6);
+				SetStateLabel("SpawnBricks");
+			}
+	}
+}
+
+
+// SPARKS
+Class ExplosionParticleHeavy : SELACOACTOR
+{
+	default {
+	 speed 5;
+	 radius 5;
+	 height 5;
+	 Gravity 0.5;
+	 RenderStyle "Add";
+	 Scale 0.2;
+	+MISSILE;
+	+CLIENTSIDEONLY;
+	-SELACOACTOR.allowWaterSplashing
+	DistanceCheck "r_thingLOD";
+	SELACOACTOR.SleepDistance 0;
+	+NOTELEPORT;
+	+NOBLOCKMAP;
+	+BLOODLESSIMPACT; 
+	+FORCEXYBILLBOARD;
+	+FORCEXYBILLBOARD;
+	+CLIENTSIDEONLY;
+	+DOOMBOUNCE;
+	+DONTSPLASH;
+	+THRUACTORS;
+	+THRUGHOST;
+	+GHOST;
+	Damage 0;
+	BounceFactor 0.01;
+  }
+
+    States
+    {
+     Spawn:
+       SPRK SSSSS 1 BRIGHT;
+	   SPRK SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS 1 Bright A_FadeOut(0.05);
+        stop;
+     Death:
+       Stop;
+    }
+}
+
+Class Spark_W1 : Actor
+{
+	mixin particleCvarCheck;
+	int watercount, lifespan, spawnChance;
+	int dice; 
+  	default {
+		DistanceCheck "r_thingLOD";;
+		height 5;
+		radius 5;
+		mass 0;
+		speed 3;
+		+CLIENTSIDEONLY;
+		+DontSplash;
+		+MISSILE +NOBLOCKMAP +DOOMBOUNCE;
+		bouncefactor 0.4;
+		renderstyle "Add";
+		scale 0.021;
+		Gravity 0.3;
+	}
+
+  states
+  {
+	Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			A_ChangeVelocity(frandom(0.4, 0.7), frandom(0.1, 0.43), frandom(1.6,3.5), CVF_RELATIVE);
+				giveParticleChance();
+			invoker.dice = random(0, 100);
+			if (invoker.dice > invoker.spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+			SetStateLabel("particlePhysics");
+		}
+	particlePhysics:
+		SPRK AAAAAAAAAAAAA 1 bright;
+		TNT1 A 0 {
+			if(waterlevel > 0) {
+				setStateLabel("Death");
+			}
+		}
+		loop;
+	Death:
+		TNT1 A 0;
+		SPRK AAAAA 1 bright A_FadeOut (0.1);
+		loop;
+	InstaDeath:
+		Stop;
+	KillIt:
+		stop;
+	Underwater:
+	  SPRK AAAAAAAAAAAAA 1 bright A_FadeOut(0.1);	
+	  Stop;
+  }
+}
+
+Class Spark_W1_slow : Spark_W1
+{
+  states
+  {
+	particlePhysics:
+		TNT1 A 0;
+		TNT1 A 0 A_ChangeVelocity(frandom(0.2,0.3), frandom(-0.3,0.3), frandom(0.8,0.8), CVF_REPLACE);
+		SPRK AAAAAAAAAAAAA 1 bright;
+	Death:
+		TNT1 A 0;
+	SPRK AAAAA 1 bright A_FadeOut (0.1);
+		loop;
+	InstaDeath:
+		Stop;
+	KillIt:
+		stop;
+	Underwater:
+	  SPRK AAAAAAAAAAAAA 1 bright A_FadeOut(0.1);	
+	  Stop;
+  }
+}
+
+class Spark_w1_NoGrav : Spark_W1 {
+	default {
+		+NOGRAVITY
+		+NOINTERACTIOn
+	  	speed 0;
+	}
+	states {
+		particlePhysics:
+			TNT1 A 0 A_ChangeVelocity(frandom(0.2,0.3), frandom(-0.2,0.2), 0, CVF_REPLACE);
+			SPRK A 15 BRIGHT;
+			TNT1 A 0 {
+				setStateLabel("Death");
+			}
+	}
+}
+
+Class Sparks_short : Spark_W1
+{
+	
+  default {
+	+NOINTERACTION
+  	+NOGRAVITY
+  }
+  states
+  {
+	Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			A_ChangeVelocity(frandom(-1.5, 1.5), frandom(-1.5, 1.5), frandom(-1.5, 1.5), CVF_RELATIVE);
+			giveParticleChance();
+			invoker.dice = random(0, 100);
+			if (invoker.dice > invoker.spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+		}
+	particlePhysics:
+		SPRK AAAAA 1 bright A_JumpIf(waterlevel > 1, "Underwater");
+	Death:
+		TNT1 A 0 A_JumpIf(waterlevel > 1, "Underwater");
+		SPRK AAAAAAAAA 1 bright A_FadeOut (0.1);
+		loop;
+	InstaDeath:
+		Stop;
+	KillIt:
+		stop;
+	Underwater:
+	  SPRK AAAAAAAAAAAAA 1 bright A_FadeOut(0.1);	
+	  Stop;
+  }
+}
+
+Class SparkEmbers : SparkX
+{
+	string spriteIndex;
+	int spriteFrame;
+	int effectLifeSpan;
+	void setSpriteFrame(string newSpriteString, int newSpriteFrame) {
+		spriteIndex = newSpriteString;
+		spriteFrame = newSpriteFrame;
+	}
+
+	void A_EffectLifeSpan(int newLifeSpan) {
+		effectLifeSpan = newLifeSpan;
+	}
+
+	int getEffectLifeSpan() {
+		return effectLifeSpan;
+	}
+
+	void decrementLifeSpan() {
+		effectLifeSpan--;
+	}
+
+	string getSpriteString() {
+		return spriteIndex;
+	}
+
+	int getSpriteFrame() {
+		return spriteFrame;
+	}
+
+  default {
+  	+NOGRAVITY;
+	+NOINTERACTION;
+	+NOBLOCKMAP;
+	ALPHA 1.0;
+	DistanceCheck "r_thingLOD";;
+  }
+  states
+  {
+	Spawn:
+		SPKO A 0;
+		TNT1 A 0 {
+			A_ChangeVelocity(frandom(-1.0, 1.0), frandom(-0.5, 0.5), frandom(-0.3, 0.3), CVF_RELATIVE);
+			giveParticleChance();
+			invoker.dice = random(0, 100);
+			if (invoker.dice > invoker.spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+			SetStateLabel("AssignSprite");
+		}
+		AssignSprite:
+		SPKO A 0;
+		SPKO A 0 {
+			A_SetScale(frandom(0.025, 0.029), frandom(0.022, 0.028));
+			//setSpriteFrame("SPKO", 0);
+			A_EffectLifeSpan(15);
+			//setStateLabel("particlePhysics");
+		}
+	particlePhysics:
+		SPKO AAAAAAAAAAAAAAAAAA 1 bright {
+			if (getEffectLifeSpan() <= 0) {
+				setStateLabel("death");
+			}
+			A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.5, 0.5), frandom(-0.5, 0.5), CVF_RELATIVE);
+			decrementLifeSpan();
+		}
+		loop;
+	Death:
+		TNT1 A 0 A_JumpIf(waterlevel > 1, "Underwater");
+		SPKO AAAAAAAAAAA 1 bright {
+			A_FadeOut (0.06);
+			A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.2, 0.2), frandom(-0.5, 0.5), CVF_RELATIVE);
+		}
+		loop;
+	InstaDeath:
+		TNT1 A 0;
+		Stop;
+	KillIt:
+		stop;
+	Underwater:
+	 	SPKO AAAAAAAAAA 1 bright {
+			A_FadeOut(0.05);	
+  		}
+		stop;
+	}
+}
+
+Class SparkembersNoCvarCheck : SparkEmbers
+{
+  default {
+  	+NOGRAVITY;
+	+NOINTERACTION;
+	+NOBLOCKMAP;
+	ALPHA 1.0;
+	DistanceCheck "r_thingLOD";;
+  }
+  states
+  {
+	Spawn:
+		SPKO A 0;
+		TNT1 A 0 {
+			A_ChangeVelocity(frandom(-1.0, 1.0), frandom(-0.5, 0.5), frandom(-0.3, 0.3), CVF_RELATIVE);
+			SetStateLabel("AssignSprite");
+		}
+		AssignSprite:
+		SPKO A 0;
+		SPKO A 0 {
+			A_SetScale(frandom(0.045, 0.039), frandom(0.032, 0.038));
+			//setSpriteFrame("SPKO", 0);
+			A_EffectLifeSpan(15);
+			//setStateLabel("particlePhysics");
+		}
+	particlePhysics:
+		SPKO AAAAAAAAAAAAAAAAAA 1 bright {
+			if (getEffectLifeSpan() <= 0) {
+				setStateLabel("death");
+			}
+			A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.5, 0.5), frandom(-0.5, 0.5), CVF_RELATIVE);
+			decrementLifeSpan();
+		}
+		loop;
+	Death:
+		TNT1 A 0 A_JumpIf(waterlevel > 1, "Underwater");
+		SPKO AAAAAAAAAAA 1 bright {
+			A_FadeOut (0.06);
+			A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.2, 0.2), frandom(-0.5, 0.5), CVF_RELATIVE);
+		}
+		loop;
+	InstaDeath:
+		TNT1 A 0;
+		Stop;
+	KillIt:
+		stop;
+	Underwater:
+	 	SPKO AAAAAAAAAA 1 bright {
+			A_FadeOut(0.05);	
+  		}
+		stop;
+	}
+}
+
+
+class plasmaEmber : SparkEmbers {
+	states {
+		Spawn:
+			EMBR A 0;
+			TNT1 A 0 {
+				A_ChangeVelocity(frandom(0.4, 2.0), frandom(-2.5, 2.5), frandom(-2.3, 2.3), CVF_RELATIVE);
+				giveParticleChance();
+				invoker.dice = random(0, 100);
+				if (invoker.dice > invoker.spawnChance) {
+					SetStateLabel("KillIt");		
+				}
+				SetStateLabel("AssignSprite");	
+			}
+		AssignSprite:
+			EMBR B 0;
+			TNT1 A 0 {
+				A_SetScale(frandom(0.047, 0.057));
+				A_EffectLifeSpan(3);
+				setStateLabel("particlePhysics");
+			}
+		particlePhysics:
+			EMBR BBBBBBBBBBBBBBBB 1 bright {
+				if (getEffectLifeSpan() <= 0) {
+					setStateLabel("death");
+				}
+				A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.5, 0.5), frandom(-0.5, 0.5), CVF_RELATIVE);
+				decrementLifeSpan();
+			}
+			loop;
+		Death:
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Underwater");
+			EMBR BBBBBBBBBBB 1 bright {
+				A_FadeOut (0.06);
+				A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.2, 0.2), frandom(-0.5, 0.5), CVF_RELATIVE);
+			}
+			loop;
+	}
+} 
+
+class plasmaEmberSmall : plasmaEmber {
+	states {
+		AssignSprite:
+			EMBR B 0;
+			TNT1 A 0 {
+				A_SetScale(frandom(0.017, 0.027));
+				A_EffectLifeSpan(3);
+				setStateLabel("particlePhysics");
+			}
+		particlePhysics:
+			EMBR BBBBBBBBBBBBBBBB 1 bright {
+				if (getEffectLifeSpan() <= 0) {
+					setStateLabel("death");
+				}
+				A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.5, 0.5), frandom(-0.5, 0.5), CVF_RELATIVE);
+				decrementLifeSpan();
+			}
+			loop;
+		Death:
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Underwater");
+			EMBR BBBBBBBBBBB 1 bright {
+				A_FadeOut (0.06);
+				A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.2, 0.2), frandom(-0.5, 0.5), CVF_RELATIVE);
+			}
+			loop;
+	}
+} 
+
+class REDplasmaEmber : SparkEmbers {
+	states {
+		Spawn:
+			EMBR A 0;
+			TNT1 A 0 {
+				A_ChangeVelocity(frandom(0.4, 2.0), frandom(-2.5, 2.5), frandom(-2.3, 2.3), CVF_RELATIVE);
+				giveParticleChance();
+				invoker.dice = random(0, 100);
+				if (invoker.dice > invoker.spawnChance) {
+					SetStateLabel("KillIt");		
+				}
+			}
+		AssignSprite:
+			EMBR A 0;
+			TNT1 A 0 {
+				A_SetScale(frandom(0.047, 0.057));
+				A_EffectLifeSpan(3);
+				setStateLabel("particlePhysics");
+			}
+		particlePhysics:
+			EMBR AAAAAAAAAAAAAAAA 1 bright {
+				if (getEffectLifeSpan() <= 0) {
+					setStateLabel("death");
+				}
+				A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.5, 0.5), frandom(-0.5, 0.5), CVF_RELATIVE);
+				decrementLifeSpan();
+			}
+			loop;
+		Death:
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Underwater");
+			EMBR AAAAAAAAAAAA 1 bright {
+				A_FadeOut (0.06);
+				A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.2, 0.2), frandom(-0.5, 0.5), CVF_RELATIVE);
+			}
+			loop;
+	}
+} 
+
+
+class SparkX: ExplosionParticleHeavy
+{
+
+	mixin particleCvarCheck;
+	int watercount, lifespan, spawnChance;
+	int dice; 
+	default {
+		// FLAGS
+		-NOGRAVITY;
+		+DOOMBOUNCE;
+		+DontSplash;
+		-NOINTERACTION
+		// PROPERTIES
+		speed 1;
+		DistanceCheck "r_thingLOD";;
+		RenderStyle "Add";
+		XScale 0.045;
+		Yscale 0.055;
+		radius 5;
+		height 5;
+		BounceFactor 0.6;
+		Damage 0;
+		alpha 1.0;
+		-SELACOACTOR.AllowWaterSplashing;
+	 }
+    States
+    {
+     Spawn:
+		TNT1 A 0;
+		SPKO A 0;
+		TNT1 A 0 {
+			int x = random(0,3);
+			switch(x) {
+				case 0: 
+					A_SetScale(frandom(0.024, 0.030), frandom(0.060, 0.070)); 
+					break;
+				case 1: 
+					A_SetScale(frandom(0.028, 0.034), frandom(0.070, 0.080)); 
+					break;
+				case 2: 
+					A_SetScale(frandom(0.021, 0.026), frandom(0.073, 0.084)); 
+					break;
+				case 2: 
+					A_SetScale(frandom(0.058, 0.063), frandom(0.052, 0.063)); 
+					break;
+			}
+			//A_SetScale(frandom(0.024, 0.040), frandom(0.020, 0.050));
+			A_ChangeVelocity(frandom(1, 5.60), frandom(0.1, 0.93), frandom(0.3, 3.9), CVF_RELATIVE);
+			giveParticleChance();
+			Gravity = frandom(0.2, 0.4);
+			BounceFactor = frandom(0.3, 0.6);
+			invoker.dice = random(0, 100);
+			if (invoker.dice > invoker.spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+			SetStateLabel("ShowSpark");
+		}
+	ShowSpark:
+       SPKO A 50 BRIGHT;
+	   SPKO AAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright A_FadeOut(0.04);
+       goto Death;
+	KillIt:
+	Death:
+	    TNT1 A 0;
+    Stop;
+	Stap:		
+		TNT1 A 0;
+	Stop;
+    }
+}
+
+class SparkXNoCvarCheck : SparkX {
+/* 	states {
+     Spawn:
+		TNT1 A 0;
+		SPKO A 0;
+		TNT1 A 0 {
+			int x = random(0,3);
+			switch(x) {
+				case 0: 
+					A_SetScale(frandom(0.024, 0.030), frandom(0.060, 0.070)); 
+					break;
+				case 1: 
+					A_SetScale(frandom(0.028, 0.034), frandom(0.070, 0.080)); 
+					break;
+				case 2: 
+					A_SetScale(frandom(0.021, 0.026), frandom(0.073, 0.084)); 
+					break;
+				case 2: 
+					A_SetScale(frandom(0.058, 0.063), frandom(0.052, 0.063)); 
+					break;
+			}
+			//A_SetScale(frandom(0.024, 0.040), frandom(0.020, 0.050));
+			A_ChangeVelocity(frandom(1, 5.60), frandom(0.1, 0.93), frandom(0.3, 3.9), CVF_RELATIVE);
+			Gravity = frandom(0.2, 0.4);
+			BounceFactor = frandom(0.3, 0.6);
+			invoker.dice = random(0, 100);
+			SetStateLabel("ShowSpark");
+		}
+	} */
+}
+
+class SparkXShort : SparkX {
+/* 	states {
+		ShowSpark:
+			SPKO A 10 BRIGHT;
+			SPKO AAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright A_FadeOut(0.04);
+			goto Death;
+	} */
+}
+
+class SparkXHeadshot: SparkX
+{
+/* 	default {
+		 Gravity 0.5;
+	} */
+}
+
+Class SparkXSlow: SparkX {
+/* 	default {
+		speed 4;
+	}
+	states {
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 {
+				A_SetScale(frandom(0.020, 0.030), frandom(0.020, 0.020));
+				giveParticleChance();
+				A_ChangeVelocity(frandom(0.2, 0.7), frandom(0.1, 0.33), frandom(0.4, 1.3), CVF_RELATIVE);
+
+				invoker.dice = random(0, 100);
+				if (invoker.dice > invoker.spawnChance) {
+					SetStateLabel("KillIt");		
+				}
+			}
+		SPKO A 20 BRIGHT;
+		SPKO AAAAAAAAAA 3 Bright A_FadeOut(0.1);
+		goto Death;
+	} */
+}
+
+Class SparkXMelee: SparkX {
+/* 	default {
+		speed 1;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SetScale(frandom(0.020, 0.030), frandom(0.020, 0.040));
+				A_ChangeVelocity(frandom(0.2, 0.3), frandom(0.1, 0.33), frandom(-0.2, 0.2), CVF_RELATIVE);
+				giveParticleChance();
+				invoker.dice = random(0, 100);
+				if (invoker.dice > invoker.spawnChance) {
+					SetStateLabel("KillIt");		
+				}
+			}
+		SPKO A 20 BRIGHT;
+		SPKO AAAAAAAAAA 3 Bright A_FadeOut(0.1);
+		goto Death;
+	} */
+}
+
+Class SparkXSmall: SparkX
+{
+/* 	default {
+	 XScale 0.015;
+	 Yscale 0.025;
+		DistanceCheck "r_thingLOD";;
+	 }
+    States
+    {
+     Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			A_ChangeVelocity(frandom(1.00, 2.00), frandom(0.1, 0.43), frandom(1.4, 2.3), CVF_RELATIVE);
+			giveParticleChance();
+			invoker.dice = random(0, 100);
+			if (invoker.dice > invoker.spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+		}
+       SPKO AAAA 3 BRIGHT;
+	   SPKO AAAAAAAAAA 3 Bright A_FadeOut(0.1);
+       goto Death;
+	KillIt:
+	Death:
+	    TNT1 A 0;
+    Stop;
+	Stap:		
+	TNT1 A 0;
+	Stop;
+    } */
+}
+
+Class SparkXShotgun: SparkX
+{
+	default {
+	 XScale 0.025;
+	 Yscale 0.035;
+		DistanceCheck "r_thingLOD";;
+	 }
+    States
+    {
+     Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			A_ChangeVelocity(frandom(9.00, 15.00), frandom(-2.45, 2.43), frandom(1.4, 3.3), CVF_RELATIVE);
+			giveParticleChance();
+			invoker.dice = random(0, 100);
+			if (invoker.dice > invoker.spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+		}
+	   TNT1 A 3;
+	   SPKO AAAAAAAAAA 3 Bright A_FadeOut(0.1);
+       goto Death;
+	KillIt:
+	Death:
+	    TNT1 A 0;
+    Stop;
+	Stap:		
+	TNT1 A 0;
+	Stop;
+    }
+}
+
+Class SparkXSmallNoGrav: SparkX
+{
+/* 	default {
+		+NOGRAVITY
+		XScale 0.015;
+		speed 3;
+		Yscale 0.025;
+		DistanceCheck "r_thingLOD";;
+	 }
+    States
+    {
+     Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			A_ChangeVelocity(0, 0, frandom(-1, 1), CVF_RELATIVE);
+			giveParticleChance();
+			invoker.dice = random(0, 100);
+			if (invoker.dice > invoker.spawnChance) {
+				SetStateLabel("KillIt");		
+			}
+		}
+       SPKO A 1 BRIGHT;
+	   SPKO AAAAAAA 1 Bright A_FadeOut(0.1);
+       goto Death;
+	KillIt:
+	Death:
+	    TNT1 A 0;
+    Stop;
+	Stap:		
+	TNT1 A 0;
+	Stop;
+    } */
+}
+
+class WaterLeaker : SelacoActor {
+	int sprayIntensity;
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		sprayIntensity = args[0] != 0 ? args[0] : 1;
+		A_SPAWNITEMEX("WetScreenBox", 15);
+		A_PlaySound("AMBIENT/BATHTUB", CHAN_5, 0.7, 1, frandom(0.95,1.05));
+	}
+
+	default
+	{
+		SelacoActor.SleepDistance 600;
+		tag "Water Leakage";
+		+FLOAT
+		+NOGRAVITY
+		-SOLID
+		+STANDSTILL
+		+THRUACTORS
+		+NOINTERACTION
+		height 2;
+		Alpha 0;
+	}
+	states {
+		Spawn:
+		SpawnEffect:
+			TNT1 AA 1 {
+				EmitDefinition('WaterLeakParticleDefinition', 1, sprayIntensity, speed,args[1], flags: PE_IGNORE_CHANCE);
+				EmitDefinition('WaterLeakParticleStrayDefinition', 1, sprayIntensity, speed:args[1], flags: PE_IGNORE_CHANCE);
+				A_SpawnDefinedParticle("WaterPlopNoGravity", frandom(-3,3), frandom(-3,3), frandom(2,3));
+			}
+			goto Spawn;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class RainDropMissile: Actor
+{
+	int aliveticks;
+	bool allowSplash;
+	override void tick() {
+		super.tick();
+		if(alpha < 0.6)
+		{
+			alpha+=0.05;
+		}
+		if(aliveticks < 7) {
+			aliveticks++;
+		} else {
+			allowSplash = true;
+		}
+	}
+
+	default {
+		+NOBLOCKMAP
+		-DontSplash;
+		+THRUACTORS;
+		-DoomBounce;
+		+GHOST;
+		+Missile;
+		radius 5;
+		height 5;
+		alpha 0;
+		xscale 0.06;
+		yscale 0.20;
+		RenderStyle "Add";
+		DistanceCheck "r_thingLOD";
+		BounceFactor 0;
+		BounceCount 0;
+	 }
+    States
+    {
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 {
+				A_SetScale(scale.x + frandom(0.002, 0.003), scale.y + frandom(0.0075, 0.085));
+				A_ChangeVelocity(frandom(0.08, 0.15), frandom(0.02, 0.03), frandom(0.4, 0.6), CVF_RELATIVE);
+			}
+			DROP L 12;
+			TNT1 A 0
+			{
+				A_ChangeLinkFlags(false);
+			}
+		Looper:
+			DROP L 1 {
+				if(waterLevel > 0)
+				{
+					actor waterFoamActor;
+					bool waterFoamSuccess;
+					if(random(0,100) <= 25)
+					{
+						A_SpawnDefinedParticle("waterParticleXDefinition", 0,0,4, frandom(1,2), 0,3, angle:random(0,360));
+						A_PLAYSOUND("impact/waterdrop", CHAN_AUTO, 1.0);
+						[waterFoamSuccess, waterfoamActor] = A_SPAWNITEMEX("WaterFoam", 0, 0, 0, frandom(0.6,1.2), angle:random(0,360));
+					}
+					if(waterfoamActor)
+					{
+						selacoActor(waterfoamActor).moveToWaterSurface();
+					}
+					destroy();
+				}
+			}
+			loop;
+		KillIt:
+		Death:
+			TNT1 A 0 A_SETRENDERSTYLE(1.0, STYLE_Translucent);
+			TNT1 A 0 {
+				if(!allowSplash) {
+					destroy();
+				}
+			}
+			TNT1 A 0 A_SpawnItemEx("LiquidParticleXSmall");
+			TNT1 A 0 A_SPAWNITEMEX("WaterFoam", 0, 0, 2, 0.8, 0 ,0);
+			TNT1 A 0 A_PLAYSOUND("impact/waterdrop", CHAN_AUTO, 0.5);
+			RNDR BCDEFGH 3 A_FadeOut(0.15);
+		Stop;
+		Stap:		
+			TNT1 A 0;
+		Stop;
+    }
+}
+
+class RainDropMissileSilent: RainDropMissile
+{
+	default
+	{
+		+NOBLOCKMAP
+		xscale 0.04;
+		yscale 0.12;
+	}
+	states
+	{
+		Death:
+			TNT1 A 0 A_SETRENDERSTYLE(1.0, STYLE_Translucent);
+			TNT1 A 0 {
+				if(!allowSplash) {
+					destroy();
+				}
+			}
+			TNT1 A 0 
+			{
+				if(random(0,2) == 1)
+				{
+					A_SpawnItemEx("LiquidParticleXSmall");
+				}
+			}
+			TNT1 A 0 A_SPAWNITEMEX("WaterFoam", 0, 0, 2, 0.8, 0 ,0);
+			RNDR BCDEFGH 3 A_FadeOut(0.15);
+		Stop;
+		Stap:		
+			TNT1 A 0;
+		Stop;
+    }
+}
+
+class ShowerEmitter : SelacoActor  {
+	default
+	{
+		tag "Shower";
+		scale 2;
+		SelacoActor.SleepDistance 350;
+		+NOINTERACTION
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				A_PLAYSOUND("SHOWER/STREAM", CHAN_AUTO, 0.4, looping:1, pitch:frandom(0.98,1.02));
+			}
+		SpawnEffect:
+			TNT1 A 1 {
+				for(int x=0;x<=3;x++)
+				{
+					A_SPAWNITEMEX("ShowerDrop", frandom(-16,16), 0, 21, frandom(0.1,0.3), 0, -1	, angle:frandom(0,360));
+				}
+			}
+			loop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+
+class ShowerMissile: RainDropMissile
+{
+	default {
+		xscale 0.01;
+	 }
+}
+
+class WaterFoamEmitter : SelacoActor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 5 A_SPAWNITEMEX("WaterFoamSlower");
+			loop;
+	}
+}
+
+class WaterFoam : selacoActor {
+	int frameNum;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		frameNum = random(0,5);
+		A_SETANGLE(random(0,360));
+	}
+
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x+0.02);
+	}
+
+	default {
+		SelacoActor.SleepDistance 0;
+		-SELACOACTOR.allowWaterSplashing;
+		-SelacoActor.SlopeAlignment;
+		+SelacoActor.EffectActor;
+		+FLATSPRITE
+		+NOGRAVITY	
+		+NOINTERACTION
+		+MISSILE // Kill it when it touches the surface.
+		MaxStepHeight 1; // Prevent splash from leaving it's current sector height.
+		scale 0.2;
+		height 5;
+		radius 5;
+		alpha 0;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			WATF AAAAAAA 1 A_FADEIN(0.02);
+			WATF A 1;
+		Death:
+			WATF AAAAAAA 1 A_FADEOUT(0.02, FTF_REMOVE);
+	}
+}
+
+class WaterFoamDense : WaterFoam
+{
+	default
+	{
+		scale 0.03;
+		alpha 0.6;
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			WATF AAAAAAA 1 A_FADEOUT(0.07);
+			WATF A 1;
+		Death:
+			WATF AAAAAAA 1 A_FADEOUT(0.05, FTF_REMOVE);
+	}
+}
+
+class WaterFoamSlow : WaterFoam
+{
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x-0.001);
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			WATF AAAAAAAAAA 1 A_FADEIN(0.04);
+			WATF A 1;
+		Death:
+			WATF AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 A_FADEOUT(0.02, FTF_REMOVE);
+			stop;
+	}
+}
+
+class WaterFoamSlower : WaterFoam
+{
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x+0.01);
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			WATF AAAAAAAAAAAAAAAA 1 A_FADEIN(0.02);
+			WATF A 1;
+		Death:
+			WATF AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 A_FADEOUT(0.02, FTF_REMOVE);
+			stop;
+	}
+}
+
+class WaterFoamSlowest : WaterFoamSlower
+{
+	states {
+		Spawn:
+			TNT1 A 0;
+			WATF AAAAAAAAAAAAAAAA 1 A_FADEIN(0.02);
+			WATF A 1;
+		Death:
+			WATF AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 A_FADEOUT(0.01, FTF_REMOVE);
+			stop;
+	}
+}
+
+class WaterFoamSlowSmall : WaterFoamSlower
+{
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x-0.019);
+	}
+	default
+	{
+		scale 0.09;
+	}
+}
+
+class WaterFoamSlowSmaller : WaterFoamSlowSmall
+{
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x-0.05);
+	}
+	default
+	{
+		scale 0.01;
+	}
+}
+class WaterFoamSlowSmallest : WaterFoam
+{
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x-0.03);
+	}
+	default
+	{
+		scale 0.01;
+	}
+}
+
+
+class WaterFoamActorMovement : WaterFoam
+{
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x+0.005);
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			WATF AAAAAAAAAA 1 A_FADEIN(0.02);
+			WATF A 9;
+		Death:
+			WATF AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 A_FADEOUT(0.02, FTF_REMOVE);
+			stop;
+	}
+}
+
+class WaterFoamGigantic : WaterFoam {
+	override void tick() {
+		super.tick();
+		frame = frameNum;
+		A_SETSCALE(scale.x+0.04);
+	}
+	default
+	{
+		scale 0.5;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			WATF AAAAAAAAAAAAAAAAA 1 A_FADEIN(0.03);
+			WATF A 5;
+		Death:
+			WATF AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 A_FADEOUT(0.02, FTF_REMOVE);
+			stop;
+	}	
+}
+
+
+Class LargeGlassParticleSpawner : Actor {
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("LargeGlassParticle1", frandom(-1,1), frandom(-48,48), frandom(-48,48), frandom(2,5), frandom(-4,4), frandom(-1,4));
+			stop;
+	}
+}
+
+Class SmallGlassParticleSpawner : Actor {
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("LargeGlassParticle1", frandom(-1,1), frandom(-10,10), frandom(0,23), frandom(2,5), frandom(-4,4), frandom(-1,4));
+			stop;
+	}
+}
+
+class BRICK_FULL_PARTICLE : SelacoActor {
+	default {
+		radius 5;
+		height 5;
+		scale 0.8;
+		+Missile
+		+THRUACTORS
+		+DoomBounce
+		BounceCount 3;
+		BounceFactor 0.7;
+	}
+	states {
+		Spawn:
+			VOXE L 0;
+			TNT1 A 0 {
+				if(random(0,1) == 1) {
+					bxflip = true;
+				}
+				A_SETROLL(frandom(0,360));
+				A_SETANGLE(frandom(0,360));
+				A_SETPITCH(frandom(0,360));
+			}
+			TNT1 A 0 A_ChangeVelocity(frandom(3,16), frandom(3,9), frandom(-2,7), CVF_RELATIVE);
+		Looper:
+			VOXE L 2 {
+				A_SETPITCH(pitch+35);
+				A_SETANGLE(angle+35);
+				A_SETROLL(roll+35);
+			}
+			loop;
+		Death:
+			VOXE L 5;
+			VOXE L 0
+			{
+				A_SETROLL(0);
+				A_SETPITCH(0);
+			}
+			VOXE L 0 {
+				if(getCvar("cl_maxdecals") > 750) {
+					A_SETTICS(-1);
+				} else {
+					sleep(550);
+				}
+			}
+			VOXE LLLLLLLLLL 1 {
+				A_FADEOUT(0.1);
+			}
+			stop;
+	}
+}
+
+class BRICK_BROKEN1_PARTICLE : BRICK_FULL_PARTICLE {
+
+}
+
+class BRICK_BROKEN2_PARTICLE : BRICK_FULL_PARTICLE {
+
+}
+
+
+// Used when blowing up brick walls
+class BRICK_MESH_SPAWNER : SELACOACTOR {
+	static const string brickModels[] = {"BRICK_FULL_PARTICLE", "BRICK_BROKEN1_PARTICLE", "BRICK_BROKEN2_PARTICLE"};
+	default {
+		+NOINTERACTION
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 {
+				A_SPAWNITEMEX(brickModels[random(0,brickModels.size()-1)], 0, frandom(-60,60), frandom(-30,30));
+			}
+		stop;
+	}
+}
+
+Class LargeGlassParticle1 : DebriesChunk
+{
+
+	int currentFrame;
+	Default {
+		+DOOMBOUNCE;
+		+missile;
+		+rollsprite;
+		DistanceCheck "r_thingLOD";;
+		radius 2;
+		Speed 7;
+		BounceFactor 0.5;
+		BounceCount 3;
+		Gravity 0.8;
+		alpha 0.8;
+		SeeSound "bounce/glass";
+	}
+	States
+    {
+     Spawn:
+		TNT1 A 1;
+		GLSP ABCDEFGHIJKLM 0;
+		TNT1 A 0 {
+			if(random(0,1) == 1) {
+				bxflip = true;
+			}
+			invoker.currentFrame = random(0, 10);
+			A_SETROLL(frandom(0,360));
+			getParticleCount(0.16, 0.19, 0.03, 0.09, -0.3, 0.3, 0.1, 0.47);
+		}
+	See1:
+		GLSP A 2 { 
+			Frame = invoker.currentFrame;
+			currentFrame++;
+			A_SETROLL(roll + 10);
+			if (currentFrame > 9) {
+				currentFrame = 0;
+			}
+		}
+		loop;
+	Death:
+		TNT1 A 0 {
+			bMissile = false;
+			currentFrame = random(11,12);
+		}
+		GLSP A 90 { 
+			A_SETROLL(0);
+			A_SetTranslucent(1.0, 0);
+			Frame = invoker.currentFrame;
+		}
+		GLSP A 1 {
+			Frame = invoker.currentFrame;
+			bNoInteraction = true;
+			A_settics(lifespan);
+		}
+		GLSP AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 2 {
+			Frame = invoker.currentFrame;
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}
+		stop;
+	}
+}
+
+Class SparkMissile : actor {
+	mixin ParticleDefinitionEmitter;
+	default {
+		+Missile
+		+NOGRAVITY
+		+ROLLSPRITE
+		DistanceCheck "r_thingLOD";;
+		speed 2;
+		RenderStyle "add";
+		scale 0.5;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(waterLevel > 0) {
+					destroy();
+				}
+			}
+			TNT1 A 0 A_playsound("explosion/firework");
+			LENY ABABABABABBABABABABABABABABAABABABABABBABABABABABABABABA 1 {
+				A_SETROLL(random(0,360));
+				EmitDefinition('MetalShrapnelParticleShortDefinition', chance: 1.0, numTries: 3, angle:frandom(0-6, 6), pitch:frandom(0,360), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));	
+				A_ChangeVelocity(frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+				A_SetAngle(angle +random(1,3));
+			}
+			stop;
+	}
+}
+
+class SparkMissilePersistant : SparkMissile
+{
+	default
+	{
+		speed 6;
+		scale 1.0;
+		gravity 0.7;
+		-NOGRAVITY
+	}
+	states 
+	{	
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_playsound("explosion/firework");
+		Death:
+			LENY ABABABABABBABABABABABABABBABABAABABABABABBABABABABABABABBABABA 1 bright 
+			{
+				if(waterLevel > 0) {
+					destroy();
+				}
+				A_SETROLL(roll+frandom(-15,15));
+				if(level.time % random(1,6) == 0)
+				{
+					EmitDefinition('MetalShrapnelParticleDefinition', chance: 1.0, numTries: 7, angle:frandom(0,360), pitch:frandom(-20,-40), speed:frandom(0.4,0.6), offset:(0, 0,frandom(-3,3)));	
+					//EmitDefinition('SparkParticleDefinitionSlowerShorter', chance: 1.0, numTries: 3, angle:frandom(0 ,360), pitch:frandom(-20,-40), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));	
+				}
+				if(frandom(0,100) <= 2 && pos.z == floorz)
+				{
+					A_CHANGEVELOCITY(frandom(-3,3), frandom(-3,3), frandom(4,8));
+				}
+			}
+			stop;
+	}	
+}
+
+
+class SparkMissileGravity : SparkMissile
+{
+
+	override void postbeginPlay()
+	{
+		length = random(MIN_LENGTH, MAX_LENGTH);
+		if(waterLevel > 0) {
+			destroy();
+		}
+	}
+
+	override void tick()
+	{
+		super.tick();
+
+		EmitDefinition('SparkOrbShorterDefinition', chance: 1.0, numTries: 3, angle:frandom(0 ,360), pitch:frandom(-20,-40), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));	
+
+		length--;
+		bool shouldDestroy = length <= 0 ? true : false;
+		if(shouldDestroy)
+		{
+			destroy();
+		}
+	}
+
+	int length;
+	const MIN_LENGTH = 15;
+	const MAX_LENGTH = 55;
+	default {
+		+MISSILE
+		speed 6;
+		alpha 1.0;
+		scale 0.8;
+		gravity 0.5;
+		-NOGRAVITY
+	}
+	states {	
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_playsound("explosion/firework");
+		Looper:
+			LENY AB 1 bright;
+			loop;
+	}	
+}
+
+Class SparkMissileShort : actor {
+	mixin particleEmitter;
+	default {
+		+Missile
+		+NOGRAVITY
+		DistanceCheck "r_thingLOD";;
+		speed 2;
+		RenderStyle "add";
+		scale 0.5;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_playsound("explosion/firework");
+			TNT1 ABABABABABBABABABAABABABABABBABABABA 1 {
+				emit('DroppedSparkSmallerShort', chance: 1.0, numTries: 5, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 2));	
+				A_ChangeVelocity(frandom(-1.5,1.5), frandom(-1.5, 1.5), frandom(-1.3, 1.6));
+				A_SetAngle(angle +random(1,3));
+			}
+			stop;
+	}
+}
+
+Class trashbin_broken_top : actor {
+	default {
+		+Missile
+		speed 3;
+		scale 1;
+		DistanceCheck "r_thingLOD";;
+		bounceCount 2;
+		+doombounce;
+		+rollsprite
+		+USEBOUNCESTATE;
+		+thruactors;
+		gravity 0.8;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 A_ChangeVelocity(frandom(2, 3.4), frandom(-2, 2), frandom(6.3, 10), CVF_REPLACE );
+			goto ShootBinTop;
+		ShootBinTop:
+			VOXE L 2 {
+				A_SETROLL(roll + random(3,6));
+				A_SETPITCH(pitch + frandom(20,25));
+			}
+			loop;
+		Death:
+			TNT1 A 0 {
+				A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+				A_SETROLL(0);
+				A_SETPITCH(0);
+			}
+			VOXE L 550;
+			VOXE LAAAAAAAAA 3 A_FADEOUT(0.1);
+			stop;
+		Bounce:
+			TNT1 A 0 A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			goto ShootBinTop;
+	}
+}
+
+Class KeyboardPiece : actor {
+
+	int rollSpeed;
+	int frameNum;
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		rollSpeed = random(8,13);
+	}
+
+	void bounceEffect()
+	{
+		actor plasticEffect;
+		bool succ;
+		[succ, plasticEffect] = A_SPAWNITEMEX("BulletImpactEffectPlasticStationarySmall",0, 0, 2);
+		if(plasticEffect)
+		{
+			plasticEffect.alpha*=0.35;
+			//plasticEffect.scale*=0.7;
+		}
+	}
+
+	default {
+		+Missile
+		speed 3;
+		radius 5;
+		height 5;
+		scale 0.22;
+		DistanceCheck "r_thingLOD";
+		bounceCount 2;
+		bouncefactor 0.7;
+		+doombounce;
+		+thruactors;
+		+Rollsprite
+		+USEBOUNCESTATE
+		gravity 0.8;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SetAngle(random(0,360)); 
+			TNT1 A 0 {
+				if(random(0,1) == 1) {
+					bxflip = true;
+				}
+				bouncefactor = frandom(0.7,0.75);
+				scale*=frandom(0.95,1.1);
+			}
+			TNT1 A 0 A_ChangeVelocity(frandom(-2.4, 2.4), frandom(-2, 3), frandom(5.3, 10), CVF_REPLACE );
+			goto Looper;
+		Looper:
+			KEY1 ABCDEFGHI 3 
+			{
+				if(frameNum == 8)
+				{
+					frameNum = 0;
+				}
+				frame = frameNum;
+				frameNum++;
+				A_SETROLL(roll + rollSpeed);
+			}
+			loop;
+		Bounce:
+			TNT1 A 0 
+			{
+				A_PlaySound("impact/tinypla",CHAN_AUTO, 0.6, 0, 1.0, false, pitch:frandom(0.8, 1.25));
+				bounceEffect();
+			}
+			goto Looper;
+		Death:
+			TNT1 A 0
+			{
+				A_SETROLL(0);
+				A_PlaySound("impact/tinypla",CHAN_AUTO, 0.6, 0, 1.0, false, pitch:frandom(0.8, 1.25));
+				bounceEffect();
+			}
+			KEY1 A 90;
+			KEY1 A 1 
+			{
+				sleep(410);
+			}
+			KEY1 AAAAAAAAAA 1 A_FADEOUT(0.1, FTF_REMOVE);
+			stop;
+	}
+}
+Class KeyboardPiece2 : KeyboardPiece {
+	states {	
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SetAngle(random(0,360)); 
+			TNT1 A 0 A_ChangeVelocity(frandom(-2.4, 2.4), frandom(-2, 2), frandom(5.3, 10), CVF_REPLACE );
+			goto ShootBinTop;
+		ShootBinTop:
+			KEYP B 1 A_SETROLL(roll + random(8,13));
+			loop;
+		Death:
+			TNT1 A 0 A_PlaySound("impact/tinypla",CHAN_AUTO, 1.0, 0, 1.0, false, frandom(0.9, 1.0));
+			KEYP A 0 A_SETROLL(random(30, 90));
+			TNT1 A 0 {
+				bNointeraction = true;
+			}
+			KEYP B 60;
+			KEYP BBBBBBBBBBBB 3 A_FADEOUT(0.1);
+			stop;
+		Bounce:
+			TNT1 A 0 A_PlaySound("impact/tinypla",CHAN_AUTO, 1.0, 0, 1.0, false, 0.86);
+			KEYP B 1 A_SETROLL(roll + random(30,45));
+			//TNT1 A 0 A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			goto ShootBinTop;
+	}
+}
+
+Class PaperBinPiece1 : actor {
+	default {
+		+Missile
+		speed 3;
+		radius 5;
+		height 5;
+        scale 0.95;
+		DistanceCheck "r_thingLOD";;
+		bounceCount 2;
+		+doombounce;
+		+USEBOUNCESTATE;
+		+thruactors;
+		gravity 0.8;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 A_SETANGLE(random(0,360));
+			TNT1 A 0 A_ChangeVelocity(frandom(-2.4, 2.4), frandom(-2, 2), frandom(5.3, 14), CVF_REPLACE );
+			goto ShootBinTop;
+		ShootBinTop:
+			PBIN A 3 
+			{
+				A_SETROLL(roll + 6);
+				A_SETPITCH(pitch + 20);
+			}
+			loop;
+		Death:
+			TNT1 A 0 A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			PBIN A 1 {
+				A_SETPITCH(0);
+				A_SETROLL(0);
+                sleep(400);
+                if(getCvar("g_permanentDestruction"))
+                {
+                    sleepindefinite();
+                }
+            }
+			PBIN AAAAAAAAAA 3 A_FADEOUT(0.1);
+			stop;
+		Bounce:
+			TNT1 A 0 A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			goto ShootBinTop;
+	}
+}
+Class PaperBinPiece2 : PaperBinPiece1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 A_SETANGLE(random(0,360));
+			TNT1 A 0 A_ChangeVelocity(frandom(-2.4, 2.4), frandom(-2, 2), frandom(2.3, 4), CVF_REPLACE );
+			goto ShootBinTop;
+		ShootBinTop:
+			PBIN A 3 
+			{
+				A_SETROLL(roll + 6);
+				A_SETPITCH(pitch + 20);
+			}
+			loop;
+		Death:
+			TNT1 A 0 A_PlaySound("bounce/metalfeet",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			PBIN A 1 {
+				A_SETPITCH(0);
+				A_SETROLL(0);
+                sleep(400);
+                if(getCvar("g_permanentDestruction"))
+                {
+                    sleepindefinite();
+                }
+            }
+			PBIN AAAAAAAAAA 3 A_FADEOUT(0.1);
+			stop;
+	}
+}
+
+Class PlasticShard_1 : actor {
+	mixin particleCvarCheck;
+	int watercount, lifespan, spawnChance;
+	default {
+		+Missile
+		speed 3;
+		scale 0.3;
+		radius 5;
+		height 5;
+		DistanceCheck "r_thingLOD";;
+		bounceCount 2;
+		+doombounce;
+		+USEBOUNCESTATE;
+		+thruactors;
+		-solid;
+		gravity 0.55;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			PLTC A 0;
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+		Launch:
+			TNT1 A 0 {
+				giveLivespan();
+				A_ChangeVelocity(frandom(-3.4, 3.4), frandom(-3.4, 3.4), frandom(1.3, 8), CVF_REPLACE );
+			}
+			goto ShootPlastic;
+		ShootPlastic:
+			PLTC A 3 A_SETROLL(roll + frandom(35,40));
+			TNT1 A 0 A_SETANGLE(angle + frandom(35,40));
+			loop;
+		Death:
+			TNT1 A 0 A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			TNT1 A 0 {
+				A_SETROLL(0);
+			}
+			PLTC A 90;
+			PLTC A 1 {
+				if(getCvar("g_permanentDestruction"))
+				{
+					sleepIndefinite();
+				} else {
+					sleep(invoker.lifespan);
+				}
+			}
+			PLTC AAAAAAAAAA 3 A_FADEOUT(0.1);
+			stop;
+		Bounce:
+			TNT1 A 0 
+			{
+				A_SPAWNITEMEX("BulletImpactEffectPlasticStationarySmall");
+				for(int x=0;x<=2;x++) {
+					A_SPAWNITEMEX("BodyImpactSmokeUltraTinyFast", 0, 0, 0, frandom(-0.2,0.2), frandom(-0.2,0.2), frandom(0.1,0.2));
+				}
+				A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, pitch:frandom(0.9,1.3));
+			}
+			goto ShootPlastic;
+	}
+}
+
+Class PlasticShard_2 : PlasticShard_1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+			stop;
+	}
+}
+Class PlasticShard_3 : PlasticShard_1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+			stop;
+	}
+}
+Class PlasticShard_4 : PlasticShard_1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+			stop;
+	}
+}
+
+Class PlasticShard_yellow_1 : PlasticShard_1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+			stop;
+	}
+}
+Class PlasticShard_yellow_2 : PlasticShard_1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+			stop;
+	}
+}
+Class PlasticShard_yellow_3 : PlasticShard_1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+			stop;
+	}
+}
+Class PlasticShard_yellow_4 : PlasticShard_1 {
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 {
+				setStateLabel("Launch");
+			}
+			stop;
+	}
+}
+
+
+Class WhitePlasticShard : PlasticShard_1 {
+	default {
+		BounceFactor 0;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 A_ChangeVelocity(frandom(-1.4, 1.4), frandom(-1.4, 1.4), frandom(1.3, 4), CVF_REPLACE );
+		ShootPlastic:
+			PLTC CCCCC 1 A_SETROLL(roll + random(3,6));
+			loop;
+		Death:
+			PLTC C 550;
+			PLTC CCCCCCCCCCCC 3 A_FADEOUT(0.1);
+			stop;
+		Bounce:
+			TNT1 A 0 A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			goto ShootPlastic;
+	}
+}
+
+Class WhitePlasticShard2: PlasticShard_2 {
+	default {
+		BounceFactor 0;
+	}
+	states {	
+		Spawn:
+			TNT1 A 0; 
+			TNT1 A 0 A_ChangeVelocity(frandom(-1.4, 1.4), frandom(-1.4, 1.4), frandom(1.3, 4), CVF_REPLACE );
+		ShootPlastic:
+			PLTC CCCCC 1 A_SETROLL(roll + random(3,6));
+			loop;
+		Death:
+			PLTC C 550;
+			PLTC CCCCCCCCCCCC 3 A_FADEOUT(0.1);
+			stop;
+		Bounce:
+			TNT1 A 0 A_PlaySound("bounce/plastic",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+			goto ShootPlastic;
+	}
+}
+class FanPiece : DebriesChunk
+{
+	mixin ParticleDefinitionEmitter;
+	int currentFrame;
+	default {
+      Scale 3.5;
+	  +USEBOUNCESTATE;
+      bouncefactor 0.7;
+	  DistanceCheck "r_thingLOD";;
+	  BounceCount 5;
+      speed 3;
+	}
+
+states
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 1;
+		TNT1 A 0 {
+			A_ChangeVelocity(frandom(3.00, 6.00), frandom(1.5, 3.83), frandom(2.4, 6.3), CVF_RELATIVE);
+		}
+	Spawn:
+		TNT1 A 1;
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex("FANP");
+			invoker.currentFrame = random(0, 6);
+			getParticleCount(2.16, 5.99, -3.1, 5.4, -0.3, 0.3, 1.0, 1.0);
+		}
+	See1:
+		TNT1 A 2 { 
+			Frame = invoker.currentFrame;
+			currentFrame++;
+			if (currentFrame > 6) {
+				currentFrame = 0;
+			}
+		}
+		loop;
+	Bounce:
+		TNT1 A 0 {
+			EmitDefinition('SparkBriefDefintion', 0.75, 15, pitch:frandom(-60,-120), flags:PE_ABSOLUTE_PITCH);
+		}
+		TNT1 A 0 A_PlaySound("impact/fanslam",CHAN_AUTO, 0.55, 0, 1.0, false, 0.75);
+		goto See1;
+	Death:
+		FANP H 1;
+		goto WaitForFloor;
+	RealDeath:
+		TNT1 A 0 {
+			bMissile = false;
+			bNoInteraction = true;
+		}
+		FANP H -1 {
+			sleepindefinite();
+		}
+		stop;
+	}
+}
+
+class DustDecal : actor {
+	default {
+		+FLATSPRITE
+		+floorclip;
+		renderstyle "translucent";
+		Alpha 0.01;
+		scale 0.2;
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				a_setAngle(frandom(0,360));
+				a_setScale(frandom(0.4, 1.1));
+			}
+			DDIR AAAAAAAAAAAAAAAAAAAAAAAAAA 2 A_fadein(0.03);
+			TNT1 A 0 {
+				bNoInteraction = true;
+			}
+			DDIR A 1200;
+			DDIR AAAAAAAAAAAAAAAAAAAAAAAAAA 1 A_fadein(0.04);
+			stop;
+	}
+}
+
+class WaterActor : SelacoActor {
+
+	override void tick()
+	{
+		super.tick();
+		if(bDenyUnderwater && waterlevel > 1)
+		{
+			actor waterPlopActor;
+            actor waterFoamActor;
+            bool waterFoamSuccess;
+			bool succ;
+			[succ, waterPlopActor] = A_SPAWNITEMEX("WaterPlop", frandom(-0.4,0.4), frandom(-0.4,0.4));
+			if(waterPlopActor)
+			{
+				waterPlopActor.scale = (0.4, 0.4);
+			}
+            string waterFoamToSpawn = "WaterFoamSlowSmallest";
+            [waterFoamSuccess, waterfoamActor] = A_SPAWNITEMEX(waterFoamToSpawn, frandom(-0.4,0.4), frandom(-0.4,0.4), 0, frandom(0.1,0.3), angle:Random(0,360));
+            if(waterfoamActor)
+            {
+                waterfoamActor.setOrigin((waterfoamActor.pos.xy, getWaterFloorHeight()), false);
+            }
+			destroy();
+		}
+		if(bUnderWaterOnly && waterlevel < 2)
+		{
+			destroy();
+		}
+	}
+
+	override void PostBeginPlay() {
+		super.postbeginPlay();
+		if(waterLevel <= 1 && random(0,100) <= 25) {
+			vector3 sprayDirection = vecFromAngle(random(0,360), pitch+random(-40,100));
+			A_SprayDecal("watersplash", 160, offset:(0,0,frandom(-20,85)), direction:sprayDirection);
+		}
+	}
+
+	override bool CanCollideWith(actor other, bool passive)
+	{
+		bool res = super.CanCollideWith(other, passive);
+		if(other is "Dawn")
+		{
+			Dawn(other).setWetScreen(255);
+			return true;
+		}
+		return res;
+	}
+
+	private int WaterParticleFlag;
+	flagdef DenyUnderwater                : WaterParticleFlag, 0;     // Do not sleep automatically, can be used on and off to prevent sleep during animations
+	flagdef UnderWaterOnly 				  : WaterParticleFlag, 1;
+	default {
+		+SelacoActor.EffectActor;
+	}
+}
+
+class WaterBubble : WaterActor {
+	const POP_EFFECT_CHANCE = 35;
+	bool hasPopEffect;
+	
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		if(random(0,100) <= POP_EFFECT_CHANCE)
+		{
+			hasPopEffect = true;
+		}
+	}
+
+	override void tick()
+	{
+		super.tick();
+		if(vel.length() == 0)
+		{
+			die(self,self);
+		}
+		if(alpha < 0.3 && hasPopEffect)
+		{
+			scale*=1.25;
+		}
+	}
+
+    default {
+        +NOGRAVITY
+		radius 5;
+		height 5;
+		-SelacoACtor.allowWaterSplashing
+        scale 0.3;
+        Alpha 0;
+    }
+    States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SETSCALE(frandom(0.25, 0.32));
+            BUBL AAAAAAAA 1 A_FADEIN(0.15);
+            BUBL A 25;
+        Death:
+            BUBL AAAAAAAA 1 
+			{
+				A_FADEOUT(0.15);
+			}
+            stop; 
+    }
+}
+
+
+class UnderwaterWaterBubble : WaterBubble
+{
+    default
+    {
+        +WaterActor.UnderWaterOnly
+    }
+}
+
+class WaterSplashBaseSmall : WaterActor
+{
+
+	override void postbeginPlay() {
+		super.postBeginPlay();
+		for(int x=0;x<10;x++) {
+			vector3 sprayDirection = vecFromAngle(random(0,360), pitch+random(-40,100));
+			A_SprayDecal("watersplash", 160, offset:(0,0,frandom(-20,85)), direction:sprayDirection);
+		}
+	}
+
+	mixin particleCvarCheck;
+	int watercount, lifespan, spawnChance;
+	default {
+			Radius 5;
+			Height 5;
+			alpha .6;
+			Scale 0.7;
+			+DONTSPLASH
+			+THRUACTORS
+			+missile
+			+NOGRAVITY
+			+NOBLOOD
+			+NOBLOCKMAP
+			-ACTIVATEIMPACT;
+			-ACTIVATEMCROSS;
+			-ACTIVATEPCROSS;
+			Health 100;
+			DamageFactor "CauseWaterSplash", 99.0;
+	}
+  States
+  {
+  	Spawn:
+		TNT1 A 0;
+		TNT1 A 0{
+			A_SetAngle(0,360);
+			giveWaterAmount();
+			SetStateLabel("ShootLiquids");
+		}
+	ShootLiquids:
+			TNT1 AAAAAA 1  {
+				EmitDefinition('WaterParticleXPlayerCollisionDefinition', 1.0, 4, offset:(frandom(-5,5), frandom(-5,5), frandom(0,5)));
+			}
+			TNT1 A 0 {bShootable = false;}
+			TNT1 A 0 A_NoBlocking;
+			Stop;
+	Destroy:
+		TNT1 A 0;
+		stop;
+	Death.CauseWaterSplash:
+		tNT1 A 0 A_SpawnProjectile ("WaterParticleXSpawner", 0, 0, random (0, 360), 2, random (80, 110));
+		TNT1 A 0 A_PlaySound("bigspl1");
+		TNT1 A 0 A_NoBlocking;
+		TNT1 A 30;
+		Stop;
+  	}
+}
+
+class WaterSplashBaseBaby : WaterSplashBaseSmall
+{
+  States
+  {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0{
+				A_SetAngle(0,360);
+				giveWaterAmount();
+				SetStateLabel("ShootLiquids");
+			}
+			ShootLiquids:
+				TNT1 AAAAAA 1  {
+					for(int i = 0;i<=invoker.waterCount;i++) { 
+						EmitDefinition('waterParticleXDefinition', 1.0, 2, offset:(frandom(-5,5), frandom(-5,5), frandom(0,5)));
+					}
+				}
+				TNT1 A 0 {bShootable = false;}
+				TNT1 A 0 A_NoBlocking;
+				Stop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+		Death.CauseWaterSplash:
+			tNT1 A 0 A_SpawnProjectile ("WaterParticleXSpawner", 0, 0, random (0, 360), 2, random (80, 110));
+			TNT1 A 0 A_PlaySound("bigspl1");
+			TNT1 A 0 A_NoBlocking;
+			TNT1 A 30;
+			Stop;
+  }
+}
+
+class WaterSplashBaseSpray : WaterSplashBaseSmall
+{
+  States
+  {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0{
+				A_SetAngle(0,360);
+				giveWaterAmount();
+				SetStateLabel("ShootLiquids");
+			}
+			ShootLiquids:
+				TNT1 AAAAAA 1  {
+					for(int i = 0;i<=invoker.waterCount;i++) { 
+						EmitDefinition('waterParticleXDefinition', 1.0, 2, offset:(frandom(-5,5), frandom(-5,5), frandom(0,5)));
+					}
+				}
+				TNT1 A 0 {bShootable = false;}
+				TNT1 A 0 A_NoBlocking;
+				Stop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+		Death.CauseWaterSplash:
+			tNT1 A 0 A_SpawnProjectile ("WaterParticleXSpawner", 0, 0, random (0, 360), 2, random (80, 110));
+			TNT1 A 0 A_PlaySound("bigspl1");
+			TNT1 A 0 A_NoBlocking;
+			TNT1 A 30;
+			Stop;
+  }
+}
+
+class WaterParticleX : WaterActor
+{
+
+	string splashActor;
+	property SplashActor : splashActor;
+	default {
+		+Missile  
+
+		-NoGravity  
+		+FORCEXYBILLBOARD 
+		+CLIENTSIDEONLY
+		+WaterActor.DenyUnderwater
+		WaterParticleX.SplashActor "LiquidParticleXSmall";
+		+DontSplash 
+		+ROLLSPRITE
+		+NOBLOCKMAP
+        -ACTIVATEIMPACT;
+        -ACTIVATEMCROSS;
+        -ACTIVATEPCROSS;
+		Radius 2;
+		Height 2;
+		decal "watersplash";
+		BounceFactor 0.1;
+		Gravity 0.3;
+		RenderStyle "translucent";
+		Scale 0.18;
+		Alpha 0.9;
+		Translation "176:191=192:196";
+		Speed 3;
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+				if(random(0,1) == 1) {
+					bxflip = true;
+				}
+				if(random(0,1) == 1) {
+					byflip = true;
+				}
+			}
+			TNT1 A 1;
+			Goto Stand;
+		Stand:
+			WSPH ABCDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 4 A_FADEOUT(0.04);
+		Death:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				if(pos.z == floorz)
+				{
+					A_PLAYSOUND("impact/waterdrop", pitch:frandom(1.0,1.2));
+					A_SpawnItemEx(splashActor, frandom(-3,3), frandom(-3,3));
+				}
+			}
+			TNT1 A 0 A_SetScale(0.6, 0.6);
+			TNT1 A 0 A_SpawnItemEx("WaterSplatter", frandom(-8,8), frandom(-8,8), 0);
+			Stop;
+	}
+}
+
+class ArachnoJuiceParticle : WaterParticleX
+{
+	default
+	{
+		scale 0.08;
+		Translation "0:255=%[0.9,0.1,0.9]:[0.8,0.6,0.8]";
+		waterParticleX.splashActor "ArachnoJuiceSplashImpact";
+	}
+}
+
+
+class WaterParticleXUnderwater : WaterParticleX
+{
+	default
+	{
+		decal "";
+		-WaterActor.DenyUnderwater;
+		+waterActor.UnderWaterOnly;
+	}
+	states
+	{
+		Stand:
+			WSPH ABCD 2 A_FADEOUT(0.25);
+			Stop;
+		Death:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("LiquidParticleXSmall", frandom(-3,3), frandom(-3,3));
+			TNT1 A 0 A_SetScale(0.6, 0.6);
+			Stop;
+	}
+}
+
+class WaterParticleXSmall : WaterParticleX
+{
+	default
+	{
+		WaterParticleX.SplashActor "LiquidParticleXTiny";
+		gravity 0.23;
+		scale 0.10;
+	}
+}
+
+class WaterParticleXSmaller : WaterParticleX
+{
+	default
+	{
+		gravity 0.33;
+		scale 0.09;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+				if(random(0,1) == 1) {
+					bxflip = true;
+				}
+				if(random(0,1) == 1) {
+					byflip = true;
+				}
+			}
+		Stand:
+			WSPH ABCDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 1 A_FADEOUT(0.02);
+			stop;
+	}
+}
+
+class waterParticleXBig : WaterParticleX
+{
+	default
+	{
+		scale 0.14;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+				if(random(0,1) == 1) {
+					bxflip = true;
+				}
+				if(random(0,1) == 1) {
+					byFlip = true;
+				}
+			}
+		Stand:
+			WSPH ABCDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 4;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("LiquidParticleXSmall");
+			stop;
+	}
+}
+
+class waterparticleXBigger : waterParticleXBig
+{
+
+	override void tick()
+	{
+		super.tick();
+		A_SETROLL(roll+1);
+	}
+
+	override void postBeginPlay()
+	{
+		A_SetScale(scale.x + frandom(0,0.2));
+	}
+
+	default
+	{
+		-WaterActor.DenyUnderwater;
+		+ROLLSPRITE
+		scale 0.4;
+	}
+}
+
+class WaterSplashBaseSmallShort : WaterSplashBaseSmall
+{
+  States
+  {
+  Spawn:
+	TNT1 A 0;
+	TNT1 A 0	{
+		A_SetAngle(0,360);
+		giveWaterAmount();
+		SetStateLabel("ShootLiquids");
+	}
+	ShootLiquids:
+		TNT1 AAAAA 1  {
+			for(int i = 0;i<=invoker.spawnChance;i++) { 
+				A_SpawnDefinedParticle("WaterParticleXPlayerCollisionDefinition", 6, 0, frandom(-0.4,0.4), frandom(-0.2, 0.2), frandom(1, 2), frandom(1,6.4), random(0,360));
+				A_SpawnDefinedParticle("WaterParticleXPlayerCollisionDefinition", 6, 0, frandom(-0.4,0.4), frandom(-0.2, 0.2), frandom(1, 2), frandom(1,6.4), random(0,360));
+			}
+		}
+		TNT1 A 0 {bShootable = false;}
+		TNT1 A 0 A_NoBlocking;
+		Stop;
+  }
+}
+
+class WaterSplashBaseSmallShortTight : WaterSplashBaseSmall
+{
+  States
+  {
+  Spawn:
+	TNT1 A 0;
+	TNT1 A 0	{
+		A_SetAngle(0,360);
+		giveWaterAmount();
+		SetStateLabel("ShootLiquids");
+	}
+	ShootLiquids:
+		TNT1 AAAAA 1  {
+			for(int i = 0;i<=invoker.spawnChance;i++) { 
+				A_SpawnDefinedParticle("WaterParticleXPlayerCollisionDefinition", 6, 0, frandom(-0.4,0.4), frandom(-0.2, 0.2), frandom(1, 2), frandom(1,3.4), random(0,360));
+				A_SpawnDefinedParticle("WaterParticleXPlayerCollisionDefinition", 6, 0, frandom(-0.4,0.4), frandom(-0.2, 0.2), frandom(1, 2), frandom(1,3.4), random(0,360));
+			}
+		}
+		TNT1 A 0 {bShootable = false;}
+		TNT1 A 0 A_NoBlocking;
+		Stop;
+  }
+}
+
+
+class ArachnoJuice : WaterSplashBaseSmall
+{
+ 
+  States
+  {
+	ShootLiquids:
+		TNT1 AAAAAAAAAAAAA 1  {
+		for(int i = 0;i<=invoker.spawnChance;i++) { 
+				A_SpawnItemEx("ArachnoJuiceParticle", 6, 0, frandom(-1,1), frandom(-2, 2), frandom(1, 4), frandom(-1,3), random(0,360));
+			}
+		}
+		TNT1 A 0 {bShootable = false;}
+		TNT1 A 0 A_NoBlocking;
+		Stop;
+  }
+}
+
+
+class IceBombParticles : actor{
+	int loopCount;
+	default {
+		DamageType "Ice";
+	}
+    states {
+		spawn:
+			TNT1 AAAA 0 A_SpawnItem("WhiteShockwave");
+			TNT1 A 0 A_Explode(10, 150, 0 , 0, 0, 0, 0, "Ice", "Ice");
+			EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+			BEXP B 0 BRIGHT A_Scream;
+			TNT1 A 0 A_ALertMonsters;
+			TNT1 A 0 A_SpawnItemEx ("BaseFrostExplosion",10,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			TNT1 A 0 A_PlaySound("EXPLOSION/ICE", CHAN_AUTO, 1.0, 0, 0.8);
+			TNT1 A 0 {
+				for(int x=0;x<25;x++)
+				{
+					//A_SpawnItemEx("FrostSmokeTexture", frandom(-30, 30),frandom(-30, 30), frandom(-30,30));
+				}
+				for(int x=0;x<25;x++)
+				{
+					//A_SPAWNITEMEX ("FrostSmoke", frandom(-70, 70),frandom(-70, 70), frandom(-20,80));
+				}
+			}
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 {
+				A_SpawnItemEx("snowDecalSpawner", frandom(-90, 90),frandom(-90, 90), failchance:125);
+				A_SPAWNITEMEX ("FrostSmokeSmall", frandom(-110, 110),frandom(-80, 80), frandom(0,80), 0, 0, frandom(0.2,2), angle:random(0,360), failchance:125);
+				A_SpawnItemEx("FrostSmokeTexture", frandom(0, 140),frandom(-10, 10), frandom(0,70), frandom(0.5,1.2), angle:random(0,360));
+			}
+		ExplosionLooper:
+			TNT1 AAAAAAAAAAAAAAAAA 1 {
+				A_SPAWNITEMEX ("FrostSmokeSmall", frandom(-120, 120),frandom(-120, 120), frandom(0,80), 0, 0, frandom(0.2,1), angle:random(0,360));
+				A_SPAWNITEMEX ("FrostSmokeSmall", frandom(-120, 120),frandom(-120, 120), 0, 0, 0, frandom(0.2,1),angle:random(0,360));
+			}
+			TNT1 A 0 {
+				loopcount++;
+				if(loopcount > 4) {
+					setStateLabel("Death");
+				}
+			}
+			loop;
+		death:
+			TNT1 A 0;
+			stop;
+    }
+}
+
+
+class AcidBombParticles : actor {
+	int loopCount;
+	default
+	{
+		damageType "Acid";
+	}
+    states {
+		spawn:
+			TNT1 A 0 A_Explode(10, 150, 0 , 0, 0, 0, 0);
+			EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+			BEXP B 0 BRIGHT A_Scream;
+			TNT1 AAAA 0 A_SpawnItem("WhiteShockwave");
+			TNT1 A 0 A_ALertMonsters;
+			TNT1 A 0 A_PlaySound("EXPLOSION/ACID1", CHAN_AUTO, 0.9, 0, 0.5);
+			TNT1 A 0 A_SpawnItemEx ("BaseAcidExplosion",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 {
+				A_SPAWNITEMEX ("AcidsplosionLong", frandom(-200, 200),frandom(-200, 200), frandom(0,180));
+			}
+			TNT1 AAAAAAAAAAAA 0 A_SPAWNITEMEX("AcidSplash", frandom(-80, 80),frandom(-80, 80), frandom(0, 2), frandom(-8,8), frandom(-8,8), frandom(5,18));
+		Explosions:
+			TNT1 AAAAAA 2 {
+				A_SPAWNITEMEX ("Acidsplosion", frandom(-145, 145),frandom(-145, 145), frandom(-2.5,-4), 0, 0, frandom(0.2,1));
+				A_SPAWNITEMEX ("Acidsplosion", frandom(-145, 145),frandom(-145, 145), frandom(-2.5,-4), 0, 0, frandom(0.2,1));
+			}
+			TNT1 A 0 {
+				loopcount++;
+				if(loopcount > 18) {
+					setStateLabel("Death");
+				}
+			}
+			loop;
+		death:
+			TNT1 A 0;
+			stop;
+    }
+}
+
+class AcidKaboom : actor {
+	int loopCount;
+    states {
+		spawn:
+			TNT1 A 0 A_Explode(10, 150, 0 , 0, 0, 0, 0);
+			EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+			BEXP B 0 BRIGHT A_Scream;
+			TNT1 AAAA 0 A_SpawnItem("WhiteShockwave");
+			TNT1 A 0 A_ALertMonsters;
+			TNT1 A 0 A_PlaySound("GRENADE/ICEEXPLOSION", CHAN_AUTO, 0.5, 0, 0.5);
+			TNT1 A 0 A_SpawnItemEx ("BaseAcidExplosion",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			TNT1 AAA 0 {
+				A_SPAWNITEMEX ("AcidsplosionLong", frandom(-90, 90),frandom(-90, 90), frandom(0,70));
+			}
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("AcidSplash", frandom(-30, 30),frandom(-30, 30), frandom(0, 2), frandom(-5,5), frandom(-5,5), frandom(5,14));
+		Explosions:
+			TNT1 AAAA 2 {
+				A_SPAWNITEMEX ("Acidsplosion", frandom(-100, 100),frandom(-100, 100), 0, 0, 0, frandom(0.2,1));
+				A_SPAWNITEMEX ("Acidsplosion", frandom(-100, 100),frandom(-100, 100), 0, 0, 0, frandom(0.2,1));
+			}
+			TNT1 A 0 {
+				loopcount++;
+				if(loopcount > 7) {
+					setStateLabel("Death");
+				}
+			}
+			loop;
+		death:
+			TNT1 A 0;
+			stop;
+    }
+}
+
+class ImpactEffect : actor {
+	mixin ParticleDefinitionEmitter;
+	default {
+		+rollsprite;
+		+NOGRAVITY;
+		+NOINTERACTION;
+		+FORCEXYBILLBOARD;
+		Selflighting "474747";
+	}	
+}
+
+class BulletImpactEffectMetal : ImpactEffect {
+    static const String SmokeEffects[] = {"HCR1", "HCR2", "HCR3"};
+	int pickedArray;
+	default {
+		scale 0.43;
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HCR1 A 0;
+            HCR2 A 0;
+            HCR3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+                A_CHANGEVELOCITY(frandom(-0.6,-1.1),0,1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			HCR1 ABCDEFGHIJKLMNOPQRSUV 1 bright;
+			stop;
+	}
+}
+
+class BulletImpactEffectMediumArmor : BulletImpactEffectMetal {
+	default {
+		scale 0.23;
+	}
+}
+
+class BulletImpactEffectMetalWithSparks : BulletImpactEffectMetal {
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+        EmitDefinition('ShortSpark360ParticleDefinition', chance: 0.75, numTries: 16, angle:random(-35,35), pitch:frandom(-90, 0), speed:frandom(1,4));
+	}
+}
+
+class BulletImpactEffectMetalZpuff : BulletImpactEffectMetal {
+	default {
+		scale 0.33;
+		RenderStyle "normal";
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HCR1 A 0;
+            HCR2 A 0;
+            HCR3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SETROLL(frandom(0,360));
+				A_SETSCALE(scale.x + frandom(0.1,0.3));
+                pickedArray = random(0,SmokeEffects.size() -1);
+                A_CHANGEVELOCITY(0,0,1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+			goto Effect;
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUV 1 bright;
+			stop;
+	}
+}
+
+class BulletImpactEffectMetalZpuffTransparant : BulletImpactEffectMetalZpuff {
+	default {
+		scale 0.33;
+		RenderStyle "normal";
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HCR1 A 0;
+            HCR2 A 0;
+            HCR3 A 0;
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUV 1 bright
+			{
+				A_FADEOUT(0.02, FTF_REMOVE);
+			}
+			stop;
+	}
+}
+
+class BulletImpactEffectMetalZpuffTransparantSmall : BulletImpactEffectMetalZpuff {
+	default {
+		scale 0.13;
+		RenderStyle "normal";
+	}
+}
+
+
+// I dont like this effect. I'll fix it later probably.
+class BulletImpactEffectConcrete : ImpactEffect {
+    static const String SmokeEffects[] = {"HDE1", "HDE2", "HDE3", "HDE4"};
+	int pickedArray;
+	default {
+		scale 0.25;
+		RenderStyle "normal";
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HDE1 A 0;
+            HDE2 A 0;
+            HDE3 A 0;
+			HDE4 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SETROLL(frandom(0,360));
+				A_SETSCALE(scale.x + frandom(-0.1,0.3));
+                pickedArray = random(0,SmokeEffects.size() -1);
+                A_CHANGEVELOCITY(frandom(0.6,1.1),0,0.3, CVF_REPLACE | CVF_RELATIVE);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUV 1 
+			{	
+				A_SETSCALE(scale.x+0.01);
+				A_FADEOUT(0.05, FTF_REMOVE);
+			}
+			stop;
+	}
+}
+
+class BulletCasePuff : BulletImpactEffectConcrete {
+
+}
+
+class BulletImpactEffectConcreteSmaller : BulletImpactEffectConcrete
+{
+	default
+	{
+		scale 0.35;
+	}
+}
+
+// Plastic Impact
+class BulletImpactEffectPlastic : ImpactEffect {
+
+	override void tick() {
+		super.tick();
+	}
+
+    static const String SmokeEffects[] = {"PLH1", "PLH2"};
+	int pickedArray;
+	default {
+		scale 0.42;
+		RenderStyle "add";
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            PLH1 A 0;
+            PLH2 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUVWXYZ 1 {
+				A_FADEOUT(0.03);
+			}
+			stop;
+	}
+}
+
+class BulletImpactEffectPlasticStationary : BulletImpactEffectPlastic {
+
+	override void tick() {
+		super.tick();
+		vel.x = 0;
+		vel.y = 0;
+		vel.z = 0;
+	}
+}
+
+// Cloth
+class BulletImpactEffectCloth : ImpactEffect {
+
+	override void tick() {
+		super.tick();
+		vel.x = 0;
+		vel.y = 0;
+		vel.z = 0;
+	}
+
+    static const String SmokeEffects[] = {"DUF1", "DUF2", "DUF3"};
+	int pickedArray;
+	default {
+		RenderStyle "normal";
+		scale 0.19;
+	}
+	states {
+        Indexer:
+            DUF1 A 0;
+			DUF2 A 0;
+			DUF3 A 0;
+        Spawn:
+            TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, 0, frandom(2.5, 3));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, 0, frandom(-2.5, -3));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, 0, 0, frandom(2.5, 3));
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, 0, 0, frandom(-2.5, -3));
+            TNT1 A 0 {
+				A_CHANGEVELOCITY(0, 0, 0, CVF_RELATIVE);
+                pickedArray = random(0,SmokeEffects.size() -1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUVWXY 1 
+			{
+				A_SETSCALE(scale.x+0.005);
+				A_FADEOUT(0.03);
+			}
+			stop;
+	}
+}
+
+
+class BulletImpactEffectPlasticStationarySmall : BulletImpactEffectPlasticStationary
+{
+	default
+	{
+		scale 0.24;
+	}
+}
+class BulletImpactEffectPlasticSmall : BulletImpactEffectPlastic
+{
+	default
+	{
+		scale 0.24;
+	}
+}
+
+
+class CrawlerMineSpark : ImpactEffect {
+/*     static const String SmokeEffects[] = {"MEX1", "MEX2", "MEX3"};
+	int pickedArray;
+	default {
+		scale 0.40;
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            MEX1 A 0;
+			MEX2 A 0;
+			MEX3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				if(random(0,1) == 1) {
+					bxflip = true;
+				}
+                pickedArray = random(0,SmokeEffects.size() -1);
+                //A_CHANGEVELOCITY(frandom(-0.6,-1.1),0,1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUV 1 bright;
+			stop;
+	} */
+}
+
+class CrawlerMineSparkSmall : CrawlerMineSpark {
+/* 	default {
+		scale 0.15;
+	}	 */
+}
+
+class BulletImpactEffectWood : ImpactEffect {
+    static const String SmokeEffects[] = {"HWD1", "HWD2", "HWD3"};
+	int pickedArray;
+	default {
+		scale 0.43;
+		alpha 0.85;
+		renderstyle "translucent";
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HWD1 A 0;
+            HWD2 A 0;
+            HWD3 A 0;
+			HWD4 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 {
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+                A_CHANGEVELOCITY(0,frandom(-0.2,0.2), 0, CVF_RELATIVE | CVF_REPLACE);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 DEFGHIJKLMNOPQRSTUVWXYZ 1 {
+				A_SETSCALE(scale.x+0.006);
+			}
+			stop;
+	}
+}
+
+class BulletImpactEffectWoodMotion : BulletImpactEffectWood {
+	states {
+        Indexer:
+            HWD1 A 0;
+            HWD2 A 0;
+            HWD3 A 0;
+			HWD4 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 {
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 DDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVWWXXYYZZ 1 {
+				A_SETSCALE(scale.x+0.004);
+			}
+			stop;
+	}
+}
+class BulletImpactEffectWoodMotionAlpha : BulletImpactEffectWoodMotion {
+	default
+	{
+		alpha 0.7;
+	}
+	states {
+        Indexer:
+            HWD1 A 0;
+            HWD2 A 0;
+            HWD3 A 0;
+			HWD4 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 {
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 DDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVWWXXYYZZ 1 {
+				A_SETSCALE(scale.x+0.004);
+			}
+			stop;
+	}
+}
+
+class BulletImpactEffectWoodShrapnel : BulletImpactEffectWood {
+	default {
+		+NOINTERACTION
+	}
+	states
+	{
+        Spawn:
+			TNT1 A 0;
+            TNT1 A 0 {
+				A_SpawnDefinedParticle("BulletImpactEffectWoodDefinition");
+				EmitDefinition('SawdustDefinition', chance: 0.75, numTries: 25, angle:-180, pitch: -45, speed:-3);
+				EmitDefinition('SawdustFastBriefDefinition', chance: 0.75, numTries: 35, angle:-180, pitch: -45, speed:-2);
+				EmitDefinition('WoodParticleDefinition', chance: 0.75, numTries: 9, pitch: -45);	
+            }
+			stop;
+	}
+}
+
+
+class bulletImpactEffectWoodSmall : BulletImpactEffectWood {
+	default {
+		scale 0.23;
+		alpha 0.6;
+	}	
+	states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+                A_CHANGEVELOCITY(frandom(-0.2,-0.6),0,0.1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			HWD1 ABCDEFGHIJKLMNOPQRSUVWXYZ 1 {
+				A_SETSCALE(scale.x+0.003);
+			}
+			stop;
+	}
+}
+
+class BulletImpactEffectArmor : ImpactEffect {
+    static const String SmokeEffects[] = {"HAR1", "HAR2", "HAR3", "HAR4"};
+	int pickedArray;
+	default {
+		scale 0.18;
+		alpha 0.6;
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HAR1 A 0;
+            HAR2 A 0;
+            HAR3 A 0;
+			HAR4 A 0;
+			HAR5 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SPAWNITEMEX("SparkExplosionEffect");
+                EmitDefinition('ShortSparkTinyBlueDefinition', chance: 0.75, numTries: 30, angle:frandom(0, 360), pitch:-90, speed:-2);
+				A_PLAYSOUND("impact/mechanical", CHAN_AUTO, 1.0, 0, 0.8);
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUV 1 BRIGHT;
+			stop;
+	}
+} 
+
+class BulletImpactEffectArmorBig : BulletImpactEffectArmor
+{
+	default
+	{
+		scale 0.4;
+	}
+}
+
+class BulletImpactEffectArmorBigOil : BulletImpactEffectArmorBig
+{
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HAR1 A 0;
+            HAR2 A 0;
+            HAR3 A 0;
+			HAR4 A 0;
+			HAR5 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-3,3), frandom(-3,3), frandom(-3,3), frandom(2,4), frandom(-1,1), frandom(-1,5));
+				A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-3,3), frandom(-3,3), frandom(-3,3), frandom(2,4), frandom(-1,1), frandom(-1,5));
+				A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-3,3), frandom(-3,3), frandom(-3,3), frandom(2,4), frandom(-1,1), frandom(-1,5));
+				A_SPAWNITEMEX("SparkExplosionEffect");
+                EmitDefinition('ShortSpark360ParticleDefinition', chance: 0.75, numTries: 30, angle:frandom(0, 360), pitch:-90, speed:-2);
+				A_PLAYSOUND("impact/mechanical", CHAN_AUTO, 1.0, 0, 0.8);
+				A_SETROLL(frandom(0,360));
+                pickedArray = random(0,SmokeEffects.size() -1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSUV 1 BRIGHT;
+			stop;
+	}
+}
+
+class WaterSplashEffect : ImpactEffect  {
+    static const String SmokeEffects[] = {"HWT1", "HWT2", "HWT3"};
+	int pickedArray;
+	default {
+		scale 0.6;
+		alpha 1;
+		RenderStyle "add";
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HWT1 A 0;
+            HWT2 A 0;
+            HWT3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                pickedArray = random(0,SmokeEffects.size() -1);
+				for(int x=0;x<4;x++)
+				{
+					A_SPAWNITEMEX("watersplashEffectClones", frandom(-6,-6), frandom(-15,15));
+				}
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRSTUVWX 1
+			{
+				A_SETSCALE(scale.x+0.01);
+				A_FADEOUT(0.02, FTF_REMOVE);
+			}
+			stop;
+	}
+}
+class watersplashEffectClones : WaterSplashEffect
+{
+	default
+	{
+		scale 0.3;
+		alpha 0.6;
+	}
+	states 
+	{
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                pickedArray = random(0,SmokeEffects.size() -1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+            }
+			goto Effect;
+	}
+}
+
+class WaterSplashEffectLarge : WaterSplashEffect
+{
+	default
+	{
+		alpha 0.6;
+		scale 2.2;
+	}
+}
+
+class BulletImpactEffectMetalSmall : BulletImpactEffectMetal {
+	override void tick() {
+		super.tick();
+		A_ChangeVelocity(0,0,0, CVF_Replace);
+	}
+	default {
+		scale 0.45;
+	}
+}
+class BulletImpactEffectMetalSmallReallyFuckingTinylol : BulletImpactEffectMetal {
+	override void tick() {
+		super.tick();
+		A_ChangeVelocity(0,0,0, CVF_Replace);
+	}
+	default {
+		scale 0.24;
+	}
+}
+
+class BulletImpactEffectMetalSmallArmor : BulletImpactEffectMetal {
+	default {
+		scale 0.23;
+	}
+}
+
+class PlasmaPuff: BulletPuff
+{
+  mixin ParticleEmitter;
+  mixin ParticleDefinitionEmitter;
+  private int PlasmaPuffFlags;
+  int plasmaEmberCount;
+  string flareSprite;
+  property PlasmaEmberCount : PlasmaEmberCount;
+  property FlareSprite : FlareSprite;
+  flagdef DynamicLight		: PlasmaPuffFlags, 0;
+  default {
+	+NOBLOCKMAP
+	+ROLLSPRITE
+	+NOGRAVITY
+	+CLIENTSIDEONLY
+	+PlasmaPuff.DynamicLight;
+	PlasmaPuff.flareSprite "BluePlasmaParticleSpawner";
+	PlasmaPuff.plasmaEmberCount 100;
+	RenderStyle "add";
+	Alpha 0.95;
+	Scale 0.7;
+  }
+  states {
+	Spawn:
+		PBEX A 0 BRIGHT;
+		TNT1 A 0 A_SETROLL(frandom(0,360));
+		TNT1 A 0 {
+			EmitDefinition('SparkOrbShorterDefinition', chance: 0.75, numTries: 7, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(1,2), velocity:(0,0,frandom(0,2)));
+			EmitDefinition('PlasmaEmberParticleDefinition', chance: 0.25, numTries: plasmaEmberCount);
+		}
+		TNT1 A 0 A_SpawnItemEx(flareSprite, 0, 0, 0, 0, 0, 0, 0, 128);
+		TNT1 A 0 {
+			if (bDynamicLight){
+				A_SpawnItem("BlueFlareSmall" ,0);
+			}
+		}
+		IPP2 ABCDEF 2 BRIGHT;
+		stop;
+  }
+}
+
+class PlasmaPuffNoLights : PlasmaPuff {
+	default {
+		-PlasmaPuff.DynamicLight;
+		PlasmaPuff.flareSprite "BluePlasmaParticleSpawnerSmall";
+}
+}
+
+class PlasmaPuffTaser: PlasmaPuff
+{
+  	default {
+		PlasmaPuff.plasmaEmberCount 3;
+  		Scale 0.4;
+  		ALPHA 0.6;
+  	}
+}
+
+class PlasmaPuffTaserSmaller: PlasmaPuffTaser
+{
+	default {
+		-PlasmaPuff.DynamicLight;
+		PlasmaPuff.flareSprite "BluePlasmaSuperSmallerParticleSpawner";
+    	Scale 0.3;
+    	ALPHA 0.6;
+	}
+}
+
+class circuitSpawner : actor {
+	static const string circuitBoards[] = {"circuit1", "circuit2", "circuit3"};
+	string circuitBoardToSpawn;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		circuitBoardToSpawn = circuitBoards[random(0, circuitBoards.size()-1)];
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnProjectile(circuitBoardToSpawn);
+			stop;
+	}
+}
+
+class smallCircuitSpawner : actor {
+	static const string circuitBoards[] = {"smallcircuit1", "smallcircuit2", "smallcircuit3"};
+	string circuitBoardToSpawn;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		circuitBoardToSpawn = circuitBoards[random(0, circuitBoards.size()-1)];
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnProjectile(circuitBoardToSpawn);
+			stop;
+	}
+}
+
+
+class circuitboard : SelacoActor {
+	int frameID;
+	default {
+		+MISSILE
+		+DOOMBOUNCE
+		+THRUACTORS
+		+SelacoActor.IsTrash
+		speed 4;
+		gravity 0.7;
+		radius 3;
+		BounceFactor 0.3;
+		SelacoActor.SleepDistance 9000;
+	}
+	states {
+		Spawn:
+			VOXE L 0;
+			VOXE L 0 {
+				A_SETANGLE(random(0,360));
+				A_CHANGEVELOCITY(frandom(-9,9), 0, 3, CVF_RELATIVE);
+				A_SETSCALE(scale.x + frandom(-0.3, 0.3));
+				frameID = random(0,2);
+			}
+		looper:
+			VOXE A 2 {
+				A_SETANGLE(angle+15);
+				A_SETROLL(roll+35);
+				frame = frameID;
+			}
+			loop;
+		Death:
+			VOXE A 40 {
+				A_SETROLL(0);
+				frame = frameID;
+			}
+			VOXE L 1{
+				frame = frameID;
+				Sleep(getCvar("r_particleLifespan") * 200);
+			}
+			VOXE LLLLLLLLLLLLLLLLLLLL 1 {
+				frame = frameID;
+				A_FADEOUT(0.05);
+			}
+			stop;
+	}
+}
+
+class circuitboardsmall : circuitboard {
+	default {
+		speed 2;
+	}
+}
+class circuitboardtiny: circuitboard {
+	default {
+		speed 1;
+	}
+}
+
+class ShotgunParticles : SelacoActor
+{
+	default {
+		+MISSILE
+		+CLIENTSIDEONLY
+		+NOTELEPORT
+		+NOBLOCKMAP
+		-RIPPER
+		+BLOODLESSIMPACT 
+		+FORCEXYBILLBOARD
+		+FORCEXYBILLBOARD
+		+CLIENTSIDEONLY
+		+DONTSPLASH
+		+GHOST
+		SelacoActor.SleepDistance 0;
+		speed 20;
+		radius 8;
+		height 1;
+		Gravity 0.6;
+		RenderStyle "Add";
+		Scale 0.1;
+		Alpha 0.9;
+		Damage 0;
+	}
+    States {
+     	Spawn:
+			TNT1 A 2;
+			SPRK SSS 1 Bright A_FadeOut(0.02);
+			SPRK SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS 1 Bright A_FadeOut(0.03);
+			stop;
+		Death:
+			Stop;
+    }
+}
+
+class BaseEmberWhite : BaseEmber
+{
+
+	override void tick() {
+		super.tick();
+		// Create the iterator
+		if(level.time % random(1,8) == 0 && checkproximity("dawn", 19)) {
+				A_printbold("Die.");
+				destroy();
+			}
+       	}
+
+	default {
+  		scale 0.007;
+	}
+  States {
+      Spawn:
+          EMBR DDDDDDDDD 1 A_FadeIn(0.1);
+          EMBR DDDDDDDDDDDDDDDDDDDDDDDDDDDDD 1 A_FadeOut(0.07, FTF_REMOVE);
+          Stop;
+  }
+}
+
+
+// Effects to spawn at the Mapspot through scripts. Hopefully makes earthquakes a bit more convincing.
+// For best results, spawn multiple ones in rapid succession, but not at the same time.
+class QuakeEffect : Actor 
+{
+	mixin ParticleDefinitionEmitter;
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				for(int x=5;x>0;x--)
+				{
+					A_SPAWNITEMEX("SmokeScatteredCloudSmall", frandom(-35,35), frandom(-35,35), frandom(-5,15), 0, 0, -0.3);
+				}
+				EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 1.0, numTries: 12, angle:random(0,259), speed:-1, offset:(0,0,20),velocity:(frandom(0.1,0.3), frandom(0.1,0.3), frandom(-1,-2)));
+			}
+			stop;
+	}
+}
+
+class WaterFoamSpawnerRadius : SelacoActor
+{
+	int radius, delayPerSpawn, amountPerSpawn;
+	bool waterOnly;
+	
+	const WATERDROP_CHANCE = 7;
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		radius = args[0];
+		waterOnly = args[1];
+		delayPerSpawn = args[2];
+		amountPerSpawn = args[3];
+		// Prevent crashes
+		if(delayPerSpawn == 0)
+		{
+			delayPerSpawn = 1;
+		}
+		if(amountPerSpawn == 0)
+		{
+			amountPerSpawn = 1;
+		}
+
+	}
+
+	default
+	{
+		SelacoACtor.SleepDistance 768;
+		+NOINTERACTION;	
+	}
+	states
+	{
+		Spawn:	
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				A_PLAYSOUND("ambient/waterstream", CHAN_5, 0.45, 1, 0.9);
+			}
+		Looper:
+			TNT1 A 1 
+			{
+				for(int x=0;x<amountPerSpawn;x++)
+				{
+					int spawnPositionx = frandom(-1*radius, radius);
+					int spawnPositiony = frandom(-1*radius, radius);
+					actor waterFoamActor, waterDropActor;
+					bool waterFoamSuccess, waterDropSuccess;
+
+					// Spawn Foam
+					[waterDropSuccess, waterfoamActor] = A_SPAWNITEMEX("WaterFoamSlowSmall", spawnPositionx, spawnPositiony, 0, frandom(0.3,0.5), angle:random(0,360));
+
+					// Spawn a splash missile. Only for low amounts because performance.
+					if(random(0,100) <= WATERDROP_CHANCE && amountPerSpawn < 3)
+					{
+						[waterFoamSuccess, waterDropActor] = A_SpawnItemEx("WaterPlop", spawnPositionx,spawnPositiony,angle:random(0,360));
+						A_PLAYSOUND("impact/waterdrop", CHAN_AUTO, 1.0);
+						
+						// Fix for angled surfaces
+						if(waterDropActor) {
+							let pp = (waterDropActor.pos.xy, waterDropActor.floorz);
+							waterDropActor.Prev = pp;
+							waterDropActor.SetXYZ(pp);
+						}
+					}
+
+					// Control the actors
+					if(waterfoamActor && waterOnly)
+					{
+/* 						if(waterDropActor)
+						{
+							// Spawn water splash on a surface, unless there's water, then spawn it there instead!
+							if(!selacoActor(waterDropActor).moveToWaterSurface())
+							{
+								selacoActor(waterDropActor).setOrigin((waterDropActor.pos.x, waterDropActor.pos.y,waterDropActor.floorz), false);
+							}
+						} */
+						// Move water foam to the water. If there is no water, die instead.
+						selacoActor(waterfoamActor).moveToWaterSurface(waterIsMandatory:true);
+						selacoActor(waterFoamActor).bSlopeAlignment = false;
+					}
+				}
+				A_Settics(delayPerSpawn);
+			}
+			loop;
+	}
+}
+
+class PaperChunk : actor {
+	mixin ParticleDefinitionEmitter;
+	default {
+		+NOINTERACTION
+		radius 5;
+		height 5;
+	}
+	  States {
+		  spawn:
+			  TNT1 A 0;
+			  TNT1 AAA 0 A_SpawnProjectile("SmokeTrailPiece", 0, 0, random (0, 60), 2, random (0, 60));
+			  TNT1 A 0 {
+				EmitDefinition('PaperParticleChunkDefinition', 1.0, 45);
+				destroy();
+			  }
+			  stop;
+		  Destroy:
+			  stop;
+	  }
+  }
+  
+class PaperChunk_UP : PaperChunk {
+	States {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0;
+			TNT1 AAAAA 0 A_SpawnProjectile("SmokeTrailPiece", 0, 0, random (0, 60), 2, random (0, 60));
+			TNT1 A 0 {
+				for(int x=0;x<4;x++) {
+					EmitDefinition('PaperParticleChunkDefinition', 1.0, 12, pitch:-90, speed:1,offset:(0, frandom(-5,5), frandom(-10,10)));
+				}
+			}
+			stop;
+	}
+}
+
+class Cardboard_Chunk : actor {
+	mixin ParticleDefinitionEmitter;
+	default {
+		+NOINTERACTION
+	}
+	States {
+		  spawn:
+			  	TNT1 A 0 A_SpawnProjectile("BrownCloudSmall", 0, 0, random (0, 120), 2, random (0, 60));
+				TNT1 AAAA 0 A_SPAWNITEMEX("PaperDustEffectShorter", frandom(-20,20), frandom(-20,20), 0);
+				TNT1 A 0 A_SPAWNITEMEX("bulletImpactEffectWoodSmall");
+				TNT1 A 0 {
+					EmitDefinition('CardboardChunkSmallDefinition', 1.0, 30, particleSpawnOffsets:5);
+					destroy();
+				}
+			  	stop;
+	  }
+  }
+  

@@ -1,0 +1,706 @@
+extend class SpeechHandler
+{
+
+    // SIGHT
+    static const string SOLDIER_SIGHT_LocalizationReference[] = {
+        "$SOLDIER_ACTIVE_01",
+        "$SOLDIER_ACTIVE_02",
+        "$SOLDIER_ACTIVE_02",
+        "$SOLDIER_ACTIVE_04",
+        "$SOLDIER_ACTIVE_05",
+        "$SOLDIER_ACTIVE_06",
+        "$SOLDIER_ACTIVE_07",
+        "$SOLDIER_ACTIVE_07",
+        "$SOLDIER_ACTIVE_09",
+        "$SOLDIER_ACTIVE_10",
+        "$SOLDIER_ACTIVE_11",
+        "$SOLDIER_ACTIVE_12",
+        "$SOLDIER_ACTIVE_13",
+        "$SOLDIER_ACTIVE_14",
+        "$SOLDIER_ACTIVE_14",
+        "$SOLDIER_ACTIVE_16",
+        "$SOLDIER_ACTIVE_17",
+        "$SOLDIER_ACTIVE_18",
+        "$SOLDIER_ACTIVE_19",
+        "$SOLDIER_ACTIVE_21",
+        "$SOLDIER_ACTIVE_22",
+        "$SOLDIER_ACTIVE_23",
+        "$SOLDIER_ACTIVE_24",
+        "$SOLDIER_ACTIVE_25",
+        "$SOLDIER_ACTIVE_26",
+        "$SOLDIER_ACTIVE_27",
+        "$SOLDIER_ACTIVE_28",
+        "$SOLDIER_ACTIVE_29",
+        "$SOLDIER_ACTIVE_30",
+        "$SOLDIER_ACTIVE_31",
+        "$SOLDIER_ACTIVE_32",
+        "$SOLDIER_ACTIVE_33",
+        "$SOLDIER_ACTIVE_34",
+        "$SOLDIER_ACTIVE_35",
+        "$SOLDIER_ACTIVE_36",
+        "$SOLDIER_ACTIVE_37",
+        "$SOLDIER_ACTIVE_38",
+        "$SOLDIER_ACTIVE_39",
+        "$SOLDIER_ACTIVE_40",
+        "$SOLDIER_ACTIVE_41",
+        "$SOLDIER_ACTIVE_42",
+        "$SOLDIER_ACTIVE_45",
+        "$SOLDIER_ACTIVE_45",
+        "$SOLDIER_ACTIVE_47",
+        "$SOLDIER_ACTIVE_48",
+        "$SOLDIER_ACTIVE_49",
+        "$SOLDIER_ACTIVE_50",
+        "$SOLDIER_ACTIVE_51",
+        "$SOLDIER_ACTIVE_52",
+        "$SOLDIER_ACTIVE_53",
+        "$SOLDIER_ACTIVE_54",
+        "$SOLDIER_ACTIVE_54",
+        "$SOLDIER_ACTIVE_56",
+        "$SOLDIER_ACTIVE_56",
+        "$SOLDIER_ACTIVE_58",
+        "$SOLDIER_ACTIVE_59",
+        "$SOLDIER_ACTIVE_60",
+        "$SOLDIER_ACTIVE_61",
+        "$SOLDIER_ACTIVE_62"
+    };
+
+    // SQUAD LOST -- 68
+    static const string SOLDIER_SQUADLOST_LocalizationReference[] = {
+        "$SOLDIER_SOLO_1",
+        "$SOLDIER_SOLO_1",
+        "$SOLDIER_SOLO_3",
+        "$SOLDIER_SOLO_4",
+        "$SOLDIER_SOLO_5",
+        "$SOLDIER_SOLO_6",
+        "$SOLDIER_SOLO_7",
+        "$SOLDIER_SOLO_8",
+        "$SOLDIER_SOLO_8",
+        "$SOLDIER_SOLO_10",
+        "$SOLDIER_SOLO_11",
+        "$SOLDIER_SOLO_12",
+        "$SOLDIER_SOLO_13",
+        "$SOLDIER_SOLO_14",
+        "$SOLDIER_SOLO_15",
+        "$SOLDIER_SOLO_16"
+    };
+
+    static const string SOLDIER_ARMORCUT_LocalizationReference[] = {
+        "$SOLDIER_ARMOR_1",
+        "$SOLDIER_ARMOR_1",
+        "$SOLDIER_ARMOR_3",
+        "$SOLDIER_ARMOR_4",
+        "$SOLDIER_ARMOR_4",
+        "$SOLDIER_ARMOR_6",
+        "$SOLDIER_ARMOR_7",
+        "$SOLDIER_ARMOR_8",
+        "$SOLDIER_ARMOR_9",
+        "$SOLDIER_ARMOR_10"
+    };
+
+    static const string SOLDIER_PUSH_LocalizationReference[] = {
+        "$SOLDIER_PUSH_01",
+        "$SOLDIER_PUSH_02",
+        "$SOLDIER_PUSH_03",
+        "$SOLDIER_PUSH_04",
+        "$SOLDIER_PUSH_05",
+        "$SOLDIER_PUSH_06",
+        "$SOLDIER_PUSH_07",
+        "$SOLDIER_PUSH_08",
+        "$SOLDIER_PUSH_10",
+        "$SOLDIER_PUSH_11",
+        "$SOLDIER_PUSH_13",
+        "$SOLDIER_PUSH_14"
+    };
+
+    static const string SOLDIER_FLASHLIGHT_LocalizationReference[] = {
+        "$SOLDIER_FLASHLIGHT_01",
+        "$SOLDIER_FLASHLIGHT_02",
+        "$SOLDIER_FLASHLIGHT_03"
+    };
+
+    static const string SOLDIER_PURSUIT_LocalizationReference[] = {
+        "$SOLDIER_PUSH_01",
+        "$SOLDIER_PUSH_04",
+        "$SOLDIER_PUSH_06",
+        "$SOLDIER_PUSH_06",
+        "$SOLDIER_PUSH_13",
+        "$SOLDIER_ATTACK_09",
+        "$SOLDIER_ATTACK_09",
+        "$SOLDIER_ATTACK_16",
+        "$SOLDIER_ATTACK_34",
+        "$SOLDIER_RETREAT_12",
+        "$SOLDIER_CHASE_24",
+        "$SOLDIER_ATTACK_22"
+    };
+
+    static const string SOLDIER_ATTACK_LocalizationReference[] = {
+        "$SOLDIER_ATTACK_01",
+        "$SOLDIER_ATTACK_05",
+        "$SOLDIER_ATTACK_08",
+        "$SOLDIER_ATTACK_11",
+        "$SOLDIER_ATTACK_12",
+        "$SOLDIER_ATTACK_13",
+        "$SOLDIER_ATTACK_18",
+        "$SOLDIER_ATTACK_19",
+        "$SOLDIER_ATTACK_20",
+        "$SOLDIER_ATTACK_21",
+        "$SOLDIER_ATTACK_23",
+        "$SOLDIER_ATTACK_24",
+        "$SOLDIER_ATTACK_26",
+        "$SOLDIER_ATTACK_27",
+        "$SOLDIER_ATTACK_28",
+        "$SOLDIER_ATTACK_28",
+        "$SOLDIER_ATTACK_32",
+        "$SOLDIER_ATTACK_35",
+        "$SOLDIER_ATTACK_36",
+        "$SOLDIER_ATTACK_36",
+        "$SOLDIER_ATTACK_38",
+        "$SOLDIER_ATTACK_38"
+    };
+
+    static const string SOLDIER_GRENADEWARNING_LocalizationReference[] = {
+        "$SOLDIER_FRAGWARN_01",
+        "$SOLDIER_FRAGWARN_02",
+        "$SOLDIER_FRAGWARN_03",
+        "$SOLDIER_FRAGWARN_04",
+        "$SOLDIER_FRAGWARN_05",
+        "$SOLDIER_FRAGWARN_06",
+        "$SOLDIER_FRAGWARN_07",
+        "$SOLDIER_FRAGWARN_07",
+        "$SOLDIER_FRAGWARN_09"
+    };
+
+    static const string SOLDIER_THROWGRENADE_LocalizationReference[] = {
+        "$SOLDIER_FRAGOUT_1",
+        "$SOLDIER_FRAGOUT_2",
+        "$SOLDIER_FRAGOUT_3",
+        "$SOLDIER_FRAGOUT_4",
+        "$SOLDIER_FRAGOUT_5",
+        "$SOLDIER_FRAGOUT_6",
+        "$SOLDIER_FRAGOUT_7",
+        "$SOLDIER_FRAGOUT_8",
+        "$SOLDIER_FRAGOUT_9"
+    };
+
+    static const string SOLDIER_TARGETHIT_LocalizationReference[] = {
+        "$SOLDIER_TARGETHIT_1",
+        "$SOLDIER_TARGETHIT_2",
+        "$SOLDIER_TARGETHIT_4",
+        "$SOLDIER_TARGETHIT_5",
+        "$SOLDIER_TARGETHIT_6",
+        "$SOLDIER_TARGETHIT_7",
+        "$SOLDIER_TARGETHIT_8",
+        "$SOLDIER_TARGETHIT_9",
+        "$SOLDIER_TARGETHIT_10",
+        "$SOLDIER_TARGETHIT_11",
+        "$SOLDIER_TARGETHIT_12",
+        "$SOLDIER_TARGETHIT_13",
+        "$SOLDIER_TARGETHIT_14",
+        "$SOLDIER_TARGETHIT_15",
+        "$SOLDIER_TARGETHIT_16"
+    };
+
+
+    static const string SOLDIER_PAIN_LocalizationReference[] = {
+        "$SOLDIER_PAIN_1",
+        "$SOLDIER_PAIN_1",
+        "$SOLDIER_PAIN_3",
+        "$SOLDIER_PAIN_3",
+        "$SOLDIER_PAIN_5",
+        "$SOLDIER_PAIN_6",
+        "$SOLDIER_PAIN_7",
+        "$SOLDIER_PAIN_7",
+        "$SOLDIER_PAIN_9",
+        "$SOLDIER_PAIN_10",
+        "$SOLDIER_PAIN_11",
+        "$SOLDIER_PAIN_12",
+        "$SOLDIER_PAIN_13",
+        "$SOLDIER_PAIN_14",
+        "$SOLDIER_PAIN_15",
+        "$SOLDIER_PAIN_16",
+        "$SOLDIER_PAIN_17"
+    };
+
+    static const string SOLDIER_MANDOWN_LocalizationReference[] = {
+        "$SOLDIER_MANDOWN_1",
+        "$SOLDIER_MANDOWN_2",
+        "$SOLDIER_MANDOWN_2",
+        "$SOLDIER_MANDOWN_4",
+        "$SOLDIER_MANDOWN_5",
+        "$SOLDIER_MANDOWN_6",
+        "$SOLDIER_MANDOWN_4",
+        "$SOLDIER_MANDOWN_6",
+        "$SOLDIER_MANDOWN_9",
+        "$SOLDIER_MANDOWN_9",
+        "$SOLDIER_MANDOWN_11",
+        "$SOLDIER_MANDOWN_12",
+        "$SOLDIER_MANDOWN_13",
+        "$SOLDIER_MANDOWN_14",
+        "$SOLDIER_MANDOWN_15",
+        "$SOLDIER_MANDOWN_16",
+        "$SOLDIER_MANDOWN_17",
+        "$SOLDIER_MANDOWN_18",
+        "$SOLDIER_MANDOWN_19",
+        "$SOLDIER_MANDOWN_20",
+        "$SOLDIER_MANDOWN_21",
+        "$SOLDIER_MANDOWN_22",
+        "$SOLDIER_MANDOWN_23",
+        "$SOLDIER_MANDOWN_24",
+        "$SOLDIER_MANDOWN_24",
+        "$SOLDIER_MANDOWN_26",
+        "$SOLDIER_MANDOWN_27",
+        "$SOLDIER_MANDOWN_28",
+        "$SOLDIER_MANDOWN_29",
+        "$SOLDIER_MANDOWN_30",
+        "$SOLDIER_MANDOWN_31",
+        "$SOLDIER_MANDOWN_32",
+        "$SOLDIER_MANDOWN_33",
+        "$SOLDIER_MANDOWN_33"
+    };
+
+    static const string SOLDIER_RELOAD_LocalizationReference[] = {
+        "$SOLDIER_RELOAD_1",
+        "$SOLDIER_RELOAD_2",
+        "$SOLDIER_RELOAD_1",
+        "$SOLDIER_RELOAD_4",
+        "$SOLDIER_RELOAD_5",
+        "$SOLDIER_RELOAD_6",
+        "$SOLDIER_RELOAD_7"
+    };
+
+    static const string SOLDIER_RETREAT_LocalizationReference[] = {
+        "$SOLDIER_RETREAT_1",
+        "$SOLDIER_RETREAT_1",
+        "$SOLDIER_RETREAT_3",
+        "$SOLDIER_RETREAT_4",
+        "$SOLDIER_RETREAT_5",
+        "$SOLDIER_RETREAT_5",
+        "$SOLDIER_RETREAT_7",
+        "$SOLDIER_RETREAT_8",
+        "$SOLDIER_RETREAT_8",
+        "$SOLDIER_RETREAT_10",
+        "$SOLDIER_RETREAT_11",
+        "$SOLDIER_RETREAT_13",
+        "$SOLDIER_RETREAT_14",
+        "$SOLDIER_RETREAT_15",
+        "$SOLDIER_RETREAT_16",
+        "$SOLDIER_RETREAT_18",
+        "$SOLDIER_RETREAT_19"
+    };
+
+    static const string SOLDIER_SEARCH_LocalizationReference[] = {
+        "$SOLDIER_SEARCH_1",
+        "$SOLDIER_SEARCH_2",
+        "$SOLDIER_SEARCH_2",
+        "$SOLDIER_SEARCH_4",
+        "$SOLDIER_SEARCH_5",
+        "$SOLDIER_SEARCH_6",
+        "$SOLDIER_SEARCH_8",
+        "$SOLDIER_SEARCH_9",
+        "$SOLDIER_SEARCH_10",
+        "$SOLDIER_SEARCH_10",
+        "$SOLDIER_SEARCH_12",
+        "$SOLDIER_SEARCH_13",
+        "$SOLDIER_SEARCH_14",
+        "$SOLDIER_SEARCH_15"
+    };
+
+    static const string SOLDIER_SEARCH_Responder_LocalizationReference[] = {
+        "$SOLDIER_SIGHT_4",
+        "$SOLDIER_SIGHT_6",
+        "$SOLDIER_SIGHT_10",
+        "$SOLDIER_SIGHT_11",
+        "$SOLDIER_SIGHT_13",
+        "$SOLDIER_SIGHT_20",
+        "$SOLDIER_SIGHT_26",
+        "$SOLDIER_SIGHT_29",
+        "$SOLDIER_UPDATE_1",
+        "$SOLDIER_UPDATE_1",
+        "$SOLDIER_UPDATE_3",
+        "$SOLDIER_UPDATE_4",
+        "$SOLDIER_UPDATE_5",
+        "$SOLDIER_UPDATE_6",
+        "$SOLDIER_UPDATE_7",
+        "$SOLDIER_UPDATE_8",
+        "$SOLDIER_UPDATE_9",
+        "$SOLDIER_UPDATE_10",
+        "$SOLDIER_UPDATE_11",
+        "$SOLDIER_UPDATE_12"
+    };
+
+    static const string SOLDIER_ACKNOWLEDGE_LocalizationReference[] = {
+        "$SOLDIER_POSITIVE_1",
+        "$SOLDIER_POSITIVE_1",
+        "$SOLDIER_POSITIVE_3",
+        "$SOLDIER_POSITIVE_3",
+        "$SOLDIER_POSITIVE_5",
+        "$SOLDIER_POSITIVE_5",
+        "$SOLDIER_POSITIVE_7",
+        "$SOLDIER_POSITIVE_7",
+        "$SOLDIER_POSITIVE_9",
+        "$SOLDIER_POSITIVE_9",
+        "$SOLDIER_POSITIVE_11",
+        "$SOLDIER_POSITIVE_11",
+        "$SOLDIER_POSITIVE_1",
+        "$SOLDIER_POSITIVE_1"
+    };
+
+    static const string SOLDIER_ACKNOWLEDGE_SIMPLE_LocalizationReference[] = {
+        "$SOLDIER_POSITIVE_1",
+        "$SOLDIER_POSITIVE_1",
+        "$SOLDIER_POSITIVE_3",
+        "$SOLDIER_POSITIVE_3",
+        "$SOLDIER_POSITIVE_7",
+        "$SOLDIER_POSITIVE_7",
+        "$SOLDIER_POSITIVE_9",
+        "$SOLDIER_POSITIVE_9",
+        "$SOLDIER_POSITIVE_11",
+        "$SOLDIER_POSITIVE_11",
+        "$SOLDIER_POSITIVE_1",
+        "$SOLDIER_POSITIVE_1"
+    };
+
+    static const string SOLDIER_NEGATIVE_LocalizationReference[] = {
+        "$SOLDIER_NEGATIVE_1",
+        "$SOLDIER_NEGATIVE_1",
+        "$SOLDIER_NEGATIVE_2",
+        "$SOLDIER_NEGATIVE_2",
+        "$SOLDIER_NEGATIVE_3",
+        "$SOLDIER_NEGATIVE_3",
+        "$SOLDIER_NEGATIVE_4",
+        "$SOLDIER_NEGATIVE_4",
+        "$SOLDIER_NEGATIVE_5.",
+        "$SOLDIER_NEGATIVE_5"
+    };
+
+    static const string SOLDIER_NEGATIVE_SIMPLE_LocalizationReference[] = {
+        "$SOLDIER_NEGATIVE_1",
+        "$SOLDIER_NEGATIVE_1",
+        "$SOLDIER_NEGATIVE_4",
+        "$SOLDIER_NEGATIVE_4"
+    };
+
+    static const string SOLDIER_MANDOWN_RESPONSE_LocalizationReference[] = {
+        "$SOLDIER_RESPONSE_MANDOWN_1",
+        "$SOLDIER_RESPONSE_MANDOWN_2",
+        "$SOLDIER_RESPONSE_MANDOWN_3",
+        "$SOLDIER_RESPONSE_MANDOWN_4",
+        "$SOLDIER_RESPONSE_MANDOWN_4",
+        "$SOLDIER_RESPONSE_MANDOWN_6",
+        "$SOLDIER_RESPONSE_MANDOWN_7",
+        "$SOLDIER_RESPONSE_MANDOWN_8",
+        "$SOLDIER_RESPONSE_MANDOWN_8",
+        "$SOLDIER_RESPONSE_MANDOWN_10",
+        "$SOLDIER_RESPONSE_MANDOWN_11",
+        "$SOLDIER_RESPONSE_MANDOWN_12",
+        "$SOLDIER_RESPONSE_MANDOWN_13",
+        "$SOLDIER_RESPONSE_MANDOWN_14",
+        "$SOLDIER_RESPONSE_MANDOWN_15",
+        "$SOLDIER_RESPONSE_MANDOWN_16",
+        "$SOLDIER_RESPONSE_MANDOWN_17",
+        "$SOLDIER_RESPONSE_MANDOWN_18",
+        "$SOLDIER_RESPONSE_MANDOWN_19",
+        "$SOLDIER_RESPONSE_MANDOWN_20",
+        "$SOLDIER_RESPONSE_MANDOWN_21",
+        "$SOLDIER_RESPONSE_MANDOWN_22",
+        "$SOLDIER_RESPONSE_MANDOWN_23",
+        "$SOLDIER_RESPONSE_MANDOWN_24",
+        "$SOLDIER_RESPONSE_MANDOWN_25",
+        "$SOLDIER_RESPONSE_MANDOWN_26",
+        "$SOLDIER_RESPONSE_MANDOWN_27",
+        "$SOLDIER_RESPONSE_MANDOWN_28",
+        "$SOLDIER_RESPONSE_MANDOWN_29",
+        "$SOLDIER_RESPONSE_MANDOWN_30",
+        "$SOLDIER_RESPONSE_MANDOWN_31"
+    };
+
+    static const string SOLDIER_GIVINGCOVER_LocalizationReference[] = {
+        "$SOLDIER_GIVINGCOVER_1",
+        "$SOLDIER_GIVINGCOVER_1",
+        "$SOLDIER_GIVINGCOVER_3",
+        "$SOLDIER_GIVINGCOVER_3",
+        "$SOLDIER_GIVINGCOVER_5",
+        "$SOLDIER_GIVINGCOVER_5",
+        "$SOLDIER_GIVINGCOVER_7",
+        "$SOLDIER_GIVINGCOVER_7",
+        "$SOLDIER_GIVINGCOVER_9",
+        "$SOLDIER_GIVINGCOVER_9",
+        "$SOLDIER_GIVINGCOVER_11",
+        "$SOLDIER_GIVINGCOVER_12",
+        "$SOLDIER_GIVINGCOVER_1",
+        "$SOLDIER_GIVINGCOVER_1",
+        "$SOLDIER_GIVINGCOVER_3",
+        "$SOLDIER_GIVINGCOVER_3",
+        "$SOLDIER_GIVINGCOVER_5",
+        "$SOLDIER_GIVINGCOVER_5",
+        "$SOLDIER_GIVINGCOVER_7",
+        "$SOLDIER_GIVINGCOVER_7",
+        "$SOLDIER_GIVINGCOVER_9",
+        "$SOLDIER_GIVINGCOVER_9",
+        "$SOLDIER_GIVINGCOVER_11",
+        "$SOLDIER_GIVINGCOVER_12",
+        "$SOLDIER_GIVINGCOVER_13",
+        "$SOLDIER_GIVINGCOVER_14"
+    };
+
+    static const string SOLDIER_DISTANCE_LocalizationReference[] = {
+        "$SOLDIER_DISTANCE_1",
+        "$SOLDIER_DISTANCE_1",
+        "$SOLDIER_DISTANCE_3",
+        "$SOLDIER_DISTANCE_3",
+        "$SOLDIER_DISTANCE_5",
+        "$SOLDIER_DISTANCE_6",
+        "$SOLDIER_DISTANCE_6",
+        "$SOLDIER_DISTANCE_8",
+        "$SOLDIER_DISTANCE_8",
+        "$SOLDIER_DISTANCE_10"
+    };
+
+    static const string SOLDIER_PUSHRESPONSE_LocalizationReference[] = {
+        "$SOLDIER_PUSHRESPONSE_1",
+        "$SOLDIER_PUSHRESPONSE_2",
+        "$SOLDIER_PUSHRESPONSE_3",
+        "$SOLDIER_PUSHRESPONSE_4",
+        "$SOLDIER_PUSHRESPONSE_5",
+        "$SOLDIER_PUSHRESPONSE_6",
+        "$SOLDIER_PUSHRESPONSE_7",
+        "$SOLDIER_GIVINGCOVER_1",
+        "$SOLDIER_PUSHRESPONSE_9",
+        "$SOLDIER_PUSHRESPONSE_9"
+    };
+
+    static const string SOLDIER_DEPLOYTURRET_LocalizationReference[] = {
+        "$SOLDIER_TURRET_1",
+        "$SOLDIER_TURRET_1",
+        "$SOLDIER_TURRET_2"
+    };
+
+    static const string SOLDIER_DEPLOYSHIELD_LocalizationReference[] = {
+        "$SOLDIER_SHIELD_1",
+        "$SOLDIER_SHIELD_1",
+        "$SOLDIER_SHIELD_3"
+    };
+
+    static const string SOLDIER_DEPLOYShockDroid_LocalizationReference[] = {
+        "$SOLDIER_ShockDroid_1",
+        "$SOLDIER_ShockDroid_2",
+        "$SOLDIER_ShockDroid_3",
+        "$SOLDIER_ShockDroid_4"
+    };
+
+    static const string SOLDIER_SquadleaderLost_LocalizationReference[] = {
+        "$SOLDIER_SQUADLEADERLOST_1",
+        "$SOLDIER_SQUADLEADERLOST_2",
+        "$SOLDIER_SQUADLEADERLOST_3",
+        "$SOLDIER_SQUADLEADERLOST_4",
+        "$SOLDIER_SQUADLEADERLOST_5",
+        "$SOLDIER_SQUADLEADERLOST_6",
+        "$SOLDIER_SQUADLEADERLOST_7",
+        "$SOLDIER_SQUADLEADERLOST_8",
+        "$SOLDIER_SQUADLEADERLOST_9"
+    };
+
+    static const string SOLDIER_Shielding_LocalizationReference[] = {
+        "$SOLDIER_Shielding_1",
+        "$SOLDIER_Shielding_2",
+        "$SOLDIER_Shielding_3",
+        "$SOLDIER_Shielding_4",
+        "$SOLDIER_Shielding_5",
+        "$SOLDIER_Shielding_6",
+        "$SOLDIER_Shielding_7"
+    };
+
+    static const string SOLDIER_KILL_LocalizationReference[] = {
+        "$SOLDIER_KILL_1",
+        "$SOLDIER_KILL_2",
+        "$SOLDIER_KILL_3",
+        "$SOLDIER_KILL_4",
+        "$SOLDIER_KILL_5",
+        "$SOLDIER_KILL_6",
+        "$SOLDIER_KILL_7",
+        "$SOLDIER_KILL_8",
+        "$SOLDIER_KILL_9",
+        "$SOLDIER_KILL_10"
+    };
+
+    static const string SOLDIER_CalloutShotgun_LocalizationReference[] = {
+        "$SOLDIER_CALLOUT_SHOTGUN_1",
+        "$SOLDIER_CALLOUT_SHOTGUN_2",
+        "$SOLDIER_CALLOUT_SHOTGUN_3",
+        "$SOLDIER_CALLOUT_SHOTGUN_4",
+        "$SOLDIER_CALLOUT_SHOTGUN_5",
+        "$SOLDIER_CALLOUT_SHOTGUN_6"
+    };
+
+    static const string SOLDIER_CalloutGrenadeLauncher_LocalizationReference[] = {
+        "$SOLDIER_CALLOUT_GRENADELAUNCHER_1",
+        "$SOLDIER_CALLOUT_GRENADELAUNCHER_2",
+        "$SOLDIER_CALLOUT_GRENADELAUNCHER_3",
+        "$SOLDIER_CALLOUT_GRENADELAUNCHER_4",
+        "$SOLDIER_CALLOUT_GRENADELAUNCHER_5",
+        "$SOLDIER_CALLOUT_GRENADELAUNCHER_6"
+    };
+
+    static const string SOLDIER_CalloutTargetAmmo_LocalizationReference[] = {
+        "$SOLDIER_CALLOUT_TARETEMPTY_1",
+        "$SOLDIER_CALLOUT_TARETEMPTY_2",
+        "$SOLDIER_CALLOUT_TARETEMPTY_3",
+        "$SOLDIER_CALLOUT_TARETEMPTY_4",
+        "$SOLDIER_CALLOUT_TARETEMPTY_5",
+        "$SOLDIER_CALLOUT_TARETEMPTY_6",
+        "$SOLDIER_CALLOUT_TARETEMPTY_7"
+    };
+
+    static const string ENFORCER_SIGHT_LocalizationReference[] = {
+        "$ENFORCER_SIGHT_01",
+        "$ENFORCER_SIGHT_02",
+        "$ENFORCER_SIGHT_03",
+        "$ENFORCER_SIGHT_04",
+        "$ENFORCER_SIGHT_05",
+        "$ENFORCER_SIGHT_06",
+        "$ENFORCER_SIGHT_07",
+        "$ENFORCER_SIGHT_08",
+        "$ENFORCER_SIGHT_09",
+        "$ENFORCER_SIGHT_10",
+        "$ENFORCER_SIGHT_11",
+        "$ENFORCER_SIGHT_12",
+        "$ENFORCER_SIGHT_13"
+    };
+
+    static const string Enforcer_Attack_LocalizationReference[] = {
+        "$ENFORCER_ATTACK_01",
+        "$ENFORCER_ATTACK_02",
+        "$ENFORCER_ATTACK_03",
+        "$ENFORCER_ATTACK_04",
+        "$ENFORCER_ATTACK_05",
+        "$ENFORCER_ATTACK_06",
+        "$ENFORCER_ATTACK_07",
+        "$ENFORCER_ATTACK_08",
+        "$ENFORCER_ATTACK_09",
+        "$ENFORCER_ATTACK_10",
+        "$ENFORCER_ATTACK_11",
+        "$ENFORCER_ATTACK_12",
+        "$ENFORCER_ATTACK_13",
+        "$ENFORCER_ATTACK_14"
+    };
+
+    static const string Enforcer_Mandown_LocalizationReference[] = {
+        "$ENFORCER_MANDOWN_01",
+        "$ENFORCER_MANDOWN_02",
+        "$ENFORCER_MANDOWN_03",
+        "$ENFORCER_MANDOWN_04",
+        "$ENFORCER_MANDOWN_05",
+        "$ENFORCER_MANDOWN_06",
+        "$ENFORCER_MANDOWN_07",
+        "$ENFORCER_MANDOWN_07",
+        "$ENFORCER_MANDOWN_07"
+    };
+
+    static const string ENFORCER_CHASE_LocalizationReference[] = {
+        "$ENFORCER_CHASING_01",
+        "$ENFORCER_CHASING_02",
+        "$ENFORCER_CHASING_03",
+        "$ENFORCER_CHASING_04",
+        "$ENFORCER_CHASING_05",
+        "$ENFORCER_CHASING_06",
+        "$ENFORCER_CHASING_07",
+        "$ENFORCER_CHASING_08",
+        "$ENFORCER_CHASING_09",
+        "$ENFORCER_CHASING_10",
+        "$ENFORCER_CHASING_11",
+        "$ENFORCER_CHASING_12",
+        "$ENFORCER_CHASING_13",
+        "$ENFORCER_CHASING_14",
+        "$ENFORCER_CHASING_15",
+        "$ENFORCER_CHASING_16",
+        "$ENFORCER_CHASING_17",
+        "$ENFORCER_CHASING_18"
+    };
+
+    static const string ENFORCER_HIT_LocalizationReference[] = {
+        "$ENFORCER_HIT_01",
+        "$ENFORCER_HIT_02",
+        "$ENFORCER_HIT_03",
+        "$ENFORCER_HIT_04",
+        "$ENFORCER_HIT_05",
+        "$ENFORCER_HIT_06",
+        "$ENFORCER_HIT_07"
+    };
+
+    static const string SOLDIER_SMOKE_LocalizationReference[] = {
+        "$SOLDIER_SMOKE_1",
+        "$SOLDIER_SMOKE_1"
+    };
+
+    static const string ENFORCER_SMOKE_LocalizationReference[] = {
+        "$ENFORCER_SMOKE_01",
+        "$ENFORCER_SMOKE_02",
+        "$ENFORCER_SMOKE_03",
+        "$ENFORCER_SMOKE_04",
+        "$ENFORCER_SMOKE_05"
+    };
+
+    static const string ENFORCER_TARGETHIT_LocalizationReference[] = {
+        "$ENFORCER_TARGETHIT_01",
+        "$ENFORCER_TARGETHIT_02",
+        "$ENFORCER_TARGETHIT_03",
+        "$ENFORCER_TARGETHIT_04",
+        "$ENFORCER_TARGETHIT_05",
+        "$ENFORCER_TARGETHIT_06",
+        "$ENFORCER_TARGETHIT_07",
+        "$ENFORCER_TARGETHIT_08",
+        "$ENFORCER_TARGETHIT_09"
+    };
+
+    static const string ENFORCER_FRAGWARNING_LocalizationReference[] = {
+        "$ENFORCER_GRENADE_01",
+        "$ENFORCER_GRENADE_02",
+        "$ENFORCER_GRENADE_03",
+        "$ENFORCER_GRENADE_04",
+        "$ENFORCER_GRENADE_05",
+        "$ENFORCER_GRENADE_06",
+        "$ENFORCER_GRENADE_07"
+    };
+
+    static const string ENFORCER_PUSH_LocalizationReference[] = {
+        "$ENFORCER_PUSH_01",
+        "$ENFORCER_PUSH_02",
+        "$ENFORCER_PUSH_03",
+        "$ENFORCER_PUSH_04",
+        "$ENFORCER_PUSH_05",
+        "$ENFORCER_PUSH_06",
+        "$ENFORCER_PUSH_07",
+        "$ENFORCER_PUSH_08",
+        "$ENFORCER_PUSH_09"
+    };
+
+    static const string SOLDIER_HEAR_LocalizationReference[] = {
+        "$SOLDIER_SOUND_1",
+        "$SOLDIER_SOUND_2",
+        "$SOLDIER_SOUND_3",
+        "$SOLDIER_SOUND_4",
+        "$SOLDIER_SOUND_5",
+        "$SOLDIER_SOUND_6",
+        "$SOLDIER_SOUND_7",
+        "$SOLDIER_SOUND_8"
+    };    
+
+    static const string SOLDIER_SNIPERCALLOUT_LocalizationReference[] = {
+        "$SOLDIER_SNIPER_1",
+        "$SOLDIER_SNIPER_1",
+        "$SOLDIER_SNIPER_2",
+        "$SOLDIER_SNIPER_3"
+    };
+
+    static const string ENFORCER_RETREAT_LocalizationReference[] = 
+    {
+        "$ENFORCER_FALLBACK_01",
+        "$ENFORCER_FALLBACK_02",   
+        "$ENFORCER_FALLBACK_03",  
+        "$ENFORCER_FALLBACK_04",  
+        "$ENFORCER_FALLBACK_05",        
+        "$ENFORCER_FALLBACK_06",  
+        "$ENFORCER_FALLBACK_07",  
+        "$ENFORCER_FALLBACK_08"  
+    };
+}

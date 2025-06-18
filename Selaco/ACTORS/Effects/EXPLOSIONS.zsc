@@ -1,0 +1,1282 @@
+class ExplosionEffect : SelacoActor {
+    
+    bool allowShieldEyes;
+    bool allowScreenShake;
+    bool allowDirtScreen;
+    bool spawnExplosionEffect;
+    bool playExplosionSound;
+    bool isUnderwater;
+    float explosionSoundVolume;
+    int smokeTrailCount;                // Explosion debris with smoke trail                                     
+    int extensionTrail;                 // Similar to SmokeTrail, except cuts off earlier.
+    int scatterSmokeCount;              // Explosion debris with smoke trail                                     [Not very demanding, yet convincing. High values are safe.]
+    int debrisChunkCount;               // Debris chunks, bouncing particles.
+    int ExplosionChunks;                // Big red flares
+    int emberParticleClusters;          // Red Embers that fly into the air.
+    int floorShooter;                   // Smoke Trails that spawn from the floor. 
+    int explosionAmountMin, explosionAmountMax;
+    int explosionSpreadHorizontal;
+    int explosionSpreadVertical;
+    int shakeDistance;
+    int scatterSmokeOffset;
+    bool canSeePlayer;
+    float sparkMissiles;                  // Spark missiles - Missiles that leave a trail of sparks behind.        [Very pretty, but insanely demanding. Keep this low]
+    int lightRadius;
+    bool reducedExplosionVolume;
+    int hasScreenShake;
+    actor playerActor;
+    int playerDistance;
+    property ExplosionSoundVolume : explosionSoundVolume;
+    property smokeTrailCount : smokeTrailCount;
+    property extensionTrail : extensionTrail;
+    property scatterSmokeCount : scatterSmokeCount;
+    property debrisChunkCount : debrisChunkCount;
+    property explosionSizeAmount : explosionAmountMin, explosionAmountMax;
+    property explosionSpreadHorizontal : explosionSpreadHorizontal;
+    property explosionSpreadVertical : explosionSpreadVertical;
+    property ExplosionChunks : ExplosionChunks;
+    property emberParticleClusters : emberParticleClusters;
+    property floorShooter : floorShooter;
+    property sparkMissiles : sparkMissiles;
+    property lightRadius : lightRadius;
+    property ScatterSmokeOffset : scatterSmokeOffset;
+    property ShakeDistance : shakeDistance;
+    int expFlags;
+    flagdef allowShieldEyes : expFlags, 0;
+    flagdef allowScreenShake : expFlags, 1;
+    flagdef allowDirtScreen : expFlags, 2;
+    flagdef spawnExplosionEffect : expFlags, 3;
+    flagdef castShadow : expFlags, 4;
+    flagdef spawnSubExplosionEffects :  expFlags, 5;
+    flagdef spawnSubExplosionTrailEffect : expFlags, 6;
+    flagdef richExplosionSound : expFlags, 7;
+    flagdef spawnSmokeTrail : expFlags, 8;
+    flagdef ShortEpicShake : expFlags, 9;
+    flagdef BrightBoom : expflags, 10;
+    flagdef BlackSmoke  : expflags, 11;
+    default {
+        +NOINTERACTION; 
+        height 50;
+        -SelacoActor.Debugmode;
+        SelacoActor.SleepDistance 0;
+        ExplosionEffect.explosionSoundVolume 1.0;
+        +ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.BrightBoom
+        +ExplosionEffect.allowDirtScreen;
+        +ExplosionEffect.spawnExplosionEffect;
+        +ExplosionEffect.spawnSubExplosionEffects;
+        -ExplosionEffect.castShadow;
+        +ExplosionEffect.SpawnSmokeTrail;
+        +ExplosionEffect.spawnSubExplosionTrailEffect;
+        +ExplosionEffect.richExplosionSound;
+        +ExplosionEffect.ShortEpicShake;
+        ExplosionEffect.scatterSmokeCount 14;
+        ExplosionEffect.explosionSizeAmount 11,19;
+        ExplosionEffect.explosionSpreadHorizontal 40;
+        ExplosionEffect.explosionSpreadVertical 60;
+        ExplosionEffect.smokeTrailCount 13;
+        ExplosionEffect.extensionTrail 5;
+        ExplosionEffect.debrisChunkCount 16;
+        ExplosionEffect.floorShooter 12;
+        ExplosionEffect.ExplosionChunks 27;
+        ExplosionEffect.emberParticleClusters 11;
+        ExplosionEffect.sparkMissiles 6;   
+        ExplosionEffect.lightRadius 200;  
+        ExplosionEffect.scatterSmokeOffset 120;
+        ExplosionEffect.ShakeDistance 700;
+    }
+
+    // Check particle and smoke settings and decide values based on this.
+    void checkEffects() {
+        SmokeHandler sh = SmokeHandler.instance();
+        ParticleHandler sp = ParticleHandler.instance();
+        
+        float reductionStep = 0.2 * sp.currentParticleSetting+1;
+        debrisChunkCount *= reductionStep;
+        ExplosionChunks *= reductionStep;
+        sparkMissiles *= reductionStep;
+        emberParticleClusters *= reductionStep;
+    
+        reductionStep = 0.2 * sh.currentSmokeSetting+1;
+        smokeTrailCount *= reductionStep;
+        floorShooter *= reductionStep;
+        scatterSmokeCount *= reductionStep;
+    }
+
+    override void BeginPLay() {
+        super.BeginPLay();
+        checkEffects();
+        hasScreenShake = getCvar("g_Screenshake");
+        if(players[consolePlayer].mo)
+        {
+            playerActor = players[consolePlayer].mo;
+            playerDistance = distance3D(playerActor);
+            canSeePlayer = checkSight(playerActor);
+        }
+        playExplosionSound = true;
+        if(waterLevel > 0)
+        {
+            playExplosionSound = false;
+            bRichExplosionSound = false;
+            isUnderwater = true;
+        }
+        if(getCvar("snd_reducedexplosionvolume") == 1) {
+            reducedExplosionVolume = true;
+            explosionSoundVolume*=0.4;
+        }
+    }
+
+}
+
+class PrettyExplosionParticleRain : ExplosionEffect {
+    int castShadow;
+    array<Actor> explosionEffects; // Store explosion effects to later use.
+    int debug_Rejections;
+    int debug_Searches;
+    int debug_spawnedExplosions;
+    int subExplosionLoops;
+
+	bool bIsOnFloor(void)
+	{
+		return (self.Pos.Z == self.FloorZ) || (self.bOnMObj);
+	}
+
+    virtual bool getShieldEyes() {
+        return allowShieldEyes;
+    }
+
+    virtual bool getScreenShake() {
+        return allowScreenShake;
+    }
+
+    virtual bool getDirtScreen() {
+        return bAllowDirtScreen;
+    }
+
+    virtual void defineParticleSettings() {
+        //castShadow = 1;
+    }
+
+    // Spawns a trail of explosions aiming upward
+    void spawnExplosionTrails()
+    {
+        if(!bspawnSubExplosionTrailEffect) {
+            return;
+        }
+        int trailAmount = 2;
+        for(int trailIndex=0;trailIndex<=trailAmount;trailIndex++)
+        {
+            int trailAngle = random(0,360);
+            int trailLength = random(explosionSpreadVertical/4,explosionSpreadVertical/3);
+            int xOffset = random(4, 5);
+            int yOffset = random(4, 5);
+            int flatOffset = random(-30,30);
+            for(int explosionIndex=0;explosionIndex <=trailLength;explosionIndex++)
+            {
+                vector3 spawnPosition;
+                spawnPosition.y = flatOffset+(explosionIndex*yOffset);
+                spawnPosition.z = explosionIndex*6;
+                spawnSubExplosion(spawnLocation:spawnPosition, explosionEffect:"SmallExplosionSmokeSlow", explosionAngle:trailAngle, minDistance:10);
+            }
+        }
+    }
+
+    void spawnParticles() {
+        int floorShooterPitch = -150;
+        if(!bIsOnFloor()) {
+            floorShooterPitch = 360;
+        }
+        for(int i=0;i<sparkMissiles;i++) {
+            A_SpawnItemEx("SparkMissileGravity", random(-20,20), random(-20,20), random(0,19), random(4,9), 0, random(4,14), angle:random(0,360));
+        }                   
+        for(int i=0;i<floorShooter;i++) {
+            A_SpawnProjectile ("FloorSmokeLauncherExplosion", random(0, 1),random(-5,5), random (0, 360), 2, random (-60, floorShooterPitch));
+        }
+        // Find floor textures and spawn effects
+        uint soundType = MaterialIndexer.Instance().getFloorMaterialType(floorpic);
+        switch(soundType) 
+        {
+            // Grass
+            case FM_Grass:
+                EmitDefinition('GrassParticleDefinition', chance: 1.0, numTries: debrisChunkCount*5, speed:4, scaleBoost:1.75);
+                EmitDefinition('GrassBladeParticleDefinition', chance: 1.0, numTries: debrisChunkCount*5, speed:4, scaleBoost:1.75);
+                EmitDefinition('GrassBladeParticleWildDefinition', chance: 1.0, numTries: debrisChunkCount*14, speed:4, scaleBoost:1.9);
+                break;
+            // Wood
+            case FM_Box:
+            case FM_Wood:
+                if(bRichExplosionSound && !reducedExplosionVolume){
+                    explosionSoundVolume-=0.2;
+                    a_playsound("EXPLOSION/WOOD", CHAN_AUTO, 1.0, 0, 0.6);
+                }
+                emit('PlankParticle', chance: 1.0, numTries: debrisChunkCount*7, speed:6, scaleBoost:frandom(0.8,1.25));
+                break;
+            case FM_Rock:
+            case FM_Catwalk:
+            case FM_Metal:
+            case FM_Pipe:
+            case FM_Grating:
+                EmitDefinition('MetalChunk360Definition', chance:1.0, debrisChunkCount*3, pitch:-90, speed:5, scaleBoost:frandom(0.9,1.1));
+                break;
+            default:
+                EmitDefinition('DebrisChunkParticleLarge360Definition', chance: 0.75, numTries: debrisChunkCount*24, angle:random(0,359), scaleBoost:1.5, particleSpawnOffsets:random(-30,30));
+        }
+        emit('MetalShrapnelParticleExplosion', chance: 0.5, numTries: emberParticleClusters*12, angle:random(0,360), pitch:frandom(-60, -360), speed:7, velocity:(frandom(1,3),frandom(1,3),frandom(1,4)));
+    }
+
+    void spawnSmokeEffects() {
+        // An upward trail of smoke. 
+        if(bspawnSmokeTrail && pos.z == floorz && waterlevel == 0)
+        {
+            A_SPAWNITEMEX("ExplosionTrailSmoke");
+        }
+
+        A_SpawnItemEx("SpawnImpactSmoke", frandom(-35,35), frandom(-35,35), frandom(40,60));
+        // Scatter smoke
+        int adjustedScatterSmokeCount = isunderwater ? scatterSmokeCount / 2 : scatterSmokeCount;
+        if (adjustedScatterSmokeCount > 0) {
+            for (int i = 0; i < adjustedScatterSmokeCount; i++) {
+                A_SpawnItemEx("ScatterSmoke", 
+                    random(-scatterSmokeOffset, scatterSmokeOffset), 
+                    random(-scatterSmokeOffset, scatterSmokeOffset), 
+                    random(-10, scatterSmokeOffset - 20));
+            }
+        }
+
+        for(int i=0;i<explosionChunks;i++) {
+            A_SpawnItemEx("ExplosionParticleHeavy", random(-90,90), random(-90,90), random(-10,-95), 0, 0, 0, random(0,360));
+        }
+
+        for(int i=0;i<smokeTrailCount;i++) {
+           A_SpawnProjectile ("ExplosionFlareTrail2", 64, 0, random(0, 360), 2, random (-50, -360));
+        }
+
+        for(int i=0;i<extensionTrail;i++) {
+           A_SpawnProjectile ("ExtensionTrail", 0, 0, random (0, 360), 2, random (-30, -120));
+        }
+    }
+
+    void playExplosionSoundEffects() {
+        if(playExplosionSound)
+        {
+            if(bRichExplosionSound && explosionSoundVolume > 0.9 && getCvar("snd_tinnituseffect") && playerDistance <= 300)
+            {
+                playerActor.A_PLAYSOUND("EARRING", CHAN_AUTO, 0.9);
+            }
+            A_PLAYSOUND("EXPLOSION/DISTANT", CHAN_AUTO, explosionSoundVolume);
+            A_Playsound("Destruction/explosion", CHAN_AUTO,explosionSoundVolume, 0, 0.8, pitch:frandom(0.85,1.0));
+            A_playsound("destruction/rubble", CHAN_AUTO, explosionSoundVolume-0.02, 0, 0.7, pitch:frandom(0.9,1.1)); 
+        }        
+    }
+
+    void applyShortEpicShake() {
+        if (hasScreenShake < 1) return;
+
+        if(bShortEpicShake && playerDistance <= 300)
+        {
+            A_QuakeEx(11, 11, 11, 15, 0, 500, 0, QF_SCALEDOWN, 0, 9, 3, 1, 0, 0, 6);
+        }
+        if(!bShortEpicShake && playerDistance <= 400)
+        {
+            A_QuakeEx(7,7, 7, 15, 0, shakeDistance, 0, QF_SCALEDOWN, 0, 9, 3, 1, 0, 6);
+        }  
+    }
+
+    void spawnBlackSmoke() {
+/*         if(bBlackSmoke)
+        {
+            for(int i=0;i<15;i++)
+            {
+                A_SpawnItemEx("BlackSmokeFireSlow", frandom(-5,-15), frandom(-45,45), frandom(-5,40), frandom(-0.4,0.4), 0, frandom(0.1,0.2));
+            }
+        }       */
+    }
+
+    void spawnUnderwaterEffects() {
+        // Spawn underwater effects when the grenade is submerged
+        if(isUnderwater)
+        {
+            double waterSurface = getWaterFloorHeight();
+            if(waterSurface != double.max) {
+                spawn("WaterFoamGigantic", (pos.x, pos.y, waterSurface));
+                spawn("WaterSplashEffectLarge", (pos.x, pos.y, waterSurface));
+                spawn("WaterFoamGigantic", (pos.x+10, pos.y+10, waterSurface));
+                spawn("WaterSplashEffectLarge", (pos.x+10, pos.y-5, waterSurface));
+            }
+            
+            A_PLAYSOUND("WTREXPL1", CHAN_AUTO);
+            for(int x=0; x<80;x++)
+            {
+                EmitDefinition('waterParticleXBiggerDefinition', 1.0, 5, offset:(frandom(-40,40), frandom(-40,40), frandom(0,30)));
+            }
+        }
+    }
+
+    // Spawns a bunch of explosion 'fireballs' around a radius.
+    virtual void createSubExplosionCluster(int amount, int offsetXY, int offsetZ) {
+        if (!bspawnSubExplosionEffects) return;
+
+        subExplosionLoops = 0;
+        Vector3 spawnPosition;
+        
+        for (subExplosionLoops = 0; subExplosionLoops < amount; subExplosionLoops++) {
+            // Find a position to spawn
+            spawnPosition.y = random(-1 * offsetXY, offsetXY);
+            spawnPosition.z = random(0, offsetZ);
+            spawnSubExplosion(spawnPosition, "LargeExplosionSmokeSlow");
+        }
+    }
+
+    // Spawn an explosion effect.
+    virtual void spawnSubExplosion(Vector3 spawnLocation = (0, 0, 0), string explosionEffect = "LargeExplosionSmokeSlow", int explosionAngle = 0, int minDistance = 15)
+    {
+        int finalExplosionAngle = (explosionAngle == -1) ? random(0, 360) : explosionAngle;
+
+        actor explosionActor;
+        bool success;
+        [success, explosionActor] = A_SpawnItemEx(explosionEffect, random(-10, 10), spawnLocation.y, spawnLocation.z, 0, frandom(-0.7, 0.7), frandom(-0.6, 0.6), finalExplosionAngle);
+
+        if (explosionActor)
+        {
+            // Check if it's close to another spawn.
+            if (isTooCloseToExistingExplosion(explosionActor, minDistance))
+            {
+                //debug_Rejections++;
+
+                // Move the explosionActor to a new position within the acceptable range
+                subExplosionLoops++;
+                double s = sin(finalExplosionAngle);
+		        double c = cos(finalExplosionAngle);
+                let relativeLocation = (pos.xy + (spawnLocation.x * c + spawnLocation.y * s, spawnLocation.x * s - spawnLocation.y * c), spawnLocation.z + pos.z);
+                // @Cockatrice - Keep an eye on this, it was never working and was always moving explosions pretty much to the origin point, in most maps this error was never visible
+                moveActorToNewPosition(explosionActor, relativeLocation, minDistance);
+            }
+            else
+            {
+                //debug_spawnedExplosions++;
+                explosionEffects.push(explosionActor);
+            }
+        }
+    }
+
+    // If a spawn fails, we move it elsewhere and try again
+    virtual void moveActorToNewPosition(actor explosionActor, Vector3 spawnLocation, int minDistance)
+    {
+        double angle = random(0,360);
+        double distance = random(minDistance, 2 * minDistance);
+
+        // Prepare new position
+        double newX = spawnLocation.x + distance * cos(angle);
+        double newY = spawnLocation.y + random(-1 * minDistance, minDistance);
+        double newZ = spawnLocation.z + distance * sin(angle);
+
+        // Goto new position
+        explosionActor.setorigin((newX, newY, newZ), false);
+    }
+
+    // Check if there's an explosion nearby.
+    // We only have to check for postion Y and Z because X is always the same.
+    virtual bool isTooCloseToExistingExplosion(actor newActor, double minDistance) {
+        double minDistanceSquared = minDistance * minDistance;  
+
+        // Get the Y and Z positions of the new actor
+        double newY = newActor.pos.y;
+        double newZ = newActor.pos.z;
+
+        // Loop through existing explosion effects (fireballs? whatever) and check squared distances in 2D space
+        for (int i = 0; i < explosionEffects.size(); i++) {
+            actor explosionActor = explosionEffects[i];
+            if (explosionActor) {
+                //debug_Searches++;
+
+                // Get the Y and Z positions of the existing actor
+                double existingY = explosionActor.pos.y;
+                double existingZ = explosionActor.pos.z;
+
+                // Calculate squared distance in 2D space
+                double distanceYSquared = (newY - existingY) * (newY - existingY);
+                double distanceZSquared = (newZ - existingZ) * (newZ - existingZ);
+
+                double distanceSquared2D = distanceYSquared + distanceZSquared;
+
+                if (distanceSquared2D < minDistanceSquared) {
+                    return true;
+                }
+            }
+        }
+
+        // Not too close to any existing Explosion effect
+        return false;
+    }
+
+	states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                defineParticleSettings();
+                SetStateLabel("SpawnExplosions");
+            }
+        SpawnExplosions:  
+            // Base Logics
+            TNT1 A 0 {
+                if(playerActor)
+                {
+                    A_FACE(playerActor);
+                }
+                applyShortEpicShake();
+                spawnUnderwaterEffects();
+                playExplosionSoundEffects();
+
+                // Simple shockwave effect. Explosions in the air will result in a vertical shockwaves
+                A_SpawnItem("BaseShockwave");
+
+                // Do we allow a shadow cast? (DEMANDING. Only recommended for smaller explosion sizes)                
+                int allowShadow = -1;
+                if(bCastShadow)
+                {
+                    allowShadow = 3;
+                }
+
+                if(getCvar("lightingQuality") >= 4 && bBrightBoom)
+                {
+                    spawnLight(235*4, 110*4, 60*4, lightRadius*2, 0, allowShadow ,overbright:0, divisionSpeed:2.35, zOffset:height+8);
+                }
+                spawnLight(235*3, 110*3, 60*3, lightRadius, 0, allowShadow ,overbright:0, divisionSpeed:1.1, zOffset:height+8);
+
+                // Spawn a bunch of explosion within an area
+                createSubExplosionCluster(explosionAmountMax, explosionSpreadHorizontal, explosionSpreadVertical);
+                spawnExplosionTrails();
+
+                // A singular sprite resembling an explosion. Best paired with Subexplsoions.
+                if(bspawnExplosionEffect && !isUnderwater) {
+                    A_SpawnItemEx ("BaseExplosioneffect",random(-4,4),random(-4,4),0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+                }
+                spawnSmokeEffects();
+                if(!isUnderwater)
+                {
+                    spawnBlackSmoke();
+                    spawnParticles();
+                }
+            }
+            TNT1 A 1 
+            {
+                if(bRichExplosionSound)
+                {
+                    for(int x=0;x<24;x++)
+                    {
+                        angle = random(0,360);
+                        vector3 sprayDirection = vecFromAngle(angle, pitch);
+                        A_SprayDecal("ScorchMark", 120, offset:(0,0,frandom(0,80)), direction:sprayDirection);
+                    }
+                  A_Playsound("Destruction/explosionPunch", CHAN_AUTO, explosionSoundVolume, 0, 0.6, pitch:frandom(0.75,1.05));
+                }
+            }
+            // Small delay because dirt has to travel first, feels more natural that way. 
+            // Trust me, I'm Michael Bay
+            TNT1 A 0;
+            TNT1 A 3 
+            {
+                PlayerPawn pawn = players[0].mo;
+                let d = Dawn(pawn);
+                if(!d) return;
+
+                if (playerDistance <= shakeDistance) 
+                {
+                    if (playerDistance <= 400 && getDirtScreen() && canSeePlayer) {
+                        //ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 6);
+                        d.AddDirt(6);
+                    }
+
+                    // Define shake severity, lower for common explosions like Grenade Launcher and ACS Explosions
+                    let shakeMagnitude = bShortEpicShake ? 12 : 8;
+
+                    // Decrease shakeMagnitude gradually based on distance
+                    shakeMagnitude -= playerDistance / 100;  // Reduce effect of distance
+
+                    // Ensure shakeMagnitude is at least 1 instead of dropping to 0 too soon
+                    shakeMagnitude = max(1, min(11, shakeMagnitude));
+
+                    console.printf("shakeMagnitude: %d", shakeMagnitude);
+                    
+                    Dawn.ShakeWeapon(shakeMagnitude, shakeMagnitude);
+                    ACS_NamedExecuteAlways("SpawnHudShake", 0, 10, 10, 35);
+                }
+
+                if(hasScreenShake >= 1) {
+                    if(bShortEpicShake)
+                    {
+                        A_QuakeEx(8, 8, 8, 35, 0, shakeDistance*1.1, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 9, 3, 1, 0, 7);
+                    }
+                    else
+                    {
+                        A_QuakeEx(6, 6, 6, 24, 0, shakeDistance*1.1, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 9, 3, 1, 0, 4);
+                    }
+                }
+
+                //A_RadiusGive("MediumRangeExplosion", 1100, RGF_PLAYERS | RGF_GIVESELF, 1);
+                if (getShieldEyes()) {
+                    A_RadiusGive("ShieldEyes", 300, RGF_PLAYERS | RGF_GIVESELF, 1);
+                }
+            }
+            TNT1 A 15;
+            TNT1 A 1 
+            {
+                if(bRichExplosionSound)
+                {
+                   A_playsound("destruction/explosiontail", CHAN_AUTO, explosionSoundVolume+0.3, 0, 0.9, pitch:frandom(0.85,1.05)); 
+                }
+            }
+            TNT1 A 1 
+            {
+                if(bRichExplosionSound)
+                {
+                    A_Playsound("destruction/derby", chan_auto);
+                    if(!reducedExplosionVolume) {
+                        A_playsound("destruction/explosionvacuum", CHAN_AUTO, 0.7, 0, 0.7, pitch:frandom(1.2,1.6));
+                    }
+                }
+            }
+            TNT1 A 5;
+            TNT1 A 0
+            {
+                if(bDebugMode)
+                {
+                    console.printf("EXPLOSIONS: Rejections: %d, Successes: %d, distance checks: %d", debug_Rejections, debug_spawnedExplosions, debug_Searches);
+                }
+            }
+            stop;
+            Death:
+                TNT1 A 0;
+                stop;
+	}
+}
+
+class PrettyExplosionParticleRainJuggernaut : PrettyExplosionParticleRainPerformance {
+    override void defineParticleSettings() {
+        super.defineParticleSettings();
+        allowShieldEyes = false;
+    }
+    default
+    {
+        -ExplosionEffect.SpawnSmokeTrail;
+    }
+}
+
+class PrettyExplosionExpensive : PrettyExplosionParticleRain
+{
+    default
+    {
+        ExplosionEffect.explosionSoundVolume 1.0;
+        +ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.allowScreenShake;
+        -ExplosionEffect.BrightBoom
+        +ExplosionEffect.allowDirtScreen;
+        +ExplosionEffect.spawnExplosionEffect;
+        +ExplosionEffect.spawnSubExplosionEffects;
+        -ExplosionEffect.castShadow;
+        +ExplosionEffect.SpawnSmokeTrail;
+        +ExplosionEffect.spawnSubExplosionTrailEffect;
+        +ExplosionEffect.richExplosionSound;
+        +ExplosionEffect.ShortEpicShake;
+        ExplosionEffect.scatterSmokeCount 7;
+        ExplosionEffect.explosionSizeAmount 11,19;
+        ExplosionEffect.explosionSpreadHorizontal 40;
+        ExplosionEffect.explosionSpreadVertical 60;
+        ExplosionEffect.smokeTrailCount 8;
+        ExplosionEffect.extensionTrail 5;
+        ExplosionEffect.debrisChunkCount 16;
+        ExplosionEffect.floorShooter 12;
+        ExplosionEffect.ExplosionChunks 13;
+        ExplosionEffect.emberParticleClusters 7;
+        ExplosionEffect.sparkMissiles 3;   
+        ExplosionEffect.lightRadius 180;  
+        ExplosionEffect.scatterSmokeOffset 120;
+        ExplosionEffect.ShakeDistance 700;
+    }
+}
+
+class PrettyExplosionParticleRainPerformance : PrettyExplosionParticleRain{
+    default {
+        +NOINTERACTION; 
+        -ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.blackSmoke;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.allowDirtScreen;
+        -ExplosionEffect.BrightBoom
+        -ExplosionEffect.ShortEpicShake
+        -ExplosionEffect.castShadow;
+        -ExplosionEffect.SpawnSmokeTrail;
+        -ExplosionEffect.richExplosionSound;
+        +ExplosionEffect.spawnSubExplosionTrailEffect;
+        ExplosionEffect.explosionSizeAmount 29,36;
+        ExplosionEffect.explosionSpreadHorizontal 35;
+        ExplosionEffect.explosionSpreadVertical 35;
+        ExplosionEffect.scatterSmokeCount 16;
+        ExplosionEffect.smokeTrailCount 2;
+        ExplosionEffect.extensionTrail 3;
+        ExplosionEffect.debrisChunkCount 5;
+        ExplosionEffect.floorShooter 3;
+        ExplosionEffect.ExplosionChunks 3;
+        ExplosionEffect.emberParticleClusters 2;
+        ExplosionEffect.sparkMissiles 0;  
+        ExplosionEffect.lightRadius 220;     
+    }
+}
+
+class PrettyExplosionParticleRainULTRAPerformance : PrettyExplosionParticleRain{
+    default {
+        +NOINTERACTION; 
+        -ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.allowDirtScreen;
+        -ExplosionEffect.castShadow;
+        -ExplosionEffect.SpawnSmokeTrail;
+        ExplosionEffect.scatterSmokeCount 12;
+        ExplosionEffect.smokeTrailCount 1;
+        ExplosionEffect.extensionTrail 1;
+        ExplosionEffect.debrisChunkCount 0;
+        ExplosionEffect.floorShooter 3;
+        ExplosionEffect.ExplosionChunks 3;
+        ExplosionEffect.emberParticleClusters 1;
+        ExplosionEffect.sparkMissiles 0;  
+        ExplosionEffect.lightRadius 220;     
+    }
+}
+
+class SelacoExplosionPerformanceNoDebris : PrettyExplosionParticleRainPerformance{
+    default {
+        +NOINTERACTION; 
+        +ExplosionEffect.castShadow;
+        -ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.SpawnSmokeTrail;
+        +ExplosionEffect.allowDirtScreen;
+        ExplosionEffect.scatterSmokeCount 2;
+        ExplosionEffect.smokeTrailCount 2;
+        ExplosionEffect.extensionTrail 1;
+        ExplosionEffect.debrisChunkCount 0;
+        ExplosionEffect.floorShooter 5;
+        ExplosionEffect.ExplosionChunks 3;
+        ExplosionEffect.emberParticleClusters 7;
+        ExplosionEffect.sparkMissiles 1;     
+    }
+}
+
+class ExplosionWithLotsOfSparks : PrettyExplosionParticleRain{
+    default {
+        +NOINTERACTION; 
+        +ExplosionEffect.allowShieldEyes;
+        -ExplosionEffect.SpawnSmokeTrail;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.allowDirtScreen;
+        +ExplosionEffect.spawnExplosionEffect;
+        -ExplosionEffect.castShadow;
+        ExplosionEffect.scatterSmokeCount 12;
+        ExplosionEffect.smokeTrailCount 6;
+        ExplosionEffect.extensionTrail 5;
+        ExplosionEffect.debrisChunkCount 3;
+        ExplosionEffect.floorShooter 5;
+        ExplosionEffect.ExplosionChunks 16;
+        ExplosionEffect.emberParticleClusters 14;
+        ExplosionEffect.sparkMissiles 2;   
+        ExplosionEffect.lightRadius 230;  
+        ExplosionEffect.explosionSizeAmount 29,45;
+        ExplosionEffect.explosionSpreadHorizontal 60;
+        ExplosionEffect.explosionSpreadVertical 70;
+    }
+}
+
+// Used for ACS script
+class PrettyExplosionSmaller : SelacoExplosionPerformanceNoDebris
+{
+    default
+    {
+        ExplosionEffect.scatterSmokeCount 5;
+        ExplosionEffect.smokeTrailCount 1;
+        ExplosionEffect.extensionTrail 0;
+        ExplosionEffect.debrisChunkCount 0;
+        ExplosionEffect.floorShooter 1;
+        ExplosionEffect.ExplosionChunks 3;
+        ExplosionEffect.emberParticleClusters 2;
+        ExplosionEffect.explosionSizeAmount 9,14;
+        ExplosionEffect.sparkMissiles 0;   
+        ExplosionEffect.lightRadius 90;  
+        ExplosionEffect.ScatterSmokeOffset 60;
+        ExplosionEffect.explosionSoundVolume 0.3;
+        ExplosionEffect.ShakeDistance 300;
+        ExplosionEffect.explosionSizeAmount 7,10;
+        ExplosionEffect.explosionSpreadHorizontal 25;
+        ExplosionEffect.explosionSpreadVertical 40;
+        +explosionEffect.castShadow
+        -explosionEffect.blackSmoke;
+        +ExplosionEffect.spawnSubExplosionTrailEffect;
+        -ExplosionEffect.spawnExplosionEffect;
+        +ExplosionEffect.SpawnSmokeTrail
+        -ExplosionEffect.ShortEpicShake;        
+    }
+}
+
+class PrettyExplosionGrenadeLauncher : SelacoExplosionPerformanceNoDebris {
+
+    default {
+        +ExplosionEffect.BrightBoom
+        -ExplosionEffect.blackSmoke;
+        ExplosionEffect.scatterSmokeCount 23;
+        ExplosionEffect.smokeTrailCount 3;
+        ExplosionEffect.extensionTrail 1;
+        ExplosionEffect.debrisChunkCount 7;
+        ExplosionEffect.floorShooter 1;
+        ExplosionEffect.ExplosionChunks 18;
+        ExplosionEffect.emberParticleClusters 8;
+        ExplosionEffect.explosionSizeAmount 15,18;
+        ExplosionEffect.sparkMissiles 1;   
+        ExplosionEffect.lightRadius 135;  
+        ExplosionEffect.ScatterSmokeOffset 60;
+        ExplosionEffect.shakeDistance 500;
+        +ExplosionEffect.spawnSubExplosionTrailEffect;
+        -ExplosionEffect.spawnExplosionEffect;
+        -ExplosionEffect.SpawnSmokeTrail
+        +ExplosionEffect.ShortEpicShake;
+    }
+
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        A_Playsound("Destruction/explosionPunch", CHAN_AUTO, 1.0, 0, 0.4, pitch:1);
+        A_SPAWNITEMEX("BaseExplosionEffectSmall");
+    }
+}
+
+class CrawlerGrenadeExplosion : PrettyExplosionGrenadeLauncher
+{
+    default
+    {
+        ExplosionEffect.scatterSmokeCount 35;
+        ExplosionEffect.explosionSizeAmount 8,14;
+    }
+}
+
+class PrettyExplosionMammothBombing : PrettyExplosionGrenadeLauncher
+{
+    default {
+        ExplosionEffect.lightRadius 25;
+        ExplosionEffect.explosionSizeAmount 25,38;
+        ExplosionEffect.emberParticleClusters 2;
+    }
+} 
+class RocketExplosionEffect : PrettyExplosionParticleRain
+{
+    default {
+        ExplosionEffect.lightRadius 200;
+        ExplosionEffect.explosionSizeAmount 25,50;
+        ExplosionEffect.emberParticleClusters 1;
+        ExplosionEffect.scatterSmokeCount 15;
+        ExplosionEffect.smokeTrailCount 1;
+        ExplosionEffect.extensionTrail 1;
+        ExplosionEffect.debrisChunkCount 3;
+        ExplosionEffect.floorShooter 1;
+        ExplosionEffect.emberParticleClusters 8;
+        ExplosionEffect.explosionSizeAmount 15,18;
+        ExplosionEffect.sparkMissiles 1;   
+        ExplosionEffect.ScatterSmokeOffset 90;
+        ExplosionEffect.shakeDistance 500;
+    }
+}
+
+
+class PrettyExplosionParticleRain_LOOKMANOHANDS : PrettyExplosionParticleRain {
+    override void defineParticleSettings() {
+        super.defineParticleSettings();
+        allowDirtScreen = false;
+        allowScreenShake = false;
+        allowShieldEyes = false;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                defineParticleSettings();
+                SetStateLabel("SpawnExplosions");
+            }
+    }
+}
+
+class BaseExplosionEffect : actor
+{
+    default
+    {
+        +NOINTERACTION
+        +FORCEXYBILLBOARD
+        RenderStyle "Add";
+        Scale 2;
+        alpha 1.6;
+        Speed 1;
+    }
+    states
+    {
+        spawn:
+            BANG ABCDEFGHIJKLMNOPQRSTUVWXYZ 1 A_FADEOUT(0.01, FTF_REMOVE);
+            stop;
+    }
+}
+
+class BaseExplosionEffectSmall : BaseExplosionEffect
+{
+    default
+    {
+        scale 1.3;
+    }
+}
+
+
+class SmallExplosionSmoke : BaseExplosionEffect {
+
+    const SPARK_CHANCE = 25;
+
+    override void tick() {
+        super.tick();
+        scale*=1.01;
+    }
+
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        SmokeHandler sh = SmokeHandler.Instance();
+        if(sh.denseSmokeSetting > 0 && random(0,100) <= 25) {
+            A_SPAWNITEMEX("SmokeScatteredCloudSmaller", 0);
+        }
+        if(random(0,100) <= SPARK_CHANCE)
+        {
+            A_SPAWNITEMEX("Sparkexplosioneffect");
+        }
+    }
+
+    default
+    {
+        scale 0.4;
+        alpha 0.8;
+        SelfLighting "ff9721";
+        renderstyle "add";
+        +ROLLSPRITE;
+    }
+    states 
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SETROLL(random(0,360));
+            SEXP ABCDEFGHIJKLMNOPQRSTUW  1 
+            {
+                a_fADEOUT(0.004);
+            }
+            stop;
+    }
+}
+
+
+class EmberEmitter : actor {
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_SpawnItemEx ("EmberEmitterCluster", random(2, 2), random(2,-2), random(-2, 2), (0.1)*Random(1, 3), random(1,2), (0.1)*Random(1, 10), Random(0, 360), 129, Args[2]);
+            stop;
+    }
+}
+
+class EmberEmitterCluster : actor
+{
+    mixin ParticleEmitter;
+    default {
+        +NOINTERACTION
+    }
+        states
+        {
+        Spawn:
+			TNT1 A 0;
+			TNT1 AAAAAAAAA 2 {
+                Emit("EmberEmitterParticle", chance: 1.0, numTries: 36, offset: (frandom(-80,80), frandom(-80,80), frandom(0,80)));
+            }
+			stop;
+        }
+}
+
+class ExplosionEffectNoDebris : PrettyExplosionParticleRain {
+        default {
+        +NOINTERACTION; 
+        +ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.allowDirtScreen;
+        ExplosionEffect.scatterSmokeCount 37;
+        ExplosionEffect.smokeTrailCount 13;
+        ExplosionEffect.extensionTrail 7;
+        ExplosionEffect.debrisChunkCount 0;
+        ExplosionEffect.floorShooter 12;
+        ExplosionEffect.ExplosionChunks 27;
+        ExplosionEffect.emberParticleClusters 27;
+        ExplosionEffect.sparkMissiles 3;     
+    }
+}
+
+class ExplosionEffectPropane : PrettyExplosionParticleRain {
+    int aliveTime;
+    default {
+        +NOINTERACTION; 
+        +ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.allowDirtScreen;
+        -ExplosionEffect.spawnExplosionEffect;
+        ExplosionEffect.scatterSmokeCount 12;
+        ExplosionEffect.smokeTrailCount 7;
+        ExplosionEffect.extensionTrail 7;
+        ExplosionEffect.debrisChunkCount 0;
+        ExplosionEffect.floorShooter 6;
+        ExplosionEffect.ExplosionChunks 27;
+        ExplosionEffect.emberParticleClusters 15;
+        ExplosionEffect.sparkMissiles 1;     
+    }
+}
+
+class ValveExplosion : ExplosionEffectPropane {
+    override void beginPlay()
+    {
+        super.BeginPlay();
+        playExplosionSound = false;
+    }
+    default
+    {
+        -ExplosionEffect.richExplosionSound
+        -ExplosionEffect.spawnSubExplosionEffects;
+    }
+}
+
+class ExplosionEffectValve : PrettyExplosionParticleRain {
+    int aliveTime;
+    default {
+        +NOINTERACTION; 
+        +ExplosionEffect.allowShieldEyes;
+        +ExplosionEffect.allowScreenShake;
+        +ExplosionEffect.allowDirtScreen;
+        -ExplosionEffect.spawnExplosionEffect;
+        ExplosionEffect.scatterSmokeCount 0;
+        ExplosionEffect.smokeTrailCount 0;
+        ExplosionEffect.extensionTrail 0;
+        ExplosionEffect.debrisChunkCount 0;
+        ExplosionEffect.floorShooter 0;
+        ExplosionEffect.ExplosionChunks 0;
+        ExplosionEffect.emberParticleClusters 25;
+        ExplosionEffect.sparkMissiles 1;     
+    }
+}
+
+// A trail of smoke with a bright point at the end.
+class ExplosionFlareTrail1 : actor
+{
+    default {
+        Radius 5;
+        Height 5;
+        Speed 18;
+        PROJECTILE;
+        Decal"ScorchMark";
+        +THRUGHOST;
+        +DOOMBOUNCE;
+        -NOGRAVITY;
+        +MISSILE;
+        -ACTIVATEIMPACT;
+        -ACTIVATEPCROSS;
+        RenderStyle "Add";
+        bouncefactor 0.3;
+        Gravity 1;
+        Alpha 1.0;
+    }
+
+	States
+	{
+	Spawn:
+		TNT1 AAAAAAAAAAAAAAAAA 1 {
+            A_SprayDecal("scorchmark", 172);
+            A_SpawnItem ("SmokeTrailPiece");
+            A_SpawnProjectile ("ExplosionParticleHeavy", 2, 0, random (0, 360), 2, random (0, 290));
+        }
+		stop;
+	
+	Death:
+		Stop;
+	}
+}
+
+
+class ExplosionFlareTrail2: ExplosionFlareTrail1
+{
+    default {
+        speed 25;
+        gravity 0.9;
+        +DOOMBOUNCE;
+        WallBounceFactor 0.5;
+        BounceFactor 0.2;
+    }
+	States
+	{
+	Spawn:
+		TNT1 AAAAAA 1 {
+            A_SpawnItem ("SmokeScatteredCloudSmall");
+            A_SpawnProjectile ("ExplosionParticleHeavy", 2, 0, random (0, 360), 2, random (0, 290));
+        }
+		stop;
+	Death:
+		TNT1 A 0;
+		Stop;
+	}
+}
+
+// Extension Trail - Spawns from grenades
+class ExtensionTrail: ExplosionFlareTrail1
+{
+    default {
+        speed 20;
+        +DOOMBOUNCE;
+        WallBounceFactor 0.5;
+        BounceFactor 0.2;
+    }
+	States
+	{
+	Spawn:
+		TNT1 AAAAAAAAA 1 {
+            A_ChangeVelocity(-0.8, -0.8, 0, CVF_RELATIVE);
+            A_SpawnItem ("ExtenionTrailSmoke");
+            //A_SpawnProjectile ("ExplosionParticleHeavy", 2, 0, random (0, 360), 2, random (0, 290));
+        }
+		stop;
+	Death:
+		TNT1 A 0;
+		Stop;
+	}
+}
+
+class TurretExplosion : actor {
+	states {
+        Spawn:
+            TNT1 A 0 ;
+            TNT1 A 0 A_Playsound("Destruction/explosion", CHAN_AUTO, 0.5);
+            TNT1 A 0 A_SpawnItem("WhiteShockwave");
+            TNT1 A 0 A_SpawnItemEx ("TurretSmoke",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+            TNT1 A 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180));
+            TNT1 A 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180));
+            TNT1 A 0 A_SpawnProjectile ("ExplosionFlareTrail2", 64, 0, random (0, 360), 2, random (30, 60));
+            TNT1 A 0 A_Quake (3, 45, 0, 390);
+            TNT1 AA 0 A_SpawnProjectile ("FloorSmokeLauncher", random(-2, 2), 0, random (0, 360), 2, random (20, 80));
+            TNT1 A 10;
+            TNT1 A 0 A_Playsound("destruction/derby", chan_auto);
+            TNT1 A 290;
+            stop;
+        }
+}
+
+class SmallExplosion : actor {
+    mixin ParticleDefinitionEmitter;
+    default {
+        scale 0.43;
+        renderstyle "add";
+        +NOGRAVITY
+        +NOINTERACTION
+        +ROLLSPRITE
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("explosion/small", CHAN_5, 0.5, 0, 0.9, 0, frandom(1.1,1.2));
+            TNT1 A 0 {
+                EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 4, angle:random(0,259), pitch:frandom(-25, -15), speed:frandom(1.4,2.5), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)), velocity:(frandom(0.4,1), frandom(0.4,1), frandom(1,4)));
+            }
+			TNT1 A 0 A_SpawnItemEx ("SmallExplosionSmoke",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			//TNT1 A 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180));
+			IPF2 ABC 2 BRIGHT;
+			TNT1 A 0 A_Quake (3, 45, 0, 390);
+			stop;
+	}
+}
+
+class SmallExplosionNoSound : actor {
+    default {
+        scale 0.43;
+        renderstyle "add";
+        +NOGRAVITY
+        +ROLLSPRITE
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx ("SmallExplosionSmoke",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			//TNT1 A 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180));
+			IPF2 ABC 2 BRIGHT;
+			TNT1 A 0 A_Quake (3, 45, 0, 390);
+			stop;
+	}
+}
+
+class AverageExplosion : SmallExplosionNoSound{
+    default {
+	    scale 0.83;
+    }
+}
+
+class SparkExplosionOil : SparkExplosionEffect
+{
+    mixin ParticleDefinitionEmitter;
+    default {
+        scale 0.1;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                EmitDefinition('RobotImpactSparkDefinition', chance: 0.75, numTries: 22, angle:-frandom(-140,-220), pitch:-25);
+            }
+            TNT1 AAA 0 A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-3,3), frandom(-3,3), frandom(-3,3), frandom(1,4), frandom(-3,3), frandom(-1,5));
+            TNT1 A 0 A_JUMP(256, "spawn1", "spawn2", "spawn3");
+            goto spawn1;
+    }    
+}
+
+class SparkExplosionEffect : actor
+{
+    default
+    {
+        +NOINTERACTION
+        RenderStyle "add";
+        scale 0.45;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_JUMP(256, "spawn1", "spawn2", "spawn3");
+        Spawn1:
+            IPF1 ABCD 2 bright;
+            Stop;
+        
+        Spawn2:
+            IPF2 ABCD 2 bright;
+            Stop;
+        
+        Spawn3:
+            IPF3 ABCD 2 bright;
+            Stop;
+    }
+}
+
+class SmallerExplosionNoSound : SmallExplosionNoSound{
+    default {
+	    scale 0.13;
+    }
+}
+
+
+class BigExplosion : SmallExplosion {
+    default {
+        scale 1.1;
+        renderstyle "add";
+        +NOGRAVITY;
+        +ROLLSPRITE;
+    }
+	states {
+		Spawn:
+            TNT1 A 0;
+			TNT1 A 0 A_SETROLL(random(0,360));
+			TNT1 A 0 A_PLAYSOUND("explosion/small", CHAN_AUTO, 0.07, 0, 0.9, 0, frandom(0.6,0.8));
+			TNT1 A 0 A_SpawnItemEx ("LargeExplosionSmoke",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			//TNT1 A 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180));
+			IPF2 ABC 2 BRIGHT;
+			TNT1 A 0 A_Quake (3, 45, 0, 390);
+			stop;
+
+	}
+}
+
+class BigExplosionSlow : SmallExplosion {
+	states {
+		Spawn:
+            TNT1 A 0;
+			TNT1 A 0 A_SETROLL(random(0,360));
+			TNT1 A 0 A_PLAYSOUND("explosion/small", CHAN_AUTO, 0.2, 0, 0.7, 0, frandom(0.6,0.8));
+			TNT1 A 0 A_SpawnItemEx ("LargeExplosionSmokeSlow",0,0,0,frandom(1,3), 0, frandom(-1,1), angle:random(0,360));
+			//TNT1 A 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180));
+			IPF2 ABC 2 BRIGHT;
+			TNT1 A 0 A_Quake (3, 45, 0, 390);
+			stop;
+
+	}    
+}
+
+class BlueExplosion : SmallExplosion {
+    default {
+        scale 0.7;
+        Translation "0:255=%[0,0,0]:[0.39,0.49,0.9]";
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("explosion/small", CHAN_AUTO, 0.4, 0, 0.95, 0, frandom(1.1,1.2));
+			//TNT1 A 0 A_SpawnItemEx("SparkShootLite", 0, 0, 0, 0 ,0 ,0, random(0,360));
+			TNT1 A 0 A_SpawnItemEx ("SmallExplosionSmokeBlue",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			TNT1 A 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180));
+			IPF2 ABC 2 BRIGHT;
+			TNT1 A 0 A_Quake (3, 45, 0, 390);
+			stop;
+	}
+}
+
+// An actor that takes a random direction and spawns mini explosions as it travels.
+class explosionFireballTrail : SelacoActor
+{
+    default
+    {
+        +NOINTERACTION;
+        SelacoActor.SleepDistance 0;
+    }
+    states
+    {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_CHANGEVELOCITY(frandom(-3,3), frandom(-3,3), frandom(3,7));
+        SpawnExplosions:
+            TNT1 AAAAAAAAAAAAAAAAAAAA 1 A_SPAWNITEMEX("SmallExplosionSmokeSlow");
+            stop;
+    }
+}
+
+class Mortar : actor {
+    default
+    {
+        SelfLighting "151515";
+        damagetype "ExplosiveImpact";
+        +MISSILE;
+        gravity 1.0;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(isfrozen()) return;
+        A_SPAWNITEMEX("MammothProjectileSmoke");
+    }
+
+    states
+    {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_PLAYSOUND("ROCKET", CHAN_AUTO, 1.0, 0, 0.5, pitch:frandom(1.2,1.3));
+            }
+            VOXE L -1;
+            loop;
+        Death:
+            TNT1 A 0
+            {
+                A_EXPLODE(40, 25);
+            }
+            TNT1 A 0 A_SPAWNITEMEX("PrettyExplosionParticleRain");
+            stop;
+    }
+
+}

@@ -1,0 +1,444 @@
+class BuilderPlan {
+    array<PathNode> path;
+    double givenCost;
+    double heuristicCost;
+}
+
+struct TargetSort {
+    PathNode node;
+    double weight;
+}
+
+struct NavPathBuilder play {
+    PathNode startNavCandidate, startNav, goalNav;
+    Array<PathNode> validTargetNodes;
+    Actor owner;    // Direct link to enemy self
+    Actor target;   // Where are we going
+
+    double startDist, goalDist, goalScore;
+    bool forcePath;
+    bool pathComplete;      // Have we fully built the path yet?
+    bool pathStarted;       // Have we initialized everything yet?
+    bool hasTargets;        // Target phase has completed
+    bool isFlanker;         // Take alternate, possibly longer paths?
+    bool targetPositionKnown;   // Are we going to pick a node that can see the target? Or just one that is vaguely towards it
+
+    int currentNodeIndex;   // All pathNodes are indexed in PathHandler
+    int cyclesTaken;
+
+    // Plan in construction
+    BuilderPlan currentPlan;
+    Array<BuilderPlan> fringe;
+    Array<PathNode> closed;
+
+    void reset() {
+        pathStarted = false;
+        pathComplete = false;
+    }
+
+    // Do work on building the path. Yields after traversing maxAttempts nodes.
+    // Returns TRUE if the path is fully built (or abandoned, or not possible)
+    // Returns FALSE if more work is needed
+    bool build(Actor target = null, bool targetPosKnown = true, int maxAttempts = 10) {
+        if(!pathStarted) {
+            self.target = target ? target : owner.target;
+            startNav = null;
+            goalNav = null;
+            startNavCandidate = null;
+            startDist = -1;
+            goalDist = -1;
+            goalScore = -1;
+            forcePath = false;
+            pathStarted = true;
+            pathComplete = false;
+            hasTargets = false;
+            targetPositionKnown = targetPosKnown;
+            currentNodeIndex = 0;
+            cyclesTaken = 0;
+            fringe.clear();
+            closed.clear();
+            validTargetNodes.clear();
+            currentPlan = null;
+            isFlanker = owner is 'EnemySoldier' && EnemySoldier(owner).bAlwaysTryFlanking;
+        }
+
+        cyclesTaken++;
+
+        if(!self.target) {
+            // Abort build, we don't even know where we are going
+            pathComplete = true;
+            return true;
+        }
+
+        if(!startNav) { 
+            // It's important we get this quickly, hopefuly on the first tick so the enemy has somewhere to go
+            maxAttempts = findFirstNavPoint(maxAttempts);
+            if(maxAttempts <= 0) return false;
+
+            if(!startNav) {
+                // We've failed to find a starting nav point, so end in failure
+                //Console.Printf("%s Found no starting nav point", owner.getClassName());
+                pathComplete = true;
+                return true;
+            }
+        }
+
+        if(!hasTargets) { 
+            maxAttempts = findValidTargets(maxAttempts);
+            if(maxAttempts <= 0) return false;
+
+            // If we found no nodes, end in failure
+            if(validTargetNodes.size() == 0 && !goalNav) {
+                //Console.Printf("No valid target nodes");
+                pathComplete = true;
+                return true;
+            }
+        }
+
+        maxAttempts = buildPath(maxAttempts);
+        if(maxAttempts <= 0) return false;
+
+        return true;
+    }
+
+
+    int findFirstNavPoint(int attempts = 10) {
+        PathHandler handler = PathHandler.Instance();
+        let numNodes = handler.allNodes.size();
+        PathNode curNode = null;
+        let owner2 = EnemySoldier(owner);
+
+        for(; currentNodeIndex < numNodes; currentNodeIndex++) {
+            curNode = handler.allNodes[currentNodeIndex];
+
+            // Make sure the node actually has connections
+            if(curNode.links.size() == 0) continue;
+
+            // Locate pathnode closest to actor
+            double dist = owner.distance2Dsquared(curNode);
+            bool floorChange = owner.bJUMPDOWN ? curNode.floorz - owner.floorz < owner.maxStepHeight : abs(curNode.floorz - owner.floorz) < owner.maxStepHeight;
+            if (floorChange && (dist < 900*900) && (startDist < 0 || dist < startDist)) {
+                
+                if((owner2 && !owner2.checkIfBlocking(sqrt(dist), curNode) && owner.checkSight(curNode, SF_IGNOREVISIBILITY)) || (!owner2 && owner.checkSight(curNode, SF_IGNOREVISIBILITY))) {
+                    // Make sure the node has at least one connection that is 0 or taller than the owner
+                    if(curNode.maxHeight == 0 || curNode.maxHeight > owner.height) {
+                        startNavCandidate = curNode;
+                        startDist = dist;
+                    }
+                }
+                
+                // Only subtract from attempts for the more expensive operations
+                attempts--;
+            }
+
+            if(attempts <= 0) return attempts;
+        }
+
+        if(startNavCandidate != null) {
+            currentNodeIndex = 0;
+            startNav = startNavCandidate;
+            return attempts;
+        }
+        
+        // There are no reachable nodes, so let's return in failure
+        pathComplete = true;
+        return int.max;
+    }
+
+
+    int findValidTargets(int attempts = 10) {
+        PathHandler handler = PathHandler.Instance();
+        
+        // If we directly targeted a pathnode, just go to that
+        if(target is 'PathNode') {
+            hasTargets = true;
+            goalNav = PathNode(target);
+            currentNodeIndex = 0;
+            return attempts;
+        }
+
+        // If we don't know the position of the target, pick a node nearish the target but not necessarily visible
+        if(!targetPositionKnown) {
+            if(developer > 1) Console.Printf("\c[CYAN]Building from no known target pos!");
+            let numNodes = handler.allNodes.size();
+            PathNode curNode = null;
+
+            for(currentNodeIndex = 0; currentNodeIndex < numNodes; currentNodeIndex++) {
+                curNode = handler.allNodes[currentNodeIndex];
+
+                let distTarget = curNode.distance2Dsquared(target);
+                let distOwner = owner.distance2DSquared(curNode);
+
+                if (distTarget < 800*800 && (validTargetNodes.size() == 0 || distTarget < owner.distance2DSquared(curNode) || random(0, 100) > 80)) {
+                    validTargetNodes.push(curNode);
+                }
+            }
+
+            hasTargets = true;
+
+            // If there are no valid targets, return in failure
+            if(validTargetNodes.size() == 0) {
+                //Console.Printf("Found no valid (unseen) target nodes");
+                pathComplete = true;
+                return int.max;
+            }
+
+            currentNodeIndex = 0;
+            return --attempts;
+        }
+
+        // Shortcut for finding player nodes, the handler already has them!
+        // Let's completely forget about finding them ourselves
+        if(targetPositionKnown) {
+            if(target == players[0].mo) {
+                validTargetNodes.copy(handler.playerVisibleNodes);
+                hasTargets = validTargetNodes.size() > 0;
+            } else {
+                // Let's find our target in the big wide world of nodes
+                let numNodes = handler.allNodes.size();
+                PathNode curNode = null;
+
+                for(; currentNodeIndex < numNodes; currentNodeIndex++) {
+                    curNode = handler.allNodes[currentNodeIndex];
+
+                    // Find all nodes that can see the player
+                    if (curNode.distance2Dsquared(target) < 800*800) { // && (forcePath || curNode.cooldown <= 2)) {
+                        // Briefly increase height, so checksight is more likely to spot a player
+                        int navHeightOld = curNode.height;
+                        curNode.A_SetSize(-1, 120);
+                        if(curNode.CheckSight(target, SF_IGNOREVISIBILITY)) {
+                            validTargetNodes.push(curNode);
+                        }
+                        curNode.A_SetSize(-1, navHeightOld);
+                        
+                        attempts--;
+                    }
+
+                    if(attempts <= 0) return attempts;
+                }
+
+                hasTargets = true;
+            }
+        } else {
+            hasTargets = validTargetNodes.size() > 0;
+        }
+        
+        // If there are no valid targets, return in failure
+        if(validTargetNodes.size() == 0) {
+            //Console.Printf("Found no valid target nodes");
+            pathComplete = true;
+            return int.max;
+        }
+        
+        //Console.Printf("Found %d valid target nodes", validTargetNodes.size());
+        currentNodeIndex = 0;
+        return attempts;
+    }
+
+
+    protected int buildPath(int attempts = 10) {
+        // Choose the goal
+        if(!goalNav) {
+            
+            // If we don't know the position of the target, pick a random node from the options
+            if(!targetPositionKnown) {
+                if(developer > 1) Console.Printf("\c[CYAN]Picked random position!");
+                goalNav = validTargetNodes[random(0, validTargetNodes.size() - 1)];
+            } else if(isFlanker) {
+                // If we are a flanker, find the nodes that are "behind" the player, and choose from those
+                Array<PathNode> options;
+
+                for(int x = validTargetNodes.size() - 1; x >= 0; x--) {
+                    PathNode pathnodeTarget = validTargetNodes[x];
+
+                    if(Actor.deltaAngle(target.angle, target.angleTo(pathnodeTarget)) > 45) {
+                        options.push(pathnodeTarget);
+                    }
+                }
+
+                for(int x = options.size() - 1; x >= 0; x--) {
+                    PathNode pathnodeTarget = options[x];
+                    double dist = target.distance2DSquared(pathnodeTarget);
+
+                    // If flanking preference, take further node that the player can see
+                    if(goalDist < 0 || dist > goalDist) {
+                        goalNav = pathnodeTarget;
+                        goalDist = dist;
+                        goalScore = 0;
+                    }
+                }
+            }
+
+            // If no flanking, or flanking failed to find a decent node..
+            if(!goalNav) {
+                for(int x = validTargetNodes.size() - 1; x >= 0; x--) {
+                    PathNode pathnodeTarget = validTargetNodes[x];
+                    double dist = target.distance2DSquared(pathnodeTarget);
+                    double score = pathnodeTarget.getTargetScore();
+
+                    // Take shortest route, trying to avoid congested nodes
+                    if (goalDist < 0 || (dist + ((score * 256)**2)) < (goalDist + ((goalScore * 256)**2))) {
+                        goalNav = pathnodeTarget;
+                        goalDist = dist;
+                        goalScore = score;
+                        continue;
+                    }
+                }
+            }
+
+            attempts--;
+
+            // If somehow we found no goal, return in failure
+            if(!goalNav) {
+                //Console.Printf("No goal found!");
+                return int.max;
+            }
+        }
+
+        // Find the shortest path from one to the other using A* search
+        if(!pathComplete) {
+            // Fringe contains partial plans under consideration
+            // In spite of appearances, it's actually a binary min-heap
+            // This means that the plan w/ the shortest path is always first
+            // It also means that adding/removing elements is complex (see below)
+            // Create Initial plan
+            if(fringe.size() == 0 && currentNodeIndex == 0) {
+                fringe.Push(New('BuilderPlan'));
+                fringe[0].path.Push(startNav);
+                fringe[0].givenCost = owner.distance3D(startNav);
+                fringe[0].heuristicCost = startNav.distance3Dsquared(goalNav);
+                if(developer > 1) Console.Printf("Initial plan");
+
+                // Avoid searching for pathnodes we have already checked before
+                //closed.clear();
+            }
+            
+
+            // Loop endlessly until no ideas a left
+            int loopCount = 0;
+            while (fringe.Size() > 0)
+            {
+                if(loopCount % 2 == 0) {
+                    if(attempts-- <= 0) return attempts;
+                }
+
+                // Remove best partial plan from fringe
+                currentPlan = fringe[0];
+                {
+                    // Replace root node with right-most leaf node
+                    fringe[0] = fringe[fringe.Size()-1];
+                    fringe.Pop();
+                    int index = 0;
+                    int childIndex1 = 1;
+                    int childIndex2 = 2;
+                    while (fringe.Size() > childIndex1)
+                    {
+                        double cost = fringe[index].givenCost + fringe[index].heuristicCost;
+                        double childCost1 = fringe[childIndex1].givenCost
+                                        + fringe[childIndex1].heuristicCost;
+                        // Find out which is cheapest: the node, or one of its children
+                        int minIndex = index;
+                        if (fringe.Size() > childIndex2)
+                        {
+                            double childCost2 = fringe[childIndex2].givenCost
+                                            + fringe[childIndex2].heuristicCost;
+
+                            if (childCost2 < childCost1 && childCost2 < cost)
+                            {
+                                minIndex = childIndex2;
+                            }
+                            else if (childCost1 < cost)
+                            {
+                                minIndex = childIndex1;
+                            }
+                        }
+                        else if (childCost1 < cost)
+                        {
+                            minIndex = childIndex1;
+                        }
+                        // Swap node with child, if needed
+                        if (index != minIndex)
+                        {
+                            BuilderPlan temp = fringe[index];
+                            fringe[index] = fringe[minIndex];
+                            fringe[minIndex] = temp;
+                            index = minIndex;
+                            childIndex1 = 2 * index + 1;
+                            childIndex2 = childIndex1 + 1;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                // If plan reaches goal, we're done.
+                PathNode lastNav = currentPlan.path[currentPlan.path.Size()-1];
+                if (lastNav == goalNav)
+                {
+                    /*string f = "";
+                    for (int i = 0; i < currentPlan.path.Size(); i++) {
+                        f = String.Format("%s%d -> ", f, currentPlan.path[i].user_nodeid);
+                    }*/
+                    //Console.Printf("Reached goal: %s", f);
+                    pathComplete = true;
+                    return int.max;
+                    // We return in success, it is now up to the caller to inspect the current plan if desired
+                }
+                
+                // Put last PathNode in closed set
+                closed.Push(lastNav);
+
+                // Add plans with one more PathNode to fringe
+                int linkCount = lastNav.links.Size();
+                for (int i = 0; i < linkCount; ++i)
+                {
+                    let link = lastNav.links[i];
+
+                    // Don't add plans that include Navs in closed set, or blocked links, or links that are too small to fit
+                    // Door nodes are exempt from the height check, the surrounding nodes should determine max height
+                    if (    link.blocked || (closed.Find(link.node) < closed.Size()) || 
+                            (owner.height >= link.maxHeight && link.maxHeight != 0 && (!(link.node is 'DoorNode') && !(link.source is 'DoorNode')))
+                        ) {
+                        continue;
+                    }
+                    
+                    fringe.Push(New('BuilderPlan'));
+                    int index = fringe.Size()-1;
+                    fringe[index].path.Copy(currentPlan.path);
+                    fringe[index].path.Push(link.node);
+                    fringe[index].givenCost = currentPlan.givenCost + (link.cost * (min(double(link.usage + 1), 5.0) * (isFlanker ? 512 : 256)));
+                    fringe[index].heuristicCost = link.node.distance3Dsquared(goalNav) / 4;
+                    
+                    // Let new node bubble up until its cost is >= its parent's
+                    while (index > 0)
+                    {
+                        int parentIndex = (index - 1) / 2;
+                        double cost = fringe[index].givenCost + fringe[index].heuristicCost;
+                        double parentCost = fringe[parentIndex].givenCost
+                                        + fringe[parentIndex].heuristicCost;
+                        // Swap node with parent
+                        if (parentCost > cost)
+                        {
+                            BuilderPlan temp = fringe[index];
+                            fringe[index] = fringe[parentIndex];
+                            fringe[parentIndex] = temp;
+                            index = parentIndex;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                loopCount++;
+            }
+        }
+
+        if(developer > 1) Console.Printf("Failed to fully build path. Returning failure");
+        pathComplete = true;
+        return int.max;
+    }
+}

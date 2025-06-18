@@ -1,0 +1,1878 @@
+#include "ACTORS/AI/AI_Controllers/NodeTracer.zsc"
+#include "ACTORS/AI/AI_Controllers/PathHandler.zsc"
+#include "ACTORS/AI/AI_Controllers/PathBuilder.zsc"
+
+enum PATROL_Status {
+    PATROL_Stuck        = -1,
+    PATROL_Walking      = 0,
+    PATROL_Looking      = 1,
+    PATROL_FoundPlayer  = 2
+}
+
+enum TRACK_STATUS {
+    TRACK_Arrived           = 0,
+    TRACK_BuildingPath      = 1,
+    TRACK_Moving            = 2,
+    TRACK_FoundTarget       = 3
+}
+
+// TODO: Right now nodes always assume they connect back and forth. In the future we can add one-way nodes for certain features like edges, or monster closet spawns etc.
+class PathLink play {
+    PathNode node, source;
+    Actor debugVisual;
+    double cost, angle, radius;
+    int maxHeight;
+    bool blocked, debugEnabled;
+    int usage;                      // How many agents are currently planning on traversing this link
+    //uint lastUpdateTime;            // Level tics since the last update from PathHandler. Paths slowly decrement usage over time.
+
+    int decrementUsage() {
+        usage = max(0, usage - 1);
+
+        if(debugEnabled) updateDebug();
+        return usage;
+    }
+
+    int incrementUsage() {
+        usage++;
+
+        if(debugEnabled) updateDebug();
+        return usage;
+    }
+
+    void updateDebug() {
+        if(bDestroyed || !node) return;
+        if(!source) { Console.Printf("\c[RED]Link to %d has no source!", node.user_nodeid); }
+        let totalUsage = usage;
+        let other = node.linkTo(source);
+
+        if(other) {
+            totalUsage += other.usage;
+            if(!debugVisual) debugVisual = other.debugVisual;   // steal a reference to the debug visual in the opposite direction
+        }
+
+        if(debugVisual) {
+            if(totalUsage > 0) {
+                debugVisual.A_SetRenderStyle(0.5, STYLE_StenciL);
+                debugVisual.SetShade(Color(127, min(255, totalUsage * 64), 0, 255));
+            } else {
+                debugVisual.A_SetRenderStyle(0.3, STYLE_Translucent);
+            }
+        }
+    }
+}
+
+
+// AgentPlan represents a plan that is being executed by an agent
+// It is responsible for updating the nodes it traverses that the plan is active
+struct AgentPlan play {
+    Array<PathNode> path;       // Current path, consumed as it is traversed
+    PathNode        node;       // Current goal
+    PathLink        link;       // Current link
+    PathNode        deltaNode;  // Previous goal, probably don't need this anymore
+    Vector3         startPos;
+    bool            started;
+
+    // Move forward to the next node in the path
+    // Returns the new goal node and link
+    PathNode, PathLink nextNode() {
+        while(path.size() && path[path.size()-1] == node) path.pop();   // Clear any double-linked nodes
+
+        let pathSize = path.size();
+        PathLink activeLink = null;
+
+        if(link) {
+            link.decrementUsage();
+        }
+
+        if(pathSize) {
+            let nextNode = path[pathSize - 1];
+            if(node) link = node.linkTo(nextNode);
+            else link = null;
+            deltaNode = node;
+            node = nextNode;
+            path.Pop();
+        } else {
+            node = null;
+        }
+
+        return node, activeLink;
+    }
+
+
+    PathNode, PathLink shortcutToIndex(int index) {
+        if(index > path.size() || index < 0) return null, null;
+
+        if(link) link.decrementUsage();
+
+        // Remove all nodes prior to the index
+        for(int x = path.size() - 1; x > index; x--) {
+            deltaNode = node;
+            let link = node.linkTo(path[x]);
+            if(link) link.decrementUsage();
+            node = path[x];
+            path.pop();
+        }
+
+        PathNode n;
+        PathLink l;
+        [n, l] = nextNode();
+        return n, l;
+    }
+
+
+    void reset() {
+        if(link) {
+            link.decrementUsage();
+        }
+
+        if(node && path.size()) {
+            let l = node.linkTo(path[path.size() - 1]);
+            if(l) l.decrementUsage();
+        }
+
+        // Decrement counters and clear debug info from links
+        while(path.size()) {
+            let nNode = path[path.size()-1];
+            let nLink = path.size() > 1 ? nNode.linkTo(path[path.size()-2]) : null;
+
+            if(nLink && nLink != link) {
+                nLink.decrementUsage();
+            }
+            
+            path.pop();
+        }
+
+        path.clear();
+        node = null;
+        link = null;
+        deltaNode = null;
+        startPos = (0,0,0);
+        started = false;
+    }
+
+    PathNode getNextNode() {
+        return path.size() > 0 ? path[path.size() - 1] : null;
+    }
+
+
+    void start(BuilderPlan source, Vector3 currentPos, PathNode startNode) {
+        reset();    // Make sure any existing plan is cleared, which will un-mark the used nodes
+
+        deltaNode = null;
+        node = startNode;
+        link = null;
+        startPos = currentPos;
+
+        // Copy the path in reverse order
+        for (int i = source.path.Size() - 1; i >= 0; --i) {
+            let nNode = source.path[i];
+            
+            // If we already have our target node set as the last node, don't add it to the path
+            if(i != 0 || nNode != node) {
+                path.Push(nNode);
+            }
+        }
+
+        // Increment links
+        if(node && path.size()) {
+            let l = node.linkTo(path[path.size() - 1]);
+            if(l) l.incrementUsage();
+        }
+
+        for(int x = path.size() - 1; x > 0; --x) {
+            path[x].linkTo(path[x - 1]).incrementUsage();
+        }
+        
+        // Set up initial node if we didn't already have one hinted at us
+        if(!node) {
+            nextNode();
+        }
+
+        started = true;
+    }
+
+
+    bool isValid() { 
+        return started && node;
+    }
+}
+
+mixin class Pathfinding {
+    // Originally written by dodopod
+    // Adjusted by Nexxtic
+    // Also @Cockatrice
+    AgentPlan       plan;
+    NavPathBuilder  pathBuilder;
+    int loopingchecks, targetVisibleTicks;
+    private int pathfindingFlags;
+    flagdef DistanceBasedPathfinding : pathfindingFlags, 0;     // Stop pathfinding when getting close to the final pathnode, rather than getting line of sight.
+    property TargetVisibleTicks : targetVisibleTicks;
+
+    const REQUIRED_DISTANCE_OFFSET = 35;    // How far do we expect the actor to progress on its path before considering it pathfinding problen?
+    int trackingCooldown;
+    int lastDistanceCheck;
+    int steps;
+    int checkSeed;                      // Random time offset to attempt to interleave expensive checks
+    int stuckTicks;                     // Move failed, stuck on object
+    int targetVisibleCounter;           // Must see player a certain amount of ticks before we stop pathfinding
+
+    // Flockmove information
+    Vector2 flockVel, flockAdjust;
+    bool resetFlocking;
+    double pathRadius;
+    Vector2 goalDir, lineCorrectDir;
+    Actor noclipWith;
+    int chaseTimer;
+    bool lastPathFailed;
+
+    void initPathing() {
+        pathBuilder.owner = self;
+        pathBuilder.reset();
+        checkSeed = random(0, 8);
+        steps = 65;
+        lastDistanceCheck = 0;
+    }
+
+    // Checks to see if the actor is actually making progress. If not, a new path is going to be used.
+    // Returns TRUE if progress is being made
+    // Returns FALSE if no or negative progress
+    bool checkGoalProgress(bool canShortcut = true) {
+        if(steps <= 0) {
+            // If the actor did not get closer to the Pathnode, start A_Chasing randomly
+            if(goal) {
+                let gpos = getGoalOffset();
+                let goalDist = (pos.xy - gpos).length();
+
+                if(canShortcut && lastDistanceCheck != 0 && lastDistanceCheck - goalDist < REQUIRED_DISTANCE_OFFSET) {
+                    // Check for a possible shortcut first
+                    if(!checkForShortcuts(true)) {
+                        lastDistanceCheck = goalDist;
+                        return false;
+                    } else {
+                        // We changed goals, so reset and pretend like everything is OK
+                        resetGoalProgress();
+                        return true;
+                    }
+                } else if(!canShortcut && lastDistanceCheck != 0 && lastDistanceCheck - goalDist < REQUIRED_DISTANCE_OFFSET) {
+                    return false;
+                }
+
+                lastDistanceCheck = goalDist;
+            }
+
+            steps = 35;
+            return true;
+        }
+
+        steps--;
+        return true;
+    }
+
+    void resetGoalProgress() {
+        steps = 0;
+        lastDistanceCheck = 0;
+    }
+
+    bool checkIfBlocking(int distance, actor navPoint) {
+        if(distance <= 0)
+        {
+            return false;
+        }
+
+        double oldAngle = angle;
+		FLineTraceData RemoteRay;
+        LineTrace (AngleTo(navPoint),distance,PitchTo(navPoint),0,8,data:RemoteRay);
+        if (RemoteRay.HitType == TRACE_HitWall)	{
+            angle = oldangle;
+            return true;
+        }
+
+        angle = oldangle;
+        return false;
+    }
+
+    // Check the current node and the next node to make sure that the links have not become blocked
+    // Returns true if path blocked, false if unblocked or not available
+    bool pathBlockedTo(PathNode nextNode) {
+        if(plan.node && nextNode && plan.node != nextNode) {
+            let link = plan.node.linkTo(nextNode);
+            if(!link || link.blocked) {
+                return true;
+            }
+        }
+
+        if(plan.link && plan.link.blocked) {
+            let deltaStart = (plan.startPos - pos);
+            let distA = plan.deltaNode ? distance3Dsquared(plan.deltaNode) : (deltaStart.x*deltaStart.x + deltaStart.y*deltaStart.y + deltaStart.z*deltaStart.z);
+            let distB = distance3Dsquared(plan.node);
+            if(distA < distB) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void cancelPlan() {
+        plan.reset();
+        pathBuilder.reset();
+        goal = null;
+        resetGoalProgress();
+    }
+
+    action void A_DoChasing() {
+        let enemy = SelacoEnemy(self);
+        if(enemy) {
+            enemy.MoveAndAttack();
+        } else {
+            A_CHASE();
+        }
+    }
+
+    PathNode firstPatrolPoint;
+    Array<PathNode> patrolledNodes;
+    int lastLookTime;
+
+    // Will move between path nodes, semi-randomly. 
+    // Randomly will stop at intersections that have multiple branches to look around (Look state)
+    action state A_PATROL(statelabel seeState = "SeeContinue", statelabel lookState = "PatrolLook", statelabel hearState = "Hear") {
+        let this = SelacoEnemy(invoker);
+
+        if(target == null) {
+            // Look for players but only in our FOV at a limited distance
+            //if(level.time + checkSeed % 3 == 0) {
+                LookExParams params;
+                params.fov = 90;
+                params.minDist = 0;
+                params.maxDist = 950;
+                params.maxHearDist = 1024;
+                params.flags = LOF_DONTCHASEGOAL;
+
+                if(invoker.LookForPlayers(false, params)) {
+                    let newState = ResolveState(seeState);
+                    if(newState) {
+                        goal = null;
+                        invoker.patrolledNodes.clear();
+                        invoker.plan.reset();
+                        return newState;
+                    }
+                } else {
+                    invoker.A_LISTEN(false);
+                    if(target) {
+                        let newState = ResolveState(seeState);
+                        if(newState) {
+                            goal = null;
+                            invoker.patrolledNodes.clear();
+                            invoker.plan.reset();
+                            return newState;
+                        }
+                    }
+                }
+           //}
+            
+            let node = PathNode(goal);
+            if(!node) node = invoker.findFirstPatrolPoint();
+            if(!node) {
+                // In case we can't get a starting node, wander
+                if(developer > 0) Console.Printf("Wandering");
+                A_WANDER();
+                return null;
+            };
+
+            if(invoker.patrolledNodes.size() > 50) invoker.patrolledNodes.clear();
+
+            // First, make sure we have been progressing
+            if(!invoker.checkGoalProgress(false) || invoker.stuckTicks > 10) {
+                if(developer > 0) Console.Printf("%s is Not making progress!", getClassName());
+                // Try to find a new goal
+                let node = invoker.findFirstPatrolPoint(node);
+                if(!node) {
+                    A_WANDER();
+                } else {
+                    invoker.resetGoalProgress();
+                    invoker.stuckTicks = 0;
+                }
+            } else 
+            
+            // Move towards the goal, returns true if goal reached
+            if(invoker.patrolTowardsGoal()) {
+                // Decide wether or not to stop and have a look around
+                if(invoker.randomPatrolLook()) {
+                    invoker.lastLookTime = level.time;
+                    let newState = ResolveState(lookState);
+
+                    if(newState) {
+                        invoker.firstPatrolPoint = node;
+                        return newState;
+                    }
+                }
+
+                
+                // We got to the goal, find the next goal
+                invoker.findNextPatrolGoal();
+
+                if(goal && abs(deltaAngle(angle, angleto(goal))) > 120 && random(0, 100) > 20) {
+                    // High chance of looking when reversing course
+                    invoker.lastLookTime = level.time;
+                    let newState = ResolveState(lookState);
+                    if(newState) {
+                        invoker.firstPatrolPoint = node;    // Prevent looking again when returning to A_PATROL
+                        return newState;
+                    }
+                }
+            }
+        } else {
+            invoker.plan.reset();
+            invoker.patrolledNodes.clear();
+            return ResolveState(seeState);
+        }
+
+        return null;
+    }
+
+    // Simple move towards the current goal using flockMove
+    bool patrolTowardsGoal() {
+        if(Speed <= 0) return false;
+
+        let oldSpeed = Speed;
+        Speed *= 0.75;
+        if(!flockMove(false)) {
+            stuckTicks++;
+        } else {
+            stuckTicks = 0;
+        }
+        Speed = oldSpeed;
+
+        if(isNearGoal()) return true;
+        return false;
+    }
+
+    bool randomPatrolLook() {
+        PathNode goal = PathNode(goal);
+        if(level.time - lastLookTime < 175) return false;   // 5 second cooldown
+        return goal && goal.links.size() > 2 && goal != firstPatrolPoint && random(0, 100) > 80;
+    }
+
+    void findNextPatrolGoal() {
+        PathNode goal = PathNode(goal);
+        self.goal = null;
+        
+        // Find the most forward node and take that
+        if(goal && goal.links.size() > 0) {
+            double nextNodeAngle = 999, nextNodeAngle2 = 999;
+            PathNode nextBest;
+            double nextBestRadius;
+
+            for(int x = goal.links.size() - 1; x >= 0; x--) {
+                let link = goal.links[x];
+
+                if(link.blocked) continue;
+                
+                double dangle = abs(deltaAngle(angle, angleTo(link.node)));
+                if(patrolledNodes.find(link.node) == patrolledNodes.size()) {
+                    if(dangle < nextNodeAngle ) {
+                        pathRadius = link.radius;
+                        self.goal = link.node;
+                        nextNodeAngle = dangle;
+                    } else if(random(0,100) > 80) {
+                        // Extra random chance of changing directions
+                        self.goal = link.node;
+                        pathRadius = link.radius;
+                        break;
+                    }
+                }
+                
+                if(dangle < nextNodeAngle2) {
+                    nextNodeAngle2 = dangle;
+                    nextBest = link.node;
+                    nextBestRadius = link.radius;
+                }
+            }
+
+            // Couldn't find an untravelled node, so pick the next best one
+            if(!self.goal) {
+                self.goal = nextBest;
+                pathRadius = nextBestRadius;
+            }
+        }
+
+        if(self.goal) {
+            resetGoalProgress();
+            goalDir = (self.goal.pos.xy - pos.xy);
+            if(!(goalDir ~== (0,0))) goalDir = goalDir.unit();
+            patrolledNodes.push(PathNode(goal));
+        }
+    }
+
+    PathNode findFirstPatrolPoint(PathNode avoidMe = null) {
+        PathHandler handler = PathHandler.Instance();
+        let numNodes = handler.allNodes.size();
+        PathNode curNode = null;
+        PathNode closestNode = null;
+        double closestNodeDist = 650 *650;
+        
+        patrolledNodes.clear();
+
+        int checks = 5;
+        for(int x = 0; x < numNodes; x++) {
+            curNode = handler.allNodes[x];
+
+            // Make sure the node actually has connections
+            if(curNode.links.size() == 0 || curNode == avoidMe) continue;
+
+            // Locate any pathnode close to the actor, we don't need the closest one, we just want to patrol somewhere
+            double dist = distance2Dsquared(curNode);
+            bool floorChange = bJUMPDOWN ? curNode.floorz - floorz < maxStepHeight : abs(curNode.floorz - floorz) < maxStepHeight;
+            if (floorChange && dist < closestNodeDist) {
+                if(checkSight(curNode, SF_IGNOREVISIBILITY) && !checkIfBlocking(sqrt(dist), curNode)) {
+                    closestNode = curNode;
+                    closestNodeDist = dist;
+                    checks++;
+                }
+            }
+
+            // Don't spend too much time checking, just go with whatever we found
+            if(checks > 15 && closestNode) break;
+        }
+
+        if(closestNode) {
+            resetGoalProgress();
+            firstPatrolPoint = closestNode;
+            goal = closestNode;
+            patrolledNodes.push(closestNode);
+            goalDir = (closestNode.pos.xy - pos.xy);
+            if(!(goalDir ~== (0,0))) goalDir = goalDir.unit();
+
+            // Best guess at path radius. Pick the smallest link to this node's radius
+            pathRadius = 256;
+            for(int x = 0; x < closestNode.links.size(); x++) {
+                let nextRad = closestNode.links[x].radius;
+                if(nextRad < pathRadius) pathRadius = nextRad;
+            }
+
+            return closestNode;
+        }
+
+        return null;
+    }
+
+    bool isPathMoving;      // Read externally to tell if we are currently following the path or building it
+    PathNode homeNode;      // Pathnode closest to Spawn, set once in the first call to A_RETURN
+    bool homeNodeSearched;
+
+    // Returns the enemy nearby (not directly at) the spawn position
+    // This requires the spawn position to be relatively nearby at least one reachable PathNode
+    // If no path can be built back to spawn the enemy will A_PATROL() instead
+    action state A_RETURN(statelabel seeState = "SeeContinue", statelabel arriveState = "Spawn", statelabel hearState = "Hear")
+    {
+        let this = SelacoEnemy(invoker);
+        
+        if(target == null) {
+            // Look for players
+            LookExParams params;
+            params.fov = 90;
+            params.minDist = 0;
+            params.maxDist = 950;
+            params.maxHearDist = 1024;
+            params.flags = LOF_DONTCHASEGOAL;
+
+            if(invoker.LookForPlayers(false, params)) {
+                let newState = ResolveState(seeState);
+                if(newState) {
+                    invoker.patrolledNodes.clear();
+                    invoker.plan.reset();
+                    return newState;
+                }
+            } else {
+                invoker.A_LISTEN(false);
+                if(target) {
+                    let newState = ResolveState(seeState);
+                    if(newState) {
+                        invoker.patrolledNodes.clear();
+                        invoker.plan.reset();
+                        return newState;
+                    }
+                }
+            }
+
+            if(!invoker.homeNode && !invoker.homeNodeSearched) {
+                invoker.findHomeNode();
+                invoker.homeNodeSearched = true;
+
+                if(!invoker.homeNode) {
+                    //Console.Printf("\c[RED]%s failed to find a home node, cannot return to spawn!", getClassName());
+                }
+            }
+
+            if(invoker.plan.isValid()) {
+                // Pursue the existing path
+                goal = invoker.plan.node;   // Goal can sometimes be changed by movement functions, ensure this does not happen
+
+                if(!invoker.followPath()) {
+                    // Have we have arrived at our destination?
+                    if(distance2DSquared(invoker.homeNode) < 256*256) {
+                        invoker.goal = null;
+                        let newState = ResolveState(arriveState);
+                        return newState;
+                    }
+
+                    invoker.trackingCooldown--;
+
+                    // Don't allow paths to be built too often, we need some idle time
+                    if(invoker.trackingCooldown <= 0) {
+                        invoker.trackingCooldown = 0;
+                        invoker.plan.reset();
+                        invoker.goal = null;
+                        invoker.pathBuilder.reset();
+                        invoker.stuckTicks = 0;
+                        invoker.isPathMoving = invoker.buildPathAndMove();
+                    } else {
+                        invoker.isPathMoving = false;
+                    }
+                } else {
+                    invoker.isPathMoving = true;
+                }
+            } else {
+                if(!invoker.homeNode) {
+                    invoker.isPathMoving = true;
+                    A_PATROL(seeState: seeState, lookState: "none", hearState: hearState);
+                } else {
+                    invoker.trackingCooldown--;
+                
+                    if(invoker.trackingCooldown <= 0) {
+                        invoker.isPathMoving = invoker.buildPathAndMove();
+                    } else {
+                        invoker.pathBuilder.reset();
+                        invoker.isPathMoving = false;
+                    }
+                }
+            }
+        } else {
+            let newState = ResolveState(seeState);
+            if(newState) {
+                invoker.patrolledNodes.clear();
+                invoker.plan.reset();
+                return newState;
+            }
+        }
+
+        return null;
+    }
+
+    // Find the node ~closest to our spawn point
+    void findHomeNode() {
+        PathHandler handler = PathHandler.Instance();
+        let numNodes = handler.allNodes.size();
+        PathNode curNode = null;
+        PathNode closestNode = null;
+        double closestNodeDist = 750 * 750;
+
+        for(int x = 0; x < numNodes; x++) {
+            curNode = handler.allNodes[x];
+
+            // Make sure the node actually has connections
+            if(curNode.links.size() == 0) continue;
+
+            // Locate a random pathnode close to the spawn
+            let offset = spawnPoint - curNode.pos;
+            double dist = offset.x*offset.x + offset.y*offset.y + offset.z*offset.z;
+            
+            // This should pick a randomish node nearish spawn
+            if (dist < closestNodeDist && random(0,100) > 60) {
+                closestNode = curNode;
+                closestNodeDist = dist;
+            }
+        }
+
+        homeNode = closestNode;
+    } 
+
+    // Returns TRACK_STATUS, signalling completion, found target, building or moving
+    action TRACK_STATUS A_TRACK()
+    {
+        let this = SelacoEnemy(invoker);
+        
+        if(target != null && this.targetWithinPathfindingThreshold()) 
+        {
+            // Target is in sight. Clear the path we found and begin attacking
+            if (this.isTargetVisible()) 
+            {
+                if(++invoker.targetVisibleCounter >= max(invoker.targetVisibleTicks, 1)) {
+                    // Target has been visible enough, stop pathfinding
+                    let soldier = EnemySoldier(this);
+                    if(!soldier || soldier.hasFiringSolution()) {
+                        A_DoChasing();
+                        invoker.cancelPlan();
+                        invoker.trackingCooldown = 8;
+                        return TRACK_FoundTarget;
+                    }
+                }
+            } else {
+                invoker.targetVisibleCounter = 0;
+            }
+
+            if(invoker.plan.isValid()) {
+                // Pursue the existing path
+                goal = invoker.plan.node;   // Goal can sometimes be changed by movement functions, ensure this does not happen
+
+                if(!invoker.followPath()) {
+                    invoker.trackingCooldown--;
+
+                    // Check for arrival
+                    if(invoker.plan.node && Distance2DSquared(invoker.plan.node) < 256*256 && invoker.plan.path.size() == 0) {
+                        invoker.trackingCooldown = 15;
+                        invoker.plan.reset();
+
+                        //Console.Printf("%s has arrived at the destination!", invoker is 'EnemySoldier' ? EnemySoldier(invoker).alienName : "[" .. invoker.getClassName() .. "]");
+                        return TRACK_Arrived;
+                    }
+
+                    // Don't allow paths to be built too often, we need some idle time
+                    // if there are multiple enemies trying to find the player
+                    if(invoker.trackingCooldown <= 0) {
+                        invoker.trackingCooldown = 0;
+                        invoker.plan.reset();
+                        invoker.goal = null;
+                        invoker.pathBuilder.reset();
+                        invoker.stuckTicks = 0;
+                        return invoker.buildPathAndMove() ? TRACK_Moving : TRACK_BuildingPath;
+                    }
+                    
+                    return TRACK_BuildingPath;
+                }
+            } else {
+                // We should never return true here, because it could cause an infinite loop due to how the soldier states work
+                // Returning False just means there will be one extra idle frame before going back to moving
+                invoker.trackingCooldown--;
+                
+                if(invoker.trackingCooldown <= 0) {
+                    if(!invoker.buildPathAndMove()) return TRACK_BuildingPath;
+                } else {
+                    invoker.pathBuilder.reset();
+                    A_DoChasing();
+                }
+            }
+        } else {
+            A_DoChasing();
+        }
+
+        return TRACK_Moving;
+    }
+
+    // Follows the existing path, must be a valid path
+    // Returns TRUE if we made progress
+    bool followPath() {
+        if (!isNearGoal()) {
+            // Check if goal is still visible, if not, it's possible we ended up in the wrong place
+            // If it's not visible anymore, check the next few nodes to see if they are closer and visible.
+            // This can happen because the actor can be moving while the path is being built, and can get out of range of the first node
+            if((level.time + checkSeed) % 4 == 0 && !checkSight(goal, SF_IGNOREVISIBILITY)) {
+                steps--;
+                checkForShortcuts(maxSkips: 1);
+            } else if(!checkGoalProgress()) {
+                // No progress was made, clear the path and we'll start generating a new one next tick
+                //Console.printf("\c[red]RESET return path due to no progress made");
+                cancelPlan();
+                return false;
+            }
+
+            if(!flockMove()) {
+                stuckTicks++;
+
+                if(stuckTicks >= 10) {
+                    // Reset pathing and start over
+                    cancelPlan();
+                    return false;
+                }
+            } else {
+                stuckTicks = max(0, stuckTicks - 1);
+            }
+
+            return true;
+        }
+
+        if(switchToNextNode()) {
+            stuckTicks = 0;
+            flockMove();
+            return true;
+        }
+
+        return false;
+    }
+
+    bool switchToNextNode() {
+        // Enemy has reached destination, move to the next one
+        // Also cancel path if our upcoming path is blocked (door checks)
+        // Goal can often end up being the same
+        int pathSize = plan.path.size();
+        
+        if (pathSize > 0)
+        {
+            let nextNode = plan.getNextNode();
+
+            // Check if blocked
+            if(nextNode && !pathBlockedTo(nextNode)) {
+                PathLink link;
+                [goal, link] = plan.nextNode();
+                lastDistanceCheck = 0;
+                steps = 45;
+                goalDir = plan.deltaNode ? (goal.pos.xy - plan.deltaNode.pos.xy) : (goal.pos.xy - pos.xy);
+                if(!(goalDir ~== (0,0))) goalDir = goalDir.unit();
+                pathRadius = link ? link.radius : (goal is 'DoorNode' ? 5 : 40);
+                resetGoalProgress();
+
+                if(self is "SelacoEnemy") {
+                    let soldier = SelacoEnemy(self);
+                    soldier.performNodeAction(); // In case we want an enemy type to do something after reaching a node.
+                }
+                
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // A_CHASE wants to change targets and do some crap we don't want, so force it to just head towards the goal
+    void ChaseTowards() {
+        let oTarget = target;
+        let oGoal = goal;
+        let oShooty = oGoal ? oGoal.bShootable : false;
+        threshold = max(threshold, 2);
+        target = goal ? goal : target;
+        if(goal) goal.bShootable = true;
+        A_CHASE(null, null);
+        goal = oGoal;
+        target = oTarget;
+        if(oGoal) oGoal.bShootable = oShooty;
+    }
+
+    // Very unoptimized, should not be using blockthingsiterator, search through active path-followers with the pathhandler
+    bool flockMove(bool canSwitch = true) {
+        PathNode goal = PathNode(goal);
+        if(!goal) {
+            self.goal = goal = plan.node;
+            if(!goal) return false;
+        }
+        
+        Vector2 movePos = goal.pos.xy;
+
+        // Hack to prevent units from getting stuck on blocking objects
+        // Basically just force some good old A_CHASE() to try to navigate around the thing
+        if(chaseTimer) {
+            chaseTimer--;
+            ChaseTowards();
+
+            if(isNearGoal()) {
+                chaseTimer = 0;
+            } else if(canSwitch && checkForShortcuts()) {
+                chaseTimer = 0;
+            }
+
+            return true;
+        }
+
+        bool seekingDoor = (goal is 'DoorNode');
+        Vector2 vec = movePos - pos.xy;
+
+        // No movement to be made here, should probably go to the next node
+        if(vec ~== (0,0)) {
+            if(canSwitch) {
+                switchToNextNode();
+            
+                if(!goal) return true;
+
+                movePos = goal.pos.xy;
+                vec = movePos - pos.xy;
+
+                if(vec ~== (0,0)) return true;
+            } else {
+                return true;
+            }
+        }
+
+        // If we have already reached the goal, and the path is not complete, stop fucking spinning
+        if(!pathBuilder.pathComplete && isNearGoal()) {
+            return true;
+        }
+
+        // Let's head towards a path offset by our checkSeed
+        //let gdir = (-goalDir.y, goalDir.x);
+        //let op = movePos;
+        movePos = getGoalOffset();
+        //let change = (movePos - op);
+        //Console.Printf("movechange: %f %f    pathrad: %f   radius: %f", gdir.x, gdir.y, change.x, change.y, pathRadius, radius);
+        vec = movePos - pos.xy;
+        if(!(vec ~== (0,0))) vec = vec.unit();
+
+        //Console.Printf("seed: %d  pathrad: %d  moveto: %f - %f", checkSeed, pathRadius, movePos.x, movePos.y);
+
+        // Never flock when heading towards a door node, we need to tighten up to get through the door
+        if(!seekingDoor && (resetFlocking || (level.time + checkSeed) % 3 == 0)) {
+            // Use a slightly modified simple flocking algorithm from Craig Reynolds' boids
+            resetFlocking = false;
+            Vector2 alignment, cohesion, separation, drift;
+            int moCount = 0, smoCount = 0;
+
+
+            // Get a list of nearby enemies to move with
+            // Is it possible to create just one of these instead of a new one for every unit for every frame? Yikes, the GC
+            BlockThingsIterator it = BlockThingsIterator.Create(self, 128);
+            double myDist = Distance2DSquared(goal);
+            while (it.Next()) {
+                let mo = SelacoActor(it.thing);
+                if(!mo || it.thing == self || Distance2DSquared(mo) > 128*128) continue;
+                
+                let smo = EnemySoldier(mo);
+                let smm = CrawlerMine(mo);
+                Vector2 otherFlockVel = smo ? smo.flockVel : (smm ? smm.flockVel : (0,0));
+
+                let modir = (mo.pos.xy - pos.xy);
+                let molen = modir.length();
+                molen = max(molen, 0.0001);     // Prevent divide by zero
+
+                if(smo || smm) {
+                    alignment += otherFlockVel;
+                    cohesion += mo.pos.xy;
+                    smoCount++;
+                    separation += mo.pos.xy - pos.xy;
+
+                    // Drift adds extra separation if a unit is behind another (Wait your turn)
+                    if(mo.Speed >= Speed && mo.Distance2DSquared(goal) < myDist && abs(deltaAngle(mo.angle, angle)) < 90) {
+                        let moRad = mo.radius*2;
+                        drift += (-modir / molen) * ((moRad - min(molen, moRad)) / moRad);
+                    }
+                } else {
+                    // Static object probably, use radius to keep away from it
+                    alignment += ((-modir / molen) * mo.radius);
+                    separation += modir + ((modir / molen) * mo.radius);
+                }
+                
+                moCount++;
+            }
+
+            if(smoCount > 0) {
+                // Calculate the flocking params, they won't change the alignment towards the goal much
+                // But will help to separate and group them
+                alignment /= moCount;
+                if(!(alignment ~== (0,0))) alignment = alignment.unit();
+                cohesion /= smoCount;
+                cohesion -= pos.xy;
+                if(!(cohesion ~== (0,0))) cohesion = cohesion.unit();
+                separation /= moCount;
+                separation *= -1;
+                if(!(separation ~== (0,0))) separation = separation.unit();
+                
+                vec *= Speed;
+                flockAdjust = alignment * 0.15 + cohesion * 0.15 + separation * 1.25 + drift * Speed;
+                vec += flockAdjust;
+                let len = vec.length();
+                vec = (vec / len) * min(len, Speed);
+                angle = atan2(vec.y, vec.x);
+            } else {
+                angle = atan2(vec.y, vec.x);
+                vec = vec * Speed;
+                flockAdjust = (0,0);
+            }
+            
+        } else {
+            vec *= Speed;
+            if(!seekingDoor) vec += flockAdjust;
+            let len = vec.length();
+            vec = (vec / len) * min(len, Speed);
+            angle = atan2(vec.y, vec.x);
+        }
+        
+        flockVel = vec;
+        
+        bool success = TryMove(pos.xy + vec, 2, false);
+        
+        if(success) {
+            /*if(canSwitch && pathBuilder.pathComplete && plan.isValid()) {
+                let nextNode = plan.getNextNode();
+
+                if(nextNode) {
+                    // Check distance to next node and move on if necessary
+                    if(goal != nextNode && isNearGoal()) {
+                        resetFlocking = true;
+                        switchToNextNode();
+                    }
+                }
+            } */ // Not sure this is necessary anymore, it's being done in a bunch of places           
+        } else if(BlockingLine) {
+            chaseTimer = 10;
+            ChaseTowards();
+
+        } else if(BlockingMobj) {
+
+            chaseTimer = 15;
+            ChaseTowards();
+        } else {
+            //if(stuckTicks % 2 == 0) NewChaseDir();
+            ChaseTowards();
+            return false;
+        }
+
+        return success;
+    }
+
+    Vector2 getGoalOffset() {
+        let gdir = (-goalDir.y, goalDir.x);
+        return goal.pos.xy + ( gdir * ( max(0,(pathRadius - radius - 15) / 4.0) * (checkSeed - 4.0) ) );
+    }
+
+    bool isNearGoal() {
+        //return !goal || distance2DSquared(goal) <= (pathRadius + radius)**2;
+        let off = getGoalOffset() - pos.xy;
+        let dist = off.x*off.x + off.y*off.y;
+
+        return !goal || dist <= (radius*2)**2;
+    }
+
+    Vector2 reflect(Vector2 v, Vector2 normal) {
+        return -2*(v dot normal)*normal + v;
+    }
+    
+    Vector2 getDirToPath(double workBackwards = 0) {
+        let ppos = pointOnLine(goal.pos.xy - (goalDir * 256), goal.pos.xy, pos.xy - (goalDir * workBackwards));
+        let vec = ppos - pos.xy;
+        return vec.unit();
+    }
+
+    // Original func by Corey Ogburn
+    Vector2 pointOnLine(Vector2 p1, Vector2 p2, Vector2 pt, bool restrict = false) {
+        Vector2 r = (0,0);
+        if (p1.x == p2.x && p1.y == p2.y) p1.x -= 0.00001;
+
+        let U = ((pt.x - p1.x) * (p2.x - p1.x)) + ((pt.y - p1.y) * (p2.y - p1.y));
+        let Udenom = (p2.x - p1.x)**2 + (p2.y - p1.y)**2;
+
+        U /= Udenom;
+
+        r.x = p1.x + (U * (p2.x - p1.x));
+        r.y = p1.y + (U * (p2.y - p1.y));
+
+        if(restrict) {
+            let minx = min(p1.x, p2.x);
+            let maxx = max(p1.x, p2.x);
+
+            let miny = min(p1.y, p2.y);
+            let maxy = max(p1.y, p2.y);
+
+            r.x = clamp(r.x, minx, maxx);
+            r.y = clamp(r.y, miny, maxy);
+        }
+
+        return r;
+    }
+
+
+    int lineDirTo(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3) {
+        let s1_x = p1.x - p0.x;     
+        let s1_y = p1.y - p0.y;
+        let s2_x = p3.x - p2.x;     
+        let s2_y = p3.y - p2.y;
+        
+        if( s1_x * s2_y - s1_y * s2_x == 0 ) return -1;  // Check perpendicular
+        
+        //let s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / (-s2_x * s1_y + s1_x * s2_y);
+        let t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+        return t >= 0;
+    }
+
+    // Returns TRUE if we are moving
+    bool buildPathAndMove() {
+        bool needsRadius = false;
+        bool needsShortcut = false;
+        bool targetPosKnown = true;
+
+        let pathTarget = target;
+
+        // Check with the overseer if we can path directly to the player
+        // or if the player position is no longer known, we go to the last known position
+        if(self is 'EnemySoldier') {
+            let soldier = EnemySoldier(self);
+
+            if(soldier.overseer && soldier.squad) {
+                if(target == players[0].mo) {
+                    if(!soldier.squad.shouldChaseDirectly() && soldier.overseer.spotBeacon && soldier.squad.squadStatus != SQUAD_WillPatrol) {
+                        if(Distance2DSquared(soldier.overseer.spotBeacon) < 400*400) {
+                            // We already got to the beacon, so head towards the player-ish
+                            targetPosKnown = false;
+                        } else {
+                            pathTarget = soldier.overseer.spotBeacon;
+                        }
+                    } else if(!soldier.squad.shouldChaseDirectly() && soldier.squad.squadStatus == SQUAD_WillPatrol) {
+                        // Player position is unknown, but we still have an *idea* of where the player is
+                        // PathBuilder will pick a pathnode somewhere nearish the player
+                        targetPosKnown = false;
+                    }
+                }
+            }
+        }
+        
+
+        if(pathBuilder.build(pathTarget ? pathTarget : Actor(homeNode), targetPosKnown) && pathBuilder.pathComplete && pathBuilder.currentPlan) {
+            // We have finished building the path!
+            if(developer > 1) Console.Printf("Path built: %d nodes %d cycles taken, First node: #%d Target: #%d", pathBuilder.currentPlan.path.Size(), pathBuilder.cyclesTaken, pathBuilder.currentPlan.path.size() > 0 ? pathBuilder.currentPlan.path[0].user_nodeid : -1, pathBuilder.goalNav ? pathBuilder.goalNav.user_nodeid : -1);
+            needsRadius = true;
+            needsShortcut = !!goal;
+            plan.start(pathBuilder.currentPlan, pos, PathNode(goal));
+            trackingCooldown = 15;
+            lastPathFailed = false;
+        } else if(pathBuilder.pathComplete && !pathBuilder.currentPlan) {
+            // We have failed to build the path, don't set a goal just return
+            goal = null;
+            trackingCooldown = 15;
+            lastPathFailed = true;
+            plan.reset();
+            resetGoalProgress();
+            if(developer > 1) Console.Printf("\c[RED]Path build failed, taking no action");
+            return false;
+        }
+
+        resetGoalProgress();
+
+        // If we have our starting node, start moving to it now even if the path isn't complete
+        if(!plan.node && pathBuilder.startNav && !lastPathFailed) {
+            needsRadius = true;
+            plan.node = pathBuilder.startNav;
+            goal = pathBuilder.startNav;
+            goalDir = (goal.pos.xy - pos.xy);
+            if(!(goalDir ~== (0,0))) goalDir = goalDir.unit();
+        } else if(lastPathFailed && (!goal || !plan.node)) {
+            // If we already failed once to build a path, we need to keep moving until it's possible to do so
+            ChaseTowards();
+            return true;
+        }
+
+        // We still need to come up with a path size for the first node, which is definitely fudging it
+        // but we can make a good guess
+        if(needsRadius) {
+            pathRadius = 10;
+
+            if(goal is 'DoorNode') {
+                pathRadius = 5;
+            } else {
+                double longDist = 0;
+                double longIndex = -1;
+                Vector2 longPos = (0,0);
+
+                // Determine the most likely path we came from
+                for(int x = 0; x < plan.node.links.size(); x++) {
+                    PathLink link = plan.node.links[x];
+
+                    Vector2 pathPos = pointOnLine(link.node.pos.xy, plan.node.pos.xy, pos.xy, true);
+                    Vector2 pdiff = pathPos - plan.node.pos.xy;
+                    double len = (pdiff.x*pdiff.x + pdiff.y*pdiff.y);
+                    if(len >= longDist) {
+                        longDist = len;
+                        longIndex = x;
+                        longPos = pathPos;
+                    }
+                }
+
+                if(longIndex > -1) {
+                    pathRadius = min(plan.node.links[longIndex].radius, (pos.xy - longPos).length());
+                }
+            }
+        }
+
+        if(needsShortcut) {
+            checkForShortcuts(true, goal, 30, maxSkips: 1);
+        }
+
+        if(plan.node && goal && !isNearGoal()) {
+            flockMove();
+            return true;
+        }
+
+        return false;
+    }
+
+    // Check to see if we are accidentally closer to a future node instead of the one we are trying to reach
+    // Only checks up to 4 nodes ahead
+    // If Other is supplied, only takes shortcuts that are away from Other
+    // Returns TRUE if a shortcut was found
+    bool checkForShortcuts(bool skipCurrent = false, Actor other = null, double otherMinAngle = 90, int maxSkips = 4) {
+        double goalDist = skipCurrent ? 600 : distance2DSquared(goal);
+        double otherAngle = other ? AngleTo(other) : -1;
+
+        for(int x = plan.path.size() - 1; x >= 0 && plan.path.size() - x <= maxSkips; x--) {
+            let n = plan.path[x];
+            
+            if(distance2DSquared(n) < goalDist && (n.floorz - floorz < 10 && floorz - n.floorz < 50) &&
+                (otherAngle == -1 || abs( deltaAngle(otherAngle, AngleTo(n))) > otherMinAngle)
+                && checkSight(n)
+            ) {
+                // Shortcut to this node
+                let oldGoal = plan.node;
+                if(plan.shortcutToIndex(x)) {
+                    //COnsole.Printf("Shortcut from %d to %d", oldGoal.user_nodeid, plan.node.user_nodeid);
+                    goal = plan.node;
+                    goalDir = plan.deltaNode ? (goal.pos.xy - plan.deltaNode.pos.xy) : (goal.pos.xy - pos.xy);
+                    if(!(goalDir ~== (0,0))) goalDir = goalDir.unit();
+                    resetGoalProgress();
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
+    
+class PathNode : AINodes
+{
+    // UDMF Node Fields
+    int user_nodeid;
+    int user_connection1, user_connection2, user_connection3, user_connection4, user_connection5, user_connection6, user_connection7, user_connection8;
+    double user_con_width1, user_con_width2, user_con_width3, user_con_width4, user_con_width5, user_con_width6, user_con_width7, user_con_width8;
+    double user_con_height1, user_con_height2, user_con_height3, user_con_height4, user_con_height5, user_con_height6, user_con_height7, user_con_height8;
+    PathHandler handler;
+
+    int maxHeight;          // Used by pathbuilder as a shortcut
+
+    Default
+    {
+        Radius 4;
+        Height 12;
+        SelacoActor.sleepDistance 0;
+        scale 1;
+        alpha 0.6;
+        mass 5000;
+        +solid;
+        +thruactors;
+        +NOTARGET;
+        +NOGRAVITY;
+        RenderStyle "None";
+    }
+
+    bool cancelCheck; // Forcefully cancel the pathnode connection check
+    bool debugOn;
+
+	override void die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		//console.printf("A pathnode has died, this is not supposed to happen.");
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    static PathLink NewLink(PathNode node, PathNode source, double angle, double cost, double radius = 40, bool debug = false, int maxHeight = 0) {
+        let n = new('PathLink');
+        n.node = node;
+        n.source = source;
+        n.angle = angle;
+        n.cost = cost;
+        n.radius = radius;
+        n.debugEnabled = debug;
+        n.maxHeight = maxHeight;
+        return n;
+    }
+
+    // Find a link to the target node
+    PathLink linkTo(PathNode node) {
+        for(int i = 0; i < links.size(); i++) {
+            if(links[i].node == node) {
+                return links[i];
+            }
+        }
+        
+        return null;
+    }
+
+    // Gets the total usage of all links pointing toward this node
+    int getTargetScore() {
+        int score = 0;
+
+        for(int x = links.size() - 1; x >= 0; x--) {
+            let link = links[x].node.linkto(self);
+            if(link) score += link.usage;
+        }
+
+        return score;
+    }
+
+    double udmfRadiusTo(PathNode node) {
+        let nid = node.user_nodeid;
+        if(user_connection1 == nid) return user_con_width1 > 0 ? user_con_width1 : (node is 'DoorNode' ? 5 : 40);
+        if(user_connection2 == nid) return user_con_width2 > 0 ? user_con_width2 : (node is 'DoorNode' ? 5 : 40);
+        if(user_connection3 == nid) return user_con_width3 > 0 ? user_con_width3 : (node is 'DoorNode' ? 5 : 40);
+        if(user_connection4 == nid) return user_con_width4 > 0 ? user_con_width4 : (node is 'DoorNode' ? 5 : 40);
+        if(user_connection5 == nid) return user_con_width5 > 0 ? user_con_width5 : (node is 'DoorNode' ? 5 : 40);
+        if(user_connection6 == nid) return user_con_width6 > 0 ? user_con_width6 : (node is 'DoorNode' ? 5 : 40);
+        if(user_connection7 == nid) return user_con_width7 > 0 ? user_con_width7 : (node is 'DoorNode' ? 5 : 40);
+        if(user_connection8 == nid) return user_con_width8 > 0 ? user_con_width8 : (node is 'DoorNode' ? 5 : 40);
+        return node is 'DoorNode' ? 5 : 40;
+    }
+
+    int udmfHeightTo(PathNode node) {
+        let nid = node.user_nodeid;
+        if(user_connection1 == nid) return user_con_height1;
+        if(user_connection2 == nid) return user_con_height2;
+        if(user_connection3 == nid) return user_con_height3;
+        if(user_connection4 == nid) return user_con_height4;
+        if(user_connection5 == nid) return user_con_height5;
+        if(user_connection6 == nid) return user_con_height6;
+        if(user_connection7 == nid) return user_con_height7;
+        if(user_connection8 == nid) return user_con_height8;
+        return 0;
+    }
+
+    // If the angle is identical to a previous attempt, cancel.
+    bool isValidAngle(actor nav) {
+        for(int i=0;i<links.size();i++) {
+            let link = links[i];
+            if(norma(angle)+35 >= link.angle && norma(angle)-35 <= link.angle) {
+                int conflictingNodeDistance =  distance3Dsquared(nav);
+                int previousNodeDistance = distance3Dsquared(link.node);
+                if(conflictingNodeDistance < distance3Dsquared(link.node)) {
+                    links.delete(i);
+                    return true;
+                }
+                return false;
+            }
+        }
+        return true;
+    }      
+
+    // Connects everything together. 
+    // TODO: Find a way to reconnect everything when something has changed. E.g when a door opens.
+	// Currently, reconnecting all the nodes drains performance to a crawl. 
+    void ConnectNodes() {
+        ThinkerIterator it = ThinkerIterator.Create("PathNode");
+        for (PathNode nav = PathNode(it.Next()); nav; nav = PathNode(it.Next()))
+        {
+            if (nav == self)
+                continue;
+
+            // Acquire a pathnode and look at it
+            double angle = AngleTo(nav);
+            A_Face(nav);
+            target = nav;
+
+            cancelCheck = false;
+            bool passable = false;
+            Vector3 dirToNav = nav.pos - pos;
+            double dist = dirToNav.length();
+            dirToNav = dirToNav.unit();
+            
+            if(dist <= 600 && !checkBlockingActors(dirToNav, dist)) {
+                // TODO: This doesn't need to be in a loop but for some reason unrolling the loop makes things not work anymore @Cockatrice
+                for(int i = 0; i < 600; i+=10) {
+                    if (Checksight(target, SF_IGNOREVISIBILITY) && distance3D(nav) < i  && isValidAngle(nav) && !cancelCheck) {
+                        passable = true;
+                    }
+                }
+            }
+
+            if (passable)
+            {
+                links.Push(NewLink(nav, self, angle, distance3D(nav), debugOn));
+            }
+        }
+    }
+
+    // Instead of manually connecting and searching for nodes, the map gave us our connections already! Thanks map!
+    // So we just have to find the nodes specified and connect with those
+    void ProcessUDMFNodeInfo() {
+        handler = PathHandler.instance();
+
+        if(!handler) {
+            //Console.printf("\c[YELLOW]Warning: Path node could not be linked, no PathHandler! #%d", user_nodeid);
+            return;
+        }
+
+        // I wish we had these in an array
+        if(user_connection1 > 0) connectUserNode(user_connection1);
+        if(user_connection2 > 0) connectUserNode(user_connection2);
+        if(user_connection3 > 0) connectUserNode(user_connection3);
+        if(user_connection4 > 0) connectUserNode(user_connection4);
+        if(user_connection5 > 0) connectUserNode(user_connection5);
+        if(user_connection6 > 0) connectUserNode(user_connection6);
+        if(user_connection7 > 0) connectUserNode(user_connection7);
+        if(user_connection8 > 0) connectUserNode(user_connection8);
+
+        // Determine the max height this node connects to, this should save some time in pathbuilder
+        for(int x = links.size() - 1; x >= 0; x--) {
+            let h = links[x].maxHeight;
+            maxHeight = maxHeight == 0 ? h : min(h, maxHeight);
+        }
+    }
+
+    bool connectUserNode(int nodeID) {
+        if(!handler) return false;
+        let node = handler.findPathnode(nodeID);
+        
+        if(!node) {
+            //Console.printf("\c[YELLOW]Warning: Pathnode could not be found from UDMF path link: %d", nodeID);
+            return false;
+        }
+
+        double angle = AngleTo(node);
+        target = node;
+        Vector3 dirToNav = node.pos - pos;
+        double dist = dirToNav.length();
+
+        links.push(NewLink(node, self, norma(angle), distance3D(node), node is 'DoorNode' ? 5 : udmfRadiusTo(node), debugOn, udmfHeightTo(node)));
+        return true;
+    }
+
+    private Vector3 perpWalk(Vector3 dir) {
+        return (-dir.y, dir.x, 0);
+    }
+
+    // Look for actors that should prevent node linking if they are in the way
+    // We just do 3 linetracers looking for specific actors, this should reasonably approximate
+    // The width of the path for most enemies
+    bool checkBlockingActors(Vector3 dir, double len) {
+        NodeTracer tracer = new("NodeTracer");  // TODO: Use a "global" so we don't alloc so much
+
+        // Fire a few rays to check for blockers
+        Vector3 sideDir = perpWalk(dir);
+        sideDir.z = 0;
+        Vector3 origin = pos;
+
+        if(tracer.Trace(origin, CurSector, dir, len, TRACE_NoSky)) {
+            return true;
+        }
+
+        origin = pos + (sideDir * 20);
+        
+        if(tracer.Trace(origin, CurSector, dir, len, TRACE_NoSky)) {
+            return true;
+        }
+
+        origin = pos - (sideDir * 20);
+
+        if(tracer.Trace(origin, CurSector, dir, len, TRACE_NoSky)) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    // Shoot visible rays to show Pathnode connections
+    virtual void debug_Shootrays() {
+        bool showWidth = getCVar("AI_showlinkwidth");
+        bool showHeight = getCVar("AI_showlinkheight");
+        for(int x=0;x<links.size();x++) {
+            bool shootRay = true;
+            PathNode navPoint = links[x].node;
+            if(navPoint is 'DoorNode') continue; // Don't draw door connections
+
+            for(int x=0;x<blockedList.size();x++) {
+                if(blockedList[x] == navPoint) {
+                    shootRay = false;
+                    break;
+                }
+            }
+
+            if(shootRay) {
+                let lheight = showHeight ? floorZ + links[x].maxHeight - 1 : pos.z + 12;
+                let theight = showHeight ? navPoint.floorZ + links[x].maxHeight - 1 : navPoint.pos.z + 12;
+
+                let linkVisual = Spawn('PathLinkVisual', (pos.x, pos.y, lheight));
+                let dir = (navPoint.pos.x, navPoint.pos.y, theight) - (pos.x, pos.y, lheight);
+                let len = dir.length();
+                dir = dir.unit();
+                linkVisual.angle = atan2(dir.y, dir.x);
+                linkVisual.pitch = -asin(dir.z);
+
+                linkVisual.scale.y = len / 246.0;
+                if(showWidth) linkVisual.scale.x = (links[x].radius * 2) / 35.0;
+                linkVisual.A_SetSize(len);
+                navPoint.blockedList.push(self);
+                pathRays.push(linkVisual);
+                links[x].debugVisual = linkVisual;
+            }
+            //A_SETPITCH(0);
+        }
+    }
+
+    override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+
+        // Reposition slightly higher to become visible
+        if(pos.z == floorz) {
+            SetOrigin((pos.x, pos.y, floorz + 10), false);
+        }
+        
+        if(getCvar("ai_showlinks")) {
+            debugOn = true;
+        }
+
+        if(user_nodeid > 0) {
+            ProcessUDMFNodeInfo();
+        } else {
+            ConnectNodes();
+        }
+        
+        //if(links.size() == 0) {
+        //    A_SetRenderStyle(1.0, STYLE_Normal);
+        //    A_SETSCALE(2.0);
+        //    bfloatbob = true;
+       // }
+    }
+
+    override void tick() {
+        super.tick();
+        if(level.time == 1) {
+            if(debugOn) {
+                A_SetRenderStyle(1.0, STYLE_Normal);
+                debug_Shootrays();
+                cooldown = int.max;
+            }
+        }
+        if(level.time >= 2) {
+            bNoInteraction = true;
+            if(!(self is 'DoorNode')) SleepIndefinite();
+        }
+        /*if(cooldown > 0) {
+           // DEBUG_MakeVisible();
+            cooldown--;
+        }
+        if(cooldown <= 1) {
+            DEBUG_MakeInvisible();
+        }*/
+    }
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+		int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		if(source is "PathNode") {
+            blockedList.push(source);
+        }
+        return res;
+	}
+
+    void DEBUG_MakeVisible() {
+        if(!debugOn) return;
+        cooldown = 100;
+        A_SetRenderStyle(1.0, STYLE_Normal);
+    }
+
+    void DEBUG_MAKEMASSIVE() {
+        if(!debugOn) return;
+        cooldown = 100;
+        A_SETSCALE(scale.x*2);
+        A_SetRenderStyle(1.0, STYLE_Normal);
+    }
+
+    void DEBUG_MakeInvisible() {
+        if(!debugOn) return;
+        setStateLabel("spawn");
+        A_SetRenderStyle(0, STYLE_None);
+    }
+
+    void markAsTaken()
+    {
+        if(bactivateDebugMode)
+        {
+            A_SetRenderStyle(1.0, STYLE_Normal);
+            setStateLabel("taken");
+            cooldown = 200;
+        }
+    }
+
+    void markAsFlanking()
+    {
+        if(bactivateDebugMode)
+        {
+            A_SetRenderStyle(1.0, STYLE_Normal);
+            setStateLabel("flank");
+            cooldown = 200;
+        }
+    }
+
+    int cooldown; 
+    array<PathLink> links;
+    array<Actor> blockedList;   // Used to prevent duplicate debugging lines.
+    array<Actor> pathRays;      // Debug line references
+
+    states {
+        spawn:
+            NODE Z -1 bright;
+            stop;
+        taken:
+            NODE Y -1 bright;
+            stop;
+        flank:
+            NODE X -1 bright;
+            stop;
+    }
+}
+
+
+// A special PathNode that checks links to other DoorNodes against world geometry
+class DoorNode : PathNode {
+    default {
+        Height 24;  // Must see over walkable ground
+    }
+
+    states {
+        spawn:
+            NODE D -1 bright;
+            stop;
+    }
+
+    Array<PathLink> slaves; // Door node links that are checked by this node, to prevent unnecessary cross-checks
+    int checkPhase;
+    int checkCountdown;
+    int checkDelay;         // Checking does not start until checkCountdown < checkDelay
+    int doorAlwaysUseable;  // If the door is always useable, we keep our links connected regardles of blockage
+
+    override void postBeginPlay() {
+        Super.postBeginPlay();
+        
+        doorAlwaysUseable = args[3];
+
+        // Take slaves on a first-come, first-serve basis
+        for(int x = 0; x < links.size(); x++) {
+            let node = DoorNode(links[x].node);
+
+            if(node && !node.hasSlave(self)) {
+                slaves.push(links[x]);  // Take this slave
+            }
+        }
+
+        // Check each door connection at least twice after 5 ticks
+        checkCountdown = 5 + slaves.size() * 2;
+        checkDelay = checkCountdown - 5;
+    }
+
+    override void tick() {
+        Super.tick();
+        
+        if(doorAlwaysUseable == 0) {
+            if(checkCountdown) {
+                checkCountdown--;
+                checkDoorConnections(checkPhase++);
+            } else if((level.time + user_nodeid) % 7) { // Make a check ~ every quarter second  just in case
+                checkDoorConnections(checkPhase++);
+            }
+        } else if(level.time == 2) {
+            SleepIndefinite();
+        }
+    }
+
+    bool hasSlave(DoorNode node) {
+        for(int x = slaves.size() - 1; x >= 0; x--) {
+            if(slaves[x].node == node) return true;
+        }
+        return false;
+    }
+
+    // Checks door connections
+    // If all is true, will check all connections at once
+    // Otherwise this will check door connections in phase, at most one per frame
+    void checkDoorConnections(bool all = false) {
+        if(slaves.size() == 0) return;
+
+        if(all) {
+            for(int x = slaves.size() - 1; x >= 0; x--) {
+                let slave = slaves[x];
+                let blocked = !Checksight(slave.node, SF_IGNOREVISIBILITY);
+                let backNode = slave.node.linkTo(self);
+                if(blocked != slave.blocked || (backNode && blocked != backNode.blocked)) {
+                    slave.blocked = blocked;
+
+                    // Update the reverse connection
+                    if(backNode) {
+                        backNode.blocked = blocked;
+                    }
+                }
+
+                if(slave.debugVisual) {
+                    slave.debugVisual.A_SetRenderStyle(1.0, slave.blocked ? STYLE_None : STYLE_Normal);
+                }
+            }
+        } else {
+            let slave = slaves[checkPhase % slaves.size()];
+            let blocked = !Checksight(slave.node, SF_IGNOREVISIBILITY);
+            if(blocked != slave.blocked) {
+                slave.blocked = blocked;
+                
+                // Update the reverse connection
+                let backNode = slave.node.linkTo(self);
+                if(backNode) {
+                    backNode.blocked = blocked;
+                }
+            }
+
+            if(slave.debugVisual) {
+                slave.debugVisual.A_SetRenderStyle(1.0, slave.blocked ? STYLE_None : STYLE_Normal);
+            }
+        }
+    }
+
+    override void debug_Shootrays() {
+        Super.debug_Shootrays();    // Won't draw door node connections anyways
+
+        for(int x=0;x<slaves.size();x++) {
+            if(slaves[x].debugVisual) continue;
+
+            PathNode navPoint = slaves[x].node;
+
+            let linkVisual = Spawn('DoorLinkVisual', pos + (0,0,12));
+            let dir = (navPoint.pos + (0,0,12)) - (pos + (0,0,12));
+            let len = dir.length();
+            dir = dir.unit();
+            linkVisual.angle = atan2(dir.y, dir.x);
+            linkVisual.pitch = -asin(dir.z);
+
+            linkVisual.scale.y = len / 246.0;
+            linkVisual.A_SetSize(len);
+            pathRays.push(linkVisual);
+            slaves[x].debugVisual = linkVisual;
+        }
+        
+    }
+}
+
+class NODE_TAKEN_DEBUGGER : selacoActor
+{
+    default
+    {
+        +NOINTERACTION;
+    }
+    states
+    {
+        spawn:
+            NODE Z 35;
+            stop;
+    }
+}
+
+class PathLinkVisual : actor {
+    default {
+        +NOINTERACTION
+        +FLATSPRITE
+        RenderStyle "Translucent";
+        alpha 0.3;
+        radius 2;
+        height 2;
+        scale 0.07;
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            NAVP B -1 bright {
+                SleepIndefinite();
+            }
+            stop;
+    }
+}
+
+class DoorLinkVisual : PathLinkVisual {
+    states {
+        spawn:
+            TNT1 A 0;
+            NAVP C -1 bright {
+                SleepIndefinite();
+            }
+            stop;
+    }
+}
+
+/*class pathRoute : PathLinkVisual {
+     states {
+        spawn:
+            NAVP B 65 bright;
+            stop;
+    }   
+}*/
+
+class PatrolTester : EnemySoldier {
+    //mixin Pathfinding;
+    uint patrolStart;
+
+    default {
+        +NOBLOODDECALS;
+        Radius 16;
+        Height 32;
+        Health 900;
+        Monster;
+        scale 0.39;
+		yscale 0.3;
+        Speed 6;
+        SelacoActor.sleepDistance  0;
+    }
+
+    override void PostBeginPlay() {
+        initPathing();
+        Super.PostBeginPlay();
+    }
+
+    override bool CanCollideWith(Actor other, bool passive) {
+        if(goal && other is 'SelacoEnemy') return false;
+        
+        return Super.CanCollideWith(other, passive);
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            RFRU A 1 {
+                patrolStart = level.time;
+            }
+            goto Patrol;
+        See:
+        SeeContinue:
+            RFRU A 65 {
+                A_PRINTBOLD(String.Format("I FOUND YOU, PLAYER! %.0f - %.0f", pos.x, pos.y), 2);
+            }
+            RFRU A 1 {
+                A_PRINTBOLD("Going back on patrol...", 2);
+                angle = random(0, 360);
+                target = null;
+                goal = null;
+                patrolStart = level.time;
+            }
+            goto Patrol;
+        Arrive:
+            RFRU A 65 {
+                A_PRINTBOLD(String.Format("I have arrived near spawn at %.0f - %.0f", pos.x, pos.y), 2);
+            }
+            TNT1 A 0 { angle = random(0, 360); }
+            goto Spawn;
+        PatrolLook:
+            RFFR A 15 {
+                Angle += 90;
+            }
+            RFFR A 15 {
+                Angle -= 90;
+            }
+            RFFR A 15 {
+                Angle -= 90;
+            }
+            RFFR A 5 {
+                Angle += 90;
+            }
+            goto Patrol;
+        Patrol:
+            RFRU AAAAABBBBBCCCCCDDDDD 1 A_PATROL();
+            TNT1 A 0 {
+                let off = spawnPoint.xy - pos.xy;
+                let dist = off.x*off.x + off.y*off.y;
+                if(level.time - patrolStart > (TICRATE * 60) || dist > (2000*2000)) {
+                    SetStateLabel("ReturnHome");
+                }
+            }
+            loop;
+        ReturnHome:
+            RFRU AAABBBCCCDDD 1 { 
+                let state = A_RETURN(arriveState: "Arrive");
+                if(state) SetState(state);
+                else if(!isPathMoving) SetStateLabel("ReturnBuildPath"); // Swap to idle frames if building the path and not moving
+            }
+            loop;
+        ReturnBuildPath:
+            RFRU A 1 A_RETURN(arriveState: "Arrive");
+            RFFR A 0 { if(isPathMoving) SetStateLabel("ReturnHome"); }    // Swap to animated return now that we are moving again
+            loop;
+    }
+}

@@ -1,0 +1,478 @@
+extend class SelacoWeapon {
+
+    // Everyone immune to Melee Attacks should be added here.
+	// Yes, this should be a flag...
+	static const class<actor> MeleeImmunity[] =  {"Juggernaut", "SentryGun", "SentryGunAlien"};
+
+	// These actors can be hit by slidings without cancelling Dawn's sliding.
+	static const class<actor> ignoreSlideCancellation[] =  {"CrawlerMine", "SawDrone"};
+	int angleTransitionerEntry;
+	Array<int> angleTransitioner;
+	const HORIZONTAL_ARC = 30;
+	const VERTICAL_ARC = 55;
+	const HORIZONTAL_SLIDE_ARC = 20;
+	const MELEE_RANGE = 120;
+	int x_diff, y_diff;
+	int directionToLunge;
+	Array<Actor> puntObjectsList; // Actors to punt
+	Array<Actor> puntedObjects; // Crosscheck array to ensure punted objects are not punted again doing the slide.
+	actor holdingObject; 
+
+	action bool hasMeleeImmunity(class<actor> check) {
+		int size = invoker.MeleeImmunity.Size();
+		for(int i = 0; i < size; i++) {
+			if(check is invoker.MeleeImmunity[i])
+				return true;
+			}
+		return false;
+	}
+
+	// Check if actor has already been punted during this slide
+	action bool hasBeenPunted(actor check){
+		int size = invoker.puntedObjects.Size();
+		for(int i = 0; i < size; i++) {
+			if(check == invoker.puntedObjects[i]) return true;
+		}
+		return false;
+	}
+
+
+	action void wipePuntList() {
+		invoker.puntObjectsList.clear();
+		invoker.puntedObjects.clear();
+	}
+
+	// TO-DO: We do not need to shoot linetraces.
+	action void slideKickHandler()
+	{
+		bool connectedHit = false;
+		bool addHitPuntObject;
+		Actor puntObject;
+		for (int x = -HORIZONTAL_SLIDE_ARC; x <= HORIZONTAL_SLIDE_ARC && !connectedHit; x += 10)
+		{
+			addHitPuntObject = true;
+			FLineTraceData remoteRay;
+			LineTrace(angle + x, 60, pitch, offsetz: 8, data: remoteRay);
+
+			// If actor is a crate, destroy it.
+			if (remoteRay.HitType == TRACE_HitActor && remoteRay.HitActor is "CrateObject")
+			{
+				remoteRay.HitActor.A_DamageSelf(1000);
+				break;
+			}
+
+			// Target is a pushable object
+			if (remoteRay.HitType == TRACE_HitActor && ((remoteRay.HitActor.bPushable && remoteRay.HitActor.mass < 8000 && (SelacoActor(remoteRay.HitActor) && SelacoActor(remoteRay.HitActor).bAllowPunting)) || GetClassName() == "EnemyThrownGrenade"))
+			{
+				// Actor has the pushable flag. So add to the array if not already in the list.
+				if (invoker.puntObjectsList.Size() > 0)
+				{
+					for (int i = 0; i < invoker.puntObjectsList.Size(); i++)
+					{
+						if (remoteRay.HitActor == invoker.puntObjectsList[i])
+						{
+							// Pushable actor is already hit here, do not add.
+							addHitPuntObject = false;
+							break;
+						}
+					}
+				}
+
+				// Actor has not been hit yet, add to the list.
+				if (addHitPuntObject)
+				{
+					invoker.puntObjectsList.Push(remoteRay.HitActor);
+				}
+			}
+
+			// We found an enemy to smack!
+			if (remoteRay.HitType == TRACE_HitActor && remoteRay.HitActor.bIsMonster || remoteRay.HitActor is "PlasmaShieldActor")
+			{
+				getMeleeTargets();
+				executeMeleeHits();
+				// If enemy has Slide Cancellation, stop sliding after this hit
+				if (SelacoActor(remoteRay.HitActor) && SelacoActor(remoteRay.HitActor).ballowSlideCollision)
+				{
+					cancelSlide();
+				}
+				if(SelacoActor(remoteRay.HitActor) is "SelacoEnemy")
+				{
+					connectedHit = true;
+				}
+			}
+
+			S_WeaponReady(WRF_ALLOWRELOAD);
+			A_WeaponOffset(frandom(-0.95, 0.95), 32 + frandom(-0.95, 0.95), WOF_INTERPOLATE);
+		}
+
+		// Punt objects
+		let pu = self;
+		bool coverFlipped = false;
+		float playerMomentum = abs(vel.x) + abs(vel.y);
+		double puntForce = playerMomentum * 3.0;
+		double puntUpForce = 8;
+
+		if (invoker.puntObjectsList.Size() > 0)
+		{
+			// Check if the actor has already been punted during the current slide.
+			for (int i = 0; i < invoker.puntObjectsList.Size(); i++)
+			{
+				actor selectedPuntObject = invoker.puntObjectsList[i];
+
+				if (selectedPuntObject && !hasBeenPunted(selectedPuntObject))
+				{
+					// Flip if the actor can be flipped down for cover
+					if (selectedPuntObject is "CoverActor")
+					{
+						coverFlipped = true;
+						ACS_NamedExecute("CancelSlide", 0);
+					}
+
+					// Launch the object
+					if (selectedPuntObject is "PickupableDecoration" && !coverFlipped)
+					{
+						PickupableDecoration(selectedPuntObject).Throw();
+					}
+
+					if (!coverFlipped)
+					{
+						selectedPuntObject.vel += pu.vel + (0, 0, puntUpForce);
+						// Play hit sound effect
+						A_StartSound("impact/melee", CHAN_6, 0, 0.5, 1.0, pitch:1.25);
+						// Add actor to the Punted list.
+						invoker.puntedObjects.Push(selectedPuntObject);
+
+						// Slow Down Dawn's velocity
+						if (selectedPuntObject.radius > 15)
+						{
+							vel = (vel.x * 0.9, vel.y * 0.9, vel.z);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	bool isValidMeleeTarget(actor meleeTarget)
+	{
+		return (meleeTarget is "SelacoActor" && !SelacoActor(meleeTarget).bIgnoredByMelee);
+	}
+
+	const STEP_COUNT = 3; // Amount of ticks it will take for the player to snap onto the target
+	const MAX_TRACK_STEPS = 9; // Maximum steps allowed for tracking
+	const MINIMAL_DISTANCE_FOR_LUNGE = 50;
+	int trackSteps; // Initialize the tracking step counter
+	
+	// Move the camera in steps towards the target
+	void snapToMeleeTarget() {
+		
+		// Check if maximum tracking steps have been reached to avoid perma-tracking
+		if (trackSteps >= MAX_TRACK_STEPS) {
+			lungeTarget = null;
+			return;
+		}
+		
+		// Get the player and target
+		Dawn meleeSource = Dawn(players[consolePlayer].mo);
+		Actor meleeTarget = lungeTarget;
+	
+		int targetDistance = distance3D(meleeTarget);
+
+		// Get their positions
+		vector3 playerPos = meleeSource.pos;
+		vector3 enemyPos = meleeTarget.pos;
+	
+		// Calculate the angle from player to target
+		float targetAngle = atan2(enemyPos.y - playerPos.y, enemyPos.x - playerPos.x);
+	
+		// Determine the current angle and difference to target
+		float currentAngle = meleeSource.angle;
+		float angleDiff = targetAngle - currentAngle;
+	
+		// Normalize
+		angleDiff = (angleDiff + 180) % 360 - 180;
+	
+		// Get the amount we want to increment
+		float angleIncrement = angleDiff / STEP_COUNT;
+	
+		// Change player angle. No idea how to interpolate from angle directly to A_SETANGLE we go!
+		meleeSource.A_SETANGLE(meleeSource.angle + angleIncrement, SPF_INTERPOLATE);
+
+		if(trackSteps <= 3 && targetDistance > MINIMAL_DISTANCE_FOR_LUNGE) {
+			meleeSource.A_RECOIL(-13);
+		}
+
+		// Stop after a few ticks or when we're close enough
+		if(trackSteps == 6 || targetDistance <= MINIMAL_DISTANCE_FOR_LUNGE ) {
+			meleeSource.vel.x = 0;
+			meleeSource.vel.y = 0;
+		}
+
+		// Move to target
+		//meleeSource.A_RECOIL(-1);
+
+		// Increment the tracking step counter
+		trackSteps++;
+
+		// Disallow mouse movement during this play
+		SelacoWeapon(meleeSource.player.readyWeapon).lookscale = 0;
+	}
+
+	Array<Actor> hitMonsters;
+	array<int> hitMonsterAngleLocation;
+	bool hasMeleeUpgrade;
+	bool meleeConnected;
+	bool slideHit;
+	bool playerIsSliding;
+
+	// Check in front of the player and acquire all enemies within range of the melee attack
+	action void getMeleeTargets() {
+		// TODO: Cleaning this after some sleep
+		invoker.trackSteps = 0;
+		invoker.hasConfidenceBooster = countInv("ConfidenceBooster");
+		invoker.hasMeleeUpgrade = invoker.hasUpgradeClass(invoker.meleeUpgradeName);
+		invoker.meleeConnected = false;
+		invoker.slideHit = false;
+		invoker.playerIsSliding = countinv("SlideScriptActive") > 0;
+		invoker.hitMonsters.clear();
+		invoker.hitMonsterAngleLocation.clear();
+
+		Array<actor> tempHitMonsters;
+
+		FLineTraceData remoteRay;
+		// Check Horizontal
+		for (int x = -HORIZONTAL_ARC; x <= HORIZONTAL_ARC; x += 10) {
+			// Check vertical
+			for (int y = -VERTICAL_ARC; y <= VERTICAL_ARC; y += 10) {
+				LineTrace(angle + x, MELEE_RANGE, pitch + y, offsetz: 24, data: remoteRay);
+
+				// Look for someone to hit.
+				if (remoteRay.HitType == TRACE_HitActor) {
+					SelacoActor foundTarget = SelacoActor(remoteRay.HitActor);
+					if(!foundTarget || !invoker.isValidMeleeTarget(foundTarget)) {
+						continue;
+					}
+
+					// Find actors with the BreakOnMelee flag
+					if(foundTarget && foundTarget.bBreakOnMelee) {
+						foundTarget.breakByMelee(invoker.owner);
+					}
+
+					// Target is a monster or SquadShield
+					if (foundTarget.bIsMonster || foundTarget is "PlasmaShieldActor") {
+						bool addHitMonster = true;
+
+						if ((invoker.activeSlideState || invoker.playerIsSliding) && !invoker.slideHit) {
+							invoker.slideHit = true;
+						}
+
+						// Check if monster is already hit
+						if(tempHitMonsters.Size() > 0) {
+							for(int x=0; x<tempHitMonsters.size();x++) {
+								if(foundTarget == tempHitMonsters[x]) {
+									// Monster is already hit here, do not add.
+									addHitMonster = false;
+									break;
+								}
+							}
+						}
+
+						// Monster not hit before? Add to array.
+						if (addHitMonster) {
+							invoker.meleeConnected = true;
+							tempHitMonsters.Push(foundTarget);
+							invoker.hitMonsterAngleLocation.push(x);
+						}
+					}
+				}
+			}
+		}
+		invoker.hitMonsters.copy(tempHitMonsters);
+	}
+
+	action void getClosestMeleeTarget() {
+		// Find the closest enemy
+		if(invoker.hitMonsters.size())
+		{
+			int closestIndex = 0;
+			int closestDistance = abs(invoker.hitMonsterAngleLocation[0]);
+
+			for (int i = 1; i < invoker.hitMonsterAngleLocation.size(); i++)
+			{
+				int currentDistance = abs(invoker.hitMonsterAngleLocation[i]);
+				if (currentDistance < closestDistance)
+				{
+					closestDistance = currentDistance;
+					closestIndex = i;
+				}
+			}
+
+			// Mark closest target as our lunge target
+			invoker.lungeTarget = invoker.hitMonsters[closestIndex];
+		}
+	}
+
+	// This one does both lol
+	action void meleeAndLunge() {
+		getMeleeTargets();
+		getClosestMeleeTarget();
+	}
+
+	action void executeMeleeHits() {
+		// TODO: Cleaning this after some sleep
+		array<actor> enemiesToSmack; 
+		enemiesToSmack.copy(invoker.hitMonsters);
+
+		if(enemiesToSmack.Size() > 0) 
+		{
+			if(getCvar("g_screenshake") == 2) {
+				A_QuakeEx( 3, 3, 0, 5, 0, 20, 0, 0, 10, 10, 10, 6);
+			}
+			int damageValue = 25;
+			int damageVelocity;
+			string damageType_ = "MeleeImpact";
+			if(invoker.slidehit) {
+				damageVelocity = -16;
+			}
+			// Improve Damage and Velocity if the player has a Condifence Booster
+			if(invoker.hasConfidenceBooster) {
+				damageVelocity -= 20;
+				damageValue += 25;
+			}
+			// Improve Damage and Velocity if the player has a Melee Booster
+			if(invoker.hasMeleeUpgrade) {
+				damageVelocity -= 10;
+				damageValue += 12;
+			}
+			if(invoker.hasConfidenceBooster || invoker.hasMeleeUpgrade) {
+				A_PLAYSOUND("melee/upgradehit", CHAN_AUTO);				
+			}
+			// Extra oomph when on Mega Powder
+			if(countinv("MegaPowderAmount") > 0) {
+				A_TakeInventory("MegapowderAmount", 3);
+				damageVelocity-=20;
+				damageValue+=15;
+			}
+
+			// Go through all found target and apply damage.
+			for(int x=0; x<enemiesToSmack.size();x++) {
+				actor hitActor = enemiesToSmack[x];
+				if(!hitactor) {
+					continue;
+				}
+				// Only play
+				if(x == 0) {
+					A_PlaySound("melee/flesh", CHAN_AUTO, 0.7, pitch: 0.8);
+					if(hitActor is "EnemySoldier") {
+						A_PLAYSOUND("bone/snap", chan_auto, 1.0, 0, 0.9);
+						A_PlaySound("impact/melee/enemy", CHAN_5, 0.7);
+					}
+				}
+				meleeEffects(hitActor);
+				invoker.meleeTargetHit = true;
+
+				hitActor.bNoPain = false;
+
+				if(invoker.slideHit) {
+					stats.addStat(STAT_SLIDE_HITS, 1, 0);
+				} else {
+					stats.addStat(STAT_MELEE_HITS, 1, 0);
+				}
+
+				
+				// Stop movement when target is hit, unless actor has allowSlideCollision set to false.
+				if(SelacoActor(hitActor) && SelacoActor(hitActor).ballowSlideCollision) {
+					self.vel = (0.1, 0,1);
+				}
+
+				// Face Dawn
+				hitActor.A_FACE(self);
+
+				// Player uses a taser? Electricute the bastards instead! 
+				if(player.ReadyWeapon.getClassName() == "SMG" && TaserIsAvailable() && invoker.isMeleeAttack && (SelacoEnemy(hitActor) && SelacoEnemy(hitActor).conductivity > 0)) {
+					damageValue = 25;
+					damageType_ = "MeleeImpactTaser";
+					ACS_NamedExecuteAlways("SMG_Taser_Charger", 0);
+				}
+
+				hitActor.A_SpawnItemEx("MeleeImpactEffect", -5, 0, 40);
+				if(!hitActor.bDontThrust) {
+					hitActor.A_CHANGEVELOCITY(damageVelocity, 0, 4, CVF_RELATIVE);
+				}
+				hitActor.bNoPain = false;
+
+
+
+				// Required so the monster knows who hit it @cockatrice
+				hitActor.damageMobj(self, self, damageValue, damageType_);
+
+				//hitActor.A_DamageSelf(damageValue, damageType_);
+				vector2 shakeValue = (frandom(0.7,1.0), frandom(0.7,1.0));
+				InputHandler.Instance().AddWorldFeedback2
+				(
+					shakeValue,
+					shakeValue,
+					shakeValue,
+					shakeValue
+				);
+			}
+
+			// END OF MELEE 
+			if(invoker.playerIsSliding && invoker.meleeConnected) {
+				A_PLAYSOUND("dawn/targetedMelee", CHAN_6);
+				//cancelSlide();
+			}
+		}
+
+		// No one hit? Spawn a Melee Puff to damage an object that's not an actual target.
+		if(player && !invoker.meleeConnected) 
+		{
+			bool noTaserCD;
+			string meleeEffect = "WeaponMelee";
+			if(player.ReadyWeapon is "SMG") 
+			{
+				noTaserCD = true;
+			}
+			if(player.ReadyWeapon is "DMR") 
+			{
+				meleeEffect = "MeleeKick";
+			}
+			spawnMeleeAttack(meleeEffect);
+		}
+		invoker.meleeConnected = false;
+	}
+
+	action bool TaserIsAvailable() {
+		if(players[consolePlayer].mo.countinv("SmgTaserCharge") == 0) {
+			players[consolePlayer].mo.A_GiveInventory("SMGTaserCharge", 9999);
+			return true;
+		}
+		return false;
+	}
+
+	action void cancelSlide() {
+		if(!invoker.dropkickHit) {
+			invoker.dropKickHit = true;
+			//A_GiveInventory("StopSliding", 1);
+			A_TakeInventory("SlideScriptActive", 1);
+			A_GiveInventory("CooldownSliding", 999);
+
+			let d = Dawn(players[consolePlayer].mo);
+			d.viewHeight = d.DefaultViewheight;
+			d.CrouchMove(1);
+
+		}
+	}
+
+	action void meleeEffects(actor hitActor) {
+		A_QuakeEx( 3, 3, 3, 8, 0, 20, 0, 0, 10, 10, 10, 6);
+		for(int i=0;i<6;i++) {
+			A_SPAWNITEMEX("MeleeSmoke", 30, frandom(-2,2),  frandom(30,34));
+		}
+        // TODO: PARTICLEPOOL
+/* 		for(int i = 0; i < 23; i++) {
+			A_SpawnProjectile ("SparkXSmallNoGrav", frandom(-3,3), frandom(-3,3), random (-45, 45), CMF_ABSOLUTEPITCH , frandom(-20,20));
+		} */
+	}
+
+}

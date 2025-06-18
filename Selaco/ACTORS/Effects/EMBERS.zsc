@@ -1,0 +1,490 @@
+
+class EmberEmitterCore : actor {
+    int emberCount;
+    String emberActor;
+
+    enum EMITTER_TYPE {
+        Clean_Left,
+        Haywire,
+        Haywire_strongup,
+    }
+
+    float types[10];
+    int spawnFailchance;
+
+    string emberParticle;
+    property emberParticle : EmberParticle;
+
+    void emberInit(int count, String actor, EMITTER_TYPE type) {
+        static const int spawnChanceSettings[] = {220, 170, 120, 50, 0 };
+		let spawnSetting = GetCVar("r_particleIntensity");
+		if(spawnSetting < 0 || spawnSetting > 5) { spawnSetting = 3; }
+		spawnFailchance = spawnChanceSettings[spawnSetting - 1];
+
+        emberCount = count;
+        emberActor = actor;
+        
+        switch(type) {
+            case Haywire:
+                types[0] = -2.7;
+                types[1] = 2.7;
+                types[2] = -2.7;
+                types[3] = 2.7;
+                types[4] = -1.4;
+                types[5] = 1.4;
+                break;
+            case Clean_Left:
+                types[0] = 4.0;
+                types[1] = 4.0;
+                types[2] = 3.0;
+                types[3] = 6.0;
+                types[4] = -0.3;
+                types[5] = 0.3;
+                break;
+            case Haywire_strongup:
+                types[0] = -1.7;
+                types[1] = 1.7;
+                types[2] = -1.7;
+                types[3] = 1.7;
+                types[4] = 1.3;
+                types[5] = 2.1;
+                break;
+        }
+    }
+
+    states {
+        Spawn:
+        	TNT1 A 0;
+            TNT1 A 0 {
+                emberInit(100,"GreenBaseEmber", Clean_Left);
+                SetStateLabel("SpawnEmbers");
+            }
+        SpawnEmbers:
+            TNT1 A 0 {
+                for(int i=0;i<emberCount;i++) {
+                    A_SpawnItemEx (emberActor, random(2, 9), random(-5,5), random(-5, 5), frandom(types[0], types[1]), frandom(types[2], types[3]), frandom(types[4], types[5]), 0, failchance:invoker.spawnFailchance);
+                }
+            }
+            stop;
+        }
+}
+
+class emberModeSelectTraditional : EmberEmitterCore {
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                emberInit(60, "GreenBaseEmber", Haywire);
+                SetStateLabel("SpawnEmbers");
+            }    
+    }
+}
+
+class emberModeSelectHardcore : EmberEmitterCore {
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                emberInit(60, "OrangeBaseEmber", Haywire);
+                SetStateLabel("SpawnEmbers");
+            }    
+    }
+}
+
+class OrangeEmberSpawner : EmberEmitterCore {
+    int particleSetting;
+    override void PostBeginPlay() {
+        particleSetting = getCvar("r_particleintensity");
+    }
+    
+    default {
+        EmberEmitterCore.emberParticle "OrangeEmber";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+        SpawnEmbers:
+            TNT1 A 0 {
+                for(int i=0;i<particleSetting;i++) {
+                    A_SpawnItemEx (emberParticle, random(100, 600), frandom(-200,200), random(-120, 170), 0, frandom(-0.4,0.4), frandom(0.4, -0.4));
+                }
+            }
+            stop;
+    }
+}
+
+
+class fireemberspawner : EmberEmitterCore {
+    int particleSetting;
+    override void PostBeginPlay() {
+        particleSetting = getCvar("r_particleintensity");
+    }
+    
+    default {
+        EmberEmitterCore.emberParticle "FireEmber";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+        SpawnEmbers:
+            TNT1 A 0 {
+                for(int i=0;i<particleSetting;i++) {
+                    A_SpawnItemEx (emberParticle, random(250, 600), frandom(-200,200), random(-100, 150), 0, frandom(-0.4,0.4), frandom(0.4, -0.4));
+                }
+            }
+            stop;
+    }
+}
+
+class fireSmokespawner : EmberEmitterCore {
+    int particleSetting;
+    
+    default {
+        EmberEmitterCore.emberParticle "FireEmber";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+        SpawnEmbers:
+            TNT1 A 0 {
+                for(int i=0;i<3;i++) {
+                    A_SpawnItemEx ("FireCloud", random(600, 1900), frandom(-400,400), random(0, 80), 0, frandom(-0.4,0.4), frandom(0.4, -0.4));
+                }
+            }
+            stop;
+    }
+}
+
+class FireCloud : SelacoActor {
+    int frameID;
+    override void postbeginPlay() {
+        super.postbeginPlay();
+        frameID = random(0,3);
+    }
+    default {
+        +NOINTERACTION;
+        SelacoActor.sleepdistance 0;
+        scale 0.4;
+        alpha 0;
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            SMK7 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 bright {
+                frame = frameID;
+                A_FADEIN(0.007);
+            }
+            SMK7 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 bright {
+                frame = frameID;
+                A_FADEOUT(0.002, FTF_REMOVE);
+            }
+            stop;
+    }
+}
+
+class BlueEmberSpawner : fireemberspawner
+{
+    default {
+        EmberEmitterCore.emberParticle "BlueBaseEmber";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        SpawnEmbers:
+            TNT1 A 0 {
+                for(int i=0;i<particleSetting*0.5;i++) {
+                    A_SpawnItemEx (emberParticle, random(250, 800), frandom(-200,200), random(-100, 150), 0, frandom(-0.4,0.4), frandom(0.4, -0.4));
+                }
+            }
+            stop;
+    }
+}
+
+class GreenEmberSpawner : fireemberspawner
+{
+    default {
+        EmberEmitterCore.emberParticle "GreenBaseEmber";
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        SpawnEmbers:
+            TNT1 A 0 {
+                for(int i=0;i<particleSetting*0.5;i++) {
+                    A_SpawnItemEx (emberParticle, random(100, 600), frandom(-200,200), random(-100, 150), 0, frandom(-0.4,0.4), frandom(0.4, -0.4));
+                }
+            }
+            stop;
+    }
+}
+
+
+class WhiteEmberSpawner : fireemberspawner
+{
+    default {
+        EmberEmitterCore.emberParticle "BlueBaseEmber";
+    }
+}
+
+
+class BaseEmber : actor {
+    default {
+        +Missile
+        +NoBlockmap
+        +NoInteraction
+        -Solid
+        Radius 0;
+        Height 0;
+        RenderStyle "Add";
+        Alpha 0.01;
+        Gravity 0.25;
+    }
+}
+
+class GreenBaseEmberLarger : BaseEmber {
+    default {
+        Scale 0.042;
+    }
+    States
+    {
+        Spawn:
+            EMBR YYYY 1 Bright A_FadeIn(0.25);
+            EMBR YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY 1 Bright A_FadeOut(0.01);
+            Stop;
+        FadeAway:
+            EMBR YYYYYYYYYYYYYYYYYYYYYYYYYYYYY 1 Bright A_FadeOut(0.06);
+            stop;
+    }
+}
+
+class FireEmber : GreenBaseEmber {
+    int spriteNum;
+
+    default {
+        +ROLLSPRITE;
+    }
+
+    override void postbeginPlay() {
+        super.postbeginPlay();
+        spriteNum = random(0,3);
+        A_SetScale(frandom(0.05,0.082), frandom(0.04,0.089));
+    }
+
+    override void Tick()
+    {
+        super.tick();
+        roll+=4;
+    }
+
+    States
+    {
+        Spawn:
+            FEMB AAAAAAAAAAAA 1 Bright {
+                frame = spriteNum;
+                A_FadeIn(0.08);
+            }
+            FEMB AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright {
+                frame = spriteNum;
+                A_FadeOut(0.019);
+            }
+            Stop;
+        FadeAway:
+            FEMB AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright 
+            {
+                frame = spriteNum;
+                A_FadeOut(0.05);
+            }
+            stop;
+    }
+}
+
+class OrangeEmber : GreenBaseEmber {
+    override void postbeginPlay() {
+        super.postbeginPlay();
+        A_SetScale(frandom(0.02,0.042), frandom(0.02,0.0469));
+    }
+
+    States
+    {
+        Spawn:
+            EMBR AAAA 1 Bright {
+                A_FadeIn(0.25);
+            }
+            EMBR AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright {
+                A_FadeOut(0.014);
+            }
+            Stop;
+        FadeAway:
+            EMBR AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright 
+            {
+                A_FadeOut(0.04);
+            }
+            stop;
+    }
+}
+
+
+
+class WhiteEmber : GreenBaseEmber {
+    int frameID;
+    DEFAULT {
+        +rollsprite;
+    }
+    override void postbeginPlay() {
+        super.postbeginPlay();
+        roll = random(0,360);
+        frameID = random(0,8);
+        A_SetScale(frandom(0.01,0.022), frandom(0.01,0.029));
+    }
+
+    States
+    {
+        Spawn:
+            SNOF DDDDDDDD 1 Bright {
+                frame = frameID;
+                A_FadeIn(0.12);
+            }
+            SNOF DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 1 Bright {
+                A_FadeOut(0.010, FTF_REMOVE);
+                frame = frameID;
+            }
+            Stop;
+        FadeAway:
+            EMBR DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 1 Bright A_FadeOut(0.04);
+            stop;
+    }
+}
+
+class OrangeBaseEmber : actor
+{
+    default {
+        +Missile
+        +NoBlockmap
+        +NoInteraction
+        -Solid
+        Radius 0;
+        Height 0;
+        RenderStyle "Add";
+        Alpha 0.01;
+        Scale 0.012;
+        Gravity 0.25;
+    }
+ States
+ {
+  Spawn:
+   EMBR AAAA 1 Bright A_FadeIn(0.2);
+   EMBR AAAAAAAAAAAAAAAAAAAA 1 Bright A_FadeOut(0.06);
+   Stop;
+   FadeAway:
+	EMBR AAAAAAAAAAAAAAAAAAAA 1 Bright A_FadeOut(0.15);
+	stop;
+ }
+}
+
+class BlueBaseEmber : actor
+{
+    override void postbeginPlay() {
+        super.postbeginPlay();
+        A_SetScale(frandom(0.02,0.042), frandom(0.02,0.049));
+    }
+
+    default 
+    {
+        +NoBlockmap
+        +NoInteraction
+        RenderStyle "Add";
+        Alpha 0.01;
+        Scale 0.042;
+    }
+ States
+     {
+        Spawn:
+            EMBR BBBBBBBB 1 Bright A_FadeIn(0.1);
+            EMBR BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB 1 Bright A_FadeOut(0.01, FTF_REMOVE);
+        Stop;
+    }
+}
+
+class GreenBaseEmber : actor
+{
+    override void postbeginPlay() {
+        super.postbeginPlay();
+        A_SetScale(frandom(0.02,0.042), frandom(0.02,0.049));
+    }
+
+    default 
+    {
+        +NoBlockmap
+        +NoInteraction
+        RenderStyle "Add";
+        Alpha 0.01;
+        Scale 0.042;
+    }
+ States
+     {
+        Spawn:
+            EMBR YYYYYYYY 1 Bright A_FadeIn(0.1);
+            EMBR YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY 1 Bright A_FadeOut(0.01, FTF_REMOVE);
+        Stop;
+    }
+}
+
+
+// STANDALONE EFFECT
+Class FireEmberAtmosSpawner : actor {
+    default {
+        +NOINTERACTION
+        +NOBLOCKMAP
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 {
+                for(int i=2; i>=0;i--) {
+                    A_SPAWNITEMEX("FireEmberAtmos", frandom(150, 400), frandom(-500, 500), frandom(0, 200), frandom(0,2), frandom(0,2), frandom(-0.8,0.8));
+                }
+            }
+            stop;
+    }
+}
+
+class FireEmberAtmos : actor {
+    int frameID;
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        A_SETROLL(0,360);
+        frameID = random(0,4);
+        A_SETSCALE(frandom(0.05,0.11));
+    }
+
+    override void tick() {
+        super.tick();
+        //A_SETANGLE(angle+10);
+        //A_SETPITCH(Pitch+10);
+        //A_SETROLL(roll+10);
+    }
+
+    default {
+        +NOINTERACTION
+        +ROLLSPRITE;
+        +WALLSPRITE;
+        Alpha 0;
+        scale 0.02;
+    }
+    States {
+        Spawn:
+            FEMB AAAAAAAAAAAAAAAAAAAAA 1 BRIGHT {
+                A_FADEIN(0.07);
+                frame = frameID;
+            }
+            FEMB AAAAAAAAAAAAAAAAAAAAA 1 BRIGHT {
+                A_FADEOUT(0.07);
+                frame = frameID;
+            }
+            stop;
+    }
+}

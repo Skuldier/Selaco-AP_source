@@ -1,0 +1,1220 @@
+
+// A lot of things have changed, and there's no time to properly clean up all of this code so there's a lot of redundant stuff.
+// Excuse the mess, I'll fix this sometime after EA launch
+mixin class SentryGunBase {
+    actor turret;
+    bool success;
+    string turretToSpawn;
+    
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+        if(!bFriendly) doDamageChecks(inflictor, source, res, damageType);
+        return res;
+    }
+    
+    override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        if(!bFriendly) doDeathChecks(source, inflictor, dmgflags, MeansOfDeath);
+        Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        if(getClassName() == "SentryGunBaseFriendly") {
+            turretToSpawn = "SentryGunTurretFriendly";
+        }
+        if(getClassName() == "SentryGun") {
+            turretToSpawn = "SentryGunTurret";
+        }
+        if(getClassName() == "SentryGunBaseRocketMounted") {
+            turretToSpawn = "SentryGunTurretRocket";
+        }
+        [success, turret] = A_SpawnItemEx(turretToSpawn, 0, 0, 34, 0, 0, 0, 0, SXF_SETMASTER);
+        A_SETANGLE(angle+720);
+    }
+
+    default {
+        +SHOOTABLE
+        +STANDSTILL
+        +FLOORCLIP
+        +NOBLOODDECALS
+        -SOLID;
+        +ismonster
+        +DONTTHRUST
+        damageFactor "AlienBullet", 0.25;
+        SELACOACTOR.SleepDistance 0;
+        tag "$OBJECT_ENEMYTURRET";
+        BloodType "Selaco_Blood_MECHANICAL", "Selaco_Blood_MECHANICAL", "Selaco_Blood_MECHANICAL";
+        Radius 22;
+        Height 35;
+        PainChance 255;
+        mass 600;
+        HEALTH 1050;
+        Damage 0;
+    }
+	states {
+        PickUp:
+            VOXE L 1 {
+                A_STOPSOUND(CHAN_7);
+                A_PLAYSOUND("sentry/pickup", CHAN_AUTO, 0.75);
+            }
+        Holding:
+            VOXE L 1 {
+                if(turret) {
+                    let SentryGunTurretProps = SentryGunTurret(turret);
+                    SentryGunTurretProps.pickedup = true;
+                    SentryGunTurretProps.SetStateLabel("WaitForPower");
+                    turret.A_SETANGLE(angle+720);
+                }
+            }
+            loop;
+        PutDown:
+        Throw:
+            TNT1 A 0 {
+                for(int x=0;x<9;x++) {
+                    A_SpawnItemEx("BodyImpactSmokeSmall", frandom(-6,3), frandom(-3,3), -2, xvel:1, zvel:1, angle:(random(0,360)));
+                }
+                EmitDefinition('SparkBriefSmallDefintion', 1.0, 50,pitch:-90, speed:-1);
+                A_PLAYSOUND("sentry/place", CHAN_AUTO, 0.75);
+                vel.z = -50;
+                mass = 600;
+                if(turret) {
+                    let SentryGunTurretProps = SentryGunTurret(turret);
+                    SentryGunTurretProps.defaultRotation = angle;
+                    SentryGunTurretProps.pickedup = false;
+                    SentryGunTurretProps.setRotation(0);
+                    SentryGunTurretProps.SetStateLabel("WaitForPower");
+                }
+            }
+            VOXE L 35;
+            TNT1 A 0 {
+                A_PLAYSOUND("sentry/poweron", CHAN_AUTO, 0.9);
+                if(turret) {
+                    let SentryGunTurretProps = SentryGunTurret(turret);
+                    SentryGunTurretProps.resetAngle();
+                }
+            }
+		Spawn:
+            TNT1 A 0;
+		WaitMode:
+			VOXE L -1 {
+                bSolid = true;
+            }
+		xdeath:
+		Death:
+			VOXE L 1 A_DamageChildren(9000);
+			VOXE L 1 {
+                if(health > 0) {
+                    setStateLabel("remove");
+                }
+                bSolid = false;
+                A_SPAWNITEMEX("SentryGunBroken");
+            }
+            stop;
+        Remove:
+            TNT1 A 0;
+            stop;
+	}
+}
+
+class SentryGun : Interactable
+{
+    mixin SelacoEnemyFuncs;
+    mixin SentryGunBase;
+    default {
+        mass 600;
+    }
+}
+
+class SentryGunBaseFriendly : PickupableDecoration {
+    mixin SelacoEnemyFuncs;
+    mixin SentryGunBase;
+    int turretdefaultRotation;
+    protected int turretTravelTID;
+
+    actor mapIcon;
+    bool succ;
+
+    default {
+        speed 0;
+        friction 0;
+        mass 600;
+        health 150;
+        -PUSHABLE;
+        -NOBLOOD
+        -SelacoActor.SleepWhenIdle;
+        +PickupableDecoration.HoldFromFront;
+        -PickupableDecoration.HoldFromBack;
+        PickupableDecoration.throwVel 0;
+        PickupableDecoration.MaxThrowVel 0;
+        PickupableDecoration.HoldDistance 55;
+        PickupableDecoration.HoldHeight -45;
+        +SelacoActor.ShowHealthOnPrompt
+        +SelacoActor.ThruEnemies
+        SelacoActor.UseTag "$ACT_REPOSITION";
+        tag "$OBJECT_SENTRYGUN";
+        BloodType "Selaco_Blood_MECHANICAL", "Selaco_Blood_MECHANICAL", "Selaco_Blood_MECHANICAL";
+        -isMonster;
+        +friendly;
+        -solid;
+    }
+
+    override void beginPlay()
+    {
+        super.beginPlay();
+        [succ, mapIcon] = A_SPAWNITEMEX("map_SentryGun", flags:SXF_SETMASTER);
+    }
+    
+    override void prepareForTravel(DawnLevelTransitioner trans) {
+        Super.prepareForTravel(trans);
+
+        let turret = SelacoActor(turret);
+        if(turret && !turret.preparedForTravel) {
+            turret.wake(); // This will also change our statnum, but we just want to clear any sleep flags just in case
+
+            turret.UnlinkFromWorld();
+            turretTravelTID = turret.tid;
+            turret.ChangeTid(0);
+            
+            // Move object into the stat num for travelling objects
+            turret.ChangeStatNum(STAT_TRAVELLING);
+
+            // Remove all attached lights, they should be recreated on the other side
+            turret.DeleteAttachedLights();
+
+            turret.preparedForTravel = true;
+        }
+    }
+
+    override void finishedTravel(PlayerPawn newPP, DawnLevelTransitioner transitioner) {
+        Super.finishedTravel(newPP, transitioner);
+
+        if(turret) {
+            // Move back to a standard stat num
+            turret.ChangeStatNum(STAT_DEFAULT);
+
+            // Relink to world with new TID
+            // This should never have been done, the turret does not get our TID normally
+            //turret.ChangeTid(travelTID);
+            turret.LinkToWorld();
+
+            let sa = SelacoActor(turret);
+            if(sa) sa.preparedForTravel = false;
+
+            //Warp into the previous offset position above the turret base
+            turret.a_warp(AAPTR_MASTER,0,0,39, 0, WARPF_USECALLERANGLE | WARPF_NOCHECKPOSITION);
+            turret.ClearInterpolation();
+        }
+    }
+
+}
+
+class SentryGunBroken : SentryGun {
+    default {
+        mass 600;
+        -Shootable
+        -SOLID;
+        +thruactors
+        -Ismonster;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+        Death:
+            VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 8 A_SpawnProjectile ("PlasmaSmoke", 24, 0, random (0, 180), 2, random (0, 180));
+            VOXE L -1;
+            stop;
+    }  
+
+}
+
+class SentryGunTurret : Interactable {
+    mixin SelacoEnemyFuncs;
+
+    int viewFOV;
+    property ViewFOV : viewFOV;
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+        if(!bFriendly) doDamageChecks(inflictor, source, res, damageType);
+        return res;
+    }
+
+
+    override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        if(!bFriendly) doDeathChecks(source, inflictor, dmgflags, MeansOfDeath);
+        Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+    }
+
+    int leftLimit, rightLimit;
+    bool playServoSound;
+    bool pickedup;
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        playServoSound = true;
+        defaultRotation = angle;
+        if(getCvar("skill") == 5) {
+            playServoSound = false;
+        }
+    }
+
+    void resetAngle() {
+        angle = defaultRotation;
+        setStateLabel("Idle");
+    }
+
+    double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+    override void tick() {
+        super.tick();
+        withinAngleLimits();
+        a_warp(AAPTR_MASTER,0,0,39, 0, WARPF_USECALLERANGLE | WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+    }
+
+    void withinAngleLimits() {
+        int defaultAngle = norma(defaultRotation);
+        angle = normA(angle);
+
+        int difference = defaultAngle - angle;
+        //console.printf("Current Angle: %f Base Angle: %f difference: %f", angle, defaultAngle, difference);
+        if(difference > 70 || difference < -70) {
+            //A_PRINTBOLD("REVERT!");
+            //setStateLabel("ForgetTarget");
+        }
+    }
+
+    int getRotation() {
+        return rotation;
+    }
+
+    void incrementRotation() {
+        rotation = rotation + 2;
+    }
+
+    void decrementRotation() {
+        rotation = rotation - 2;
+    }
+
+    string getDirection() {
+        return direction;
+    }
+
+    void setDirection(string newDirection) {
+        direction = newDirection;
+        setStateLabel("PauseMoment");
+    }
+
+    void setRotation(int newRotation) {
+        rotation = newRotation;
+    }
+
+
+    string Tracer;
+    string Flash;
+    string servoSound;
+    int shotsFired;
+    int rotation;
+    int burstNum;
+    int SpriteFrame;
+    int flashPosition;
+    float defaultRotation;
+    bool AllowHacking;
+    string direction;
+
+
+  default 
+  {
+    health 200;
+    radius 20;
+    height 20;
+    mass 6000;
+    speed 0;
+    damageType "bulletAlien";
+    SelacoActor.UseTag "$ACT_ACTIVATE";
+    tag "$OBJECT_SENTRYGUN";
+    DamageFactor "Shrapnel", 5.0;
+	BloodType "Selaco_Blood_MECHANICAL", "Selaco_Blood_MECHANICAL", "Selaco_Blood_MECHANICAL";
+	PainSound "impact/hardmetal";
+    MaxTargetRange 0;
+    PainChance 255;
+    +FLOORCLIP;
+    +USESPECIAL;
+    SentryGunTurret.ViewFOV 160;
+    Activation THINGSPEC_SWITCH;
+    SELACOACTOR.SleepDistance 0;
+    -BloodSplatter;
+    +STANDSTILL;
+    +NOGRAVITY;
+    //+INTERPOLATEANGLES
+    +NOBLOODDECALS;
+    -INTERPOLATEANGLES;
+    -pushable
+    +DONTTHRUST
+    +shootable;
+    +QUICKTORETALIATE;
+    -SelacoActor.AllowGravityManipulation;
+    +SelacoActor.DisallowGravityManipulation;
+  }
+
+  states
+  {
+    // Used after being repositioned. A brief CD period until the Turret Base tells him to turn on again.
+    WaitForPower:
+        VOXE L 1 A_SetRenderStyle(0.5, STYLE_Translucent);
+        loop;
+    Spawn:
+        TNT1 A 0;
+        VOXE L -1 A_SETPITCH(15);
+    Rotating:
+        TNT1 A 0 A_GiveInventory("spottedPlayer", 1);
+        TNT1 A 0 {
+            if(pickedup) {
+                SetStateLabel("Idle");
+            }
+        }
+        VOXE L 1 {
+            A_ClearTarget();
+            invoker.AllowHacking = true;
+            if(!bFriendly) {
+                bUseSpecial = true;
+                activationtype = THINGSPEC_SWITCH;
+            }
+            if (getDirection() == "LEFT") {
+                incrementRotation();
+                A_SetAngle(angle + 2, SPF_INTERPOLATE);
+            } else {
+                decrementRotation();
+                A_SetAngle(angle - 2, SPF_INTERPOLATE);
+            }
+
+            if (getRotation() == 46) {
+                setDirection("RIGHT");
+            }
+            if (getRotation() == -46) {
+                setDirection("LEFT");
+            }
+        }
+    
+         TNT1 A 0 A_Lookex(LOF_NOSOUNDCHECK, 25, 9000, 0, ViewFOV, "See");
+        loop;
+
+    PauseMoment:
+        TNT1 A 0 {
+            if(playServoSound)
+            A_PlaySound("sentry/move", CHAN_7, 0.7, pitch:1.2);
+        }
+        VOXE LLLLLLLL 5 {
+            A_Lookex(LOF_NOSOUNDCHECK, 25, 9000, 0, ViewFOV, "See");
+            
+        }
+        TNT1 A 0 {
+            if(playServoSound)
+                if(getDirection() == "LEFT") {
+                    servoSound = "sentry/servo2";
+                } else {
+                    servoSound = "sentry/servo";
+                }   
+                A_PlaySound(servoSound, CHAN_7, 0.35, pitch:1);
+        }
+        goto rotating;
+
+    ForgetTarget:
+        VOXE L 1 {
+            target = null;
+            A_ClearTarget();
+            
+        }
+        VOXE L 25 {
+            setRotation(0);
+            angle = defaultRotation;
+        }
+        goto Rotating;
+
+  Pain.ice:
+    VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 6 {
+        A_SpawnItemEx("FrostSmokeTextureSmall");
+        
+      }
+    goto Rotating;
+
+  See:
+	TNT1 A 0 A_TakeInventory("spottedPlayer", 1);
+	TNT1 A 0 A_FaceTarget();
+    VOXE LLLLLLL 1 {
+        A_FaceTarget();
+        if(bFriendly) {
+            setStateLabel("missile");
+        } else {
+            bUseSpecial = false;
+            activationtype = THINGSPEC_DEFAULT;
+        }
+    }
+    goto see;
+    Inactive:
+	Active:
+	Hack:
+		TNT1 A 0 {
+            Stats.AddStat(STAT_TURRETS_HACKED, 1, 0);
+            A_SPAWNITEMEX("TeleportEffect", 0, 0, -20);
+            A_PlaySound("script/hacker", CHAN_AUTO, 0.5);
+            angle = defaultRotation;
+            if(master) {
+                master.setStateLabel("Remove");
+            }
+            A_SPAWNITEMEX("SentryGunBaseFriendly", 0, 0, -39, flags:SXF_ABSOLUTEVELOCITY);
+        }
+		//SENT X 0 A_SpawnItemEx("FriendlySentryGun2Turret", 0, 0, 0, 0, 0, 0, angle, SXF_SETMASTER);
+		stop;
+
+  xdeath:
+  Death:
+	TNT1 A 0 {
+        A_SpawnItem("TurretExplosion", 0,0,-6);
+        stats.addStat(STAT_KILLS_TURRETS, 1, 0);
+        A_KillMaster();
+        A_PlaySound("Sentry/destroyed", CHAN_AUTO);
+        A_NoBlocking();
+        bUseSpecial = false;
+    }
+
+	TNT1 A 0 A_SpawnProjectile("Stacked_Sparks_lite", 32, 0, random(0,360));
+	TNT1 AAAAA 0 A_SpawnProjectile ("plasmaEmber", 48, 0, random (0, 360), 2, random (0, 360));
+	TNT1 AAA 0 A_SpawnProjectile ("BigplasmaEmber", 42, 0, random (0, 360), 2, random (0, 360));
+	TNT1 A 0 A_sPAWNiTEMeX("TurretPart", 0, 0, 40, random(-5, 5), random(-5,5),  random(5, 12));
+    TNT1 AAAAAAAAAAAAAAAA 2 A_SPAWNITEMEX("SmallExplosion", frandom(-3,5), frandom(-10,10), frandom(-20,40));
+	stop;
+  FadeOut:
+    TNT1 A 2 A_FadeOut (0.1);
+    loop;
+  }
+}
+
+class SentryGunTurretFriendly : SentryGunTurret {
+    override void tick() {
+        super.tick();
+        vel.x = 0;
+        vel.y = 0;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        Tracer = "HumanBulletTracer";
+        SpriteFrame = 16;
+        Flash = "MarineMuzzle1";
+    }
+
+    default {
+        damageFactor "AlienBullet", 0.25;
+        health 900;
+        height 20;
+        -USESPECIAL;
+        SentryGunTurret.ViewFOV 50;
+        Activation THINGSPEC_Default;
+        -Solid;
+        -ISMONSTER
+        +MISSILEEVENMORE;
+        +friendly;
+        -INTERPOLATEANGLES;
+        -SelacoActor.SlopeAlignment
+    }
+    states
+    {
+        Spawn:
+            VOXE L 0;
+            VOXE L 25;
+            TNT1 A 0 
+            {
+                bInterpolateAngles = true;
+            }
+        Idle:
+            VOXE L 35 {
+                A_SetRenderStyle(1.0, STYLE_NORMAL);
+                if(!pickedup) {
+                    SetDirection("LEFT");
+                    SetStateLabel("Rotating");
+                }
+            }
+            loop;
+        Missile:
+            TNT1 A 0 {
+                invoker.AllowHacking = false;
+                invoker.shotsFired = 0;
+            }
+            TNT1 A 0 A_AlertMonsters;
+            VOXE L 1 {
+                A_PlaySound ("sentry/spotted", CHAN_AUTO, 1.0);
+                if(bFriendly) {
+                    setStateLabel("MissileContinue");
+                }
+
+            }
+        MissileContinue:
+            VOXE L 1 BRIGHT {
+                int burstNum;
+                int flashPosition;
+                invoker.burstNum++;
+                if (invoker.burstnum == 1) {invoker.flashPosition = -5;}
+                if (invoker.burstnum == 2) {invoker.flashPosition = 0;}
+                if (invoker.burstnum == 3) {invoker.flashPosition = 5; invoker.burstNum = 0;}
+                A_FaceTarget();
+            
+
+                //ACS_NamedExecuteWithResult("getLiveActorAngle", defaultRotation);
+                A_SpawnItemEx("RifleCaseSpawn",5,0,0,-4);
+                A_PlaySound("turret/ace/attack", CHAN_AUTO, 1.0, 0, 0.7, false);
+                A_SpawnItemEx("YellowFlareSpawn",0,0,35,0);
+                A_SpawnItemEx(invoker.Flash, 40, invoker.flashPosition, 7);
+            }
+            TNT1 A 0 {
+                A_SpawnProjectile(invoker.Tracer, 4, 0, 0, 0, 90);
+            }
+            VOXE LLLL 1 {
+                
+                A_FaceTarget();
+                //ACS_NamedExecuteWithResult("getLiveActorAngle", defaultRotation);
+            }
+            TNT1 A 0 {
+                if (invoker.shotsFired > 4) {
+                    if (!target || !checkSight(target)) {
+                        SetStateLabel("MissileEnd");
+                    }
+                }
+                invoker.shotsFired++;
+                if(target && !CheckSight(target)) {
+                    SetStateLabel("ForgetTarget");
+                }
+            }
+            loop;
+
+            MissileEnd:
+                TNT1 A 0 ACS_NamedExecuteWithResult("getLiveActorAngle", defaultRotation);
+                TNT1 A 0 A_MonsterRefire(255, "See");
+                Goto MissileContinue;
+    }
+
+}
+
+class SentryGunAlien : SelacoEnemy {
+
+    const HACK_EFFECTS_MAX = 10;
+
+    SentryGunAlienTurret turret;
+    bool success;
+    bool hacked;
+    int hackEffects;
+    bool turretHadTarget;
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        actor turretSpawn;
+        bool succ;
+        [success, turretSpawn] = A_SpawnItemEx("SentryGunAlienTurret", 0, 0, 10, 0, 0, 0, 0, SXF_SETMASTER);
+        if(turretSpawn) {
+            turret = SentryGunAlienTurret(turretSpawn);
+
+            // If we are created by an enemy, have full 360 range
+            if(turret && master && master is "SelacoEnemy") {
+                turret.viewFOV = 360;
+            }
+        }
+    }
+
+    void sparkle() {
+        A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 32, 0, frandom(0.2,0.5), 1);
+        A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 32, 0, frandom(0.2,0.5), 1);
+        A_SpawnProjectile ("SparkEmberUpward", 32, -3, random (0, 70), 2, random (0, 190));
+        A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", 0,0,35);
+    }
+
+    override void tick() {
+        super.tick();
+        if(hackEffects > 0 && level.time % random(13,28) == 0) {
+            sparkle();
+            hackEffects--;
+        }
+        if(!turretHadTarget && turret && turret.target) {
+            turretHadTarget = true;
+            bUsespecial = false;
+            activationType = THINGSPEC_DEFAULT;
+        }
+    }
+
+    override void activate(actor activator) {
+        hackEffects = HACK_EFFECTS_MAX;
+        makeUnactivatable();
+        if(turret) {
+            SelfLighting = "000000";
+            turret.SelfLighting = "000000";
+            sparkle();
+            turret.pitch = -1;
+            A_PLAYSOUND("SawDrone/Death", pitch:0.75);
+            A_PLAYSOUND("Enemymine/Defuse", CHAN_AUTO, 1.0, 0, 0.7,pitch:0.83);
+            A_PLAYSOUND("Enemymine/DefuseUse", CHAN_AUTO, 1.0, 0, 0.7, pitch:0.83);
+            turret.SetStateLabel("Disabled");
+            turret.health*=0.01;
+            health*=0.01;
+            SentryGunAlienTurret(turret).addDeathStat();
+        }
+    }
+    
+    default {
+        +SHOOTABLE
+        +STANDSTILL
+        +DONTTHRUST
+        +FLOORCLIP
+        +NOBLOODDECALS
+        -SOLID;
+        +NOPAIN;
+        +ismonster
+        SelfLighting "444444";
+        SelacoActor.useTag "$DISABLE";
+        +SelacoActor.Usable
+        -SelacoEnemy.AllowStealthKill;
+        -SelacoEnemy.AllowHeadshots;
+        -SelacoEnemy.CountKill
+        +SELACOACTOR.IgnoredByMelee
+        +SelacoActor.ThruEnemies
+        +SelacoActor.Trap
+        SelacoEnemy.randomizerSpawnChance 0;
+        SelacoEnemy.Conductivity 0;
+        +USESPECIAL
+        activation THINGSPEC_SWITCh;
+        SELACOACTOR.SleepDistance 0;
+        tag "$CHARACTER_SENTRYGUN";
+        BloodType "BulletImpactEffectArmorBigOil", "BulletImpactEffectArmorBigOil", "BulletImpactEffectArmorBigOil";
+        Radius 30;
+        Height 45;
+        PainChance 255;
+        MaxStepHeight 6;
+        mass 5000;
+        HEALTH 140;
+        Damage 0;
+    }
+	states {
+        PickUp:
+            VOXE L 1 {
+                A_STOPSOUND(CHAN_7);
+                A_PLAYSOUND("sentry/pickup", CHAN_AUTO, 0.75);
+            }
+        Pain.MeleeImpact:
+		Spawn:
+            TNT1 A 0;
+		WaitMode:
+			VOXE L -1 {
+                bSolid = true;
+            }
+		xdeath:
+		Death:
+			VOXE A 1 A_DamageChildren(9000);
+            TNT1 A 0 {
+                bThruActors = true;
+                bNoInteraction = true;
+                bIsMonster = false;
+                for(int x=0;x<14;x++)
+                {
+                    A_SPAWNDEFINEDPARTICLE("OilSplatterSlowDefinition", frandom(-13,13), frandom(-13,13), frandom(14,19), frandom(-4,4), frandom(-4,4), frandom(-1,8));
+                }
+            }
+            VOXE A 8;
+            TNT1 A 0
+            {
+                A_PLAYSOUND("ALIEN/SENTRY/DEATH", CHAN_AUTO, 0.8, 0, 0.8);
+            }
+            VOXE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 15 {
+                if(random(0,100) <= 35) {
+                    	A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 32, 0, frandom(0.2,0.5), 1);
+				        A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 32, 0, frandom(0.2,0.5), 1);
+				        A_SpawnProjectile ("SparkEmberUpward", 32, -3, random (0, 70), 2, random (0, 190));
+                       A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", 0,0,35);
+                }
+                //A_SpawnProjectile ("PlasmaSmoke", 24, 0, random (0, 180), 2, random (0, 180));
+            }
+            VOXE A -1;
+            stop;
+        Remove:
+            TNT1 A 0;
+            stop;
+	}
+}
+
+class SentryGunAlienTurret : SelacoEnemy {
+
+    const SIGHT_LOSS_DELAY_REQUIREMENT = 3;
+    int viewFOV;
+    property ViewFOV : viewFOV;
+
+    int leftLimit, rightLimit;
+    bool playServoSound;
+    bool pickedup;
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        playServoSound = true;
+        defaultRotation = angle;
+        if(getCvar("skill") == 5) 
+        {
+            playServoSound = false;
+        }
+        SpriteFrame = 24;
+    }
+
+    void resetAngle() {
+        angle = defaultRotation;
+        rotation = 0;
+        direction = "LEFT";
+    }
+
+    double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+    override void tick() {
+        super.tick();
+        a_warp(AAPTR_MASTER,0,0,39, 0, WARPF_USECALLERANGLE | WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        if(!master)
+        {
+            die(self,self);
+        }
+    }
+
+    bool deathStatAdded;
+    void addDeathStat() {
+        if(!deathStatAdded) {
+            deathStatAdded = true;
+            stats.addStat(STAT_KILLS_TURRETS, 1, 0);
+        }
+    }
+
+    int getRotation() {
+        return rotation;
+    }
+
+    void incrementRotation() {
+        rotation = rotation + 2;
+    }
+
+    void decrementRotation() {
+        rotation = rotation - 2;
+    }
+
+    string getDirection() {
+        return direction;
+    }
+
+    void setDirection(string newDirection) {
+        direction = newDirection;
+        setStateLabel("PauseMoment");
+    }
+
+    void setRotation(int newRotation) {
+        rotation = newRotation;
+    }
+
+    int sightLossDelay;
+    string servoSound;
+    int shotsFired;
+    int rotation;
+    int burstNum;
+    int SpriteFrame;
+    int flashPosition;
+    float defaultRotation;
+    bool AllowHacking;
+    string direction;
+
+
+  default {
+    health 70;
+    radius 1;
+    height 1;
+    SelfLighting "444444";
+    mass 10000;
+    speed 0;
+    tag "$OBJECT_SENTRYGUN";
+    DamageFactor "Shrapnel", 5.0;
+    DamageFactor "BulletAlien", 6.0;
+	BloodType "BulletImpactEffectArmorBigOil", "BulletImpactEffectArmorBigOil", "BulletImpactEffectArmorBigOil";
+	PainSound "impact/mechanical";
+    MaxTargetRange 0;
+    PainChance 255;
+    +FLOORCLIP;
+    -USESPECIAL;
+    activation THINGSPEC_DEFAULT; 
+    SentryGunAlienTurret.ViewFOV 50;
+    SELACOACTOR.SleepDistance 0;
+    -BloodSplatter;
+    +STANDSTILL;
+    +NOGRAVITY;
+    +DONTTHRUST
+    MaxStepHeight 6;
+    -SelacoEnemy.AllowStealthKill;
+    -SelacoEnemy.AllowHeadshots;
+    +SelacoActor.ThruEnemies
+    -SelacoEnemy.AllowRandomizerTier
+    //+INTERPOLATEANGLES
+    +NOBLOODDECALS;
+    -pushable
+    +shootable;
+    +QUICKTORETALIATE;
+    +INTERPOLATEANGLES;
+    +IsMonster;
+  }
+  states
+  {
+    // Used after being repositioned. A brief CD period until the Turret Base tells him to turn on again.
+    WaitForPower:
+        VOXE L 1 A_SetRenderStyle(0.5, STYLE_Translucent);
+        loop;
+    Spawn:
+        TNT1 A 0;
+        VOXE L 35 {
+            A_SetRenderStyle(1.0, STYLE_NORMAL);
+            if(!pickedup) {
+                SetDirection("LEFT");
+                SetStateLabel("Rotating");
+            }
+        }
+        loop;
+    Pain:
+    Pain.MeleeImpact:
+    Rotating:
+        TNT1 A 0 A_GiveInventory("spottedPlayer", 1);
+        TNT1 A 0 {
+            if(pickedup) {
+                SetStateLabel("Idle");
+            }
+        }
+        VOXE L 1 {
+            if(master) {
+                SentryGunAlien(master).makeActivatable();
+            }
+            A_ClearTarget();
+            invoker.AllowHacking = true;
+            if (getDirection() == "LEFT") {
+                incrementRotation();
+                A_SetAngle(angle + 2, SPF_INTERPOLATE);
+            } else {
+                decrementRotation();
+                A_SetAngle(angle - 2, SPF_INTERPOLATE);
+            }
+
+            if (getRotation() == 46) {
+                setDirection("RIGHT");
+            }
+            if (getRotation() == -46) {
+                setDirection("LEFT");
+            }
+        }
+    
+        TNT1 A 0 A_LookEx(LOF_NOSOUNDCHECK, fov:viewFOV);
+        loop;
+
+    PauseMoment:
+        TNT1 A 0 {
+            if(playServoSound)
+            A_PlaySound("sentry/move", CHAN_7, 1.0, 0, 0.9, pitch:1.2);
+        }
+        VOXE LLLLLLLL 5 {
+            A_LookEx(LOF_NOSOUNDCHECK );
+        }
+        TNT1 A 0 {
+            if(playServoSound)
+                if(getDirection() == "LEFT") {
+                    servoSound = "sentry/servo2";
+                } else {
+                    servoSound = "sentry/servo";
+                }   
+                A_PlaySound(servoSound, CHAN_7, 0.35, pitch:1);
+        }
+        goto rotating;
+
+    ForgetTarget:
+        VOXE L 1 {
+            target = null;
+            A_ClearTarget();
+            resetAngle();
+            
+        }
+        goto Rotating;
+
+  Pain.ice:
+    VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 6 {
+        A_SpawnItemEx("FrostSmokeTextureSmall");
+        
+      }
+    goto Rotating;
+
+  See:
+	TNT1 A 0 A_TakeInventory("spottedPlayer", 1);
+	TNT1 A 0 A_FaceTarget();
+    TNT1 A 0 {
+        A_PLAYSOUND("TURRET/ALIEN/ALERT", CHAN_6, 0.7, 0, 0.7);
+    }
+    VOXE LLLLLLLLLLLLLLLLLLLLL 1 {
+        A_FaceTarget();
+    }
+    TNT1 A 0 {
+        if(master) {
+            SentryGunAlien(master).makeUnactivatable();
+        }
+    }
+    goto Missile;
+    Inactive:
+	Active:
+		VOXE L 1 {
+            if (!invoker.AllowHacking) {
+                SetStateLabel("See");
+            }
+        }
+        TNT1 A 0;
+	Hack:
+		TNT1 A 0 {
+            Stats.AddStat(STAT_TURRETS_HACKED, 1, 0);
+            A_SPAWNITEMEX("TeleportEffect", 0, 0, -20);
+            A_PlaySound("script/hacker", CHAN_AUTO, 0.5);
+            angle = defaultRotation;
+            bFriendly = true;
+            if(master) {
+                master.setStateLabel("Remove");
+            }
+            A_SPAWNITEMEX("SentryGunBaseFriendly", 0, 0, -39, flags:SXF_ABSOLUTEVELOCITY);
+        }
+		//SENT X 0 A_SpawnItemEx("FriendlySentryGun2Turret", 0, 0, 0, 0, 0, 0, angle, SXF_SETMASTER);
+		stop;
+  Missile:
+    TNT1 A 0 {
+        invoker.AllowHacking = false;
+        invoker.shotsFired = 0;
+    }
+    VOXE L 1 
+    {
+        if(!target || !checksight(target))
+        {
+            setStateLabel("ForgetTarget");
+        }
+    }
+    VOXE L 1 {
+        A_PlaySound ("sentry/spotted", CHAN_AUTO, 1.0);
+    }
+    VOXE L 3 {
+	    A_AlertMonsters();
+        A_FaceTarget();
+    }
+  MissileContinue:
+	VOXE L 1 BRIGHT {
+        int burstNum;
+        int flashPosition;
+        invoker.burstNum++;
+        if (invoker.burstnum == 1) {invoker.flashPosition = -2;}
+        if (invoker.burstnum == 2) {invoker.flashPosition = 2; invoker.burstnum = 0;}
+
+        if(target && checkSight(target)) { 
+            A_FaceTarget();
+        }
+        
+        //ACS_NamedExecuteWithResult("getLiveActorAngle", defaultRotation);
+        A_SpawnItemEx("RifleCaseSpawn",5,0,0,-4);
+        A_PlaySound("turret/alien/attack", CHAN_AUTO, 1.0, 0, 0.7, false, pitch:frandom(0.95,1.05));
+        A_SpawnItemEx("AlienMuzzle", 40, invoker.flashPosition, 5);
+        A_SpawnItemEx("YellowFlareSpawn",0,0,35,0);
+        A_SpawnProjectile("AlienTracerTurret", 4, 0, frandom(-2,2),flags:CMF_TRACKOWNER | CMF_OFFSETPITCH, pitch:frandom(1.1, -1.2));
+    }
+    VOXE LLLL 1 {
+        
+        A_FaceTarget();
+        //ACS_NamedExecuteWithResult("getLiveActorAngle", defaultRotation);
+    }
+    TNT1 A 0 {
+        if (target && invoker.shotsFired > 5 && !checkSight(target)) {
+            sightLossDelay++;
+            if(sightLossDelay >= SIGHT_LOSS_DELAY_REQUIREMENT) {
+                SetStateLabel("MissileEnd");
+                sightLossDelay = 0;
+                shotsFired = 0;
+                return;
+            }
+        }
+        invoker.shotsFired++;
+        console.printf("shotsFired: %d - HAS SIGHT: %d, SIGHT LOSS DELAY: %d", invoker.shotsFired, checkSight(target), sightLossDelay);
+    }
+    loop;
+
+    MissileEnd:
+        VOXE L 10;
+        TNT1 A 0 {
+        if (!target || !checkSight(target)) {
+                A_PlaySound("TURRET/ALIEN/SIGHT", CHAN_6, 1.0);
+                setStateLabel("ForgetTarget");
+                return;
+            }
+        }
+        Goto MissileContinue;
+
+
+    Disabled:
+        VOXE LLLLLLLLLLLLLLL 1{
+            pitch-=1;
+            A_SETROLL(random(-3,3));
+        }
+        VOXE L -1 A_SETROLL(0);
+        stop;
+
+  xdeath:
+  Death:
+	TNT1 A 0 {
+        addDeathStat();
+        A_SpawnItem("TurretExplosion", 0,0,-6);
+        A_KillMaster();
+        A_PlaySound("Sentry/destroyed", CHAN_AUTO, 1.0, 0, 0.7);
+        A_NoBlocking();
+        EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 70, angle:frandom(0, 360), pitch:frandom(0, 40), speed:1, offset:(frandom(-10,10), frandom(-10,10), frandom(-5,5)));
+        bUseSpecial = false;
+    }
+
+	TNT1 A 0 A_SpawnProjectile("Stacked_Sparks_lite", 32, 0, random(0,360));
+	TNT1 AAAAA 0 A_SpawnProjectile ("plasmaEmber", 48, 0, random (0, 360), 2, random (0, 360));
+	TNT1 AAA 0 A_SpawnProjectile ("BigplasmaEmber", 42, 0, random (0, 360), 2, random (0, 360));
+	TNT1 A 0 A_sPAWNiTEMeX("SentryGunAlienTurret_broken", 0, 0, 26, random(3, 4), 0,  random(5, 8), angle:random(0,360));
+    TNT1 AAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("SmallExplosionNoSound", frandom(-3,5), frandom(-10,10), frandom(0,32));
+	stop;
+  FadeOut:
+    TNT1 A 2 A_FadeOut (0.1);
+    loop;
+  }
+}
+
+class SentryGunAlienTurret_broken : SELACOACTOR {
+    default {
+        Radius 3;
+        Height 3;
+        Speed 5;
+        Gravity 0.5;
+        +MISSILE;
+        -BLOODSPLATTER;
+        +DOOMBOUNCE;
+        +RollSprite;
+        +USEBOUNCESTATE
+        -SelacoActor.SlopeAlignment;
+        BounceFactor 0.45;
+        WallBounceFactor 0.6;
+        SeeSound "impact/hardmetal";
+        DeathSound "none";
+    }
+	States
+	{
+	Spawn:  
+    Looper:
+		VOXE L 2
+		{
+			A_SETROLL(roll + 20);
+            A_SPAWNITEMEX("BulletImpactEffectMetalSmallReallyFuckingTinylol", frandom(-6,6), frandom(-6,6), frandom(-6,6));
+            EmitDefinition('LongerSparkDefinition', chance: 1.0, numTries: 2, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(-1,1), offset:(frandom(-25,25), frandom(-25,25), frandom(-5,5)));
+            EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 4, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(-1,1), offset:(frandom(-25,25), frandom(-25,25), frandom(-5,5)));
+		}
+		Loop;
+    Bounce:
+        TNT1 A 0
+        {
+            A_SPAWNITEMEX("SparkEmberUpward", frandom(-3,5), frandom(-7,7), frandom(0,6));
+        }
+        goto looper;
+	Death:
+        VOXE L 0 {
+            A_SPAWNITEMEX("SparkEmberUpward", frandom(-3,5), frandom(-7,7), frandom(0,6));
+            A_SETROLL(0);
+        }
+		VOXE L -1;
+	}
+}
+
+// Human turret part
+class turretPart : SelacoActor
+{
+    default
+    {
+    	Radius 12;
+        Height 12;
+        Speed 11;
+        Damage 0;
+        Gravity 0.5;
+        mass 500;
+        Scale 1;
+        +MISSILE;
+        -NOGRAVITY;
+        -BLOODSPLATTER;
+        +EXPLODEONWATER;
+        +DOOMBOUNCE;
+        +FLOORCLIP;
+        +RollSprite;
+        BounceFactor 0.45;
+        WallBounceFactor 0.6;
+        SeeSound "impact/hardmetal";
+        DeathSound "none";
+    }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Looper:
+		VOXE L 3
+		{
+			A_SETANGLE(angle + 2);
+            A_SPAWNITEMEX("BulletImpactEffectMetalSmallReallyFuckingTinylol", frandom(-6,6), frandom(-6,6), frandom(-6,6));
+            EmitDefinition('LongerSparkDefinition', chance: 1.0, numTries: 2, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(-1,1), offset:(frandom(-25,25), frandom(-25,25), frandom(-5,5)));
+            EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 4, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(-1,1), offset:(frandom(-25,25), frandom(-25,25), frandom(-5,5)));
+		}
+		Loop;
+	Death:
+		VOXE L 0 A_SPAWNITEMEX("TurretPartDecoration");
+		stop;
+	}
+}
+
+class turretPartDecoration : PickupableDecoration
+{	
+	default {
+		-MISSILE
+		-solid
+		-THRUSPECIES
+		-Shootable
+		-DontHarmSpecies
+		-NoExtremeDeath
+		-MTHRUSPECIES
+		-pushable
+		+USESPECIAL
+		Gravity 1.0;
+		radius 15;
+		height 15;
+		Scale 1;
+		PickupableDecoration.Grabsound "SCRIPT/TURPICK";
+		activation THINGSPEC_Activate;
+		tag "$OBJECT_TURRETPIECE";
+	}
+	States
+	{
+    Idle:
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 {
+			if(CheckProximity("VAC_BOT", 50, 1, CPXF_SETTARGET)) {
+				target.setStateLabel("ConvertToCombat");
+				setStateLabel("Vanish");
+			}
+		}
+		VOXE L -1;
+	ThrowLooper:
+		VOXE L 1 {
+             A_SETPITCH(pitch-5);
+		}
+		goto spawn;
+	Vanish:
+		TNT1 A 0;
+		stop;
+	}
+}

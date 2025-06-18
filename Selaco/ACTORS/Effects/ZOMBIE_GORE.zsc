@@ -1,0 +1,1286 @@
+class ZombieSplatter : SelacoBlood {
+
+	default {
+		Decal "BloodSplatSmall";
+		SelacoBlood.BloodParticle "RedBloodParticleDefinition";
+		SelacoBlood.BloodSplatterType "BloodSplatterEffectSmall";
+		SelacoBlood.bloodFloorDecal "HumanBloodSplatters";
+		SelacoBlood.bloodFogEffect "RedBloodFog";
+		SelacoBlood.bloodWallDecal "BloodSplatSmall";
+        +NOINTERACTION;
+    }
+
+	override void spawnBloodEffects() {
+		super.spawnBloodEffects();
+		EmitDefinition('MaggotParticleDefinition', 1.0, 35, angle:-180);
+	}
+
+	States {
+		spawn:
+            TNT1 A 0;
+			TNT1 A 0 A_SPAWNITEMEX("RedBloodHit");
+			TNT1 AAA 0 A_SpawnProjectile ("RedBloodSmoke", 0, 0, random(-35,35), 2, frandom (-25,25));
+            TNT1 A 0 A_PlaySound("impact/flesh", chan_auto, 0.7, 0, 0.8);
+            TNT1 A 0 A_SpawnItemex("ZombieImpactEffect");
+            TNT1 AA 0 A_SpawnProjectile ("BloodSplatterEffect", 0, 0, random(0,360), 2, frandom (-30,-89));
+            TNT1 A 0 A_SpawnProjectile ("RedBloodMissile", 0, 0, random(0,360), 2, frandom (120,-120));
+            TNT1 A 0 A_SpawnItemEx("PlantImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(1.5, 2));
+            TNT1 A 0 A_SpawnItemEx("PlantImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(-1.5, -2));
+            TNT1 A 0 A_SpawnItemEx("PlantImpactSmoke", 0, 0, 0, frandom(1.5, 2), 0, frandom(1.5, 2));
+            TNT1 AA 0 A_SpawnProjectile("Flowerchunk_small", frandom(-2,2), frandom(-2,2), frandom (0, 20), 2, random (60, 180));
+			stop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class ZombieImpactEffect : PlantImpactEffect
+{	
+    static const String SmokeEffects[] = {"HBM1", "HBM2", "HBM3"};
+    default
+    {
+        alpha 0.9;
+		Decal "BloodSplatSmall";
+        renderstyle "Translucent";
+        scale 0.21;
+    }
+    states
+    {
+        indexer:
+            HBM1 A 0;
+            HBM2 A 0;
+            HBM3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 
+			{
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+				A_SETROLL(0,360);
+                pickedArray = random(0,SmokeEffects.size() -1);
+				vel = (0,0,0);
+                setStateLabel("effect");
+            }	
+		Effect:
+			TNT1 ABCDEFGHIJKLM 1
+			{
+				A_SETSCALE(scale.x + 0.01);
+			}
+			stop;
+    }
+}
+
+// Stylized splatter effect
+class BloodSplatterEffect : PurpleSplatterEffect {
+    override void tick()
+    {
+        super.tick();
+        A_SetScale(scale.x+0.003);
+    }
+
+    default
+    {
+        scale 0.11;
+		Decal "BloodSplatSmall";
+        SelfLighting "";
+        alpha 0.78;
+        speed 2;
+    }
+    states
+    {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				gravity = gravity+frandom(-0.1,0);
+			}
+			TNT1 A 0 A_SetRoll(random(0, 360));
+			HUBL ABCDEFGHIJKLM 1;
+			HUBL MMMMMMMMMMMMMMMM 1 A_FadeOut(0.06, FTF_REMOVE);
+			Stop;
+
+          Death:
+			TNT1 A 0;
+			Stop;
+		
+          Disappear:
+			TNT1 A 0;
+			Stop;
+    }
+}
+
+class BloodSplatterEffectSmall : BloodSplatterEffect
+{
+	default
+	{
+		Decal "BloodSplatSmall";
+		scale 0.03;
+	}
+}
+
+class BloodSplatterEffectPlayerCamera : BloodSplatterEffect
+{
+	default
+	{
+		Decal "BloodSplatSmall";
+		scale 0.045;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				gravity = gravity+frandom(-0.3,0);
+			}
+			TNT1 A 0 A_SetRoll(random(0, 360));
+			HUBL ABCDEFGHIJKLM 1
+			{
+				A_FadeOut(0.04, FTF_REMOVE);
+			}
+			Stop;
+	}
+}
+
+
+// A trail of smaller blood splatters.
+class BloodTrailMissile: BloodMissileTrail 
+{
+	override void PostBeginPlay() {
+		if(random(0,1) == 1) {
+			bxflip = true;
+		}
+		if(random(0,1) == 1) {
+			byflip = true;
+		}
+	}
+
+	default {
+		Decal "BloodSplatSmall";
+        SelfLighting "";
+		scale 0.05;
+        speed 6;
+		gravity 0.1;
+	}
+    States	{
+     	Spawn:
+			TNT1 A 0;
+            TNT1 A 0
+            {
+                gravity = frandom(0.3,0.5);
+            }
+			RBTR AABBCCDEEEE 1 {
+				A_FADEOUT(0.03);
+			}
+		Looper:
+			RBTR E 2 {
+			}
+			stop;
+		Death:
+			TNT1 A 0;
+			Stop;
+    }
+}
+
+class RedBloodMissile : PurpleBloodMissile
+{
+	default
+	{
+		PurpleBloodMissile.trailActor "BloodMissileTrail";
+		scale 0.05;
+		speed 6;
+		decal "BloodSplat";
+	}
+    States	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(censoredMode) {
+					destroy();
+				}
+			}
+			TNT1 A 0 {
+				A_SETROLL(0);
+				A_SETSCALE(scale.x + frandom(0.05, 0.07), scale.y + frandom(0.07, 0.09));
+				A_CHANGEVELOCITY(frandom(0,4), 0, frandom(0.3,0.7), CVF_RELATIVE);
+				gravity = frandom(0.6,0.9);
+			}
+		Looper:
+			RBTR B 2 A_SpawnItem(trailActor);
+			Loop;
+		Death:
+			TNT1 A 0 
+			{
+				if(level.Maptime > 35)
+				{
+					A_PlaySound("blooddrop");
+				}
+				if(random(0,100) <= 70)
+				{
+					actor bloodSplat;
+					bool succ;
+					[succ, bloodSplat] = A_SPAWNITEMEX("HumanBloodSplatters");
+					if(bloodSplat)
+					{
+						bloodSplat.A_SETSCALE(scale.x-0.005);
+					}
+				}
+				A_SETSCALE(0.7,0.7);
+			}
+			TNT1 A 0;
+			RBBS GHIJKL 2;
+			TNT1 A 0;
+			Stop;
+		Destroy:
+			stop;
+    }
+}
+
+class RedBloodHit : PurpleBloodHit	{
+	default
+	{
+		scale 1.0;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(censoredMode) {
+					destroy();
+				}
+			}
+			RBHP ABCDEFGH 1 A_FADEOUT(0.15, FTF_REMOVE);
+			stop;
+	}
+}
+
+class RedBloodHitGravity : RedBloodHit
+{
+	int rollSpeed;
+
+	default	{
+
+		+NoBlockMap
+		+MISSILE
+		-NOGRAVITY
+		+NOBLOODDECALS
+		+THRUACTORS
+		+FORCEXYBILLBOARD
+		+NODAMAGETHRUST
+		speed 7;
+	  	Scale 0.36;
+		Gravity 0.9;
+		Decal "BloodSplat";
+		Renderstyle "Translucent";
+		Alpha 0.95;
+	}
+	States	{
+     	Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(censoredMode) {
+					destroy();
+				}
+			}
+			TNT1 A 0;
+			BLOD ABCD 1;
+		Looper:
+			BLOD E 1;
+			loop;
+     	Death:
+        	BLOD F 1;
+        	Stop;
+    }
+}
+
+
+// The trail of the above blood splatter
+class BloodMissileTrail: PurpleBloodHitGravity 
+{
+	override void PostBeginPlay() {
+		if(random(0,1) == 1) {
+			bxflip = true;
+		}
+		if(random(0,1) == 1) {
+			byflip = true;
+		}
+	}
+
+	default {
+		Decal "BloodSplat";
+		scale 0.14;
+		gravity 0.4;
+	}
+    States	{
+     	Spawn:
+			TNT1 A 0;
+			RBTR AABBCCDDEEEEEEEEEEE 1 
+			{
+				A_FADEOUT(0.02);
+				A_SETROLL(roll + random(3, 5));
+			}
+			Stop;
+		Death:
+			TNT1 A 0;
+			Stop;
+    }
+}
+
+// Kickable head
+Class ZombieHead : BaseHead
+{
+	Default {
+		Decal "BloodSplatSmall";
+		speed 8;
+		BounceCount 4;
+		seeSound "PLANTZOMBIE/HEADKICK";
+		gravity 0.7;
+		PainChance 255;
+		scale 0.28;
+		radius 20;
+		+special;
+		+Shootable;
+		-USEBOUNCESTATE;
+	}
+	States
+	{
+		Indexer:
+			GHEA A 0;
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				for(int x=0;x<4;x++)
+				{
+					A_SpawnItem("BloodSplatterEffect",frandom(-1,1),frandom(-1,1),frandom(0,2));
+				}
+				if (random(0,1) == 0) {
+					bxflip = true;
+				}
+				invoker.BloodCount = 3;
+			}
+		SpawnActual:
+			BLHE ABCDEFGHIJ 3 {
+				bThruActors = true;
+				bMissile = true;
+				bBounceonfloors = true;
+				bBounceonWalls = true;
+				bBounceonCeilings = true;
+				if (CheckProximity("TrashBin_open", 30)) {
+					setStateLabel("ThrownIndumpster");
+				}
+				if (invoker.BloodCount > 0) {
+				  A_SPAWNITEMEX("BloodTrailMissile", 0, 0, 0, frandom(1,2), frandom(-3, 3), 3);
+				  A_SpawnItem("BloodSplatterEffect",0,0,0,1);
+				}
+			}
+		loop;
+	ThrownIndumpster:
+		TNT1 A 0 A_PlaySound("trashbin/glass");
+		TNT1 A 0 A_SpawnItemEx("ItemGotThrownIndumpster");
+		BLHE AAAAAAAAAAAAAAAAAAAA 1 A_FADEOUT(0.08);
+		stop;
+	Death:
+		TNT1 A 0  {
+			if (invoker.BloodCount > 0) {
+				A_SpawnItem("HumanBloodSplatters",0,0,0,1);
+			}
+		}
+		TNT1 A 0 A_SetRoll(0);
+	WaitForKick:
+		TNT1 A 0 {
+			isFlying = false;
+			bThruActors = false;
+			BounceCount = 3;
+			BounceFactor = 0.6;
+			A_ChangeLinkFlags(0);
+		}
+		BLHE A -1
+		{
+			if(random(0,1) == 1)
+			{
+				frame = 3;
+			} else
+			{
+				frame = 0;
+			}
+		}
+		loop;
+	Pain:
+	KickInitiated:
+		TNT1 A 0 A_FaceTarget;
+		TNT1 A 0 A_PlaySound("impact/headkick");
+		TNT1 A 1 {
+			for(int x=0;x<4;x++)
+			{
+				A_SpawnItem("BloodSplatterEffect",frandom(-1,1),frandom(-1,1),frandom(0,2));
+			}
+			if(invoker.BloodCount > 0) {
+				invoker.BloodCount--;
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+			}
+		}
+		goto SpawnActual;
+	}
+}
+
+class ZombieChest : GoreMaster
+{
+	default
+	{
+		+THRUACTORS
+		scale 0.36;
+		+MISSILE;
+		+DOOMBOUNCE
+		GRAVITY 0.8;
+		+SelacoActor.AllowWaterSplashing;
+		BounceFactor 0.3;
+		BounceCount 2;
+		speed 6;
+		SelacoActor.sleepDistance 0;
+	}
+	states
+	{
+		Spawn:
+			BLCH ABCD 3;
+		Looper:
+			BLCH D 2
+			{
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+				if(vel ~== (0,0,0) && level.totalTime > SpawnTime + 1)
+				{
+					SetStateLabel("Death");
+				}
+			}
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				for(int x=0;x<10;x++) 
+				{
+					A_SpawnItemEx("HumanBloodSplattersPermanent", frandom(-50, 50),frandom(-50, 50),0);
+				}
+				A_PLAYSOUND("CORPSE/IMPACT", attenuation:0.85);
+			}
+			BLCH EFG 2;
+		DeathLoop:
+			BLCH H 1 { tryGorePermaSleep(); }	// Worms
+			loop;
+	}
+}
+
+class ZombieLeg : GoreMaster
+{
+	default
+	{
+		scale 0.34;
+		+MISSILE;
+		+THRUACTORS
+		+DOOMBOUNCE
+		+SelacoActor.AllowWaterSplashing;
+		BounceFactor 0.4;
+		BounceCount 3;
+		speed 9;
+		SelacoActor.sleepDistance 0;
+		SeeSound "gibs/bounce";
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+		Looper:
+			BLLE ABCDEFGHIJ 2
+			{
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+				if(vel ~== (0,0,0) && level.totalTime > SpawnTime + 1)
+				{
+					SetStateLabel("Death");
+				}
+			}
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				A_PLAYSOUND("gibs/bounce", CHAN_AUTO);
+				for(int x=0;x<2;x++) 
+				{
+					A_SpawnItemEx("HumanBloodSplattersPermanent", frandom(-15, 15),frandom(-15, 15),0);
+				}
+			}
+			goto DeathSprite;
+		DeathSprite:
+			BLLE K 1 { tryGorePermaSleep(); }
+			loop;
+	}
+}
+
+class ZombieLegMirror : ZombieLeg
+{
+	default
+	{
+		+xflip;
+	}
+	states
+	{
+		DeathSprite:
+			BLLE L -1;
+			stop;
+	}
+}
+
+class ZombieCannon : ZombieLeg
+{
+	default
+	{
+
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				if(random(0,1) == 1)
+				{
+					bxflip = true;
+				}
+			}
+		Looper:
+			BLCA ABCDEFGH 3
+			{
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+				if(vel ~== (0,0,0) && level.totalTime > SpawnTime + 1)
+				{
+					SetStateLabel("Death");
+				}
+			}
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				A_PLAYSOUND("gibs/bounce", CHAN_AUTO);
+				for(int x=0;x<1;x++) 
+				{
+					A_SpawnItemEx("HumanBloodSplattersPermanent", frandom(-15, 15),frandom(-15, 15),0);
+				}
+			}
+			goto DeathSprite;
+		DeathSprite:
+			BLCA D 1 { tryGorePermaSleep(); }
+			loop;
+	}
+}
+
+class ZombieClaw : ZombieLeg
+{
+
+	default
+	{
+		scale 0.5;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				if(random(0,1) == 1)
+				{
+					bxflip = true;
+				}
+			}
+		Looper:
+			BLTE ABCDEFGHI 3
+			{
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+				if(vel ~== (0,0,0) && level.totalTime > SpawnTime + 1)
+				{
+					SetStateLabel("Death");
+				}
+			}
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				A_PLAYSOUND("gibs/bounce", CHAN_AUTO);
+				for(int x=0;x<1;x++) 
+				{
+					A_SpawnItemEx("HumanBloodSplattersPermanent", frandom(-15, 15),frandom(-15, 15),0);
+				}
+				A_PLAYSOUND("CORPSE/IMPACT", attenuation:0.85);
+			}
+			goto DeathSprite;
+		DeathSprite:
+			BLTE B 1 { tryGorePermaSleep(); }
+			loop;
+	}
+}
+
+class ZombieArm : ZombieLeg
+{
+	int deathFrame;
+
+	default
+	{
+		scale 0.36;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				if(random(0,1) == 1)
+				{
+					bxflip = true;
+				}
+			}
+		Looper:
+			BLAR ABCDEFGHIJ 3
+			{
+				A_SpawnProjectile ("BloodSplatterEffect", 7, 0, random (0, 360), 2, random (30, 90));
+				if(vel ~== (0,0,0) && level.totalTime > SpawnTime + 1)
+				{
+					SetStateLabel("Death");
+				}
+			}
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				A_PLAYSOUND("gibs/bounce", CHAN_AUTO);
+				for(int x=0;x<1;x++) 
+				{
+					A_SpawnItemEx("HumanBloodSplattersPermanent", frandom(-15, 15),frandom(-15, 15),0);
+				}
+				A_PLAYSOUND("CORPSE/IMPACT", attenuation:0.85);
+			}
+			goto DeathSprite;
+		DeathSprite:
+			BLAR A 1
+			{
+				deathFrame = 2;
+				if(random(0,1) == 1)
+				{
+					deathFrame = 7;
+				}
+				frame = deathFrame;
+			}
+		DeathLoop:
+			BLAR A 1 {
+				frame = deathFrame;	// i r lazy
+				tryGorePermaSleep();
+			}
+			loop;
+	}
+}
+
+class SuperGoreRed : SuperGorePurple
+{
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		spriteToUse = "BLER";
+		frame = random(0,1);
+	}
+
+	default {
+		Alpha 0.59;
+		SelfLighting "";
+	}
+
+    states {
+		Indexer:
+			BLER A 0;
+	}
+}
+
+class SuperGoreRedLarger : SuperGoreRed {
+	override void postbeginPlay() {
+		super.postBeginPlay();
+		scale*=1.25;
+		alpha*=1.25;
+	}
+}
+
+class RedBloodFog : SuperGoreRed
+{
+	default {
+		Alpha 0.24;
+	}
+    states {
+		Indexer:
+			BLER A 0;
+			stop;
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				sprite = GetSpriteIndex(spriteToUse);
+			}
+			BLER A 1 
+			{	
+				frame = frameID;
+				A_SETROLL(roll+rollSpeed);
+				A_SETSCALE(scale.x +0.01);
+				A_FadeOut(0.027, FTF_REMOVE);
+			}
+			loop;
+		}
+}
+
+
+class BonePartHuman : BonePart
+{
+	static const string boneSpriteIndexes2[] = {"BRNE", "BRN2", "BRN3"}; 
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		spriteName = boneSpriteIndexes2[random(0, boneSpriteIndexes2.size()-1 )];
+		deathSpriteID = random(7,9); // Idle Sprite
+	}	
+	states
+	{
+		indexer:	
+			BRNE ABCDEFGHIJ 0;
+			BRN2 ABCDEFGHIJ 0;
+			BRN3 ABCEDFGHIJ 0;
+	}
+}
+
+class BonePartHumanLarge : BonePartHuman {
+	default {
+		scale 0.3;
+	}
+}
+
+
+class HumanIntestine : AlienIntestine {
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		spriteToUse = "BGIN";
+		A_SETSCALE(frandom(0.11, 0.22));
+	}
+
+	override void spawnBloodTrail()
+	{
+		if(vel.length() > 0 && ((bloodQuality >= 2 && level.time % 4 == 0) || (bloodQuality >= 4 && level.time % 2 == 0)))
+		{
+			actor goreDecal;
+			bool succ;
+			[succ, goreDecal] = A_SPAWNITEMEX("HumanBloodSplatters", frandom(-35,35), frandom(-35,35));
+			if(goreDecal) {
+				goreDecal.setOrigin((goreDecal.pos.x, goreDecal.pos.y, goreDecal.floorz), false);
+				goreDecal.scale*=frandom(0.75,1);
+			}
+			A_SPAWNITEMEX("BloodSplatterEffect");
+		}
+	}
+
+	default
+	{
+		speed 4;
+		selfLighting "";
+		decal "BloodSplat";
+	}
+
+
+	states {
+		Indexer:
+			BGIN A 0;
+		Spawn: 
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				sprite = getSpriteIndex(spriteToUse);
+				A_SETANGLE(random(0,360));
+			}
+			TNT1 ABCD random(1,2);
+		Looper:
+			TNT1 ABCDE 2 {
+				A_SETROLL(roll + 25);
+			}
+			loop;
+	}
+}
+
+// Spawns Alien Brain Pieces!
+class HumanBrainPiece : AlienBrainPiece {
+	static const String brainList2[] =
+		{
+			"HumanBrainPiece1",
+			"HumanBrainPiece2",
+			"HumanBrainPiece3"
+	};	
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		brainToSpawn = brainList2[random(0, brainList.size()-1)];
+	}
+
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0  {
+				A_SpawnItemEx(brainToSpawn, frandom(-1,1), frandom(-1,1), 0, frandom(-5,5), frandom(-5,5), frandom(2,3));
+			}
+			stop;
+	}
+}
+
+// TO-DO: Chance based on Gore Quantity
+class HumanBrainPiece1 : AlienBrainPiece1 {
+
+	override void postbeginPlay() {
+		super.postBeginPlay();
+		A_SETSCALE(frandom(0.4,0.6));
+	}
+
+	default {
+		speed 2;
+		AlienBrainPiece1.frameLimit 3;
+		AlienBrainPiece1.spriteNameBrain "BBR1";
+		SelfLighting "";
+	}
+
+	states {
+		Indexer:
+			BBR1 A 0;
+		Spawn: 
+			TNT1 A 0;
+			TNT1 A 0 {
+				sprite = getSpriteIndex(spriteNameBrain);
+				frameID = random(0,3);
+			}
+		Looper:
+			TNT1 A 2 {
+				if(currentFrame == frameLimit) {
+					if(bloodQuality > 2) {
+						A_SPAWNITEMEX("BloodSplatterEffectSmall", 0, 0, 10);
+					}
+					currentFrame = 0;
+				}
+				frame = currentFrame;
+				currentFrame++;
+				A_SETANGLE(angle+45);
+				A_SETROLL(roll+45);
+			}
+			loop;
+		Death:
+			TNT1 A 100 {
+				A_SETROLL(0);
+				bFlatSprite = true;
+				frame = frameID;
+			}
+			TNT1 A 1 
+			{
+				frame = frameID;
+				handleGoreSleep();
+			}
+			stop;
+	}
+}
+class HumanBrainPiece2 : HumanBrainPiece1 {
+
+	default {
+		AlienBrainPiece1.frameLimit 4;
+		AlienBrainPiece1.spriteNameBrain "BBR2";
+	}
+	states {
+		Indexer:
+			BBR2 A 0;
+	}
+}
+class HumanBrainPiece3 : HumanBrainPiece1 {
+
+	default {
+		AlienBrainPiece1.frameLimit 1;
+		AlienBrainPiece1.spriteNameBrain "BBR3";
+	}
+	states {
+		Indexer:
+			BBR3 A 0;
+	}
+}
+ 
+
+// Hearts, livers etc
+class BloodChunks : actor
+{
+	int frameID;
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		frameID = random(0,8);
+	}
+
+	default
+	{
+		scale 0.19;
+		gravity 0.7;
+		speed 7;
+		radius 8;
+		+MISSILE;
+		+THRUACTORS;
+	}
+	states
+	{
+		Spawn:
+			GBHE A 0;
+		Looper:
+			GBHE A 1
+			{
+				frame = frameID;
+				pitch+=25;
+				roll+=15;
+				if(r_bloodquality > 1) {
+					A_SPAWNITEMEX("BloodSplatterEffectSmall", 0, 0, 10);
+				}				
+			}
+			loop;
+		Death:
+			GBHE A -1
+			{
+				bFlatSprite = true;
+				frame = frameID;
+				bNointeraction = true;
+				pitch = 0;
+				roll = 0;
+				angle = random(0,360);
+				SetOrigin((pos.x, pos.y, pos.z+2), false);
+				SleepIndefinite();
+				A_PLAYSOUND("gibs/bounce", CHAN_AUTO, pitch:0.6);
+			}
+			stop;
+	}
+}
+
+class HumanBrainPieceSlow : AlienBrainPiece
+{
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		brainToSpawn = brainList[random(0, brainList.size()-1)];
+	}
+
+	static const String brainList[] =
+		{
+			"HumanBrainPiece1Slow",
+			"HumanBrainPiece2Slow",
+			"HumanBrainPiece3Slow"
+		};	
+	states 
+	{
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0  {
+				A_SpawnItemEx(brainToSpawn, frandom(-1,1), frandom(-1,1), 0, frandom(-5,5), frandom(-5,5), frandom(2,3));
+			}
+			stop;
+	}
+}
+
+
+
+class HumanBrainPiece1Slow : HumanBrainPiece1
+{
+	override void assignParameters()
+	{
+		A_SETANGLE(angle+random(-45,45));
+		A_SETSCALE(frandom(0.21, 0.25), frandom(0.3,0.33));
+	}
+	
+	override void spawnBloodTrail()
+	{
+		A_SPAWNITEMEX("RedBloodSmokeRapidFadeout", 0, 0, 10);
+	}
+
+	default
+	{
+		speed 2;
+	}
+}
+
+class HumanBrainPiece2Slow : HumanBrainPiece1Slow {
+
+	default {
+		AlienBrainPiece1.frameLimit 4;
+		AlienBrainPiece1.spriteNameBrain "BBR2";
+	}
+	states {
+		Indexer:
+			PBR2 A 0;
+	}
+}
+class HumanBrainPiece3Slow : HumanBrainPiece1Slow {
+
+	default {
+		AlienBrainPiece1.frameLimit 1;
+		AlienBrainPiece1.spriteNameBrain "BBR3";
+	}
+	states {
+		Indexer:
+			PBR3 A 0;
+	}
+}
+
+// Same, but very short. used by ceiling drip
+class HumanSplatterVeryShort : HumanBloodSplatters {
+	default
+	{
+		SelfLighting "0000000";
+		scale 0.2;
+	}
+	states
+	{
+		SpawnDecal:
+				TNT1 A 35 {
+					frameID = random(0,9);
+					sprite = getSpriteIndex("SPLT");
+					frame = frameID;
+					bNointeraction = true;
+				}
+				TNT1 A 0{
+					setStateLabel("FadeDecal");
+				}
+				goto FadeDecal;
+
+		FadeDecal:
+				TNT1 AAAAAAAAAAAAAAAAAAAA 1 {
+					bPreventSleep = true;
+					frame = getSpriteIndex("SPLT");
+					A_FADEOUT(0.05);
+				}
+				goto Death;
+
+			Splash:
+				TNT1 A 0 {
+					destroy();
+				}
+				BLOK A 0;
+				stop;
+				
+			Death:
+				TNT1 A 0;
+				//TNT1 A 0 A_NoBlocking;
+				Stop;
+	}
+ }
+				
+class RedCeilingDecal : OMINOUS_PurpleSpotCeiling
+{
+	default
+	{
+		scale 0.45;
+	}
+	states
+	{
+		Spawn:
+		Looper:
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Splash");
+			TNT1 A 5
+			{
+				SetOrigin((pos.x, pos.y, ceilingz), false);
+				checkEvenSurface(-90, 35);
+				checkCeilingTexture();
+				decalFrame = random(0,9);
+				A_SETSCALE(scale.x + frandom(-0.2,0.3));
+				sprite = getSpriteIndex("SPLT");
+				frame = decalFrame;
+				if(hasNearbyDecal(20)) {
+                    SetStateLabel("death");
+                }
+				setStateLabel("SpawnDecalDripping");
+			}
+		SpawnDecalDripping:
+				TNT1 A 0
+				{
+					sprite = getSpriteIndex("SPLT");
+				}
+				TNT1 A random(4,15);
+				TNT1 AAAAAAAAAAAAAAAAAAAA 1
+				{
+					frame = decalFrame;
+					A_FADEIN(0.05);
+				}
+				TNT1 AAAAAAAAAAAAAAAAAAAAAA random(10,90) {
+					A_PLAYSOUND("IMPACT/BLOODSPLIT", volume:0.13, pitch:frandom(1.0,1.5));
+					frame = decalFrame;
+					bNointeraction = true;
+					A_SPAWNITEMEX("CeilingDripRed", frandom(-10,10), frandom(-10,10), -2);
+				}
+				TNT1 A 0;
+		SpawnDecalWaitForDeath:
+				TNT1 A 1 {
+					if(hasNearbyDecal(20)) {
+                        SetStateLabel("death");
+                    }
+					sprite = getSpriteIndex("SPLT");
+					frame = decalFrame;
+					bNointeraction = true;
+					handleGoreSleep();
+				}
+				TNT1 A 0;
+				stop;
+	}
+}
+
+class CeilingDripRed: PurpleBloodHitGravity
+{
+	override void PostBeginPlay() {
+		if(random(0,1) == 1) {
+			bxflip = true;
+		}
+	}
+
+    bool allowSplash;
+    int aliveticks;
+    override void tick()
+    {
+        super.tick();
+		if(aliveticks < 7) {
+			aliveticks++;
+		} else {
+			allowSplash = true;
+		}
+    }
+    
+
+	default {
+		+NOBLOCKMAP;
+		height 5;
+		radius 5;
+		scale 0.46;
+		gravity 0.8;
+	}
+    States	{
+     	Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				A_SETSCALE(scale.x + frandom(0, 0.23));
+				gravity = frandom(0.76,0.83);
+				roll = random(0,360);
+			}
+			RBTR CC 1 A_SETROLL(roll + 1);
+		WaitForFloor:
+			RBTR d 1 
+			{
+				if(pos.z <= floorz)
+				{
+					setStateLabel("Death");
+				}
+				A_SPAWNITEMEX("RedBloodMissileTrailVeryShort");
+				A_SETROLL(roll + 3);
+			}
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				if(!allowSplash)
+				{
+					destroy();
+				}
+				if(level.Maptime > 35)
+				{
+					A_PLAYSOUND("IMPACT/PURPLEDRIP", chan_Auto, 0.1, pitch:frandom(1.0,1.4));
+				}
+				A_SETSCALE(scale.x*0.5);
+				SetOrigin((pos.x, pos.y, floorz), true);
+				A_SPAWNITEMEX("RedBloodSmokeSlow");
+				A_SPAWNITEMEX("HumanSplatterVeryShort", 0, 0, 3);
+				vel.z = 0;
+				A_SETSCALE(0.8);
+			}
+			RBBS GGHHIIJJKKLL 1 
+			{	
+				A_SETSCALE(scale.x+0.02);
+				A_FADEOUT(0.06);
+				a_setroll(0);
+			}
+			Stop;
+    }
+}
+
+class RedBloodMissileTrailVeryShort: BloodTrailMissile { 
+	default
+	{
+		+NOINTERACTION;
+		scale 0.11;
+	}
+	states
+	{
+     	Spawn:
+			TNT1 A 0;
+			RBTR AABBCCDDEEE 1 A_SETROLL(roll + random(3, 5));
+			Stop;
+	}
+}
+
+// Blood fog cloud
+class RedBloodSmoke: SmokeTrailPieceArmorPurple
+{
+	default
+	{
+		speed 4;
+		scale 0.36;
+		alpha 0.21;
+		selfLighting "000000";
+		RenderStyle "Translucent";
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			SBLO A 0;
+			BLOP A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+			}
+			BLOH ABCDEFGHIJ 2;
+			BLOH KKKKKKKKKKKKKKKKKKKKKKKK 1 A_FADEOUT(0.03, FTF_REMOVE);
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+// Blood fog RedBloodSmoke
+class RedBloodSmokeSlow: RedBloodSmoke
+{
+	default
+	{
+		speed 1;
+		scale 0.20;
+		alpha 0.24;
+		RenderStyle "Translucent";
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			SBLO A 0;
+			BLOP A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+			}
+			BLOH ABCDEFGHIJ 2;
+			BLOH KKKKKKKKKKKKKKKKKKKKKKKK 1 A_FADEOUT(0.03, FTF_REMOVE);
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class RedBloodSmokeRapidFadeout : RedBloodSmoke
+{
+
+	override void tick()
+	{
+		super.tick();
+		A_FADEOUT(0.01, FTF_REMOVE);
+	}
+
+}

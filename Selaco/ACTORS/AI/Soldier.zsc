@@ -1,0 +1,1202 @@
+
+class SOLDIER : EnemySoldier
+{
+
+	void assignRandomizerWeapon() {
+		array<int> availableRandomizerWeapons;
+		if(randomizerHandler && randomizerHandler.randomizerMode)
+		{
+			// Get available guns
+			if(randomizerHandler.allowNailgunners) {
+				availableRandomizerWeapons.push(AWPN_NAILGUN);
+			}
+			if(randomizerHandler.allowStingerRifle) {
+				availableRandomizerWeapons.push(AWPN_STINGER);
+			}
+			if(randomizerHandler.allowBurstRifle) {
+				availableRandomizerWeapons.push(AWPN_BURSTRIFLE);
+			}
+
+			if(random(0,100) <= 5 && availableRandomizerWeapons.size()) {
+				soldierWeapon = availableRandomizerWeapons[random(0,availableRandomizerWeapons.size()-1)];
+			}
+
+		}
+	}
+
+	override void PostBeginPlay() {
+		if(randomizerHandler && randomizerHandler.randomizerMode)
+		{
+			assignRandomizerWeapon();
+		}
+
+		super.PostBeginPlay();
+
+		// If the first argument is set to '1', the soldier will not talk, ever.
+		if (args[0] == 1) {
+			mayNotTalk = true;
+		}
+		if(bDormant) {
+			bThruActors = true;
+		}
+		colorTranslation = skin_color;
+		MagazineSize = weapon_magazine; // How many shots before reloading?
+		currentAmmo = MagazineSize;
+		burstLength = MaxBurstLength;
+		if(Skill == SKILL_ENSIGN) { strafeChance*=0.75;}
+		if(skill == SKILL_LIEUTENANT) { strafeChance*=0.5;}
+		if(skill >= 3) { strafeChance += 10;}
+	}
+
+	override void tick() {
+		super.tick();
+		if(rifleReadyCooldown > 0) {
+			rifleReadyCooldown--;
+		}
+	} 
+
+    override void BeginPlay() {
+		super.BeginPlay();
+		ENEMY_IdentifierTag = "RIFLEMAN";
+	}
+
+	Default {
+		tag "$CHARACTER_RIFLEMAN";
+        SelacoEnemy.WeaponDamage                3;
+        SelacoEnemy.weaponDamageOffset          2;
+
+		SelacoEnemy.randomizerSpawnChance 100;
+		-EnemySoldier.AllowSmartReloading;
+		+SelacoEnemy.AllowSquadleaderBuffs;
+		+SelacoEnemy.AllowGrenadeDodging;
+		+SelacoEnemy.allowShieldMounting;
+		monster;
+		decal "OminousPurpleSplat";
+		Species "Alien";
+		Health 140; 
+		Radius 15;
+		Height 59;
+		Speed 5;
+		Mass 350;
+		FastSpeed 4;
+		-BLOCKEDBYSOLIDACTORS;
+		PainChance 115;
+		scale 0.39;
+		monster;
+		yscale 0.28;
+		SelacoEnemy.flankingChance 65;
+		EnemySoldier.Aggressiveness 140;
+		EnemySoldier.EvadeChance 80;
+		EnemySoldier.CrouchedShotChance 255;
+		EnemySoldier.AccurateShotChance 120;
+		EnemySoldier.SprayShotChance 15;
+		EnemySoldier.CombatDistance 325;
+		EnemySoldier.StrafeChance 160;
+		EnemySoldier.MaxBurstLength 6;
+		EnemySoldier.shieldCount 1;
+		EnemySoldier.grenadeCount 1;
+
+		EnemySoldier.SPRITE_Walking  "RFRU";
+		EnemySoldier.SPRITE_Idle  "RFID";
+		EnemySoldier.SPRITE_Grenade  "RFGR";
+		EnemySoldier.SPRITE_Pain  "ALIP";
+		EnemySoldier.SPRITE_PainShoulder1  "RFP1";
+		EnemySoldier.SPRITE_PainShoulder2  "RFP2";
+		EnemySoldier.SPRITE_PainHeadshot  "RFHE";
+		EnemySoldier.SPRITE_Reload  "RFRE";
+		EnemySoldier.SPRITE_FireAimed  "RFFR";
+		EnemySoldier.SPRITE_StumbleForward  "RFP6";
+		EnemySoldier.SPRITE_StumbleRight  "RFP5";
+		EnemySoldier.SPRITE_StumbleLeft  "RFP4";
+		EnemySoldier.SPRITE_CrouchFire  "RFCR";
+		EnemySoldier.SPRITE_AlertAllies  "ALAL";
+		EnemySoldier.SPRITE_Hipfiring  "RFHF";
+		EnemySoldier.SPRITE_HipWalking  "RFHW";
+		EnemySoldier.SPRITE_StrafeFiring  "RFSI";
+		EnemySoldier.SPRITE_Fallingdown  "RFFL";
+		EnemySoldier.SPRITE_MeleeFly  "RFGU";
+		EnemySoldier.SPRITE_Shocked  "RFEL";
+		EnemySoldier.SPRITE_NailgunDeath  "RFN1";
+		EnemySoldier.SPRITE_DodgeGrenade  "RIDG";
+
+		PainChance "BulletSplashDamage", 150;
+		PainSound "grunt/pain";
+		DeathSound "grunt/death";
+		ActiveSound "";
+		DropItem "EnemyThrownGrenadeHotDrop", 3;
+		Obituary "%o has been gunned down by an Invader.";
+		DamageFactor "CauseObjectsToSplash", 0.0;
+	}
+	States
+	{
+
+
+	index:
+		// This is here to ensure stability.
+		TNT1 A 0;
+		RFGR A 0;
+		RFP1 A 0;
+		RFDG A 0;
+		RFRU A 0;
+		RFID A 0;
+		RFFR A 0;
+		RFP6 A 0;
+		RFHW A 0;	
+		RIDG A 0;
+		ALIP A 0;
+		RFHE A 0;
+		RFHF A 0;
+		RFSI A 0;
+		RFFL A 0;
+		RFP1 A 0;
+		RFP2 A 0;
+		RFN1 ABCDEF 0;
+		RFRE A 0;
+		RFP4 A 0;
+		RFP5 A 0;
+		RFGU A 0;
+		RFEL A 0;
+		RFCR A 0;
+
+	Spawn:
+		TNT1 A 0 {
+			A_Look();
+		}
+		POSS B 1 {
+			SetStateLabel("Stand");
+		}
+		loop;
+
+	See:
+		TNT1 A 0 S_AlertEnemies();
+		TNT1 A 0 {
+			bNODROPOFF = false;	
+			
+			if (!getSeenPlayer()) {
+				calloutTimer = 3;
+			}
+			bThruActors = false;
+			A_GiveInventory("isInCombatMode",1 );
+			SetSeenPlayer();
+		}
+		TNT1 A 0 {
+			if (!findNearbyAlertedAlien()) {
+				SetStateLabel("SeeContinue");
+			}
+		}
+			Goto SeeContinue;
+	
+
+	FallBack:
+		TNT1 A 0 {
+			// Enemies cannot move backwards anymore? Check which directions he can possibly go to
+			if (!CheckClear(4)) 
+			{ 
+				Sprite = GetSpriteIndex(SPRITE_StrafeFiring);
+				invoker.ShouldItShoot = 2;
+				if (CheckClear(1)) {SetStateLabel("MissileRight");}
+				if (CheckClear(2)) {SetStateLabel("MissileLeft");}
+				if (CheckClear(3) && !bFrightened) {SetStateLabel("MissileForward"); }
+			}
+		}
+		TNT1 A 0 A_JUMP(256, "MissileBackward");
+		TNT1 DCBADCBA 7
+		{
+			if (!CheckClear(4)) 
+			{ 
+				invoker.ShouldItShoot = 2;
+				if (CheckClear(1)) { SetStateLabel("MissileLeft");}
+				if (CheckClear(2)) { SetStateLabel("MissileRight");}
+				if (CheckClear(3) && !bFrightened) { SetStateLabel("MissileForward"); }
+			}
+			
+			
+			A_FACETARGET();
+			A_Recoil(2);
+		}
+		TNT1 A 0 playFootstepSound();
+		GOto SeeContinue;
+
+	MovementSelector:
+	Missile:
+	    TNT1 A 0 {
+			noStrafeFiring = false;
+			if(isTargetVisible() && target is 'Dawn') {
+				// Inform the overseer we still see the player
+				BattleOverseer.instance().playerSeen(self);
+			}
+
+			// If we can see the target, but our LOF is blocked by another MONSTER, find a better position
+			// Use random so timetimes we still take a shot even though LOF is not possible
+			if(!bFrightened && isTargetVisible(checkWeaponLOSRejection:false) && !hasFiringSolution() && random(0,100) > 25) {
+				switch(random(1, 5)) {
+					case 1:
+					case 2:
+						SetStateLabel("StrafeFiringFromDefense");
+						noStrafeFiring = random(0,1);
+						return;
+					case 3:
+						targetTimeout = level.totalTime + (2 * 35);
+						defaultEverything();
+						SetStateLabel("SeeContinue");
+						return;
+					case 4:
+						SetStateLabel("WaitAndAim_GetBetterPosition");
+						return;
+					default:
+						break;
+				}
+			}
+
+			// If we shouldn't be firing at all, go back to moving around
+			if(bFrightened || !isTargetVisible()) {
+				if(bINCHASE) {
+					// TODO: Pick a state to start running around
+				}
+
+				A_CHASE();	// This won't actually do anything if we are already in A_CHASE() since it prevents recursion
+				return;
+			}
+
+			lookForHazard();
+			A_Stop();
+			SetSeenPlayer();
+			isStrafing = false;
+			// TO-DO: Just here for the demo. This prevents aliens from attacking Pathnodes.
+			/*if(target is "PathNode" || target is "GrenadeDestination") {
+				target = players[0].mo;
+			}*/
+			if(mountedShieldActor)
+			{
+				setStateLabel("WaitAndAim");
+			}
+		}
+		TNT1 A 0 {
+			bGhost = false;
+			bNoDropoff = false;
+			defaultEverything();
+		}
+		TNT1 A 0 A_TakeInventory("CantFire", 1);
+		TNT1 A 0 A_JumpIfCloser(900, 3);
+		TNT1 A 0 A_FACETARGET;
+		TNT1 A 0 A_JumpIfInventory("CantFire",1, "SeeContinue");
+		//TNT1 A 0 A_Jump(32, "Pain.Avoid");
+		goto ShootTheWeapon;
+	ShootTheWeapon:
+		TNT1 A 0 S_AlertEnemies;
+		TNT1 A 0 talk(SOLDIER_ATTACK);
+		TNT1 A 0 
+		{
+			addAction(invoker.strafeChance, findState("StrafeFiring"));
+		}
+	ShootTheWeaponNoStrafe:
+		TNT1 A 0 {
+			strafeAttempts--;
+		}
+		// Check all possible actions and put the valid ones in a State List. Then run a random one within the state.
+		// This is a more bias free solution compared to running A_JUMP in an order.
+		TNT1 A 0
+		{
+			bool validShootWeapon1, validShootWeaponAiming, validShootWeaponCrouched;
+			if(checkWeaponLineOfSight(9, 36, 7))
+			{
+				validShootWeapon1 = true;
+				addAction(invoker.sprayShotChance, findState("Prepare_ShootWeapon1"));
+			}
+			if(checkWeaponLineOfSight(9, 42, 10))
+			{
+				validShootWeaponAiming= true;
+				addAction(invoker.accurateShotChance, findState("Prepare_ShootWeapon_Aiming"));
+			}
+			if(checkWeaponLineOfSight(9, 30, 7))
+			{
+				validShootWeaponCrouched = true;
+				addAction(invoker.crouchedShotChance, findState("Prepare_ShootWeapon_Crouched"));
+			}
+			addAction(invoker.aggressiveness, findState("missileForward"));
+			addAction(invoker.evadeChance, findState("Evade"));
+			addAction(invoker.gadgetChance, findState("DeployGadget"));
+
+			if(checkInvasionTier(INVTIER_GRENADE))
+			{
+				addAction(grenadeChance, findState("Grenade"));
+			}
+			if(checkInvasionTier(INVTIER_SMOKEGRENADES))
+			{
+				addAction(smokeChance, findState("SmokeGrenade"));
+			}
+
+			// No actions found, add some defaults and choose between those.
+			if(possibleActions.size() == 0)
+			{
+				// Found no states, adding defaults.		
+				if(validShootWeaponAiming) {
+					addAction(256, findState("Prepare_ShootWeapon_Aiming"));
+				}
+				if(validShootWeaponCrouched)
+				{
+					addAction(256, findState("Prepare_ShootWeapon_Crouched"));
+				}
+				if(validShootWeapon1) {
+					addAction(256, findState("Prepare_ShootWeapon1"));
+				}
+			}
+
+			// Still nothing? Walk instead.
+			if(possibleActions.size() == 0) {
+				setState(findState('SeeContinue'));
+			} else {
+				// Get a random action and run it.
+				setState(getRandomAction());
+			}
+		}
+		TNT1 A 0;
+		goto Prepare_ShootWeapon1;
+
+	Prepare_ShootWeapon1:
+		TNT1 A 0 {
+			if(!checkWeaponLineOfSight(9, 36, 7))
+			{
+				setState(findState('SeeContinue'));
+			}
+		}
+		TNT1 A 0
+		{
+			if(fallbackIfNoAdvantage()) return;
+			Sprite = GetSpriteIndex(SPRITE_Hipfiring);
+			S_AlertEnemies();
+			prepareRifle();
+		}
+		TNT1 ABC 2 {
+			if(skill >= SKILL_ADMIRAL) {
+				A_SETTICS(1);
+			}
+			A_FACETARGET();
+		}
+		TNT1 D 2 {
+			if(skill >= SKILL_CAPTAIN)
+			{
+				setStateLabel("ShootWeapon1");
+			}
+			A_FACETARGET();
+		}
+		goto ShootWeapon1;
+
+
+	Prepare_ShootWeapon_Aiming:
+		TNT1 A 0 {
+			if(fallbackIfNoAdvantage()) return;
+			Sprite = GetSpriteIndex(SPRITE_FireAimed);
+			S_AlertEnemies();
+			prepareRifle();
+		}
+		TNT1 ABCD 2 {
+			if(skill >= SKILL_ADMIRAL) {
+				A_SETTICS(1);
+			}
+			A_FACETARGET();
+			//spawnAttackIndicator("YellowFlare3", 40);
+		}
+		TNT1 A 0 {
+			if(skill >= 2 || squadLeaderBuff) {SetStateLabel("ShootWeapon_Aiming");}
+		}
+		TNT1 DD 2 {
+			A_FACETARGET();
+		}
+		TNT1 A 0 {
+			if(skill > 0 || squadLeaderBuff) {
+				SetStateLabel("ShootWeapon_Aiming");
+			}
+		}
+		TNT1 DD 2 {
+			A_FACETARGET();
+		}
+		goto ShootWeapon_Aiming;
+
+	Prepare_ShootWeapon_Crouched:
+		TNT1 A 0 {
+			if(!checkWeaponLineOfSight(9, 30, 7))
+			{
+				setState(findState('SeeContinue'));
+			}
+		}
+		TNT1 A 0 {
+			if(skill >= SKILL_ADMIRAL) {
+				A_SETTICS(1);
+			}
+			Sprite = GetSpriteIndex(SPRITE_CrouchFire);
+			defaultEverything();
+			if (invoker.aggressiveness <= 120) {
+				if(fallbackIfNoAdvantage()) return;
+			}
+			S_AlertEnemies();
+			if (!crouchIsSafe()) {
+				setStateLabel("Prepare_ShootWeapon_Aiming");
+			}
+			prepareRifle();
+		}
+		TNT1 AB 2 {
+			A_SetSize(-1, height-3);
+			if (!crouchIsSafe()) {
+				setStateLabel("Prepare_ShootWeapon_Aiming");
+			}
+			A_FACETARGET();
+		}
+		TNT1 CD 2 {
+			A_SetSize(-1, height-3);
+			A_FACETARGET();
+		}
+		TNT1 A 0 {
+			// used to be 2.
+			if(skill >= 0 || squadLeaderBuff) {SetStateLabel("ShootWeapon_Crouching");}
+		}
+		TNT1 D 2 {
+			A_FACETARGET();
+		}
+		TNT1 A 0 {
+			if(skill > 0 || squadLeaderBuff) {
+				SetStateLabel("ShootWeapon_Crouching");
+			}
+		}
+		TNT1 DDDD 2 {
+			A_FACETARGET();
+		}
+		goto ShootWeapon_Crouching;
+
+	ShootWeapon1:
+		TNT1 A 0;
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex(SPRITE_Hipfiring);
+ 			if(!isTargetVisible())
+			{
+				setState(findState("CannotSeeTarget"));	
+			}
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+		}
+		TNT1 D 3 {
+			A_FACETARGET();
+			A_SetTics(getRateOfFire());
+		}
+		TNT1 D 1 {
+			if(fallbackIfNoAdvantage()) return;
+			A_FACETARGET();
+			FireWeapon(1, 9, 36, 3, getRateOfFire());
+		}
+		TNT1 A 0 A_jump(96, "Missile");
+		TNT1 D 2 A_FACETARGET;
+		TNT1 A 0; 
+        TNT1 A 0 {
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+		 }
+        Goto SeeContinue;
+
+	ShootWeapon_Aiming:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_FireAimed);
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			if(!user_sentrymode && isDawnNear()) {
+				SetStateLabel("StrafeFiring");
+			}
+		}
+		TNT1 D 0 A_SetTics(getRateOfFire());
+		TNT1 D 1 {
+			A_FACETARGET();
+			FireWeapon(2, 9, 42, 4, frandom(2,3), 10);
+		}
+		TNT1 A 0 A_Jump(26, "MissileLeft", "MissileRight");
+		TNT1 CBA 2 A_FACETARGET;
+		TNT1 A 0 A_jump(96, "Missile");
+		Goto SeeContinue;
+
+	ShootWeapon_Crouching:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_CrouchFire);
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			if (crouchIsSafe() && isDawnNear()) {
+				setStateLabel("StandUp");
+			}
+		}
+		TNT1 D 0 A_SetTics(getRateOfFire());
+		TNT1 D 1 {
+			if (CheckWallNearby()) {
+				SetStateLabel("StandUp");
+			} else {
+				FireWeapon(3, 9,34, 3, 2);
+			}
+		}
+		goto StandUp;
+	StandUp:
+		TNT1 CBA 2 {
+			A_FACETARGET();
+			A_SetSize(-1, height+7);
+		}
+		Goto SeeContinue;
+
+	SmokeGrenade:
+		TNT1 A 0 A_STOP;
+		TNT1 A 0 {
+			if (invoker.grenadeCount > 0 && checkInvasionTier(INVTIER_GRENADE)) {
+				SetStateLabel("ActuallyThrowSmokeGrenade");
+			}
+		}
+		Goto ShootTheWeapon;
+
+	Grenade:
+		TNT1 A 0 A_STOP;
+		TNT1 A 0 {
+			if (shouldThrowGrenade()) {
+				SetStateLabel("ActuallyThrowGrenade");
+			}
+		}
+		TNT1 A 0;
+		Goto ShootTheWeapon;
+
+	GetSentryTurret:
+		goTo Stand;
+	
+	DeployGadget:
+		TNT1 A 0 {
+			if(checkInvasionTier(INVTIER_SHIELDS) && shieldCount) {
+				SetStateLabel("DeployShield");
+			}
+		}
+		goto Stand;
+
+	DeployShield:
+		TNT1 A 0 ;
+		TNT1 A 0 A_FACETARGET();
+		TNT1 A 0 {
+			if(shieldCount == 0)
+			{
+				setStateLabel("ShootTheWeapon");
+			}
+			Sprite = GetSpriteIndex(SPRITE_FireAimed);
+		}
+		TNT1 B 2 A_FACETARGET;
+		TNT1 A 0 {
+			shieldCount--;
+		}
+		TNT1 A 0 talk(SOLDIER_DEPLOYSHIELD, urgent:true);
+		TNT1 A 0 A_SpawnItemEx ("PlasmaShield",45,0,2,0,0,0,0,SXF_NOCHECKPOSITION,0);
+		TNT1 B 25 A_FACETARGET;
+		Goto Stand;
+
+	DeployGadgetDenied:
+		TNT1 A 0;
+		goto ShootTheWeapon;
+
+	ActuallyThrowSmokeGrenade:
+		TNT1 A 0 A_Stop;
+	    TNT1 A 0 {
+			invoker.grenadeCount--;
+		}
+		TNT1 A 0 {
+			bGhost = false;
+			bNoDropoff = false;
+		}
+        TNT1 A 0 A_JumpIfCloser(500, 1);
+		Goto Missile+7;
+		TNT1 A 0 A_JumpIfCloser(85, "ShootTheWeapon");
+		TNT1 A 0; 
+		RFGR BCD 3 A_FACETARGET;
+      	TNT1 A 0 talk(SOLDIER_THROWGRENADE, urgent:true);
+		TNT1 A 0 A_PlaySound("OPNGRN", 1);
+		TNT1 A 0; 
+		RFGR EF 3 A_FACETARGET;
+		TNT1 A 0 A_PlaySound("THRGRN", 1);
+		TNT1 A 0 A_SpawnProjectile("SmokeGrenade", 42);
+		RFGR GHIJ 3 A_FACETARGET;
+		TNT1 A 0 ThrustThing(angle*256/360+128, 23, 0, 0);
+        Goto SeeContinue;
+
+	ScriptedGrenade:
+		TNT1 A 0 A_Stop;
+	    TNT1 A 0 {
+			invoker.grenadeCount--;
+		}
+		TNT1 A 0 {
+			bGhost = false;
+			invoker.isThrowingGrenade = true;
+			bNoDropoff = false;
+		}
+		RFGR BCD 3 A_FACETARGET;
+		TNT1 A 0 A_PlaySound("OPNGRN", 1);
+		TNT1 A 0;
+      	TNT1 A 0 talk(SOLDIER_THROWGRENADE);
+		RFGR EF 3 A_FACETARGET;
+		TNT1 A 0 A_PlaySound("THRGRN", 1);
+		TNT1 A 0 A_SpawnItemEx("EnemyThrownGrenade", 0, 0, 32, 15, 0 ,2);
+		TNT1 A 0 {
+			bGhost = false;
+			invoker.isThrowingGrenade = false;
+			bNoDropoff = false;
+		}
+		RFGR GHIJ 3 A_FACETARGET;
+		goto Stand;	
+
+	ScriptedFiringAtSomethingRandom:
+		TNT1 A 0 {
+			bNoPain = true;
+			Sprite = GetSpriteIndex(SPRITE_FireAimed);
+		}
+		TNT1 D 1 {
+			A_settics(random(6,8));
+		}
+		TNT1 D 1 {
+			A_PLAYSOUND("DISTANT/SHOT", CHAN_AUTO, 0.7, pitch:frandom(0.96, 1.04));
+			A_PLAYSOUND("grunt/firegun", CHAN_AUTO, 0.6, 0, 0.5);
+			A_SpawnItemEx("AlienMuzzle", 43, 18, 46);
+			A_SpawnItemEx("AlienTracerDummy", 50, 18, frandom(39,40), 60, angle:frandom(-3,3));
+			A_SpawnItem ("RifleCaseSpawnEnemy", 0, 30,0);
+		}
+		loop;
+	CannotSeeTarget:
+		TNT1 A 0;
+		goto SeeContinue;
+
+	StrafeFiring:
+		TNT1 A 0;
+		TNT1 A 0 {
+			strafeAttempts++;
+			if(strafeAttempts >= 2) {
+				strafeAttempts = -60;
+				SetStateLabel("ShootTheWeaponNoStrafe");
+			}
+			Sprite = GetSpriteIndex(SPRITE_FireAimed);
+			// if the random integer is higher than 1, target will fire. increase this value to decrease the
+			// chance of him not shooting.
+			A_FACETARGET();
+			if(fallbackIfNoAdvantage()) return;
+		}
+		TNT1 A 0 A_Jump(256, "MissileLeft", "MissileRight");
+	
+	// These are the same as MissleLeft and MissileRight, but are fully aware of the player right away, even when not in sight.
+	ScriptedMissileLeft:
+		TNT1 A 0
+		{
+			SetTargetToPlayer();
+		}
+		goto MissileLeft;
+	ScriptedMissileRight:
+		TNT1 A 0
+		{
+			SetTargetToPlayer();
+		}
+		goto MissileRight;
+	ScriptMoveForwardAlert:
+	TNT1 A 0
+		{
+			SetTargetToPlayer();
+		}	
+		goto MoveForward;
+
+	MissileLeft: // Enemy will strafe to the left while taking shots at the player
+		TNT1 A 0 {
+			defaultEverything();
+			invoker.strafesLeft = true;
+			invoker.strafeSpeed = -0.4;
+			checkStrafeDirection = 90;
+			strafeFrames = 0;
+		}
+		goto PrepareStrafe;
+
+	MissileRight:
+		TNT1 A 0 {
+			defaultEverything();
+			invoker.strafesRight = true;
+			invoker.strafeSpeed = 0.4;
+			checkStrafeDirection = 270;
+			strafeFrames = 3;
+		}	
+		goto PrepareStrafe;
+	
+PrepareStrafe:
+	TNT1 A 0 {
+		stateTic = weapon_rateoffire-2;
+		Sprite = GetSpriteIndex(SPRITE_FireAimed);
+		if (strafeAttempts < 0) {
+			setStateLabel("MissileForward");
+		}
+		if (isStrafing && strafeAttempts >= 0 && strafeAttempts <= 4) {
+			setStateLabel("Strafe");
+		}
+	}
+
+	TNT1 A 1 A_FACETARGET();
+
+	TNT1 A 0 {
+		if (skill >= 3 || squadLeaderBuff) {
+			SetStateLabel("strafe");
+		}
+	}
+
+Strafe:
+	TNT1 A 0 {
+		killStrafeNodes();
+		if (!noStrafeFiring && !isTargetVisible(checkWeaponLOSRejection: false)) {
+			setState(findState("CannotSeeTarget"));
+		}
+
+		// Create network for strafe nodes
+		if (!ignoreStrafenode) {
+			if (strafesRight) { createStrafeNodes(STF_RIGHT, 6); }
+			if (strafesLeft) { createStrafeNodes(STF_LEFT, 6); }
+		}
+	}
+
+	TNT1 A 0 {
+		Sprite = GetSpriteIndex(SPRITE_StrafeFiring);
+		invoker.animationInterval = 0;
+	}
+
+	TNT1 AAAAABBBBBCCCCCDDDDDAAAAABBBBBCCCCCDDDDDAAAAABBBBBCCCCCDDDDD 1 {
+		frame = strafeFrames;
+		invoker.animationInterval++;
+		isStrafing = true;
+		int sidewaysVelocity = (Cos(angle) * (vel.y)) - (Sin(angle) * (vel.x));
+		
+		if (checkGeometryCollision(-1, maxStepHeight, 90, floorOnly:True)) 
+		{
+			A_CHANGEVELOCITY(0, -1 * (sidewaysVelocity * 2), vel.z, CVF_REPLACE | CVF_RELATIVE);
+			setStateLabel("Prepare_ShootWeapon1");
+		}
+
+		if (invoker.animationInterval % 3 == 0 && target && (!ignoreStrafenode && !validateStrafe())) {
+			setState(findState("Prepare_ShootWeapon1"));
+			isStrafing = false;
+			if(bIsOnFloor())
+			{
+				A_CHANGEVELOCITY(0, 0, vel.z, CVF_REPLACE);
+			}
+		} 
+
+		if (invoker.animationInterval % 5 == 0 && isStrafing) 
+		{
+			bool checkGeometryCollisionResult = checkGeometryCollision(-1, radius+40);
+
+			lookForHazard();
+
+			if (isDawnNear()) {
+				SetStateLabel("MissileBackward");
+			}
+
+			// Go forward is both left and right are blocked.
+			else if (!CheckIfwallClear(90, 60) && !CheckIfwallClear(270, 60)) 
+			{
+				setState(findState("MissileForward"));
+				isStrafing = false;
+			} 
+
+			// Switch to Left Strafe
+			else if (isStrafing && invoker.strafesRight && (checkGeometryCollisionResult || vel.length() == 0) )
+			{
+				if(bIsOnFloor())
+				{
+					A_CHANGEVELOCITY(0, -1 * (sidewaysVelocity * 1.5), vel.z, CVF_REPLACE);
+				}
+				setState(findState("MissileLeft"));
+				isStrafing = false;
+			} 
+			
+			// Switch to Right Strafe
+			else if (isStrafing && invoker.strafesLeft && (checkGeometryCollisionResult || vel.length() == 0) )
+			{
+				if(bIsOnFloor())
+				{
+					A_CHANGEVELOCITY(0, -1 * (sidewaysVelocity * 1.5), vel.z, CVF_REPLACE);
+				}
+				setState(findState("MissileRight"));
+				isStrafing = false;
+			} 
+
+			// Move back if target close
+			else if (invoker.strafesLeft) 
+			{
+				strafeFrames++;
+				if (strafeFrames >= 4) {
+					strafeFrames = 0;
+				}
+			} 
+			else if (invoker.strafesRight) 
+			{
+				strafeFrames--;
+				if (strafeFrames < 0) {
+					strafeFrames = 3;
+				}
+			}
+
+			if (animationInterval == 10) {
+				playFootstepSound();
+				invoker.animationInterval = 0;
+			}
+		}
+
+		incrementStateTic();
+
+		if (!hasEnoughAmmo()) {
+			setStateLabel("ReloadWeapon");
+		}
+
+		A_FACETARGET();
+
+		if (isTargetVisible(checkWeaponLOSRejection: false) && (GetStateTic() >= weapon_rateoffire + 1 || (noStrafeFiring && GetStateTic() >= weapon_rateoffire + 3))) {
+			stateTic = 0;
+			strafeAttempts = 0;
+			FireWeapon(4, 9, 42, 0, 2);
+		}
+
+		if(bIsOnFloor())
+		{
+			A_ChangeVelocity(0, invoker.strafeSpeed, 0, CVF_RELATIVE);
+		}
+	}
+	Goto SeeContinue;
+
+	MissileForward:
+		TNT1 A 0 {
+			if(hasHeightAdvantage(70, target)) {
+				setStateLabel("Prepare_ShootWeapon1");
+			}
+		}
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex(SPRITE_HipWalking);
+		}
+		TNT1 AAA 2 {
+			if(skill >= SKILL_ADMIRAL) {
+				A_SETTICS(1);
+			}
+			Sprite = GetSpriteIndex(SPRITE_HipWalking);
+			A_FACETARGET();
+			//spawnAttackIndicator("YellowFlare3", 40);
+		}
+		TNT1 A 0 talk(SOLDIER_PUSH);
+		TNT1 ABCDABCDABCD 7
+		{
+			if(checkGeometryCollision(-1, maxStepHeight, 90, floorOnly:True))
+			{
+				if(bIsOnFloor())
+				{
+					A_CHANGEVELOCITY(-2,0,vel.z, CVF_REPLACE);
+				}
+				setStateLabel("Prepare_ShootWeapon1");
+			}
+			invoker.chargingForward = true;
+			invoker.animationInterval++;
+			if (invoker.animationInterval == 3) {
+				playFootstepSound();
+				invoker.animationInterval = 0;
+			}
+			if(!isTargetVisible())
+			{
+				setState(findState("CannotSeeTarget"));
+			}
+			A_SetTics(getRateOfFire());
+			incrementStateTic();
+			
+			CheckStrafe(0);
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			A_FACETARGET();
+			ThrustThing(angle*256/360, 2, 0, 0);
+			if (isTargetVisible() && getStateTic() >= 1) {
+				FireWeapon(4, 9, 36, 5, 2, 9);
+			}
+		}
+		Goto SeeContinue;
+
+	MissileBackward:
+		TNT1 A 0 {
+			if(hasHeightAdvantage(70)) {
+				setStateLabel("Prepare_ShootWeapon1");
+			}
+			Sprite = GetSpriteIndex(SPRITE_Hipfiring);
+		}
+		RFFR AA 0 {
+			Sprite = GetSpriteIndex(SPRITE_Hipfiring);
+			A_FACETARGET();
+			//spawnAttackIndicator("YellowFlare3", 40);
+		}
+		TNT1 A 0 {
+			prepareRifle();
+			Sprite = GetSpriteIndex(SPRITE_HipWalking);
+			if (isDawnNear()) {
+				talk(SOLDIER_RETREAT);
+			}
+		}
+		TNT1 A 0 A_Jump(4, "MoveBackward");
+		TNT1 A 0 {
+			defaultEverything();
+		}
+		TNT1 DCBADCBADCBA 7
+		{
+			if(!isTargetVisible())
+			{
+				setState(findState("CannotSeeTarget"));
+			}
+			A_SetTics(getRateOfFire() - 2);
+			A_FACETARGET();
+			IncrementStateTic();
+			if(stateTic % 3 == 0) {
+				playFootstepSound();
+			}
+			A_CHANGEVELOCITY(-3, 0, 0, CVF_RELATIVE);
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			// Not checking for firing solution here, might as well do the whole action before cutting off fire
+			if (isTargetVisible() && getStateTic() >= 4	) {
+				FireWeapon(4, 9, 36, 5, 4);
+			}
+			if (!CheckClear(4)) 
+			{ 
+				invoker.ShouldItShoot = 2;
+				if (CheckClear(1)) { SetStateLabel("MissileLeft");}
+				if (CheckClear(2)) { SetStateLabel("MissileRight");}
+				if (CheckClear(3) && !bFrightened) { SetStateLabel("MissileForward");}
+			}
+			if(checkGeometryCollision(-1, 90, 90, floorOnly:True))
+			{
+				if(bIsOnFloor())
+				{
+					A_CHANGEVELOCITY(3,0,vel.z, CVF_REPLACE, CVF_RELATIVE);
+				}
+				setStateLabel("Prepare_ShootWeapon1");
+			}
+		}
+		Goto SeeContinue;
+
+	MoveForward:
+		TNT1 A 0
+		{
+			Sprite = GetSpriteIndex(SPRITE_HipWalking);
+		}
+		TNT1 ABCDABCD 7
+		{
+			IncrementStateTic();
+			if(stateTic % 3 == 0) {
+				playFootstepSound();
+			}		
+			//A_SetTics(getRateOfFire());
+			//CheckStrafe(0);
+			//CheckAmmo();
+			//A_FACETARGET;
+			A_LOOK();
+			ThrustThing(angle*256/360, 3, 0, 0);
+			//FireWeapon(4, 5, 36, 5, 7);
+		}
+		Goto SeeContinue;
+	MoveBackward:
+		TNT1 A 0
+		{
+			Sprite = GetSpriteIndex(SPRITE_HipWalking);
+		}
+		TNT1 ABCD 7
+		{
+			IncrementStateTic();
+			if(stateTic % 3 == 0) {
+				playFootstepSound();
+			}	
+			CheckStrafe(0);
+			ThrustThing(angle*256/360+128, 4, 0, 0);
+			A_FACETARGET();
+		}
+		Goto SeeContinue;
+
+	STRAFENODE_Evade:
+		TNT1 A 1 {
+			sprite = GetSpriteIndex(SPRITE_IDLE);
+			createStrafeNodes(STF_RIGHT, 9);
+		}
+		TNT1 A 0 {
+			if(validateStrafe())
+			{
+				setStateLabel("DodgeRight");
+			}
+		}
+		TNT1 A 1 {
+			killStrafeNodes();
+			createStrafeNodes(STF_LEFT, 9);
+		}
+		TNT1 A 0 {
+			if(validateStrafe())
+			{
+				setStateLabel("DodgeLeft");
+			}
+		}
+		TNT1 A 1 A_JUMP(256, "DodgeLeft", "DodgeRight");
+	Evade:
+		TNT1 A 0 A_Jump(256, "MissileLeft", "MissileRight");
+	DodgeLeft:
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex(SPRITE_StrafeFiring);
+		}
+		TNT1 ABCD 7
+		{
+			A_SetTics(getRateOfFire());
+			A_FACETARGET();
+
+			ThrustThing(angle*256/360+192, 2, 0, 0);
+		}
+	goto missile;
+	DodgeRight:
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex(SPRITE_StrafeFiring);
+		}
+		TNT1 DCBA 7
+		{
+			
+			A_SetTics(getRateOfFire());	
+			A_FACETARGET();
+			ThrustThing(angle*256/360+64, 2, 0, 0);
+		}
+	goto missile;
+	
+  ReloadWeapon:
+		TNT1 A 0;
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex(SPRITE_Reload);
+			talk(SOLDIER_RELOAD);
+			if(bIsOnFloor())
+			{
+				A_CHANGEVELOCITY(0, 0, vel.z, CVF_REPLACE);
+			}
+		}
+		TNT1 A 0;
+        //TNT1 A 0 A_PlaySound("ReloadWeapon");
+		
+		TNT1 A 0;
+        TNT1 ABC 3;
+		TNT1 A 0 A_PlaySound("ALIEN/RIFLEMAN/RELOAD1", CHAN_AUTO, 0.95);
+		TNT1 A 0 A_SpawnProjectile("EmptyClipSpawn", 38, 0, random(-11, 11), 0);
+        TNT1 DEF 3;
+        TNT1 GHJLM 3;
+		TNT1 A 0 A_PlaySound("ALIEN/RIFLEMAN/RELOAD2", CHAN_AUTO, 0.92);
+		TNT1 NOPQ 3;
+        TNT1 A 0 {
+			invoker.currentAmmo = invoker.MagazineSize;
+		}
+        Goto SeeContinue;
+	Pain.MagnumStagger:
+		TNT1 A 0 A_Pain();
+		goto pain;
+	Pain.DawnFist:
+		TNT1 A 0 {
+			vel.x = 0;
+			vel.y = 0;
+			SetStateLabel("Pain_NOStumble");
+			return;
+		}
+	
+
+	pain.SawDroneProjectile:
+		TNT1 A 0
+		{
+			setStateLabel("death.head");
+		}
+
+	    Goto SeeContinue;
+        TNT1 A 0;
+        TNT1 A 0 A_Pain;
+        Goto GetUp;
+
+	Pain_NOStumble:
+		ALIP G 0 A_Pain();
+		TNT1 A 0 {
+			vel.x = 0;
+			vel.y = 0;
+		}
+		TNT1 A 0 A_Jump(256, "Pain.Shoulder_right", "Pain.Shoulder_left");
+		goto Pain.shoulder_left;
+   Pain.Avoid:
+	    TNT1 A 0;
+		TNT1 A 0 A_PlaySound("grunt/dodge", 25.0, 0.7);
+	    TNT1 A 0 A_Jump(256, "MissileLeft", "MissileRight","MissileLeft", "MissileRight","MissileLeft", "MissileRight");
+
+    Pain.KillMe:
+        TNT1 A 0;
+        Goto Missile;
+    Death.KillMe:
+    Death.Avoid:
+	    TNT1 A 0;
+		//TNT1 A 0 A_ChangeFlag("SOLID", 0);
+		TNT1 A 0 {
+			bThruActors = true;
+			bCountkill = false;
+		}
+		TNT1 A 0 A_SpawnItemEx ("SOLDIER",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION |SXF_TRANSFERSPECIAL| SXF_TRANSFERAMBUSHFLAG ,0);
+        Stop;
+
+
+	// DIALOGS;
+	Dialog.executed:
+		TNT1 A 0 A_PlaySound("grunt/radio4");
+		goto Stand;
+
+	LayDownCoolDown:
+		goto ActuallyFireWhileDown;
+
+    FireWhileDown:
+		TNT1 A 0 A_SetSize(-1, 32);
+	    RFFD ABC 3 A_FACETARGET();
+	ActuallyFireWhileDown:
+	    RFFD D 0 A_SetTics(getRateOfFire() +1);
+	    RFFD D 1 {
+			invoker.currentAmmo = 30;
+			invoker.isLayingDown = true;
+			FireWeapon(5, 10, 20, getRateOfFire(), 4);
+		}
+		TNT1 A 0 A_CheckSight("GetBackUp");
+        loop;
+
+	Death.Ice:
+	Death.Freeze:
+	Death.Frost:
+
+		TNT1 A 0 {
+			bSolid = false;
+			bShootable = false;
+		}
+		Stop;
+
+	Death.Massacre:
+
+	Goto Death;
+	}
+}
+
+// Spawns a random Rifleman
+// IMPORTANT: THIS SPAWNS THE SOLDIER THEN VANISHES! Dont use this for readouts outside of TIDs
+class SOLDIERSPAWNER : actor {
+
+	static const string regularDeathAnimations[] = {"DeadEngineer9", "EngineerDeadLeg", "DeathEngineerRegular3", "DeathEngineerWallBang", "DeathEngineerOverkill"};
+	static const string headshotDeathAnimationsEngineer[] = {"DeadEngineerHeadshot2", "DeadEngineerHeadshot3", "DeadEngineerHeadshot4"};
+	static const string shotgunDeathAnimationsEngineer[] = {"DEATH_ENGINEERSPINOFDEATHSHOTGUN", "DeathEngineerShotgunBackflip", "DeathEngineer11", "DeathEngineerOverkill4Shotgun"};
+	static const string sittingDeathAnimationEngineer[] = {"Engineer_Wallsit"};
+	static const string wallSmashDeathAnimations[] = {"DeathEngineerWallBang"};
+	static const string nailgunDeathAnimation[] = {"DeadEngineer_Nailgun1"};
+	static const string gibbingAnimationEngineer[] = {"ENGINEER_GIBBED"};
+
+	static const string soldierList[] = {"SOLDIER", "SOLDIER_STRAFER", "SOLDIER_AGGRESSOR", "SOLDIER_ATTACKER", "SOLDIER_DEFENDER", "SOLDIER_DEFENDER", "SOLDIER_DEFENDER_LONGRANGE"};
+	string soldierListSelected;
+
+	override void postbeginPlay() {
+		super.postbeginPlay();
+
+		// Select and spawn soldier
+		soldierListSelected = soldierList[random(0,soldierList.size()-1)];
+		A_SpawnItemEx(soldierListSelected,0,0,0,0,0,0,0,SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+
+		// We no longer need you
+		destroy();
+	}
+
+}

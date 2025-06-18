@@ -1,0 +1,1467 @@
+class limbs : GoreMaster {
+
+	override void BeginPlay() {
+		super.beginPlay();
+		if(getCvar("g_censoredmode") == 1) {
+			destroy();
+		}
+	}
+
+	default {
+		+RollSprite;
+		+Missile;
+		+shootable;
+		+DOOMBOUNCE;
+		+USEBOUNCESTATE;
+		+CLIENTSIDEONLY;
+		+NOTELEPORT;
+		+MOVEWITHSECTOR;
+		+NOBLOCKMONST;
+		-NOBLOCKMAP;
+		+GHOST;
+		+THRUACTORS;
+		+SLIDESONWALLS;
+		+FORCEXYBILLBOARD;
+        -ACTIVATEIMPACT;
+        -ACTIVATEMCROSS;
+        -ACTIVATEPCROSS;
+		+SelacoActor.allowWaterSplashing;
+		health 300;
+		speed 9;
+		radius 4;
+		gravity 0.7;
+		BounceFactor 0.5;
+		WallBounceFactor 0.3;
+		BounceCount 3;
+	}
+}
+
+class XDeath1 : actor {
+	default {
+		+NOBLOCKMAP
+		+MISSILE
+		+NOTELEPORT
+		+MOVEWITHSECTOR
+		+CLIENTSIDEONLY
+		+RIPPER
+		+BLOODLESSIMPACT 
+		-DONTSPLASH
+		+THRUGHOST
+		+THRUACTORS
+		+FLOORCLIP
+		damagetype "Blood";
+		DeathSound "misc/xdeath1";
+		Decal "SelacoBloodSpray";
+		Mass 1;
+	}
+    States {
+		Spawn:
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Underwater");
+			BLOD A 4 A_SpawnProjectile ("XDeath1Trail", 0, 0, random (0, 360), 2, random (0, 360));
+			Loop;
+		Death:
+			TNT1 A 0 A_SpawnItem ("OMINOUS_PurpleSpot", 0, 1);
+			XDT1 EF 3;
+			XDT1 GHIJKL 3;
+			Stop;
+			TNT1 A 1;
+		Underwater:
+		Splash:
+			XDT1 AB 3 A_SpawnProjectile ("Ominous_FlyingBloodTrail", 0, 0, random (0, 360), 2, random (0, 360));
+			XDT1 CD 3 A_SpawnProjectile ("Ominous_FlyingBloodTrail", 0, 0, random (0, 360), 2, random (0, 360));
+			Loop;
+			
+    }
+}
+
+class Selaco_Blood : Actor Replaces Blood {
+    default 
+	{
+        +FORCEXYBILLBOARD
+        +NOGRAVITY
+        +THRUACTORS
+        Decal "SELACO_BloodSplat";
+        Scale 0.4;
+        Speed 0;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SpawnProjectile ("BloodHit", 0, 0, random (0, 360), 2, random (0, 90));
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class SelacoBlood : Actor Replaces Selaco_Blood
+{
+	mixin lightEmitter;
+	string bloodParticle, bloodFloorDecal, bloodSplatterType, bloodWallDecal, bloodFogEffect;
+	float bloodParticleMultiplier;
+	const EXTRA_GORE_CHANCE = 25;
+	mixin particleEmitter;
+	mixin ParticleDefinitionEmitter;
+	int bloodQuality;
+	bool isArmored;
+	bool heavyDamage;
+
+	property BloodParticle : bloodParticle;
+	property BloodFloorDecal : bloodFloorDecal;
+	property BloodSplatterType : bloodSplatterType;
+	property BloodWallDecal : bloodWallDecal;
+	property BloodFogEffect : bloodFogEffect;
+	property BloodParticleMultiplier : bloodParticleMultiplier;
+	static clearscope Vector3 vecFromAngle(double yaw, double pitch, double length = 1.0) {
+			Vector3 r;
+
+			double hcosb = cos(pitch);
+			r.x = cos(yaw) * hcosb;
+			r.y = sin(yaw) * hcosb;
+			r.z = -sin(pitch);
+
+			return r * length;
+		}
+
+	virtual void spawnHeadshotEffects() { 
+
+	}
+
+	virtual void spawnGoreChunks() { 
+
+	}
+
+	virtual void spawnBloodEffects() {
+		let d = dawn(players[consoleplayer].mo);
+		SelacoEnemy enemy;
+		if(target) 
+			enemy = SelacoEnemy(target);
+
+		if(enemy && d && (d.countInv("PowerDoubleDamage") || enemy.isGoreyHit)) {
+			heavyDamage = true;
+		}
+		
+		if(target && target.health > 0 && !(target is "DeathceptionMaster"))
+		{
+
+			if(enemy && enemy.armorHealth > 0)
+			{
+				isArmored = true;
+			}
+			if(!isArmored)
+			{
+				if(random(0,100) <= EXTRA_GORE_CHANCE)
+				{
+					spawnGoreChunks();
+				}
+			}
+			if(enemy && enemy.isHeadshot)
+			{
+				spawnHeadshotEffects();
+			}
+		}
+		if(!isArmored)
+		{
+			EmitDefinition(bloodParticle, 0.5, 100*bloodParticleMultiplier, pitch:0);
+			EmitDefinition(bloodParticle, 0.5, 40*bloodParticleMultiplier, pitch:0, scaleBoost:0.7);
+		}
+		for(int x=0;x<3;x++)
+		{
+			angle = random(0,360);
+			vector3 sprayDirection = vecFromAngle(angle, pitch);
+			A_SprayDecal(bloodWallDecal, 200, offset:(0,0,frandom(0,40)), direction:sprayDirection);
+		}
+		if(heavyDamage)
+		{
+			for(int x=0;x<16;x++)
+			{
+				angle = random(0,360);
+				vector3 sprayDirection = vecFromAngle(angle, pitch);
+				A_SprayDecal(bloodWallDecal, 200, offset:(0,0,frandom(0,40)), direction:sprayDirection);
+			}
+
+			for(int x=0;x<3;x++) {
+				actor goreDecal;
+				bool succ;
+				[succ, goreDecal] = A_SPAWNITEMEX(bloodFloorDecal, frandom(-35,35), frandom(-35,35));
+				if(goreDecal) {
+					goreDecal.setOrigin((goreDecal.pos.x, goreDecal.pos.y, goreDecal.floorz), false);
+				}
+				A_SPAWNITEMEX(bloodSplatterType, frandom(-10,10), frandom(-10,10), frandom(-10,10), frandom(-1.2,-2.4), frandom(-2.2,2.2), frandom(-2.2,2.2));
+				A_SPAWNITEMEX(bloodFogEffect, frandom(-10,10), frandom(-10,10), frandom(-10,10), frandom(-0.2,-0.4), frandom(-0.2,0.2), frandom(-0.2,0.2));
+			}
+			EmitDefinition(bloodParticle, 1.0, 25, pitch:0, speed:2);
+			EmitDefinition(bloodParticle, 1.0, 25, pitch:0, speed:3, scaleBoost:1.7);
+		}
+	}
+
+	string damageCause;
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		if(target && target is "SelacoEnemy" && SelacoEnemy(target).recentDamageCause)
+		{
+			getDamageCause();
+		}
+		spawnBloodEffects();
+	}
+
+	string getDamageCause()
+	{
+		SelacoEnemy bloodOwner = SelacoEnemy(target);
+		if(bloodOwner)
+		{
+			damageCause = bloodOwner.recentDamageCause;
+		}
+		return damageCause;
+	}
+
+    default {
+		+HITTRACER
+		+HITMASTER
+		+PUFFGETSOWNER
+		SelacoBlood.bloodParticleMultiplier 1.0;
+		SelacoBlood.bloodParticle "PurpleBloodParticleDefinition";
+		SelacoBlood.bloodFloorDecal "OMINOUS_PurpleSpot";
+		SelacoBlood.BloodSplatterType "PurpleSplatterEffectSmall";
+		SelacoBlood.BloodFogEffect "PurpleGoreSmokeEffect";
+		SelacoBlood.BloodWallDecal "OminousPurpleSplat";
+		decal "OminousPurpleSplat";
+        Scale 0.4;
+    }
+    
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 AA 0 A_SpawnProjectile ("PurpleBloodChunkFading", 0, 0, random (0, 360), 2, random (0, 90));
+            TNT1 A 0 A_SpawnProjectile ("PurpleBloodHit", 0, 0, random (0, 360), 2, random (0, 90));
+            stop;
+    }
+}
+
+// Purple smoke puff when shooting armored Selaco. Makes it more evident you are dealing damage.
+class ArmorSmoke : actor
+{
+    default {
+        Radius 4;
+        Height 4;
+        Speed 7;
+        +THRUGHOST;
+        +DOOMBOUNCE;
+        RenderStyle "Add";
+        +MISSILE;
+        +NOBLOCKMAP;
+        +EXPLODEONWATER;
+        -DONTSPLASH;
+        bouncefactor 0.3;
+        Gravity 0.9;
+        Alpha 1.0;
+    }
+	States
+	{
+	Spawn:
+        TNT1 A 0;
+		TNT1 A 0 {
+            for(int x=0;x<=3;x++) {
+                A_SpawnItemEx("SmokeTrailPieceArmor", 0, 0, 0, frandom(-2,2), frandom(-2,2), frandom(-2,2));
+            }
+        }
+		stop;
+	
+	Death:
+		Stop;
+	}
+}
+
+
+
+class BiggerPurpleSplatter : Actor {
+	default {
+		SelfLighting "471344";
+		+NOGRAVITY
+		+NOINTERACTION
+		+ROLLSPRITE
+		scale 0.4;
+	}
+    states {
+        spawn: 
+            TNT1 A 0;
+            BLO3 ABDEFGHIJ 1 
+			{
+				A_FADEOUT(0.04);
+			}
+            stop;
+    }
+}
+
+class EvenBiggerPurpleSplatter : Actor {
+	override void tick()
+	{
+		super.tick();
+		A_SETSCALE(scale.x+0.03);
+	}
+	default {
+		SelfLighting "471344";
+		RenderStyle "Translucent";
+		+NOGRAVITY
+		+NOINTERACTION
+		+ROLLSPRITE
+		alpha 0.7;
+		scale 0.4;
+	}
+    states {
+        spawn: 
+            TNT1 A 0;
+			TNT1 A 0 A_SETROLL(random(0,360));
+			TNT1 A 0 A_SETSCALE(scale.x+frandom(-0.2,0.1));
+            BLO3 ABDEFGHIJ 1 
+			{
+				A_FADEOUT(0.04, FTF_REMOVE);
+			}
+            stop;
+    }
+}
+
+class BloodHit : actor
+{
+	default {
+		+NOBLOCKMAP
+		+NOGRAVITY
+		+DONTSPLASH
+		+NOCLIP
+		+RollSprite
+		height 8;
+		radius 4;
+		Scale 0.7;
+	}
+  	states	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SetScale(frandom(0.63, 0.88), frandom(0.63, 0.88));
+			TNT1 A 0 A_SetRoll(random(0,360));
+			BLOD ABCDEFGH 1;
+			Stop;
+ 	 }
+}
+
+class Ominous_FlyingBlood : actor
+{
+	default {
+		+MISSILE
+		+NOTELEPORT
+		+NOBLOCKMAP
+		+THRUACTORS
+		+BLOODLESSIMPACT 
+		+FORCEXYBILLBOARD
+		+DONTSPLASH
+		scale 0.8;
+		speed 7;
+		health 1;
+		radius 8;
+		height 1;
+		Gravity 0.9;
+		damage 0;
+		Renderstyle "Translucent";
+		Alpha 0.95;
+		DamageType "Blood";
+		Decal "SELACO_Blood";
+		Mass 1;
+	}
+    States	{
+		Spawn:
+			BLOD ABCD 1;
+		Death:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItem ("Selaco_BloodSpot");
+  			Stop;
+    }
+}
+
+// TODO: SPRITEINDEX THIS
+class Selaco_BloodSpot : actor
+{
+	default {
+		+NOTELEPORT
+		+CLIENTSIDEONLY
+		+FORCEXYBILLBOARD
+		+MOVEWITHSECTOR
+		+FLOORCLIP
+		+NOTARGET
+		-SHOOTABLE
+		+NOBLOOD
+		+DONTSPLASH
+		+NOBLOODDECALS
+		-SOLID
+		+THRUACTORS
+		radius 5;
+		height 5;
+		Alpha 0.9;
+		Mass 1000;
+		Scale 0.5;
+		DamageFactor "TeleportRemover", 100.0;
+	}
+	states	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Splash");
+			TNT1 A 0 A_CheckFloor("SpawnNormally");
+			Goto Splash;
+  
+		SpawnNormally:
+			TNT1 A 0 A_QueueCorpse();
+			TNT1 A 0 A_Jump(255, "SpawnBFrameOnly", "SpawnCFrameOnly", "SpawnDFrameOnly");
+
+		SpawnAFrameOnly:
+			BPDL A -1;
+			Loop;
+
+		SpawnBFrameOnly:
+			BPDL B -1;
+			Loop;
+	
+		FadeA:
+			BPDL AAAA 1 A_FadeOut(0.05);
+			Stop;
+			
+		FadeB:
+			BPDL BBBB 1 A_FadeOut(0.05);
+			Stop;
+	
+		SpawnCFrameOnly:
+			BPDL C -1;
+			Loop;
+	
+		SpawnDFrameOnly:
+			BPDL D -1;
+			Loop;
+	
+		FadeC:
+			BPDL CCCC 1 A_FadeOut(0.05);
+			Stop;
+		
+		FadeD:
+			BPDL DDDD 1 A_FadeOut(0.05);
+			Stop;
+	
+		Splash:
+			BLOD A 0;
+			stop;
+			
+		Death:
+			TNT1 A 0 A_NoBlocking;
+			Stop;
+ }
+}
+
+// Blood trails spawned by FlyingBlood
+class Ominous_FlyingBloodTrail : GoreMaster
+{
+	default {
+		+NOTELEPORT
+		+NOBLOCKMAP
+		+NOCLIP
+		+FORCEXYBILLBOARD
+		+CLIENTSIDEONLY
+		+DontSplash
+		+MISSILE
+		-NOGRAVITY	
+		scale 0.70;
+		mass 1;
+		renderstyle "Translucent";
+		alpha 0.7;
+		Speed 2;
+	}
+    states	{
+    	Spawn:
+            BLOD FFFFFFFFFF 4;
+            stop;
+        Death:
+            TNT1 A 0;
+            Stop;
+    }
+}
+
+class Ominous_FlyingBloodFaster: Ominous_FlyingBloodTrail
+{
+	default {
+		speed 4;
+	}
+    states {
+        Spawn:
+			BLOD ABCDEFFFFFF 3;
+			stop;
+    }
+}
+
+class PurpleSPlatterReplacer : SelacoBlood Replaces BloodSplatter{	}
+
+
+class Ominous_FlyingBloodSaw: Ominous_FlyingBlood 
+{
+	default {
+		Alpha 0.3;
+ 		Speed 0.5;
+ 		Gravity 0.3;
+	}
+    States	{
+     	Spawn:
+			BLOD BC 2;
+		Spawn1:
+			BLOD EEEEEEEEEEEEEEEEEEEEEEEE 1 A_FadeOut(0.03);
+			Stop;
+		Xdeath:	
+		Death:
+			TNT1 A 10;
+  			Stop;
+    }
+}
+
+class XDeath1Trail: Ominous_FlyingBlood 
+{
+	default {
+		scale 0.8;
+		gravity 1;	
+ 		Speed 0;
+	}
+
+    States	{
+		Spawn:
+			BLOD ABCDEF 2;
+			Stop;
+		Death:
+			TNT1 A 0;
+			Stop;
+    }
+}
+
+// Simple blood splatter when hitting an enemy.
+// TO-DO: Increase size when using a high blood setting
+class PurpleBloodHit : GoreMaster	{
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		roll = random(0,360);
+		scale = (scale.x + frandom(0.0, 0.1), scale.x + frandom(0.0, 0.1));
+	}
+
+
+	
+	default {
+		SelfLighting "471344";
+		+NOBLOCKMAP
+		+NOGRAVITY
+		+DONTSPLASH
+		+RollSprite
+		scale 0.21;
+		height 2;
+		radius 2;
+		mass 200;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(censoredMode) {
+					setStateLabel("censorBlood");
+				}
+			}
+			BLOK ABCDEFJ 1 A_FADEOUT(0.15, FTF_REMOVE);
+			stop;
+		censorBlood:
+			TNT1 A 0 {
+				A_SpawnItemEx("PurpleArmorImpactSmoke", 0, 0, 0, 0, frandom(1.5, 3));
+           		A_SpawnItemEx("PurpleArmorImpactSmoke", 0, 0, 0, 0, frandom(-1.5, -3));
+        		A_SpawnItemEx("PurpleArmorImpactSmoke", 0, 0, 0, 0, 0, frandom(-2,2));
+			}
+			stop;
+	}
+}
+
+// A blood splatter, but with gravity!
+class PurpleBloodHitGravity : PurpleBloodHit
+{
+	int rollSpeed;
+
+	default	{
+		SelfLighting "471344";
+		+NoBlockMap
+		+MISSILE
+		-NOGRAVITY
+		+NOBLOODDECALS
+		+THRUACTORS
+		+FORCEXYBILLBOARD
+		+NODAMAGETHRUST
+		+BOUNCEONWALLS
+		+USEBOUNCESTATE
+		radius 2;
+		speed 7;
+	  	Scale 0.36;
+		Gravity 0.9;
+		Decal "OminousPurpleSplat";
+		Renderstyle "Translucent";
+		Alpha 0.95;
+	}
+	States	{
+     	Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(censoredMode) {
+					setStateLabel("censorBlood");
+				}
+			}
+			TNT1 A 0;
+			BLOK ABCD 1;
+		Looper:
+			BLOK E 1;
+			loop;
+/* 		Death.Wall:
+		Bounce.Wall:
+			TNT1 A 0 A_SPAWNITEMEX("PurpleGoreWallSlider");
+			stop; */
+     	Death:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItem ("OMINOUS_pURPLESpot");
+        	Stop;
+    }
+}
+class PurpleBloodHitGravityFaster: PurpleBloodHitGravity {
+	default { speed 14; }
+}
+class PurpleBloodHitGravityMuchFaster: PurpleBloodHitGravity {
+	default { speed 19; }
+}
+
+// A blood missile that leaves a trail of splatters behind [PurpleBloodMissileTrail]
+// Speed is randomized for the sake of variation.
+class PurpleBloodMissile: PurpleBloodHitGravity 
+{	
+	string trailActor;
+	property TrailActor : trailActor;
+	int trailChance;
+	int spawnTrail;
+	override void BeginPlay() {
+		super.BeginPlay();
+		// No missile on Low spec
+		if (bloodQuality <= 0) {
+			destroy();
+		}
+		// No trail on lower spec
+		if (bloodQuality >= 1)  {
+			spawnTrail = true;
+		}
+	}
+
+	default {
+		speed 3;
+		scale 0.3;
+		gravity 0.6;
+		SelfLighting "471344";
+		PurpleBloodMissile.TrailActor "PurpleBloodMissileTrail";
+		decal "OminousPurpleSplat";
+		+SelacoActor.preventSleep
+		+DontSplash;
+	}
+    States	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(censoredMode) {
+					destroy();
+				}
+			}
+			TNT1 A 0 {
+				A_SETROLL(0);
+				A_SETSCALE(scale.x + frandom(0.1, 0.2), scale.y + frandom(0.1, 0.2));
+				A_CHANGEVELOCITY(frandom(0,2), 0, frandom(0.3,0.7), CVF_RELATIVE);
+				gravity = frandom(0.6,0.9);
+			}
+		Looper:
+			BLOK A 2 {
+				roll+=frandom(-5,5);
+				if(spawnTrail) {
+					A_SpawnItem(trailActor);
+				}
+			}
+			Loop;
+		Death:
+			TNT1 A 0 
+			{
+				// Not touching floor, play a different effect
+				if(pos.z != floorz && level.Maptime > 35)
+				{
+					A_SPAWNITEMEX("PurpleBloodHit");
+					A_PlaySound("blooddrop");
+					destroy();
+					return;
+				}
+				if(level.Maptime > 35)
+				{
+					A_PlaySound("blooddrop");
+				}
+				if(random(0,100) <= 15)
+				{
+					A_SPAWNITEMEX("OMINOUS_PurpleSpot");
+				}
+			}
+			TNT1 A 0 A_SpawnItem ("ThickGoreSplatter", 2);
+			PDT1 FGHIJKL 2;
+			TNT1 A 0;
+			Stop;
+		Destroy:
+			stop;
+    }
+}
+
+class PurpleBloodMissileFast : PurpleBloodMissile
+{
+	default
+	{
+		PurpleBloodMissile.TrailActor "PurpleSplatterEffectUltraTiny";
+		speed 5;
+	}
+}
+
+class PurpleBloodMissileNoDecal : PurpleBloodMissile
+{
+	default
+	{
+		decal "";
+	}
+}
+
+class PurpleBloodMissileSmall : PurpleBloodMissile {
+    default {
+		speed 5;
+		scale 0.2;
+		PurpleBloodMissile.TrailActor "PurpleBloodMissileTrailSmall";
+	}
+}
+
+// A trail of smaller blood splatters. Often spawns surrounding meat pieces.
+class PurpleBloodMissileTrail: PurpleBloodHitGravity {
+
+	override void tick() {
+		super.tick();
+		scale*=0.93;
+	}
+
+	override void beginPlay() {
+		super.BeginPlay();
+		if(bloodQuality <= 1 && random(0,1) == 0) {
+			destroy();
+		}
+	}
+
+	default {
+		+MISSILE;
+		-NoBlockMap
+		+BOUNCEONWALLS
+		+SLIDESONWALLS
+		+USEBOUNCESTATE
+		Decal "";
+		BounceCount 3;
+		BounceFactor 1.0;
+		scale 0.123;
+		gravity 0.2;
+	}
+    States	{
+     	Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				if(random(0,1) == 1) {
+					bxflip = true;
+				}
+				if(random(0,1) == 1) {
+					byflip = true;
+				}
+				A_SETROLL(random(0,360));
+			}
+			PUR1 AAAAABBBBBBCCCCCCCDDDDDDDEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 1 
+			{
+				if(getClassName() == "PurpleBloodMissileTrail" && bloodQuality >= 3 && vel.length() > 8) {
+					A_SPAWNITEMEX("PurpleBloodMissileTrailVeryShort", 0, 0, 0, frandom(-0.5,0.5),frandom(-0.5,0.5),frandom(-0.5,0.5));
+				}
+				A_SETROLL(roll + random(3, 5));
+			}
+			Stop;
+		Death.Wall:
+		Bounce.Wall:
+		Bounce.Floor:
+		Death:
+			TNT1 A 0;
+			Stop;
+    }
+}
+
+class PurpleGoreWallSlider : Actor {
+	default {
+		SelfLighting "471344";
+		scale 0.25;
+		gravity 0.02;
+		radius 2;
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			PUR2 A 1 {
+				if(abs(pos.z-floorz) <= 4) {
+					A_PRINTBOLD("WALL DEATH.");
+					destroy();
+				}
+			}
+			loop;
+
+	}
+}
+
+class PurpleBloodMissileTrailVeryShort : PurpleBloodMissileTrail
+{
+	default
+	{
+		+nointeraction
+		scale 0.11;
+	}
+	states
+	{
+     	Spawn:
+			TNT1 A 0;
+			PUR1 ABCDEEE 1;
+			Stop;
+		Death:	
+			stop;
+	}
+}
+
+class CeilingDrip : PurpleBloodHitGravity
+{
+	override void PostBeginPlay() {
+		if(random(0,1) == 1) {
+			bxflip = true;
+		}
+	}
+
+    bool allowSplash;
+    int aliveticks;
+    override void tick()
+    {
+        super.tick();
+		if(aliveticks < 7) {
+			aliveticks++;
+		} else {
+			allowSplash = true;
+		}
+    }
+    
+
+	default {
+		+NOBLOCKMAP;
+		height 5;
+		radius 5;
+		scale 0.46;
+		gravity 0.8;
+	}
+    States	{
+     	Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				A_SETSCALE(scale.x + frandom(0, 0.23));
+				gravity = frandom(0.76,0.83);
+				roll = random(0,360);
+			}
+			PUR1 CC 1 A_SETROLL(roll + 1);
+		WaitForFloor:
+			PUR1 d 1 
+			{
+				if(pos.z <= floorz)
+				{
+					setStateLabel("Death");
+				}
+				A_SPAWNITEMEX("PurpleBloodMissileTrailVeryShort");
+				A_SETROLL(roll + 3);
+				limitLifetime();
+			}
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				if(!allowSplash)
+				{
+					destroy();
+					return;
+				}
+				if(level.Maptime > 35)
+				{
+					A_PLAYSOUND("IMPACT/PURPLEDRIP", chan_Auto, 0.1, pitch:frandom(1.0,1.4));
+				}
+				A_SETSCALE(scale.x*0.5);
+				SetOrigin((pos.x, pos.y, floorz), true);
+				A_SPAWNITEMEX("OMINOUS_PurpleSpotShort", 0, 0, 3);
+				A_SpawnDefinedParticle("PurpleSplatterEffectSmallDefinition");
+				vel.z = 0;
+			}
+			PDT1 GHIJKL 2 a_setroll(0);
+			Stop;
+    }
+}
+
+class PurpleBloodMissileTrailSmall: PurpleBloodMissileTrail {
+	default {
+    	scale 0.13;
+	}
+}
+
+// Fancy blood effect that fades out
+class PurpleBloodChunkFading : GoreMaster {
+	default {
+		SelfLighting "471344";
+		+MISSILE
+		+NOBLOCKMAP
+		+BLOODLESSIMPACT 
+		+FORCEXYBILLBOARD
+		+DONTSPLASH
+		+ROLLSPRITE
+		+THRUACTORS
+		+NOBLOODDECALS
+		scale 0.05;
+		speed 3;
+		radius 8;
+		height 1;
+		Gravity 0.3;
+		Renderstyle "Translucent";
+		Alpha 0.95;
+	}
+    States	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SetRoll(random(0, 360));
+				A_SetScale(frandom(0.25, 0.35), frandom(0.25, 0.45));	
+			}
+			BLOK JJJJJJJJJJJJJJJJJJJJJJJJJJJJ 1 A_FadeOut(0.05);
+			Stop;
+	}
+}
+
+/* A_SpawnDefinedParticle(class<ParticleDefinition> definition, 
+	double xoff = 0, 
+	double yoff = 0, 
+	double zoff = 0, 
+	double xvel = 0, 
+	double yvel = 0, 
+	double zvel = 0, 
+	double angle = 0, 
+	double scale = 1,
+	int flags = 0, 
+	actor refActor = null); */
+
+
+// Highly stylized splatter effect
+class PurpleSplatterEffect : PurpleBloodHitGravity {
+
+	override void BeginPlay() {
+		super.beginPlay();
+		if(getCvar("g_censoredmode") == 1) {
+			destroy();
+		}
+	}
+
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		A_SETSCALE(scale.x*frandom(0.95,1.05));
+		A_SETROLL(random(0,360));
+	}
+
+	override void tick()
+	{
+		super.tick();
+		scale*=1.005;
+		alpha*=0.98;
+		A_CHANGEVELOCITY(0,0,-0.1);
+	}
+
+	default {
+		-SelacoActor.SlopeAlignment
+		+MISSILE 
+		+NOBLOCKMAP 
+		+NOBLOCKMONST 
+		+DONTSPLASH
+		+THRUACTORS 
+		+ROLLSPRITE
+		+NOBLOODDECALS
+		Decal "OminousPurpleSplat";
+		scale 0.16;
+		radius 5;
+		height 5;
+		speed 2;
+		SelfLighting "471344";
+		Gravity 0.1;
+		RenderStyle "Translucent";
+		alpha 0.6;
+	}
+    states
+    {
+		Spawn:
+			TNT1 A 0;
+			PSBL AABBCCDDEEFFGGHHIIJJKKLLMM 1;
+			PSBL OPQQQQQQQQQQQQQQQQQQQQQQQQQ 1 A_FadeOut(0.2, FTF_REMOVE);
+			Stop;
+		
+          Disappear:
+			TNT1 A 0;
+			Stop;
+    }
+}
+
+class PurpleSplatterEffectTransparant : PurpleSplatterEffect 
+{
+	default
+	{
+		alpha 1.0;
+		scale 0.09;
+	}
+}
+
+
+class PurpleSplatterEffectBig : PurpleSplatterEffect {
+	default{
+		Decal "";
+		scale    0.21;
+		speed    3;
+		GRAVITY 0.2;
+	}
+}
+
+class PurpleSplatterEffectGigantic : PurpleSplatterEffectBig
+{
+	default
+	{
+		Decal "";
+		alpha 0.6;
+		scale 0.4;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SetRoll(random(0, 360));
+			PSBL ABCDEFGHIJKLMN 2;
+			PSBL OPQQQQQQQQQQQQQQQQQQQQQQQQQQQQ 1 A_FadeOut(0.08, FTF_REMOVE);
+			Stop;
+	}
+}
+
+class PurpleSplatterEffectSmall : PurpleSplatterEffect {
+	default {
+		Decal "";
+		scale 0.12;
+		GRAVITY 0.2;
+	}
+}
+
+class PurpleSplatterEffectTiny : PurpleSplatterEffect {
+	default {
+		Decal "";
+		scale 0.07;
+		alpha 0.6;
+		GRAVITY 0.1;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SetRoll(random(0, 360));
+			PSBL ABCDEFGHIJKLMN 1;
+			PSBL OPQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ 1 A_FadeOut(0.07, FTF_REMOVE);
+			Stop;
+	}
+}
+
+class PurpleSplatterEffectUltraTiny : PurpleSplatterEffect {
+	default {
+		Decal "";
+		scale 0.01;
+		alpha 0.5;
+		GRAVITY 0.2;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SetRoll(random(0, 360));
+			PSBL ABCDEFGHIJKLMN 1;
+			PSBL OPQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ 1 A_FadeOut(0.05, FTF_REMOVE);
+			Stop;
+	}
+}
+
+
+class PurpleSplatterEffectLarge : PurpleSplatterEffect {
+	default {
+		scale 0.33;
+	}
+}
+
+// Big cloudy ass fog!
+class SuperGorePurple : GoreMaster
+{
+	int frameID;
+	int rollSpeed;
+	string spriteToUse;
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		spriteToUse = "PLER";
+		rollSpeed = frandom(-1,1);
+		frameID = random(0,1);
+		A_SETROLL(random(0,360));
+	}
+
+	default {
+		+ROLLSPRITE
+		+FORCEXYBILLBOARD
+		+NOBLOCKMAP
+		+DontSplash
+		+NOGRAVITY
+		+NOINTERACTION;
+		+THRUACTORS
+		+NOBLOODDECALS
+		SelacoActor.SleepDistance 0;
+		SelfLighting "471344";
+		Alpha 0.49;
+		Gravity 0.05;
+		Scale 0.4;
+	}
+
+    states {
+	Indexer:
+		PLER A 0;
+		stop;
+    Spawn:
+        TNT1 A 0;
+		TNT1 A 0
+		{
+			sprite = GetSpriteIndex(spriteToUse);
+		}
+        TNT1 A 1 
+		{	
+			frame = frameID;
+			A_SETROLL(roll+rollSpeed);
+			A_SETSCALE(scale.x +0.01);
+			A_FadeOut(0.007, FTF_REMOVE);
+		}
+		loop;
+        stop;
+    }
+}
+
+
+class SuperGorePurpleMist: SuperGorePurple
+{
+	default {
+		Scale 0.7;
+		Speed 8;
+		Gravity 0.3;
+	}
+}
+
+class SuperGorePurpleMistLong: SuperGorePurple
+{
+	default {
+		Alpha 0.79;
+		Scale 0.95;
+		Speed 8;
+		Gravity 0.2;
+	}
+}
+
+class SuperGorePurpleMistLonger: SuperGorePurple
+{
+	default {
+		Alpha 0.99;
+		Scale 0.95;
+		Speed 8;
+		Gravity 0.2;
+	}
+}
+
+
+class SuperGoreMistPurpleSmall: SuperGorePurple
+{
+	default {
+		Alpha 0.29;
+		Scale 0.30;
+		Speed 2;
+		Gravity 0.1;
+	}
+}
+class SuperGoreMistPurpleSmallLowAlpha: SuperGorePurple
+{
+	default {
+		alpha 0.17;
+		Scale 0.27;
+		Speed 2;
+		Gravity 0.1;
+	}
+    states {
+		Indexer:
+			PLER A 0;
+			stop;
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				sprite = GetSpriteIndex(spriteToUse);
+			}
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 
+			{	
+				A_SETROLL(roll+rollSpeed);
+				A_SETSCALE(scale.x +0.004);
+				A_FadeOut(0.004, FTF_REMOVE);
+			}
+			stop;
+		}
+}
+
+// Blood fog cloud
+class SmokeTrailPieceArmorPurple: GoreMaster
+{
+
+	override void tick()
+	{
+		super.tick();
+		A_SETSCALE(scale.x+0.01);
+	}
+
+	default
+	{
+		+NOBLOCKMAP
+		+MISSILE
+		+FORCEXYBILLBOARD
+		+ROLLSPRITE
+		+NOINTERACTION
+		+THRUACTORS
+		SelfLighting "471344";
+		scale 0.36;
+		alpha 0.36;
+		RenderStyle "Translucent";
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			SBLO A 0;
+			BLOP A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+			}
+			BLOP ABCDEFGHIJKL 2;
+			BLOP MMMMMMMMMMMMMMMMM 1 A_FADEOUT(0.03, FTF_REMOVE);
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class SmokeTrailPieceArmorSlow : SmokeTrailPieceSmall
+{
+	default
+	{
+		scale 0.43;
+		Speed 1;
+		alpha 0.65;
+	}
+	states {
+		Spawn:
+			SBLO ABCDEFGHIJKL 4;
+			SBLO MMMMMM 1 A_FADEOUT(0.05);
+			stop;
+	}
+}
+
+class SmokeTrailPieceArmorPurpleSlow : SmokeTrailPieceArmorPurple
+{
+	default
+	{
+		scale 0.43;
+		Speed 1;
+		alpha 0.40;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_SETROLL(random(0,360));
+				if (getCvar("r_bloodquality") <= 1) {
+					SetStateLabel("Destroy");
+				}
+			}
+			BLOP ABCDEFGHIJKL 2 BRIGHT;
+			BLOP MMMMMMMMMMMMMMMMMM 1 BRIGHT A_FADEOUT(0.03, FTF_REMOVE);
+			Goto Death;
+	}
+}
+
+class PurpleGoreChunk : GoreMaster
+{
+	int frameID;
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		frameID = random(0,8);
+	}
+
+
+	default
+	{
+		scale 0.19;
+		gravity 0.7;
+		speed 7;
+		radius 4;
+		+MISSILE;
+		+THRUACTORS;
+	}
+	states
+	{
+		Spawn:
+			GOCH A 2
+			{
+				frame = frameID;
+				A_SETROLL(roll+15);
+			}
+			loop;
+		Death:
+			GOCH A 2
+			{
+				A_SPAWNITEMEX("OMINOUS_PurpleSpot", frandom(13,15), angle:random(0,360));
+				A_PLAYSOUND("gibs/bounce", CHAN_AUTO, 0.8, pitch:1.4);
+				bFlatSprite = true;
+				frame = frameID;
+				if(pos.z < floorz + 3)
+				{
+					setXYZ((pos.x, pos.y, floorz+frandom(0.01, 1.0)));
+					sleepIndefinite();
+					return;
+				}
+			}
+			stop;
+	}
+}
+
+class PurpleBloodParticleDefinition : ParticleDefinition {
+
+	override void init() {
+		super.init();
+		self.SetGravity(0.5);
+		self.DefaultRenderStyle = STYLE_TRANSLUCENT;
+		self.SetBaseScaleXY(0.1,0.4);
+		self.SetFlag(PDF_ISBLOOD);
+		self.SetFlag(PDF_LIFESCALE);
+		self.ScaleLifeRange(0, 1);
+		self.FadeLifeRange(7,11);
+		self.SetLifespanMultipliers(0.5, 1, 1, 1, 1.2);
+		self.RandomLife(8,10);
+		self.RandomAngle(-55,55);
+		self.RandomPitch(-45,45);
+		self.RandomRollSpeed(-15,15);
+		self.randomSpeed(1,12);
+		self.RandomScaleX(4.6, 6.2);
+		self.RandomScaleY(4.6, 6.4);
+		self.drag = 0.05;
+	}
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.SetScaleStep(frandom(0.7,0.9));
+        particle.Texture = SelectRandomFrame("PUR1", "ABCDE");
+    }
+}
+
+
+class RedBloodParticleDefinition : PurpleBloodParticleDefinition {
+	override void init() {
+		super.init();
+        self.RandomScaleX(2.3, 6.2);
+        self.RandomScaleY(2.3, 6.2);
+	}
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.SetScaleStep(frandom(0.7,0.9));
+        particle.Texture = SelectRandomFrame("RBTR", "ABCDE");
+    }
+}
+
+
+class PurpleBloodParticle : SelacoParticle
+{
+
+	float decrementSpeed;
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		decrementSpeed = frandom(0.75,0.8);
+	}
+
+	override void tick()
+	{
+		super.tick();
+		scale*=decrementSpeed;
+	}
+
+    default
+    {
+
+        speed   4;
+        radius  5;
+		height  5;
+        gravity 0.5;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+        RenderStyle "translucent";
+		SelfLighting "471344";
+        XScale 0.1;
+        Yscale 0.4;
+
+		+SelacoParticle.IsBlood
+        SelacoParticle.FadeLifeRange    7   , 11;
+        SelacoParticle.LifespanMutliplier   1, 1, 1.1, 2, 2;
+        SelacoParticle.RandomLife   11  , 15;
+        SelacoParticle.RandomAngle  -55 , 55;
+        SelacoParticle.RandomPitch  -45 , 45;
+		SelacoParticle.RandomRollSpeed  -15, 15;
+        SelacoParticle.RandomSpeed  1 , 12;
+        SelacoParticle.RandomScaleX 3.615, 6.267;
+        SelacoParticle.RandomScaleY 3.65, 6.267;
+    }
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			PUR1 A -1
+			{
+				frame = random(0,4);
+			}
+			stop;
+	}
+}
+
+class RedBloodParticle : PurpleBloodParticle {
+	default {
+        SelacoParticle.RandomScaleX 4.3, 5.2;
+        SelacoParticle.RandomScaleY 4.3, 5.2;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			RBTR A -1
+			{
+				frame = random(0,4);
+			}
+			stop;
+	}	
+}

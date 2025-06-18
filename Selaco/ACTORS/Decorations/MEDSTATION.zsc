@@ -1,0 +1,311 @@
+class MedStation : Interactable
+{
+
+	enum MACHINE_STATES
+	{
+		MEDKITSTATION_HIGH = 0,
+		MEDKITSTATION_LOW = 1,
+		MEDKITSTATION_DEPLETED = 2,
+		MEDKITSTATION_STANDBY = 3
+	}
+
+	const USE_DELAY = 3;
+	const HEAL_PER_USE = 10;
+	int delayTimer;
+	int frameID;
+	int machineHealth;
+	string actorTag;
+	string storedUseTag;
+
+	override void tick()
+	{
+		super.tick();
+		heartBeat();
+		updateLabel();
+	}
+
+	void heartBeat()
+	{
+		int beepSpeed;
+		int playerHealth = players[consolePlayer].mo.health;
+
+		// Get beep speed
+		if(playerHealth > 50) {
+			beepSpeed = 45;
+		} else if(playerHealth >= 35 && playerHealth <= 50) {
+			beepSpeed = 25;
+		} else if(playerHealth < 35) {
+			beepSpeed = 17;
+		}
+		
+		// Play beep noise at chosen speed
+		if(level.time % beepSpeed == 0)
+		{
+			A_PLAYSOUND("MEDSTATION/BEAT", CHAN_7, 0.4, pitch:1.35);
+		}		
+	}
+
+	override void postBeginPlay()
+	{
+		actorTag = getTag();
+		A_playSound("MEDSTATION/HUM", CHAN_5, 0.4, 1, pitch:1.25);
+		if(args[1] == 0)
+		{
+			machineHealth = random(50,75);
+		} 
+		else
+		{
+			machineHealth = args[0];
+		}
+
+		useIcon = TexMan.CheckForTexture("XH_HEAL");
+
+		// Eat shit
+		if(skill == SKILL_SMF)
+		{
+			machineHealth = 1;
+		}
+
+		goStandBy();
+		if(machineHealth == 0)
+		{
+			updateScreen();
+		}
+	}
+
+	// Player goes far away, deactivate machine
+	void goStandby()
+	{
+		if(machineHealth <= 0)
+		{
+			return;
+		}
+		frameID = MEDKITSTATION_STANDBY;
+		if(level.time > 15)
+		{
+			A_PLAYSOUND("MEDSTATION/OFFLINE", CHAN_6, 0.8, 0, 0.9, pitch:1);
+		}
+		setStateLabel("Spawn");
+	}
+
+    override void sleep(int tics)
+	{
+		goStandBy();
+		super.sleep(tics);
+	}
+
+	// Update screen states
+	void updateScreen()
+	{
+		frameID = MEDKITSTATION_HIGH;
+
+		if(machineHealth <= 25)
+		{
+			frameID = MEDKITSTATION_LOW;
+		}
+		if(machineHealth <= 0) {
+			frameID = MEDKITSTATION_DEPLETED;
+			updateLabel();
+			setStateLabel("spawn");
+			SleepIndefinite();
+		}
+	}
+
+	override void wake()
+	{
+		if(frameID != MEDKITSTATION_DEPLETED)
+		{
+			A_PLAYSOUND("MEDSTATION/BOOTUP", CHAN_6, 0.8, 0, 0.9, pitch:1.25);
+		}
+		updateScreen();
+		super.wake();
+	}
+
+	void updateLabel()
+	{
+		string labelSuffix = getMachineState();
+		
+		SetTag(string.format("%s \n%s", actorTag, labelSuffix));
+
+		if(skill == SKILL_SMF)
+		{
+			setTag(stringTable.localize("$PROVE_YOUR_WORTH"));
+			usetag = " ";
+		}
+
+		if(delayTimer > 0)
+		{
+			delayTimer--;
+		} else if (delayTimer == 0)
+		{
+			bPreventSleep = false;
+		}
+	}
+	string getMachineState()
+	{
+		string stringOutput;
+		if(machineHealth > 0)
+		{
+			stringOutput = string.format("\c[green]Health Supply:\c- %d", machineHealth);
+		}
+		if(machineHealth <= 0)
+		{
+			stringOutput = string.format("\c[orange](Depleted)");
+		}
+
+	/* 	// Check if player has full health
+		if(players[consoleplayer].mo && players[consoleplayer].mo.health == players[consoleplayer].mo.getMaxHealth())
+		{
+			stringOutput = string.format("%s\n\c[green](Full health)", stringOutput);
+		}
+	*/
+		return stringOutput;
+	}
+
+
+	void useMachine(actor user)
+	{
+		if(!delayTimer)
+		{
+			// Get Player max health
+			int maxHealth = user.GetMaxHealth(true);
+			int currentHealth = user.health;
+			
+			// Eat shit
+			if(skill == SKILL_SMF)
+			{
+				delayTimer = 35;
+				user.angle = user.angle+180;
+				user.A_PLAYSOUND("dawn/death9", CHAN_AUTO, 0.4, 0, pitch:0.3);
+				user.A_PLAYSOUND("dawn/death5", CHAN_AUTO, 0.4, 0, pitch:0.3);
+				A_PRINTBOLD("SELACO HAS FALLEN", 8.0, "SEL46FONT");
+				A_PlaySound("MEDSTATION/DEPLETE", CHAN_AUTO, 0.8, pitch:0.6);
+
+				// PAINT THE ROOM WITH GIBS
+				for(int y=0;y<75;y++)
+				{
+					A_SPAWNITEMEX("GibbedHuman", frandom(0,500), frandom(-500,500), -24);
+				}
+
+				// Make every light red
+				ThinkerIterator light = ThinkerIterator.Create("SelacoLightBase");
+				SelacoLightBase lightActor = SelacoLightBase(light.Next());
+				for (; lightActor; lightActor = SelacoLightBase(light.Next())) {
+					lightActor.args[0] = 128;
+					lightActor.args[1] = 0;
+					lightActor.args[2] = 0;
+				}   
+
+
+				setStateLabel("LetsGetNuts");
+				return;
+			}
+
+			// Machine is empty, reject
+			if(machineHealth <= 0 || currentHealth >= maxHealth)
+			{
+				A_PLAYSOUND("MEDSTATION/FULL", CHAN_AUTO, 0.4, pitch:1.5);
+				return;
+			}
+
+			// Prevent sleeping so the delayTimer can run
+			bPreventSleep = true;
+			delayTimer = USE_DELAY;
+	
+			// Play usage sound effect
+			A_PlaySound("MEDSTATION/USE", CHAN_6, 0.4, pitch:1.25);
+	
+			// Calculate the actual amount of health that can be healed
+			int healAmount = min(HEAL_PER_USE, maxHealth - currentHealth, machineHealth);
+			int newHealth = currentHealth + healAmount;
+
+			// Heal the user
+			user.A_SETHEALTH(newHealth);	
+
+			// Apply vignetting effect
+			if(user is "Dawn")
+			{
+				dawn(user).HealTick(2);
+			}
+
+			// Reduce the machine's health by the actual amount healed
+			if (healAmount > 0) 
+			{
+				machineHealth -= healAmount;
+			}	
+
+			if(machineHealth <= 0)
+			{
+				A_STOPSOUND(CHAN_5);
+				useTag = string.format("\c[darkgrey]%s", stringTable.localize("$ACT_USE"));
+				A_PlaySound("MEDSTATION/DEPLETE", CHAN_6, 0.8, pitch:1.1);
+			}
+	
+			if(machineHealth <= 25 && frameID == 0)
+			{
+				A_PlaySound("MEDSTATION/STAGE", CHAN_AUTO, 0.6, pitch:1.25);
+			}
+
+			updateScreen();
+
+		}
+	}
+
+	override void deactivate(actor deactivator)
+	{
+		useMachine(deactivator);
+	}
+
+	override void activate(actor activator)
+	{
+		useMachine(activator);
+	}
+
+	default
+	{
+		SelfLighting "161616";
+		tag "$OBJECT_MEDICALSTATION";
+		-Shootable;
+		+NOGRAVITY;
+		+DONTTHRUST
+		+SelacoActor.ThruPlayers;
+		+SELACOACTOR.WakeNearPlayer;
+		+SELACOACTOR.SleepWhenFar;
+		SelacoActor.SleepDistance 125;
+		radius 35;
+		height 40;
+		+USESPECIAL;
+		activation THINGSPEC_SWITCH;
+	}
+	states
+	{
+		Active:
+		Inactive:
+		Spawn:
+			VOXE A 1
+			{
+				frame = frameID;
+			}
+			loop;
+		LetsGetNuts:
+			VOXE C 35
+			{
+				bPreventSleep = true;
+			}
+			VOXE C 1
+			{
+				// Spawn Enforcers at every single pathnode
+				// Make every light red
+				ThinkerIterator node = ThinkerIterator.Create("Pathnode");
+				Pathnode nodeActor = Pathnode(node.Next());
+				for (; nodeActor; nodeActor = Pathnode(node.Next())) {
+					nodeActor.A_SPAWNITEMEX("Enforcer");
+					nodeActor.A_SPAWNITEMEX("CrawlerMine", 0, 32);
+					nodeActor.A_SPAWNITEMEX("CrawlerMine", 0, -32);
+					nodeActor.A_SPAWNITEMEX("GibbedHuman", frandom(-32,32), frandom(-32,32), -10);
+				}   
+
+			}
+			stop;
+	}
+}

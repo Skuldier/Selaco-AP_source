@@ -1,0 +1,696 @@
+extend class SpeechHandler
+{
+
+    // SIGHT (0 -> EMPTY SPACE)
+    static const int SOLDIER_SIGHT_ResponseOptions[] = {
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        0,
+        0,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        0,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        0,
+        0,
+        0,
+        0,
+        0,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        0,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        0,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE
+    };
+
+    // SQUAD LOST -- 68
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+
+    // ARMOR LOST -- 85
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+    // NA
+
+    static const int SOLDIER_PUSH_RESPONSE[] = {
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE
+    };
+
+    static const int SOLDIER_PURSUIT_Response[] = {
+        SOLDIER_PUSHRESPONSE,
+        0,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        0,
+        0,
+        SOLDIER_PUSHRESPONSE,
+        SOLDIER_PUSHRESPONSE,
+        0,
+        0,
+        0
+    };
+
+        // SOLDIER_ATTACK_RESPONSE
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA 
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA 
+        // NA
+        // NA   
+
+        // FRAG GRENADE RESPONSES
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+
+        // THROW GRENADE
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+
+        // HIT TAUNT
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+
+        // HIT TAUNT
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA   
+
+
+
+
+    static const int SOLDIER_MANDOWN_Acknowledge[] = {
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        0,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        0,
+        0,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        0,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        0,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        0,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE
+    };
+
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA   
+
+    
+    static const int SOLDIER_RETREAT_Response[] = {
+        0,
+        0,
+        SOLDIER_DISTANCE,
+        0,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        0,
+        0,
+        0,
+        SOLDIER_DISTANCE,
+        0,
+        0,
+        0,
+        SOLDIER_DISTANCE,
+        0,
+        0
+    };
+
+    static const int SOLDIER_SEARCH_Responder[] = {
+        SOLDIER_SEARCH_RESPONSE, 
+        SOLDIER_NEGATIVE_SIMPLE,
+        SOLDIER_NEGATIVE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_SEARCH_RESPONSE, 
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_ACKNOWLEDGE,
+        SOLDIER_SEARCH_RESPONSE, 
+        SOLDIER_SEARCH_RESPONSE, 
+        SOLDIER_SEARCH_RESPONSE, 
+        SOLDIER_SEARCH_RESPONSE 
+    };
+
+    static const int SOLDIER_SEARCH_Responder_Simple[] = {
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE
+    };
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA    
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA    
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+
+        // NA
+        // NA
+        // NA    
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+
+        // NA
+        // NA
+        // NA    
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+
+    static const int SOLDIER_NEGATIVE_SIMPLE_Response[] = {
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE
+    };
+
+/*     static const int SOLDIER_NEGATIVE_SIMPLE,_Response[] = {
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_1",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_2",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_3",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_4",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_5",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_6",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_7",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_8",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_9",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_10",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_11",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_12",
+        "$SOLDIER_RESPONSE_NEGATIVESIMPLE_13"
+    };
+ */
+        // NA
+        // NA
+        // NA    
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA    
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+        // NA
+
+    static const int SOLDIER_DISTANCE_Response[] = {
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE,
+        SOLDIER_DISTANCE
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    static const int SOLDIER_SquadleaderLost_ResponseLines[] = {
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE,
+        SOLDIER_MANDOWN_RESPONSE
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+    static const int SOLDIER_HEAR_Response[] = {
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        0,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE,
+        SOLDIER_ACKNOWLEDGE_SIMPLE
+    };
+
+}

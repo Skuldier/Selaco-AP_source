@@ -1,0 +1,41 @@
+class FlameParticleDefinition : ParticleDefinition {
+    static const String fireSprites[] = {"BFX1", "BFX2", "BFX3"};
+    float randomDir;
+    override void Init()
+    {
+        super.Init();
+        self.SetBaseScale(0.24);
+        self.RandomScaleX(1.0,5.0);
+        self.RandomScaleY(1.0,5.0);
+        self.RandomRollSpeed(-5,5);
+        self.drag = 1.43;
+        self.ClearFlag(PDF_VELOCITYFADE);
+        self.SetDefaultParticleFlag(SPF_FULLBRIGHT);
+        self.ClearFlag(DPF_LOOPANIMATION);
+        self.DefaultRenderStyle = Style_Add;
+
+        for (int i = 0; i < fireSprites.Size(); i++)
+        {
+            int sequence = AddAnimationSequence();
+            AddAnimationFrames(sequence, fireSprites[i], "ABC", 4);
+        }
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        int sequence = random(0, GetAnimationSequenceCount() - 1);
+        particle.InitLife(GetAnimationLengthInTicks(sequence)+15);
+        particle.AnimFrame = GetAnimationStartFrame(sequence);
+        particle.Roll = frandom(-25, 25);
+        PlayAnimationSequence(particle, sequence, 0);
+        particle.SetScaleStep(0.96);
+        particle.AlphaStep = -0.01;
+        randomDir = frandom(-0.3,0.3);
+    }    
+
+    override void ThinkParticle(in out ParticleData particle) {
+        particle.vel.x*=0.98+randomDir;
+        particle.vel.y*=0.98;
+        particle.vel.z*=0.98;
+    }
+}

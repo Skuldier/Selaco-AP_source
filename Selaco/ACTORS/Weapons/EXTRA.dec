@@ -1,0 +1,4 @@
+Actor HasRailgun: Inventory
+{
+Inventory.MaxAmount 1
+}

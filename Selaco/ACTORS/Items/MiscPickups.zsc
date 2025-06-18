@@ -1,0 +1,186 @@
+// Trading Cards
+class TradingCard : SelacoItem {
+
+
+	// Early Access version has no Trading Cards implemented, so we replace them with a small credits boost.
+	override void postbeginplay()
+	{
+		super.postbeginplay();
+		actor creditsActor;
+		bool succ;
+		[succ, creditsActor] = A_SpawnItemEx("CreditsbagMedium");
+
+		// Ensure it still counts as a secret
+		if(creditsActor && bCountSecret)
+		{
+			creditsActor.bCountSecret = true;
+		}
+
+		// Destroy card because we failed him.
+		destroy();
+	}
+
+    default {
+        tag "Trading Card";
+        scale 1.0;
+        +FLOAT;
+        +NOGRAVITY;
+        +inventory.ALWAYSPICKUP;
+    }
+
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 { Stats.AddStat(STAT_TRADINGCARDS_FOUND, 0, 1); }
+			VOXE L -1 bright;
+			loop;
+		Pickup:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("items/CARD", CHAN_AUTO);
+			TNT1 A 0 { 
+				// Give tutorial if this is the first trading Card.
+				TutorialHandler.TutorialMessage("TUT_CARDS", 1);
+				
+				// Add stat
+				Stats.AddStat(STAT_TRADINGCARDS_FOUND, 1, 0);
+			 }
+			stop;
+	}
+}
+
+class HealthUpgrade : SelacoItem
+{
+
+	default {
+		SelacoItem.randomizerSpawnChance 0.25;
+		+SelacoItem.Essential;
+		+SelacoItem.UpgradeItem;
+		+FLOORCLIP
+		+DONTGIB
+		tag "$PICKUP_HEALTHUPGRADE";
+		Inventory.Pickupsound "item/healpickup";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0;
+		VOXE L -1 BRIGHT;
+		Stop;
+	Pickup:
+		TNT1 A 0
+		{
+			A_PlaySound("item/levelup", CHAN_AUTO, 0.7);
+		}
+		TNT1 A 0 ACS_NamedExecute("INCREMENTMAXHEALTH");
+	Death:
+		TNT1 A 0;
+	}
+}
+
+class SecurityCard : SelacoItem
+{
+	actor spawnedIcon;
+	bool seenPlayer;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		Stats.AddStat(STAT_CLEARANCE_CARDS, 0, 1);
+	}
+
+	default {
+		+CountItem;
+		+FLOAT;
+		+NOGRAVITY;
+		SelacoItem.SleepDistance 3096;
+		+SelacoItem.Upgradeitem
+		+SELACOITEM.essential;
+		Scale 1.0;
+		tag "$PICKUP_CLEARANCEUPGRADE";
+		Inventory.PickupSound "items/keycard";
+	}
+   States
+   {
+	Spawn:
+		VOXE L 1;
+		VOXE L 10
+		{
+			// Check for player distance
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			if(!invoker.seenPlayer)
+			{
+				bool succ;
+				if(d && (distance2D(d) < 1000 || checkSight(d)))
+				{
+					invoker.seenPlayer = true;
+					[succ, invoker.spawnedIcon] = A_SpawnItemEx("SecurityCardIcon");
+				}
+			}
+		}
+		loop;
+	Pickup:
+		TNT1 A 0
+		{
+			if(invoker.spawnedIcon)
+			{
+				invoker.spawnedIcon.destroy();
+			}
+			A_GiveInventory("ClearanceLevel", 1);
+		}
+		TNT1 A 0 ACS_NamedExecute("LevelUp");
+		TNT1 A 0
+		{
+			if(countinv("ClearanceLevel") == 1)
+			{
+				TutorialHandler.TutorialMessage("TUT_CLEARANCE", 1);
+			}
+		}
+		TNT1 A 0 { Stats.AddStat(STAT_CLEARANCE_CARDS, 1, 0); }
+		stop;
+	SmallRadius:
+		TNT1 A 0 A_SetSize(2, -1);
+		goto Spawn;
+	LargeRadius:
+		TNT1 A 0 A_SetSize(30, -1);
+		goto Spawn;
+   }
+  }
+
+  class ClearanceLevel : Inventory
+  {
+	default
+	{
+		inventory.maxamount 7;
+	}
+  }
+
+
+class DEMOLITIONCHARGE_PICKUP : SelacoItem
+{
+	default
+	{
+		tag "$OBJECT_DEMOLITIONCHARGES";
+		inventory.pickupSound "PICKUP/BANDOLIER";
+		-SelacoItem.flyAnimation;
+	}
+
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+		Pickup:
+			TNT1 A 0
+			{
+				A_PlaySound("item/levelup", CHAN_AUTO, 0.7);
+			}
+			TNT1 A 0
+			{
+				A_PRINTBOLD(string.Format("\c[omniblue]%s", stringTable.localize("$DEMOCHARGES_PICKUP")));
+				A_GiveInventory("HasDemolitionCharges");
+				
+			}
+			goto pickupSuccess;
+	}
+
+}

@@ -1,0 +1,1073 @@
+class RainModelMaster : Actor {
+    default {
+        radius 8;
+		height 8;
+        gravity 0;
+
+        RenderStyle "Translucent";
+        XScale 1;
+        Yscale 1;
+
+        +NOINTERACTION;
+        +NOBLOCKMAP;
+        +DONTINTERPOLATE;
+        +NOCLIP;
+
+        DistanceCheck "r_rain_distance";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            RAIN A 1 { SleepIndefinite(); }
+            loop;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay(); 
+        
+        if(args[0] != 1) {
+            SetXYZ((pos.x, pos.y, floorz));
+        }
+        
+        A_SETSCALE(1, (ceilingZ - pos.z));
+
+        let handler = RainHandler.Instance();
+        if(handler) {
+            handler.rainSpawned(self);
+        }
+    }
+}
+
+class RainBoxLarge : RainModelMaster {
+    default {
+        RenderRadius 1024;
+    }
+}
+
+class RainBoxMedium : RainModelMaster {
+    default {
+        RenderRadius 512;
+    }
+}
+
+class RainBoxSmall : RainModelMaster {
+    default {
+        RenderRadius 256;
+    }
+}
+
+class RainRectLarge : RainModelMaster {
+    default {
+        RenderRadius 1024;
+    }
+}
+
+class RainRectMedium : RainModelMaster {
+    default {
+        RenderRadius 512;
+    }
+}
+
+class RainRectSmall : RainModelMaster {
+    default {
+        RenderRadius 256;
+    }
+}
+
+class RainRect192 : RainModelMaster {
+    default {
+        RenderRadius 192;
+    }
+}
+
+class RainBlobSmall : RainModelMaster {
+    default {
+        RenderRadius 128;
+    }
+}
+
+class RainBlobTiny : RainModelMaster {
+    default {
+        RenderRadius 128;
+    }
+}
+
+// A single shaft of rain!
+class RainShaft : RainModelMaster {
+    default {
+        RenderRadius 4;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            RAIN B 1 { SleepIndefinite(); }
+            loop;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay(); 
+        
+        if(args[0] != 1) {
+            SetXYZ((pos.x, pos.y, floorz));
+        }
+        
+        A_SETSCALE(0.5, (ceilingZ - pos.z) / 1024.0);
+    }
+}
+
+
+class TextureSwap {
+    int floor3D;
+    uint secID;
+    TextureID original, replacement;
+}
+
+
+class RainHandler : EventHandler {
+    mixin CVARBuddy;
+
+    transient TextureID skyTex;
+
+    PlayerAmbientWind wind[2];
+    PlayerAmbientRain rain[6];
+    
+    Array<TextureSwap> floorChanges;
+    Array<RainModelMaster> rainBoxes;
+    Array<CarRainSoundEmitter> carSounds;
+
+    PlayerRainSplatters splatters;
+
+    bool rainIsEnabled;
+    int rainQuality;
+
+    static const String replacements[] = {
+        "ROADFL1A", "RN_RFL1A",
+        "ROADFL1B", "RN_RFL1B",
+        "ROADFL1C", "RN_RFL1C",
+        "ROADCT1A", "RN_RCT1A",
+        "ROADCT1J", "RN_RCT1J",
+        "ROADCT2A", "RN_RCT2A",
+        "GENCON1C", "RN_NCON1C",
+        "FLAT5_7" , "RN_FLT57",
+        "AQCONC18", "RN_CON18",
+        "CTYPAV1D", "RN_CPV1D",
+        "COBLFL1A", "RN_CBL1A",
+        "ASPHALTA", "RN_ASPTA",
+        "GROUND04", "RN_GRND4",
+        "GRAYTLG7", "RN_GTLG7",
+        "BTILEBLS", "RN_BTBLS",
+        "CARPAR8A", "RN_PAR8A",
+        "SSWTCHP", "RN_WTCHP",
+        "CEIL5_M", "RN_CEIL5",
+        "FLATMA3", "RN_FLAT",
+        "CABSIDEC", "RN_CABSI",
+        "CARPAR5C", "RN_CARP5C",
+        "CONREC1B", "RN_CONREC",
+        "GROUND06", "RN_GRND6"
+    };
+
+    static clearscope RainHandler Instance() {
+        return RainHandler(EventHandler.Find("RainHandler"));
+    }
+
+    static void EnableRainRig(int enable = 1) {
+        let handler = RainHandler.Instance();
+        if(handler) {
+            handler.SetRainSoundsEnabled(enable);            
+        }
+    }
+
+    static void DisableRainEffects() {
+        let handler = RainHandler.Instance();
+        if(handler) {
+            handler.disableRain();
+        }
+    }
+
+    static void EnableRainEffects() {
+        let handler = RainHandler.Instance();
+        if(handler) {
+            handler.enableRain();
+        }
+    }
+
+    void rainSpawned(RainModelMaster rain) {
+        rainBoxes.push(rain);
+    }
+
+    void rainSoundSpawned(CarRainSoundEmitter rainSound) {
+        carSounds.push(rainSound);
+    }
+    
+    void SetRainSoundsEnabled(int enable = 1) {
+        if(splatters) splatters.disabled = !enable;
+
+        // Disable/enable the rain sound rig
+        if(enable <= 0) {
+            for(int x = 0; x < rain.size(); x++) {
+                rain[x].stopSound();
+                rain[x].sleepIndefinite();
+            }
+
+            for(int x = 0; x < wind.size(); x++) {
+                wind[x].stopSound();
+                wind[x].sleepIndefinite();
+            }
+            
+            splatters.sleepIndefinite();
+        } else {
+            for(int x = 0; x < rain.size(); x++) {
+                rain[x].wake();
+                rain[x].startSound();
+            }
+
+            for(int x = 0; x < wind.size(); x++) {
+                wind[x].wake();
+                wind[x].startSound();
+            }
+
+            splatters.wake();
+        }
+    }
+
+    void disableRain() {
+        // Swap all floor textures back to original
+        for(int x = floorChanges.size() - 1; x >= 0; x--) {
+            let swap = floorChanges[x];
+            if(swap.floor3D > -1) {
+                let floor3D = level.Sectors[swap.secID].Get3DFloor(swap.floor3D);
+                floor3D.model.SetTexture(1, swap.original, false);
+            } else {
+                level.Sectors[swap.secID].SetTexture(0, swap.original, false);
+            }
+        }
+
+        // Disable rendering of all rain boxes
+        for(int x = rainBoxes.size() - 1; x >= 0; x--) {
+            rainBoxes[x].A_SetRenderStyle(0, STYLE_NONE);
+        }
+
+        // Disable the rain sound rig
+        for(int x = 0; x < rain.size(); x++) {
+            rain[x].stopSound();
+            rain[x].sleepIndefinite();
+        }
+
+        for(int x = 0; x < wind.size(); x++) {
+            wind[x].stopSound();
+            wind[x].sleepIndefinite();
+        }
+
+        // Disable car sounds
+        for(int x = carSounds.size() - 1; x >= 0; x--) {
+            carSounds[x].stopSound();
+        }
+
+        // Disable splatters
+        if(splatters) splatters.disabled = true;
+
+        rainIsEnabled = false;
+    }
+
+    void enableRain() {
+        // Swap floor textures to rain version
+        for(int x = floorChanges.size() - 1; x >= 0; x--) {
+            let swap = floorChanges[x];
+            if(swap.floor3D > -1) {
+                let floor3D = level.Sectors[swap.secID].Get3DFloor(swap.floor3D);
+                floor3D.model.SetTexture(1, swap.replacement, false);
+            } else {
+                level.Sectors[swap.secID].SetTexture(0, swap.replacement, false);
+            }
+        }
+
+        // Enable rain boxes
+        for(int x = rainBoxes.size() - 1; x >= 0; x--) {
+            rainBoxes[x].A_SetRenderStyle(1.0, STYLE_Translucent);
+        }
+
+        // Enable rain sound rig
+        for(int x = 0; x < rain.size(); x++) {
+            rain[x].wake();
+            rain[x].startSound();
+        }
+
+        for(int x = 0; x < wind.size(); x++) {
+            wind[x].wake();
+            wind[x].startSound();
+        }
+
+        // Enable car sounds
+        for(int x = carSounds.size() - 1; x >= 0; x--) {
+            carSounds[x].startSound();
+        }
+
+        // Enable splatters
+        if(splatters) splatters.disabled = false;
+
+        rainIsEnabled = true;
+    }
+
+    
+    override void WorldLoaded(WorldEvent e) {
+        // Do not run any rain handling if this is not a rainy map!
+        if(!level.rainymap) {
+            if(!bDESTROYED) Destroy();
+            return;
+        }
+
+        // Check any floor textures under a F_SKY1 and replace them with a raindrop shader version when possible
+        let skyTex = TexMan.CheckForTexture("F_SKY1");
+        if(!skyTex.isValid()) Console.Printf("\c[RED]NO SKY TEXTURE COULD BE FOUND WHEN SCANNING FOR RAINDROP FLOORS!");
+
+        if(!e.IsReopen && !e.IsSaveGame) {
+            uint secID = 0, numSectors = level.Sectors.size();
+            Sector s;
+            while(secID < numSectors) {
+                s = level.Sectors[secID];
+                
+                // If we have sky as the ceiling, get the highest floor and swap the texture to one with the raindrop shader when possible
+                if(s.GetTexture(1) == skyTex) {
+                    double floorHeight = double.max;
+                    Sector floorSec;
+                    F3DFloor fl;
+                    
+                    // Technically, this function finds the next LOWER floor, not LOWEST, but whatever
+                    [floorHeight, floorSec, fl] = s.NextLowestFloorAt(s.centerspot.x, s.centerspot.y, floorHeight, 0 );
+
+                    if(fl) {
+                        // Check 3D floor first
+                        TextureID origTex = fl.GetTexture(0);
+                        string texName = TexMan.GetName(origTex);
+
+                        for(int x = 0; x < replacements.size(); x += 2) {
+                            if(replacements[x] == texName) {
+                                TextureID newTex = TexMan.CheckForTexture(replacements[x + 1]);
+
+                                if(newTex.isValid()) {
+                                    int floor3DIndex = -1;
+                                    // Figure out the 3D floor index
+                                    for(int x = 0; x < floorSec.Get3DFloorCount(); x++) {
+                                        if(floorSec.Get3DFloor(x) == fl) {
+                                            floor3DIndex = x;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    // Swap the ceiling texture in the sector (which is the floor texture for the 3D floor)
+                                    if(floor3DIndex > -1) {
+                                        let swap = new("TextureSwap");
+                                        swap.original = origTex;
+                                        swap.replacement = newTex;
+                                        swap.floor3D = floor3DIndex;
+                                        swap.secID = secID;
+                                        floorChanges.push(swap);
+                                    }
+
+                                    fl.model.SetTexture(1, newTex, false);
+                                } else {
+                                    Console.Printf("\c[YELLOW]3D Floor Replacement texture does not exist! %s", replacements[x + 1]);
+                                }
+                                
+                                break;
+                            }
+                        }
+                    } else if(floorSec) {
+                        TextureID origTex = s.GetTexture(0);
+                        string texName = TexMan.GetName(origTex);
+
+                        for(int x = 0; x < replacements.size(); x += 2) {
+                            if(replacements[x] == texName) {
+                                TextureID newTex = TexMan.CheckForTexture(replacements[x + 1]);
+
+                                if(newTex.isValid()) {
+                                    let swap = new("TextureSwap");
+                                    swap.original = origTex;
+                                    swap.replacement = newTex;
+                                    swap.floor3D = -1;
+                                    swap.secID = secID;
+                                    floorChanges.push(swap);
+
+                                    floorSec.SetTexture(0, newTex, false);
+                                } else {
+                                    Console.Printf("\c[YELLOW]Replacement texture does not exist! %s", replacements[x + 1]);
+                                }
+                                
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                secID++;
+            }
+
+            // Summon some rain actors for the player to hear
+            for(int x = 0; x < rain.size(); x++) {
+                let pa = PlayerAmbientRain( Actor.Spawn('PlayerAmbientRain', (0,0,-9999)) );
+                
+                pa.desiredOffset = PickupableDecoration.VecFromAngle((360.0 / float(rain.size())) * x, 0, 128);
+                pa.desiredOffset.z = 32;
+                pa.checkOffset = x;
+                rain[x] = pa;
+            }
+
+            // Summon some wind
+            for(int x = 0; x < wind.size(); x++) {
+                wind[x] = PlayerAmbientWind( Actor.Spawn('PlayerAmbientWind', (0,0,-9999)) );
+                wind[x].desiredOffset = PickupableDecoration.VecFromAngle(210 + ((360.0 / float(wind.size())) * x), 0, 256);
+                wind[x].desiredOffset.z = 32;
+            }
+
+            // Spawn splatter emitter
+            splatters = PlayerRainSplatters(Actor.Spawn('PlayerRainSplatters', (0,0,-9999)));
+        }
+
+        rainIsEnabled = true;
+    }
+
+
+    override void worldTick() {
+        let p = players[consolePlayer].mo;
+        if(p) {
+            // Determine overall
+            int rainPerWind = max(1, rain.size() / wind.size());
+           
+            if(level.time % 40 == 0)
+            {
+                updateRainCvar();
+            }
+
+            // Wind strength
+            for(int x = 0; x < wind.size(); x++) {
+                float windAngle = 210.0 + ((360.0 / float(wind.size())) * x);
+                int rainStartLookup = max(0, floor(windAngle / (360.0/rain.size())) - 1);
+                let wind = wind[x];
+                wind.fadePhase = 0;
+
+                for(int y = 0; y < rainPerWind; y++) {
+                    wind.fadePhase += rain[(y + rainStartLookup) % rain.size()].fadePhase;
+                }
+                
+                wind.fadePhase /= float(rainPerWind);
+            }
+        }
+    }
+
+    void updateRainCvar()
+    {
+        rainQuality = CVar.FindCVar("r_rainquality").GetInt();
+    }
+
+    override void NetworkProcess (ConsoleEvent e) {
+        if(!e.IsManual || sv_cheats > 0) {
+            // Mostly for debug
+            if(e.name == "togglerain") {
+                if(!rainIsEnabled) enableRain();
+                else disableRain();
+            } else if(e.name == "rainoff") {
+                disableRain();
+            } else if(e.name == "rainon") {
+                enableRain();
+            }
+        }
+    }
+}
+
+class PlayerRainSplatters : actor
+{
+    const RAIN_OFFSET = 800;
+
+    bool disabled;
+    int rainQuality;
+    int rainAmount;
+    RainHandler rh;
+    Dawn d;
+    override void postbeginPlay()
+    {
+        rh = RainHandler.Instance();
+        d = Dawn(players[consoleplayer].mo);
+        rh.updateRainCvar();
+        super.postbeginPlay();
+    }
+
+    void handleRainAmount()
+    {
+        rainQuality = rh.rainQuality;
+        switch(rainQuality)
+        {
+            case 1:
+                rainAmount = 1;
+                break;
+            case 2:
+                rainAmount = 2;
+                break;
+            case 3:
+                rainAmount = 3;
+                break;
+        }
+    }
+
+    override void Tick() 
+    {
+        if(!d)
+            return;
+
+        if(level.time % 35 == 0)
+        {
+            handleRainAmount();
+        }
+
+        if(!disabled && rainAmount > 0 && rainQuality) {
+            SetOrigin((d.pos.x, d.pos.y, floorz), false);
+            for(int x=0;x<rainAmount;x++)
+            {
+                int distance = RAIN_OFFSET + (200 *rainQuality);
+
+                // Get spawn coordinates within a semi-circle
+                float radius = random(0, distance);  
+                float splatAngle = random(-70, 70); 
+                int xOffset = radius * cos(splatAngle);
+                int yOffset = radius * sin(splatAngle);
+
+                actor rainPuff;
+                bool succ;
+                [succ, rainPuff] = d.A_SPAWNITEMEX("RainSplatterEffect", xOffset, yOffset, flags:SXF_SETMASTER);
+                if(rainpuff && xOffset >= 320)
+                {
+                    RainSplatterEffect(rainPuff).allowRain = true;
+                }
+            }
+        }
+        
+        Super.Tick();
+    }   
+
+    default
+    {
+        +NOINTERACTION;
+    }
+
+    states
+    {
+        Spawn:
+            TNT1 A -1;
+            loop;
+    }
+}
+
+class RainSplatterEffect : actor
+{
+    string spriteIndex;
+    int rainQuality;
+    bool allowRain;
+    override void beginPlay()
+    {
+        RainHandler rh = RainHandler.instance();
+        if(!rh) {
+            return;
+        }
+        rainQuality = rh.rainQuality;
+        
+        // Only spawn if we have a sky and if the floor difference isn't too high
+        if (texMan.GetName(ceilingpic) != "F_SKY1") {
+            destroy();
+            return;
+        }
+
+        // Destroy if there is a 3d floor above us
+        double floorHeight;
+        Sector floorSec;
+        F3DFloor floor3D;
+        [floorHeight, floorSec, floor3D] = CurSector.NextLowestFloorAt(pos.x, pos.y, 999999, FFCF_ONLY3DFLOORS);
+        if(abs(floorHeight - pos.z) > 128) { 
+            destroy();
+            return;
+        }
+
+        // Move to the floor
+        floorHeight = floor3D ? floor3D.top.ZatPoint(pos.xy) : floorSec.floorplane.ZatPoint(pos.xy);
+        SetOrigin((pos.x, pos.y, floorHeight), false);
+
+        // Plop sound, sometimes.
+        if(random(0,100) <= 10)
+        {
+            A_PLAYSOUND("impact/waterdrop", pitch:frandom(1.0,1.2));
+        }
+       
+        if(rainQuality >= 2)
+        {
+            scale*=1.1;
+            alpha = 0.6;
+        }
+
+        // Randomize!
+        bxflip = random(0,1);
+        scale*=frandom(0.68,1.2);
+
+        super.beginPlay();
+    }
+
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        if(rainQuality >= 3 && allowRain && random(0,99) <= 15)
+        {
+            A_SPAWNITEMEX("RainPuffEffect", 0, 0, -5, 0, 0.8, 0.2, angle: 15,flags:SXF_ABSOLUTEVELOCITY | SXF_ABSOLUTEANGLE);
+        }
+    }
+
+    default
+    {
+        +NOINTERACTION
+        RenderStyle "add";
+        scale 0.65;
+        alpha 1;
+    }
+    states
+    {
+        index:
+            LIQV A 0;
+            LIQU A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                spriteIndex = random(0,1) ? "LIQU" : "LIQV";
+                sprite = getSpriteIndex(spriteIndex);
+            }
+			TNT1 AABBCCDDEEFFGGHHII 1 
+            {
+                scale*=1.01;
+                A_FadeOut(0.02); 
+            }
+            stop;
+    }
+}
+
+
+class PlayerAmbientEffect : Actor {
+    mixin CVARBuddy;
+
+    float fadeDist;
+
+    property FadeDist : fadeDist;
+    
+    Vector3 desiredOffset;
+    Vector3 sleepOffset;    // Stores current offset when put to sleep
+
+    double fadePhase;
+    bool sndPlaying;
+
+    default {
+        +NOBLOCKMAP;
+        +NOCLIP;
+        +NoInteraction;
+        -Solid;
+        +NOGRAVITY;
+
+        RenderStyle "None";
+        XSCALE 0.5;
+        YSCALE 0.5;
+
+        PlayerAmbientEffect.fadeDist 512;
+    }
+
+    states
+    {
+        Spawn:
+            EDIT A -1;
+            stop;
+    }
+
+    override void PostBeginPlay() {
+        super.postbeginPlay();
+
+        if(iGetCVar("devmode") > 0) {
+            A_SetRenderStyle(1.0, STYLE_Normal);
+        }
+
+        if(desiredOffset == (0,0,0)) {
+            desiredOffset = (0, 128, 32);
+        }
+
+        fadePhase = 1;
+    }
+
+    override void Tick() {
+        let mo = players[consoleplayer].mo;
+        if(mo) {
+            SetOrigin(mo.pos + (desiredOffset + (desiredOffset.unit() * (fadePhase * fadeDist))), false);
+        }
+
+        Super.Tick();
+    }
+
+    override void wake() {
+        Super.wake();
+
+        let mo = players[consoleplayer].mo;
+        if(mo) {
+            SetOrigin(mo.pos + sleepOffset, false);
+        }
+    }
+
+    override void sleep(int ticks) {
+		Super.sleep(ticks);
+
+        let mo = players[consoleplayer].mo;
+        if(mo) {
+            sleepOffset = pos - mo.pos;
+        } else {
+            sleepOffset = (0,0,0);
+        }
+	}
+
+    override void sleepIndefinite() {
+        Super.sleepIndefinite();
+        
+        let mo = players[consoleplayer].mo;
+        if(mo) {
+            sleepOffset = pos - mo.pos;
+        } else {
+            sleepOffset = (0,0,0);
+        }
+    }
+}
+
+
+class PlayerAmbientRain : PlayerAmbientEffect {
+    transient TextureID skyTex;
+    RainTracer rTracer;
+
+    bool canReachPlayer;
+    int checkOffset;
+
+    const ESCAPE_SPEED = 0.04;
+
+    override void PostBeginPlay() {
+        super.postbeginPlay();
+
+        A_StartSound("ambient/rain", CHAN_BODY, CHANF_LOOP, 1.0 / 3.0, 1.5);
+        rTracer = new("RainTracer");
+
+        canReachPlayer = true;
+    }
+
+    void stopSound() {
+        A_StopSound(CHAN_BODY);
+    }
+
+    void startSound() {
+        A_StopSound(CHAN_BODY);
+        A_StartSound("ambient/rain", CHAN_BODY, CHANF_LOOP, 1.0 / 3.0, 1.5);
+    }
+
+    override void Tick() {
+        bool isRaining = false;
+
+        // Make sure we have skytex, it's transient so will not be saved in savegames
+        if(!skyTex.isValid()) { skyTex = TexMan.CheckForTexture("F_SKY1"); }
+
+        let mo = players[consoleplayer].mo;
+        if(mo) {
+            // First, set origin to where we want to be
+            SetOrigin(mo.pos + desiredOffset, false);
+
+            // Check if we should be raining here
+            isRaining = ceilingpic == skyTex && (floorz - 64) < pos.z;
+        }
+
+        Super.Tick();
+
+        // Trace(vector3 start, Sector sec, vector3 direction, double maxDist, ETraceFlags traceFlags);
+        // Do a hitscan looking just for 1 sided lines which should always stop rain audio from penetrating
+        if((level.time + checkOffset) % 8 == 0) {
+            Vector3 dir = mo.pos - pos;
+
+            // Dumb, dumb logic that actually works!
+            if(isRaining || ceilingpic == skyTex) canReachPlayer = !rTracer.trace(mo.pos + (0,0,32), mo.CurSector, desiredOffset.unit(), isRaining ? desiredOffset.length() : fadePhase * fadeDist, 0);
+        }
+
+        if(isRaining && canReachPlayer) {
+            // move fade phase towards the player
+            fadePhase = clamp(fadePhase - ESCAPE_SPEED, 0, 1);
+        } else {
+            if(ceilingpic != skyTex || !canReachPlayer) fadePhase = clamp(fadePhase + ESCAPE_SPEED, 0, 1);
+            else fadePhase = clamp(fadePhase - ESCAPE_SPEED, 0, 1);
+        }
+    }
+}
+
+
+class PlayerAmbientWind : PlayerAmbientEffect {
+
+    default {
+        PlayerAmbientEffect.fadeDist 700;
+    }
+
+    override void PostBeginPlay() {
+        super.postbeginPlay();
+
+        A_StartSound("ambient/wind", CHAN_BODY, CHANF_LOOP, 1.0 / 4.0, 1.1);
+    }
+
+    void stopSound() {
+        A_StopSound(CHAN_BODY);
+    }
+
+    void startSound() {
+        A_StopSound(CHAN_BODY);
+        A_StartSound("ambient/wind", CHAN_BODY, CHANF_LOOP, 1.0 / 4.0, 1.1);
+    }
+
+    states {
+        Spawn:
+            UDBI A -1;
+            stop;
+    }
+}
+
+// TODO: Make a generic tracer that just takes a flag list of things that you want to hit
+// having all these custom classes is balls
+// We are just looking for 1 sided walls to block sound here
+class RainTracer : LineTracer {
+    // We are only looking for objects that should block node connections!
+    override ETraceStatus TraceCallback() {
+        if(Results.HitType == TRACE_HitWall && !(Results.HitLine.flags & Line.ML_TWOSIDED)) {
+            return TRACE_Stop;
+        }
+
+        return TRACE_Skip;
+	}
+}
+
+class RainLine : actor
+{
+
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        A_PLAYSOUND("RAIN/LINE", CHAN_5, 0.2, 1);
+    }
+
+    default
+    {
+        +WALLSPRITE
+        +NOINTERACTION;
+        alpha 0.33;
+        RenderStyle "add";
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                if(random(0,1) == 1)
+                {
+                    bxflip = true;
+                }
+            }
+            TNT1 A random(1,13);
+        Looper:
+            RALI ABCDEFGHIJKLMN random(2,3);
+            loop;
+    }
+}
+
+class FoamSplatters : Actor
+{
+
+    mixin ParticleDefinitionEmitter;
+    override void beginPlay()
+    {   
+        for(int x=0;x<3;x++)
+        {
+            A_SPAWNITEMEX("WaterFoamSlowSmall", frandom(0,15), angle:random(0,360));
+        }
+        EmitDefinition('waterSplashParticleFootstepDefinition', chance:75, numTries:32, speed:1);
+        destroy();
+    }
+
+    default
+    {
+        +NOINTERACTION;
+    }
+}
+
+class WaterPuddleBlood : actor
+{
+    mixin ParticleDefinitionEmitter;
+    override void beginPlay()
+    {
+		for(int i=0;i<16;i++)
+		{
+			EmitDefinition('WaterSplashParticlePuffDefinition', 1, 1, offset:(frandom(-3,3),frandom(-3,3),frandom(-5,0)));
+			EmitDefinition('WaterSplashParticlePuffWildDefinition', 1, 1, offset:(frandom(-3,3),frandom(-3,3),frandom(-5,0)));			
+		}
+        A_SpawnDefinedParticle("BulletImpactEffectConcreteDefinition", 0, 0, 6);
+        A_SPAWNITEMEX("WaterFoamSlow");
+        A_PLAYSOUND("IMPACT/BULLET/WATER", CHAN_AUTO, 0.7, pitch:1.4);
+    }
+}
+
+class RainPuddle : SelacoActor
+{
+
+    static const String puddleSprite[] = {"PUD1", "PUD2"};
+    string spriteFrame;
+    RainHandler rh;
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+        if(damageType == "Ice")
+        {
+            setStateLabel("Pain.ice");
+            alpha = 0.6;
+            bShootable = false;
+            isSlippery = true;
+        }
+        if(!isSlippery)
+        {
+            alpha-=0.019;
+            if(alpha <= 0.03)
+            {
+                bShootable = false;
+            }
+        }
+        return res;
+    }
+
+    mixin Steppable;
+    override void postbeginPlay()
+    {
+        spriteFrame = puddleSprite[random(0,1)];
+
+        rh = RainHandler.Instance();
+        passiveStepSound = "step/puddle";
+        steppableSpawns = 'FoamSplatters';
+
+        A_PLAYSOUND("AMBIENT/RAINPUDDLE", CHAN_5, 0.4, 1, pitch:frandom(0.9,1.05));
+
+        if(random(0,1) == 1)
+        {
+            bXflip = true;
+        }
+        if(random(0,1) == 1)
+        {
+            byflip = true;
+        }
+        A_SETANGLE(random(0,360));
+        scale*=frandom(0.96,1.89);
+        SetOrigin((pos.x,pos.y,pos.z+1), false);
+        becomeSteppable(radius*scale.x, 2);
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(isSlippery)
+        {
+            return;
+        }
+        if(random(0,99) <= 5 && rh && rh.rainQuality > 0)
+        {
+            actor rainEffect;
+            bool succ;
+            [succ, rainEffect] = A_SPAWNITEMEX("RainSplatterEffect", random(-1*radius,radius), random(-1*radius,radius));
+            if(rainEffect)
+            {
+                rainEffect.scale*=1.25;
+            }
+        }
+        if(alpha <= GetDefaultByType(self.getClass()).alpha)
+        {
+            alpha+=0.001;
+        }
+        if(!bShootable && alpha >0.08)
+        {
+            bShootable = true;
+        }
+    }
+
+    override void sleep(int tics)
+    {
+        alpha = GetDefaultByType(self.getClass()).alpha;
+        super.sleep(tics);
+    }
+
+    default
+    {
+        SelacoActor.SleepDistance 1024;
+        +THRUACTORS
+        +FLATSPRITE;
+        +SHOOTABLE;
+        +DONTTHRUST
+        +SPECIAL;
+        +BUDDHA
+        -Pushable
+        BloodType "WaterPuddleBlood", "WaterPuddleBlood", "WaterPuddleBlood";
+        Renderstyle "TRANSLUCENT";
+        alpha 0.38;
+        height 2;
+        radius 28;
+    }
+    states
+    {
+        Precache:   
+            PUD1 ABCDEFGHIJKLMNOPQRST 0;
+            PUD2 ABCDEFGHIJKLMNOPQRST 0;
+            stop;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                sprite = getSpriteIndex(spriteFrame);
+            }
+            TNT1 ABCDEFGHIJKLMNOPQRST 3;
+            loop;
+        Pain.ice:
+            PUDD Z -1;
+            loop;
+    }
+}
+
+class RainPuffEffect : actor {
+    int frameID;
+    override void tick()
+    {
+        super.tick();
+        scale.x+=0.012;
+        scale.y+=0.012;
+        roll+=0.25;
+    }
+	default {
+		Alpha 0;
+		Scale 0.1;
+		+ROLLSPRITE;
+		+NOINTERACTION;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+            {
+                frameID = random(0,3);
+                A_SetRoll(random(0,360));
+            }
+            SMK7 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 
+            {
+                frame = frameID;
+                A_FADEIN(0.009); 
+            }
+			SMK7 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 
+            {
+                frame = frameID;
+                A_FADEOUT(0.003, FTF_REMOVE);
+            }
+			stop;
+	}
+}

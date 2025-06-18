@@ -1,0 +1,1319 @@
+
+class Pumping : Inventory {
+	default {
+		Inventory.MaxAmount 1;
+	}
+}
+
+class IsPlaying : Inventory {
+default {
+	Inventory.MaxAmount 1;
+	}
+}
+
+class MeleeAttack : Inventory {
+default {
+	Inventory.MaxAmount 1;
+	}
+}
+
+class IsCocking : Inventory {
+default {
+	Inventory.MaxAmount 1;
+	}
+}
+
+class ShotgunWasEmpty : Inventory {
+default {
+	Inventory.MaxAmount 1;
+	}	
+}
+
+class AltfireShotgunDoubleChambers : WeaponAltFire {
+	default {
+		Inventory.MaxAmount 3;
+	}
+}
+
+
+class muzzleFlashSpawnerShotgun : playerMuzzleFlash {
+
+	default
+	{
+		PlayerMuzzleFlash.lightSize 250, 300;
+	}
+
+	// Called in beginPlay of playerMuzzleFlash
+	override void SpawnLightEffect()
+	{
+		spawnLight(rColor:350*2, gColor:135*2, bColor:46*2, getLightSize(), 0, shadowRequirement:allowShadow, overbright: overbrightValue, divisionSpeed:1.5, weaponFlash:1);
+	}
+}
+
+// UPGRADES
+
+class UpgradeShotgunAmmo : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage			"UPGRD4";
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_EXTENDEDMAGAZINE", "$UPGRADE_SG_EXTENDEDMAGAZINE";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_EXTENDEDMAGAZINE_DESC";
+		WeaponUpgrade.TechModuleRequirement 1;
+		WeaponUpgrade.UpgradePointerPosition 	390, 200;
+		WeaponUpgrade.UpgradePosition			395, 340;
+		WeaponUpgrade.UpgradeCost          	200;
+
+		WeaponUpgrade.MagazineSizeMod			2;
+	}	
+}
+
+class UpgradeShotgunQuickSwap: WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage			"UPGRD38";
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_QUICKSWAP", "$UPGRADE_SG_QUICKSWAP";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_QUICKSWAP_DESC";
+		WeaponUpgrade.TechModuleRequirement 2;
+		WeaponUpgrade.UpgradePointerPosition 	820, 170;
+		WeaponUpgrade.UpgradePosition			920, 310;
+		WeaponUpgrade.UpgradeCost          	200;
+	}	
+}
+
+class UpgradeShotgunRecall : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage			"UPGRD33";
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_RECALL", "$UPGRADE_SG_RECALL";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_RECALL_DESC";
+		WeaponUpgrade.TechModuleRequirement 1;
+		WeaponUpgrade.UpgradePointerPosition 	505, 205;
+		WeaponUpgrade.UpgradePosition			600, 345;
+		WeaponUpgrade.UpgradeCost          	200;
+	}	
+}
+
+class UpgradeShotgunMasterKey : WeaponUpgrade {
+
+	override void onEnabled() {
+		Super.onEnabled();
+		setShimmer(true);
+	}
+
+	override void onDisabled() {
+		Super.onDisabled();
+		setShimmer(false);
+	}
+
+
+	// Adjust state for all active wallcracks
+	void setShimmer(bool shimmer)
+	{
+		ThinkerIterator it = ThinkerIterator.Create("WallDestroyerCracked");
+		WallDestroyerCracked crackActor = WallDestroyerCracked(it.Next());
+
+		for (; crackActor; crackActor = WallDestroyerCracked(it.Next())) {
+			if(shimmer)
+			{
+				crackActor.setStateLabel("Shimmer");
+			}
+			else
+			{
+				crackActor.setStateLabel("Spawn");
+			}
+		}
+
+	}
+
+
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD10';
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_MASTERKEY", "$UPGRADE_SG_MASTERKEY_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_MASTERKEY_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	130, 210;
+		WeaponUpgrade.UpgradePosition			35, 300;
+		WeaponUpgrade.TechModuleRequirement 	2;
+		WeaponUpgrade.UpgradeCost          	300;
+	}	
+}
+
+class UpgradeShotgunPumpSpeed : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD40';
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_PUMPGRIP", "$UPGRADE_SG_PUMPGRIP";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_PUMPGRIP_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	275, 225;
+		WeaponUpgrade.UpgradePosition			205, 335;
+		WeaponUpgrade.TechModuleRequirement 	2;
+		WeaponUpgrade.UpgradeCost          		200;
+		WeaponUpgrade.FireRateMod				-3;
+	}	
+}
+
+
+class UpgradeShotgunBarrelChoke : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD6';
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_CHOKE", "$UPGRADE_SG_CHOKE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_CHOKE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	45, 70;
+		WeaponUpgrade.UpgradePosition			125, -75;
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeCost          	400;
+		WeaponUpgrade.SpreadMod					-0.3;
+	}	
+}
+
+
+class UpgradeShotgunCrowdControl : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD21';
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_CROWDCONTROL", "$UPGRADE_SG_CROWDCONTROL";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_CROWDCONTROL_DESC";
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradePointerPosition 	735, 45;
+		WeaponUpgrade.UpgradePosition			865, -75;
+	}	
+}
+
+/* class UpgradeShotgunShredder : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD9';
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_SHREDDER", "$UPGRADE_SG_SHREDDER";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_SHREDDER_DESC";
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradePointerPosition 	250, 30;
+		WeaponUpgrade.UpgradePosition			350, -75;
+	}	
+} */
+
+class UpgradeShotgunGore : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD36';
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_GORE", "$UPGRADE_SG_GORE";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_GORE_DESC";
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradePointerPosition 	250, 30;
+		WeaponUpgrade.UpgradePosition			350, -75;
+	}	
+}
+
+class UpgradeShotgunPellets : WeaponUpgrade {
+	default {
+		WeaponUpgrade.UpgradeImage 			'UPGRD7';
+		WeaponUpgrade.Weapon 				'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_SG_PELLETS", "$UPGRADE_SG_PELLETS";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_SG_PELLETS_DESC";
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradePointerPosition 	590, 35;
+		WeaponUpgrade.UpgradePosition			680, -125;
+		WeaponUpgrade.UpgradeCost          	400;
+		WeaponUpgrade.PelletsMod			 	2;
+	}	
+}
+
+
+// ALT FIRE
+
+
+class altfireShotgunFlak : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_SHOTGUN_FLAKSHOT", "$ALTFIRE_SHOTGUN_FLAKSHOT";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SHOTGUN_FLAKSHOT_DESC";
+	}	
+}
+
+class altfireShotgunDoubleBarrel : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_SHOTGUN_DOUBLEBARREL", "$ALTFIRE_SHOTGUN_DOUBLEBARREL";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SHOTGUN_DOUBLEBARREL_DESC";
+	}	
+}
+
+class AltfireShotgunZoom : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_ZOOM", "$ALTFIRE_ZOOM";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SHOTGUN_ZOOM_DESC";
+		WeaponAltFire.WorkshopOrder			-1;		// Zoom should always be first
+	}	
+}
+
+class AltfireShotgunRecoil : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_SHOTGUN_RECOIL", "$ALTFIRE_SHOTGUN_RECOIL";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SHOTGUN_RECOIL_DESC";
+	}	
+}
+
+class AltFireShotgunSlugShell : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'shot_gun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_SHOTGUN_SLUG", "$ALTFIRE_SHOTGUN_SLUG";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_SHOTGUN_SLUG_DESC";
+	}
+}	
+
+class Shot_Gun : SelacoWeapon
+{	
+
+	const zoomRange = 1.5;
+
+	int ShotsLeft;
+	int shellsUpdate;
+	int maxShots;
+	int shotsSincePump;
+	int xSpreadIncrease;
+	int ySpreadIncrease; 
+	int deselectionTime;
+	int slugDamage;
+	bool shotgunEmpty; // Used to pump during the relod when Dawn has no shells in the chamber
+	bool pumpToReload; // Used to automatically reload after pump action.
+	bool blowBackActive; // Used to detect if the Alt Fire is pressed with Blowback active
+	bool doBurstShot;
+	string customShellType;
+	string ejectedShellActor;
+	string puffType;
+	property ShotsLeft: shotsLeft;
+	property ShellsUpdate: shellsUpdate;
+	property weaponSpread : weaponSpread;
+	property slugDamage	  : slugDamage;
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		setCrosshair('ShotgunCrosshair');
+	}
+
+	// Handles damage and spread
+	action void fireShotgun()
+	{
+		float spread[2];
+		float tempweaponSpread = invoker.weaponSpread;
+		invoker.ejectedShellActor = "ShotCaseSpawn";
+
+		// Reduce spread when zooming
+		if(checkIfZooming()) {
+			tempweaponSpread*=0.9;
+		}
+
+		// x and y values are differently, so get their own stat from here.
+		float xspreadIncrease = tempweaponSpread;
+		float ySpreadIncrease = tempweaponSpread;
+		float adjustedDamage = invoker.weaponDamage;
+
+		// The amount of pellets we are going to fire.
+		int pellets = invoker.weaponPelletAmount;
+
+		// Slugs may only have one pellet.
+		if(invoker.customShellType == "Slug")
+		{
+			// Green shotgun shell for slug shots
+			invoker.ejectedShellActor = "ShotSlugCaseSpawn";
+
+			adjustedDamage = invoker.slugDamage;
+
+			// Prepare the slug
+			pellets = 1;
+			tempweaponSpread = 0;
+			tempweaponSpread = 0;
+		}
+
+		// Apply damage with spread going up per shot.
+		for(int x=0;x<=pellets;x++) {
+			string puffType = "ShotgunPuff";
+
+			if(invoker.customShellType == "Slug") {
+				puffType = "SlugPuff";
+			}
+			
+			if(pellets > 2 && pitch > -25 && pitch < 25 && random(0,100) <= 25)
+			{
+				A_RailAttack(-1, spawnofs_xy:10, 1, flags:RGF_NOPIERCING, pufftype:"RifleTracer", frandom(-9,9), spread_z:frandom(-5,5), range:1900, sparsity:13, driftspeed:1,spawnClass:"RifleTracer",spawnofs_z: -4);
+			}
+
+			if(x>=3)
+			{
+				puffType = "ShotgunpuffSilent";
+			}
+			// Increase spread based on the spread property
+			spread[0]+=tempweaponSpread;
+			spread[1]+=tempweaponSpread*0.8; // y should be tighter
+
+			// Start the attack.
+			// TODO: PARTICLEPOOL
+			A_FireProjectile("Sparkxshotgun", frandom(-1*spread[0], spread[0]), 0, 5, random(-1*spread[1], spread[1]), 5, Random(-3, 3)	);
+			A_FireProjectile("PlayerTracer", frandom(-1*spread[0], spread[0]), 0, 5, random(-1*spread[1], spread[1]), 5, Random(-3, 3));
+			FireBullets(spread[0], spread[1], -1, adjustedDamage, puffType, flags:FBF_NORANDOM);
+		}
+
+		A_FireProjectile("EmberShot", 0, 0, 17, -1);
+
+		if(invoker.customShellType == "") {
+			A_PlaySound("weapons/sg", chan_Auto, 1.0, pitch:1.1);
+		} else if(invoker.customShellType == "Slug") {
+			A_PlaySound("SHOTGUN/SLUG", chan_Auto, 0.95, pitch:0.85);
+		}
+
+		// Take a shell away, if needed
+		if(!invoker.customShellType) {
+			invoker.TakeWeaponAmmo();
+		}
+		
+		// Register the shot
+		invoker.playerIsFiring();
+
+		// Shell type is fired, remove the shell.
+		invoker.customShellType = "";
+	}
+
+	
+	default {
+		Shot_Gun.ShotsLeft 1;
+		Shot_Gun.ShellsUpdate 2;
+		SelacoWeapon.weaponPelletAmount 12; // How many 'bullets' are fired per shot
+		SelacoWeapon.weaponSpread 0.95; // Increment spread by this value per pellet.
+		WeaponBase.SelectionOrder 100;
+		WeaponBase.SlotNumber 3;
+		SelacoWeapon.weaponDamage 34;
+		SelacoWeapon.rumbleIntensity 1.0;
+		SelacoWeapon.rumbleDeductionSpeed 0.2;
+		SelacoWeapon.lowAmmoThreshold 3;
+		SelacoWeapon.weaponRecoilMax 10;
+		SelacoWeapon.weaponRecoil 2.7;
+		SelacoWeapon.weaponRecoilReductionSpeed 1.5;
+		SelacoWeapon.weaponFireRate 17;
+		SelacoWeapon.DryFireSound "SHOTGUN/DRYFIRE";
+		SelacoWeapon.MeleeUpgradeName "UpgradeShotgunMeleeUpgrade";
+		SelacoWeapon.SlidingSprite "SHTX";
+		SelacoWeapon.meleeSprite "SHTM";
+		SelacoWeapon.InteractionSprite "SHO1";
+		SelacoWeapon.readySound "shotgun/equip";
+		SelacoWeapon.deselectSound "shotgun/unequip";
+		SelacoWeapon.VoxelDecorationModel "ShotgunModel";
+		SelacoWeapon.ImagePrefix "shotgun";
+		SelacoWeapon.AmmoColor "FF 89 2D";
+		SelacoWeapon.MagazineSize 6;
+		SelacoWeapon.weaponStatistic	STAT_SHOTGUN;
+		Shot_gun.SlugDamage 120;
+		WeaponBase.AmmoUse1 0;
+		WeaponBase.AmmoUse2 0;
+		WeaponBase.AmmoGive1 4;
+		WeaponBase.AmmoGive2 0;
+		WeaponBase.AmmoType1 "ShotgunReserve";
+		WeaponBase.AmmoType2 "ShotgunAmmo";
+		Inventory.Icon "WPNSHOT";
+		//Inventory.PickupSound "SHOTPICK";
+		AttackSound "None";
+		Tag "ESG-24 Shotgun";
+		+FLOORCLIP;
+		+FLOAT;
+		+NOGRAVITY;
+		+RollSprite;
+		+DONTGIB;
+		+PRECACHEALWAYS;
+		+WeaponBase.WIMPY_WEAPON;
+		+WeaponBase.NOAUTOAIM;
+		+WeaponBase.NOALERT;
+		+WeaponBase.NOAUTOFIRE;
+		Scale 0.08;
+	}
+	States
+	{
+
+	Precache:
+		SHTR ABC 0;			// Pullout
+		SHTG AB 0;			// Ready frames
+		SHTF AB 0;			// Fire
+		SHTZ AB 0;			// Zoom
+		RIF7 AB 0;			// Zoom
+		SHR1 AB 0;			// Reload
+		SHTM ABCDE 0;		// Melee
+		SHO1 ABCDEF 0;
+		MUZB ABCDE 0;		// Muzzle Flash
+		Stop;				// PRECACHE MUST ALWAYS STOP;
+		
+	Equip:
+		TNT1 A 0 A_SetCrosshair(81);
+		TNT1 A 0
+		{
+			checkWeaponReady();
+		}
+		TNT1 A 0 A_SETTICS(invoker.WEAPON_SWAP_SPEED);
+		TNT1 A 0 {
+			/*if(upgradeCheck("UpgradeShotgunQuadChambers") == 1) {
+				invoker.maxShots = 4;
+			}*/
+			if(upgradeCheck("AltfireShotgunDoubleChambers") == 1) {
+				invoker.maxShots = 2;
+			}
+			if(upgradeCheck("AltfireShotgunDoubleChambers") == 0) {
+				invoker.maxShots = 1;
+			}
+			if(abs(level.time - invoker.deselectionTime) >= 90 && countinv("hardcoremode") == 0)
+			{
+				invoker.shotsSincePump = 0;
+				invoker.shotsLeft = invoker.maxShots;
+			}
+		}
+        TNT1 A 0 A_EquipNewWeapon();
+		TNT1 A 0 A_SetCrosshair(81);
+		TNT1 A 0 
+		{
+			if(invoker.hasUpgradeClass("UpgradeShotgunQuickSwap"))
+			{
+				setWeaponState("EquipFast");
+				return;
+			}
+		}
+	EquipSlow:
+		TNT1 A 5;
+		SHTR ABCDEFGH 1 {
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		goto EquipDone;
+	EquipFast:
+		SHTR ABCDEG 1 {
+			S_WeaponReady();
+			S_WeaponOffset();
+		}
+		goto EquipDone;
+	EquipDone:
+        TNT1 A 0 A_JumpIfInventory("Reloading",1,"ReloadWeapon");
+		TNT1 A 0 A_JumpIfInventory("Unloading",1,"Unload");
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		TNT1 A 0 A_JumpIfInventory("ShieldEyes", 1, "doShieldEyes");
+		TNT1 A 0 A_JumpIfInventory("PushButtonNow", 1, "PushButton");
+		
+        TNT1 A 0 A_SetCrosshair(81);
+		TNT1 A 0 {
+			if(checkIfZooming()) {
+				SetWeaponState("Ready_ZOOM");
+			}
+		}
+		TNT1 A 1
+			{
+				invoker.blowBackActive = false;
+				A_ZOOMFACTOR(1.0);
+				breathWobble("SHTG", 19);
+				A_SetCrosshair(81);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			}
+		Goto Ready2;
+		ReallyReady:
+		Ready3:
+			TNT1 A 1 {
+				invoker.doBurstShot = false;
+				breathWobble("SHTG", 19);
+				if(checkIfZooming()) {
+					SetWeaponState("Ready_ZOOM");
+				}
+				S_WeaponOffset();
+			}
+		Ready2:
+		TNT1 A 0 {
+			/*if(upgradeCheck("UpgradeShotgunQuadChambers") == 1) {
+				invoker.maxShots = 4;
+			}*/
+			if(upgradeCheck("AltfireShotgunDoubleChambers") == 1) {
+				invoker.maxShots = 2;
+			}
+			if(upgradeCheck("AltfireShotgunDoubleChambers") == 0) {
+				invoker.maxShots = 1;
+			} 
+			if(checkIfZooming()) {
+				SetWeaponState("SwapZoom_ZOOM");
+			}
+		}
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		TNT1 A 0 A_SetCrosshair(81);
+		TNT1 A 0 {
+		}
+		TNT1 A 1
+				{
+				breathWobble("SHTG", 19);
+				A_ZOOMFACTOR(1.0);
+				CheckPlayerStates(0);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			}
+		Loop;
+
+	Ready_ZOOM:
+		SHTZ D 1
+				{
+				CheckUnZoom();
+				A_ZOOMFACTOR(zoomRange);
+				CheckPlayerStates(1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			}
+		Loop;
+
+	SwapZoom_UNZOOM:
+		TNT1 A 0 {
+			A_SetCrosshair(81);
+			A_Playsound("shotgun/unzoom", CHAN_AUTO);
+			A_ZOOMFACTOR(1.0);
+			S_WeaponReady();
+			//if (getCvar("g_ironsights") == 1) {
+			//	SetWeaponState("unZoomADS_Animation");
+			//}
+		}
+		SHTZ CBA 1 A_ZOOMFACTOR(1.0);
+		goto ReallyReady;
+
+	SwapZoom_ZOOM:
+		TNT1 A 0 {
+			A_ZOOMFACTOR(zoomRange);
+			A_Playsound("shotgun/zoom", CHAN_AUTO, 0.8);
+			//if (getCvar("g_ironsights") == 1) {
+			//	SetWeaponState("ZoomADS_Animation");
+			//}
+		}
+		SHTZ ABCD 1 {
+			A_SetCrosshair(16);
+			S_WeaponReady();
+		}
+		goto ReallyReady;
+
+	SwapZoom:
+		TNT1 A 0 {
+			toggleZoomStatus();
+			if(checkIfZooming()) {
+				SetWeaponState("SwapZoom_ZOOM");
+			} else {
+				SetWeaponState("SwapZoom_UNZOOM");
+			}
+		}
+		goto ReallyReady;
+
+	Unequip:
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 A 0 A_TakeInventory("Zoomed",1);
+        TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		TNT1 A 0 A_TakeInventory("ADSmode",1);
+		TNT1 A 0 A_PlaySound("dawn/deselect", CHAN_AUTO);
+		TNT1 A 0 {
+			invoker.deselectionTime = level.time;
+			A_UNEQUIPWEAPON();
+		}
+		SHTR HGFEDCBA 1 {
+			setZoomStatus(false);
+			S_WeaponOffset();
+		}
+		TNT1 A 1;
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+		TNT1 A 1;
+		Wait;
+
+	Select:
+		TNT1 A 0 A_SetCrosshair(81);
+		TNT1 A 0 
+		{
+			invoker.checkLowAmmo();
+		}
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 A 0 A_EnableWeaponShift();
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Raise;
+		SHTG EDCB 1 S_WeaponReady(WRF_NOFIRE);
+		TNT1 AAAAAAAA 1 A_Raise;
+		Wait;
+
+    Fire:
+		TNT1 A 0 S_WeaponOffset(0);
+		TNT1 A 0;
+		TNT1 A 0 A_JumpIfInventory("Zoomed", 1, "Fire2");
+        TNT1 A 0 A_TakeInventory("Reloading", 1);
+        TNT1 A 0 {
+			if(countInv("ShotgunAmmo") == 0 && !invoker.customShellType)
+			{
+				dryFire();
+				setWeaponState("ReloadWeapon");
+				return;
+			}
+		}
+        TNT1 AAAA 0;
+		TNT1 A 0 {
+			invoker.adjustedRecoil = invoker.weaponRecoil;
+			if (invoker.shotsLeft <= 0 && !invoker.customShellType) {
+				SetWeaponState("pumpshotgun");
+			}
+		}
+		TNT1 A 0
+		{
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(6, 6, 6 , 10, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 4);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(4, 4, 4 , 7, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 3);
+					break;
+			}
+			invoker.shotsLeft--; 
+		}
+	FireActual:
+		TNT1 A 0 A_JumpIfInventory("ShotgunWasEmpty", 1, "Pump2");
+        TNT1 A 0 A_AlertMonsters;
+        TNT1 A 0;
+		TNT1 A 0 A_FireProjectile("muzzleFlashSpawnerShotgun", 0, 0, -10, 0);
+		TNT1 AAAAA 0 BRIGHT A_FireProjectile("ShotgunParticles", random(-17,17), 0, -1, random(-17,17));
+		TNT1 AA 0 A_FireProjectile("GunFireSmoke", 0, 0, 5, 0, 0, 0);
+		TNT1 A 0 {
+			S_WeaponOffset();
+		} 
+        SHTF A 1 {
+			// Blowback increases knockback. But only horizontal, we dont want players to go out of bounds too easily. 
+			if(invoker.blowBackActive)
+			{
+				vel.z+=2.5;
+				A_RECOIL(20);
+				invoker.blowBackActive = false;
+			}
+			A_RECOIL(invoker.weaponKickback);
+			applyWeaponRumble();
+			fireShotgun();
+			
+			A_SetCrosshair(82);
+			invoker.shotsSincePump++;
+			S_SelacoMuzzleFlash("MUZB", 0, frandom(0,0.45),0, xOffset:0, yOffset:0);
+			S_WeaponOffset();
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 1.84, 0, frandom(-1*invoker.adjustedRecoil+0.18, invoker.adjustedRecoil+0.18));
+
+			{
+				if(countinv("shotgunammo") == 0)
+				{
+					invoker.doBurstShot = false;
+				}
+			}
+
+		}
+		SHTF B 1  {
+			if(!getToggleMode()) {
+				setZoomStatus(false);
+			}
+			invoker.isZooming = false;
+			applyWeaponRumble();
+			A_SetCrosshair(84);
+			
+			S_SelacoMuzzleFlash("MUZB", 0, frandom(0,0.45),0, xOffset:0, yOffset:0);
+			S_WeaponOffset();
+			if(!invoker.doBurstShot)
+			{
+				A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.34, 0, frandom(-1*invoker.adjustedRecoil+0.18, invoker.adjustedRecoil+0.18));
+			}
+		}
+		SHTF C 1 {
+			applyWeaponRumble();
+			A_SetCrosshair(83);
+			
+			S_SelacoMuzzleFlash("MUZB", 1, frandom(0,0.45),0, xOffset:0, yOffset:0);
+			S_WeaponOffset();
+			if(!invoker.doBurstShot)
+			{
+				A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.04, 0, frandom(-1*invoker.adjustedRecoil+0.18, invoker.adjustedRecoil+0.18));
+			}
+		}
+		TNT1 A 0
+		{
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(3, 3, 3 , 9, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 4);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(2, 2, 2 , 5, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 2);
+					break;
+			}
+			invoker.shotsLeft--; 
+		}
+		SHTF D 1  {
+			applyWeaponRumble();
+			if(!invoker.doBurstShot)
+			{
+				A_SELACORECOIL(0.1);
+			}
+			S_SelacoMuzzleFlash("MUZB", 2, frandom(0,0.45),0, xOffset:0, yOffset:0);
+			
+			S_WeaponOffset();
+		}
+		SHTF D 1 {
+			applyWeaponRumble();
+			if(!invoker.doBurstShot)
+			{
+				A_SELACORECOIL(0.1);
+			}
+			A_SetCrosshair(82);
+			S_SelacoMuzzleFlash("MUZB", 3, frandom(0,0.45),0, xOffset:0, yOffset:0);
+			
+			S_WeaponOffset();
+		}
+		SHTF E 1 {
+			if(invoker.doBurstShot)
+			{
+				SetWeaponState("FireActual");
+			}
+			invoker.doBurstShot = false;
+			A_SELACORECOIL(0.1);
+			A_SetCrosshair(82);
+			S_SelacoMuzzleFlash("MUZB", 4, frandom(0,0.45),0, xOffset:0, yOffset:0);
+			
+			S_WeaponOffset();
+		}
+		SHTF EF 1 {
+			A_SELACORECOIL(0.23);
+			A_SetCrosshair(81);
+			
+			S_WeaponOffset();
+		}
+		SHTF FGGHHI 1 {
+			A_SetCrosshair(81);
+			A_SELACORECOIL(0.3);
+			
+			S_WeaponOffset();
+		}
+		SHTF I 1 {
+			A_SetCrosshair(81);
+			A_SELACORECOIL(0.3);
+			CheckPlayerStates();
+			//S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		SHTF JJ 1 {
+			A_SetCrosshair(81);
+			A_SELACORECOIL(0.3);
+			CheckPlayerStates();
+			//S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		TNT1 A 0
+		{
+			if(invoker.hasUpgradeClass("UpgradeShotgunPumpSpeed"))
+			{
+				setWeaponState("pumpshotgun");
+				return;
+			}
+		}
+		SHTF KK 1 {
+			A_SetCrosshair(81);
+			A_SELACORECOIL(0.3);
+			CheckPlayerStates();
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		SHTF A 0 {
+			A_SetCrosshair(81);
+			CheckPlayerStates();
+			invoker.checkLowAmmo();
+			if (CountInv("ShotgunAmmo") == 0) {
+				SetWeaponState("ReloadWeapon");
+			}
+			if (invoker.shotsLeft <= 0) {
+				SetWeaponState("pumpshotgun");
+			}
+		} 
+		goto ready2;
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+		SHT9 BCD 2  {
+				A_SetPitch(pitch + 1);
+				CheckReloadCancelling();
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		SHT9 E 7  {
+				CheckReloadCancelling();
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		SHT9 DCB 2  {
+				CheckReloadCancelling();
+				A_SetPitch(pitch - 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+
+	MoveGunDown:
+		SHT9 BCD 3  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		SHT9 D 10  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		SHT9 DCB 3  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+
+	pumpshotgun:
+		TNT1 A 0 {
+			A_overlay(PSP_OFFHAND, null);
+			if (CountInv("ShotgunAmmo") == 0 && !invoker.customShellType) {
+				SetWeaponState("Ready2");
+			}
+			if(!getToggleMode()) {
+				setZoomStatus(false);
+			}
+			invoker.isZooming = false;
+			A_ZOOMFACTOR(1.0);
+		}
+		TNT1 A 0 A_GiveInventory("IsCocking", 1);
+		SHSS AABBCCDD 1 {
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponOffset();
+			S_WeaponReady(WRF_NOFIRE);
+		}
+		TNT1 A 0
+		{
+			if(invoker.hasUpgradeClass("UpgradeShotgunPumpSpeed"))
+			{
+				setWeaponState("pumpShotgunUpgrade");
+				return;
+			}
+		}
+	pumpshotgunShort:
+		SHSS EEFFGGHH 1 {
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponOffset();
+			S_WeaponReady(WRF_NOFIRE);
+		}
+		TNT1 A 0 {
+			A_PlaySound("weapons/SHOTPUMP", chan_auto, 1.0, 0, 0, false, frandom(0.92, 1.0));
+			while (invoker.shotsSincePump > 0) {
+				A_FireProjectile(invoker.ejectedShellActor,0,0,random(-10, -12),frandom(-18, -20));
+				invoker.shotsSincePump--;
+			}
+			invoker.shotsSincePump = 0;
+		}
+		SHSS IIJJ 1 {
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponOffset();
+			S_WeaponReady(WRF_NOFIRE);
+		}
+		goto ResumePump;
+	pumpShotgunUpgrade:
+		SHSS EEGGHH 1 {
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponOffset();
+			S_WeaponReady(WRF_NOFIRE);
+		}
+		TNT1 A 0 {
+			A_PlaySound("weapons/SHOTPUMP", chan_auto, 1.0, 0, 0, false, frandom(0.92, 1.0));
+			while (invoker.shotsSincePump > 0) {
+				A_FireProjectile(invoker.ejectedShellActor,0,0,random(-10, -12),frandom(-18, -20));
+				invoker.shotsSincePump--;
+			}
+			invoker.shotsSincePump = 0;
+		}
+		SHSS II 1 {
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponOffset();
+			S_WeaponReady(WRF_NOFIRE);
+		}
+		goto ResumePump;
+	ResumePump:
+		SHSS K 1 {
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponReady(WRF_NOFIRE);
+			if(getCvar("g_screenshake") > 0) {
+				A_QuakeEx(frandom(0.4, 0.45), frandom(0.4, 0.45), frandom(0.4, 0.45) , 5, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.1, 0.1), frandom(0.1, 0.1));
+			}
+			S_WeaponOffset(5);
+		}
+		SHSS K 1 {
+			if(getCvar("g_screenshake") > 0) {
+				A_QuakeEx(frandom(0.4,0.4), frandom(0.4,0.4), frandom(0.4,0.4), 2, 0, 40, 0, 0, 0, 0, 0, 0, frandom(0.8,0.8), 0.7, 0.9);
+			}
+			S_WeaponOffset(5);
+			S_WeaponReady(WRF_NOFIRE);
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponOffset();
+		}
+		TNT1 A 0 {
+			invoker.shotsLeft = invoker.maxShots;
+			if (CountInv("ShotgunAmmo") == 3 && invoker.hasUpgradeClass("AltfireShotgunDoubleChambers")) {
+				invoker.shotsLeft = 3;
+			}
+			if (CountInv("ShotgunAmmo") == 2 && invoker.hasUpgradeClass("AltfireShotgunDoubleChambers")) {
+				invoker.shotsLeft = 2;
+			}
+			if (CountInv("ShotgunAmmo") == 1) {
+				invoker.shotsLeft = 1;
+			}
+			if (CountInv("ShotgunAmmo") == 0) {
+				invoker.shotsLeft = 0;
+			}
+		}
+		TNT1 A 0 {
+			if (invoker.shotgunEmpty && !invoker.customShellType) {
+				invoker.shotgunEmpty = false;
+				SetWeaponState("InsertingShellsReturn");
+			}
+		}
+		SHSS LLMM 1 {
+			S_WeaponOffset(5);
+			CheckReloadCancelling(noFiring:true);
+			S_WeaponReady(WRF_NOFIRE);
+		}
+		TNT1 A 0 {
+			if(invoker.pumpToReload && !invoker.customShellType) {
+				invoker.pumpToReload = false;
+				SetWeaponState("InsertingShells");
+			}
+		}
+		SHSS NNOOPPQQRRSS 1 {
+			CheckReloadCancelling(noFiring:true);
+		}
+		Goto Ready2;
+
+    AltFire:
+		TNT1 A 0 {
+			// Zoom
+			if(altFireCheck("AltfireShotgunZoom") || invoker.customShellType) {
+				setWeaponState("SwapZoom");
+
+			// Double Barrel
+			} else if(altFireCheck("AltFireShotgunDoubleBarrel")) {
+				invoker.doBurstShot = true;
+				setWeaponState("Fire");
+
+			// Blowback
+			} else if(altFireCheck("AltfireShotgunRecoil")) {
+				invoker.blowBackActive = true;
+				setWeaponState("Fire");
+
+			// Slug Shell
+			} else if(altFireCheck("AltFireShotgunSlugShell")) {
+				setWeaponState("InsertCustomShell");
+
+			// Nothing
+			} else {
+				setWeaponState("ReallyReady");
+			}		
+		}
+
+	InsertCustomShell:
+		// Validation
+		TNT1 A 0
+		{
+			if(invoker.customShellType) {
+				A_Printbold(stringTable.localize("$CUSTOM_SHOTGUNSHELL_LOADED"));
+				setWeaponState("Ready2");
+				return;
+			}
+			if(countInv("ShotgunReserve") == 0) {
+				A_Printbold(stringTable.localize("$CUSTOM_SHOTGUNSHELL_WARNING"));
+				setWeaponState("Ready2");
+				return;
+			}
+		}
+		SHLO ABC 3;
+		SHLO DEFGHIJKLM 2;
+		TNT1 A 0 {
+			A_Playsound("insertshell", pitch:.75);
+			if(level.levelnum != 100)
+			{
+				A_TakeInventory("ShotgunReserve", 1);
+			}
+			invoker.breathingFrame = 0;
+			if(altFireCheck("AltFireShotgunSlugShell")) {
+				invoker.customShellType = "Slug";
+			}
+			if (invoker.shotsLeft <= 0) {
+				SetWeaponState("pumpshotgun");
+			}
+		}
+		SHLO NOPQRSTUVWX 2;
+		SHLO Y 2;
+		goto ready2;
+		
+	FlakFire:
+		TNT1 A 0 S_WeaponOffset(0);
+		TNT1 A 0 A_JumpIfInventory("Zoomed", 1, "Fire2");
+        TNT1 A 0 A_TakeInventory("Reloading", 1);
+        TNT1 A 0 A_JumpIfInventory("ShotgunAmmo", 2, 2);
+        Goto reloadweapon;
+        TNT1 AAAA 0;
+		TNT1 A 0 A_JumpIfInventory("ShotgunWasEmpty", 1, "Pump2");
+		TNT1 A 0 {
+			if (invoker.shotsLeft == 0) { 
+				SetWeaponState("pumpshotgun");
+			}
+			invoker.shotsLeft = 0;
+		}
+        TNT1 A 0 A_AlertMonsters;
+        TNT1 A 0 A_PlaySound("weapons/sgAlt", 1);
+        TNT1 A 0;
+		TNT1 A 0  A_FireProjectile("muzzleFlashSpawnerCricket", 0, 0, -10, 0);
+		TNT1 AAAAA 0 A_FireProjectile("PlayerTracer", Random(-1, 1), 0, 5, Random(-5, 5));
+		TNT1 A 0 A_FireProjectile("ShakeYourAssQuad", 0, 0, 0, 0);
+		TNT1 A 0 {
+			invoker.TakeWeaponAmmo(2);
+		}
+		TNT1 AAAAA 0 BRIGHT A_FireProjectile("FlakTracer", random(-7,7), -4, -1, random(-3,3));
+		TNT1 AAAAAAA 0 A_FireProjectile("GunFireSmokeMassive", 0, 0, 0, 0, 0, 0);
+        SHTF A 1 BRIGHT{
+			A_overlay(-219, "flash1");
+			S_WeaponOffset(3);
+			 A_FireProjectile("muzzleFlashSpawnerCricket", 0, 0, -10, 0);
+		}
+		SHTF B 1 BRIGHT {
+			invoker.shotsLeft = 0;
+			A_overlay(-219, "flash2");
+			S_WeaponOffset(3);
+			 A_FireProjectile("muzzleFlashSpawnerCricket", 0, 0, -10, 0);
+		}
+		SHTF C 1 BRIGHT {
+			A_overlay(-219, "flash3");
+			S_WeaponOffset(3);
+			 A_FireProjectile("muzzleFlashSpawnerCricket", 0, 0, -10, 0);
+		}
+	
+		SHTF D 1 BRIGHT A_overlay(-219, "flash4");
+		SHTF D 1 A_overlay(-219, "flash5"); 
+		SHTF DEEFF 1 S_WeaponOffset(9);
+		SHTF GGHH 1 A_SetPitch(pitch + 0.15);
+		SHTF IIJJ 1 A_SetPitch(pitch + 0.15);
+		Goto pumpshotgun;
+
+	StoppedSliding:
+		TNT1 A 0 A_TakeInventory("StopSliding", 1);
+		TNT1 A 0 A_TakeInventory("SlidingIsActive", 1);
+		TNT1 A 0 A_TakeInventory("PlayerSlides", 1);
+		SHTX D 1 S_ZOOMFACTOR(0.92);
+		SHTX C 1 S_ZOOMFACTOR(0.94);
+		SHTX B 1 S_ZOOMFACTOR(0.96);
+		SHTX A 1 S_ZOOMFACTOR(0.98);
+		Goto Ready2;
+
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_SPAWNITEMEX("SHOTGUN_PICKUP");
+		Stop;
+
+	ReloadWithNoAmmoLeft:
+    ReloadWeapon:
+		TNT1 A 0 {
+			if ((invoker.shotsLeft <= 0 && CountInv("ShotgunAmmo") > 0)) {
+				invoker.pumpToReload = true;
+				SetWeaponState("pumpshotgun");
+			}
+			invoker.doBurstShot = false;
+		}
+		TNT1 A 0 A_Takeinventory("Reloading",1);
+		TNT1 A 0 { 
+			let loadedAmmo = FindInventory(invoker.ammoType2);
+			if (CountInv("ShotgunAmmo") <= loadedAmmo.maxAmount && (invoker.ShotsLeft < 2 && invoker.hasUpgradeClass("AltfireShotgunDoubleChambers")) > 1) {
+				SetWeaponState("pumpshotgun");
+			}
+			if (CountInv("ShotgunAmmo") == 0) {
+				invoker.shotgunEmpty = true;
+			}
+		}
+		SHTG A 0 A_JumpIfInventory("ShotgunReserve",1,2);
+		TNT1 A 0;
+		goto Ready3;
+		TNT1 A 0 { 
+			let loadedAmmo = FindInventory(invoker.ammoType2);
+			if (CountInv("ShotgunAmmo") >= loadedAmmo.maxAmount) {
+				SetWeaponState("Ready3");
+			}
+			if (CountInv("ShotgunAmmo") == 0) {
+				invoker.shotgunEmpty = true;
+			}
+		}
+	    TNT1 A 0;
+		TNT1 A 0 A_Takeinventory("Reloading",1);
+	    TNT1 A 0 A_Takeinventory("Zoomed",2);
+		SHR1 AACCEEGGHHIIJJKK 1 {
+			A_ZOOMFACTOR(1.0);
+			invoker.isZooming = false;
+			CheckReloadCancelling();
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		TNT1 A 0 A_Playsound("insertshell");
+		TNT1 A 0 A_TakeInventory("ShotgunReserve", 1);
+		TNT1 A 0 
+		{
+			if(level.levelnum == 100)
+			{
+				A_GiveInventory("ShotgunReserve", 1);
+			}
+		}
+		TNT1 A 0 A_GiveInventory("ShotgunAmmo", 1);
+		SHR1 LLMMNNOOPP 1 {
+			CheckReloadCancelling();
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		TNT1 A 0 {
+			if (invoker.shotgunEmpty) {
+				SetWeaponState("pumpshotgunShort");
+			}
+		}
+        TNT1 AAAAA 0;
+		goto InsertingShells;
+	InsertingShellsReturn:
+		SHSS MM 1 {
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		SHR1 II 1 {
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+	InsertingShells:
+		SHTG A 0 A_JumpIfInventory("ShotgunReserve",1,1);
+		goto ReturnToReady;
+		TNT1 A 0
+		{
+			let loadedAmmo = FindInventory(invoker.ammoType2);
+			if(loadedAmmo.amount >= loadedAmmo.maxAmount)
+			{
+				SetWeaponState("ReturnToReady");
+			}
+		}
+		SHR2 AABBCCDDEE 1 {
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 A_Playsound("insertshell");
+		TNT1 A 0 A_TakeInventory("ShotgunReserve", 1);
+		TNT1 A 0
+		{
+			if(level.levelnum == 100)
+			{
+				A_GiveInventory("ShotgunReserve", 1);
+			}
+		}
+		TNT1 A 0 A_GiveInventory("ShotgunAmmo", 1);
+		SHR2 FFGGHHIIJJ 1 {
+			invoker.checkLowAmmo(lowAmmoWarning:0);
+			CheckReloadCancelling();
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			S_WeaponOffset();
+		}
+		loop;
+		goto InsertingShells;
+		//goto ReturnToReady;
+	InsertAShell:
+		TNT1 A 0 A_JumpifInventory("ShotgunAmmo", 8, "ReturnToReady");
+		SHT3 LLMM 1 {
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		SHT3 N 2 {
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+			A_PLAYSOUND("insertshell", chan_weapon, 1.0, 0, 0, false, frandom(0.9, 1.0));
+		}
+		TNT1 A 0 A_TakeInventory("ShotgunReserve", 1);
+		TNT1 A 0 
+		{
+			if(level.levelnum == 100)
+			{
+				A_GiveInventory("ShotgunReserve", 1);
+			}
+		}
+		TNT1 A 0 A_GiveInventory("ShotgunAmmo", 1);
+		SHT3 NOOPPQQRRSS 1 {
+			CheckReloadCancelling();
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			S_WeaponOffset();
+		}
+		SHT3 S 1 {
+			CheckReloadCancelling();
+			S_WeaponReady(WRF_BLOCKSLIDESTATE);
+			S_WeaponOffset();
+		}
+		TNT1 A 0 A_JumpifInventory("ShotgunAmmo", 8, "ReturnToReady");
+		goto InsertingShells;
+	ReturnToReady:
+		TNT1 A 0 {
+			if (invoker.shotsLeft <= 1 && upgradeCheck("AltfireShotgunDoubleChambers") == 1) {
+				SetWeaponState("pumpshotgunShort");
+			} 
+		}
+		SHR1 GGEEDDCCAA 1 S_WeaponOffset();
+		goto ready2;
+	ReloadNormally:
+        goto pumpshotgun;
+
+
+
+	OkToFire:
+		SHTG A 1  {
+			S_WeaponReady(WRF_ALLOWRELOAD);
+			S_WeaponOffset();
+		}
+		Goto Ready+14;
+	}
+}
+
+class ShotgunAmmo : Ammo
+{
+	default{
+	Inventory.Amount 0;
+	Inventory.MaxAmount 6;
+	Ammo.BackpackAmount 0;
+	Ammo.BackpackMaxAmount 6;
+	}
+}
+
+class EmberShot : SelacoActor {
+	int delay;
+	int particleAmount;
+
+	override void postbeginPlay() {
+		particleAmount = 19;
+	}
+
+	override void tick() {
+		super.tick();
+		delay++;
+		if(delay > 0) {
+			particleAmount*=frandom(0.8,0.89);
+			emit('EmberShotEffectGravity', chance: 0.75, numTries: particleAmount*0.25, angle:-0, pitch:0, speed:0, scaleboost:frandom(0.8,1.1));
+			emit('EmberShotEffect', chance: 0.75, numTries: particleAmount, angle:-0, pitch:0, speed:0, scaleboost:frandom(0.4,1.1));
+		}
+	}
+
+	default {
+		+THRUACTORS
+		+NOINTERACTION
+		projectile;
+		speed 45;
+	}
+	states {
+		Spawn:
+			TNT1 A 12;
+			stop;
+	}
+}

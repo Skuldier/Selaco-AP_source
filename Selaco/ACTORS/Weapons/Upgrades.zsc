@@ -1,0 +1,261 @@
+#include "ACTORS/Weapons/WeaponKit.zsc"
+#include "ACTORS/Weapons/RANDOMIZER/WeaponTrait.zsc"
+#include "ACTORS/Weapons/RANDOMIZER/WeaponStats.zsc"
+
+class WeaponUpgrade : Inventory {
+    meta string upgradeNameShort, upgradeNameLong, upgradeDescription;
+    meta string upgradeImage;
+    meta double workshopPosX, workshopPosY;
+    meta double workshopPointerPosX, workshopPointerPosY;
+    meta class<WeaponUpgrade> requiredUpgrade;
+    meta class<SelacoWeapon> weapon;
+    meta int cost, creditsCost, requiredSaferooms;
+    meta bool locked;
+
+    bool enabled, seen;
+    int upgradeFlags;
+
+    property Weapon                     : weapon;                                       // What weapon class does this upgrade apply to?
+    property UpgradeName                : upgradeNameShort, upgradeNameLong;            // Short name for the upgrade. Will be displayed in the HUD. Long name will be used in the Workshop
+    property UpgradeDescription         : upgradeDescription;                           // Long description used for upgrade menu and codex info
+    property UpgradeImage               : upgradeImage;                                 // Image to show in upgrade menu
+    property UpgradePosition            : workshopPosX, workshopPosY;                   // Relative position of the button in the workshop
+    property UpgradePointerPosition     : workshopPointerPosX, workshopPointerPosY;     // These names are too long
+    property WorkshopRequiredUpgrade    : requiredUpgrade;                              // Require a specific upgrade to be purchased before we can purchase this one  
+    property UpgradeCost                : cost;                                         // How many weapon parts to purchase this upgrade
+    property WorkshopCreditsCost        : creditsCost;                                  // Selver Cost
+    property TechModuleRequirement      : requiredSaferooms;                            // How many Workshop Firmware Upgrades are required
+    
+    // Simple stat modifiers. Most upgrades modify weapon stats so we might as well simplify the process
+    meta int damageMod, magazineSizeMod, kickbackMod, pelletsMod, fireRateMod, areaOfEffectMod, projectileSpeedMod;
+	meta float recoilMod, spreadMod, stabilizationMod, headshotMultiplierMod;
+
+    property DamageMod                  : damageMod;
+    property ProjectileSpeedMod         : projectileSpeedMod;
+    property HeadshotMultiplierMod      : headshotMultiplierMod;
+    property MagazineSizeMod            : magazineSizeMod;
+    property KickbackMod                : kickbackMod;
+    property PelletsMod                 : pelletsMod;
+    property RecoilMod                  : recoilMod;
+    property SpreadMod                  : spreadMod;
+    property FireRateMod                : fireRateMod;
+    property AreaOfEffectMod            : areaOfEffectMod;
+    property StabilizationMod           : stabilizationMod;
+    property Locked                     : locked;   // Not a flag because they do not read properly in GetDefaultByType classes for some reason
+
+    flagdef WorkshopPreview             :  upgradeFlags, 0;
+
+    default {
+        Inventory.MaxAmount 1;
+        WeaponUpgrade.UpgradeName 			"Upgrade", "Upgrade";
+		WeaponUpgrade.UpgradeDescription 	"A generic upgrade.";
+        WeaponUpgrade.UpgradeImage          "UPGRDDMG";
+        WeaponUpgrade.UpgradePosition      999999, 999999;             
+        WeaponUpgrade.UpgradePointerPosition  999999, 999999;          // Point on the weapon image that this upgrade refers to. Specified in image relative pixels.
+        WeaponUpgrade.UpgradeCost          300;
+        WeaponUpgrade.WorkshopCreditsCost   50;
+        WeaponUpgrade.TechModuleRequirement 1;
+
+        WeaponUpgrade.DamageMod             0;
+        WeaponUpgrade.projectileSpeedMod    0;
+        WeaponUpgrade.MagazineSizeMod       0;
+        WeaponUpgrade.headshotMultiplierMod 0;
+        WeaponUpgrade.KickbackMod           0;
+        WeaponUpgrade.PelletsMod            0;
+        WeaponUpgrade.RecoilMod             0;
+        WeaponUpgrade.SpreadMod             0;
+        WeaponUpgrade.FireRateMod           0;
+        WeaponUpgrade.AreaOfEffectMod       0;
+        WeaponUpgrade.StabilizationMod      0;
+
+        +WeaponUpgrade.WorkshopPreview;
+    }
+
+    clearscope bool isEnabled() {
+        return enabled;
+    }
+
+    clearscope bool hasSeen() {
+        return seen;
+    }
+
+    // Called when the upgrade is toggled on from the Workshop, or immediately after purchase
+    // Also called if a weapon is given to the player for which upgrades already exist and are enabled
+    // In the above scenario onEnabled() could be called twice without a call to onDisabled() so keep this in mind when modifying
+    // a weapon based on these events
+    virtual void onEnabled() { 
+        let w = getWeapon(weapon);
+        if(w) {
+            w.addUpgrade(self);
+        }
+        enabled = true;
+    }
+
+    // Called when the upgrade is toggled off from the workshop. Also called on destruction
+    // Not guaranteed to be called, since a weapon can be removed from the player by scripts
+    virtual void onDisabled() {
+        let w = getWeapon(weapon);
+        if(w && !w.bDestroyed) {
+            w.removeUpgrade(self);
+        }
+        enabled = false;
+    }
+
+    void setEnabled(bool enable = true) {
+        if(enabled != enable) {
+            enabled = enable;
+
+            // Only call callbacks when we have a weapon to work with
+            if(getWeapon(weapon)) {
+                if(enabled) onEnabled();
+                else onDisabled();
+            }
+        }
+    }
+
+    void setSeen(bool seen = true) {
+        self.seen = seen;
+    }
+
+
+    // Event callbacks genereted by weapon and projectile actions
+    // Use these to modify damage, projectile etc.
+    // ===============================================================
+
+    // Right before weapon fires
+    virtual void onBeforeWeaponFire(SelacoWeapon sourceWeapon, Actor source) { }
+
+    // Called by weapon after firing, after the projectile or puff is spawned
+    // If doing a shotgun attack the puff will only be one out of the entire spread
+    virtual void onWeaponFire(SelacoWeapon sourceWeapon, Actor source, Actor projectileOrPuff) { }
+
+    // A direct lineattack or projectile has damaged an actor
+    virtual int onDamageVictim(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff, int damage, Name damageType, int flags) { return damage; }
+
+    // An actor has been killed by a projectile or line attack
+    virtual void onKill(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {}
+
+    // End Event Callbacks ========================================== 
+    
+
+    // Don't destroy upgrades
+    override void onDestroy() {
+        if(enabled) {
+            onDisabled();
+        }
+
+        Super.onDestroy();
+    }
+
+    static bool SetUpgradeEnabled(class< WeaponUpgrade > cls, int playerNum, bool enable) {
+        if(!cls) {
+            Console.Printf("\c[RED]Tried toggle invalid or null upgrade!");
+            return false;
+        }
+
+        PlayerPawn player = players[playerNum].mo;
+        WeaponUpgrade ig = WeaponUpgrade(player.FindInventory(cls));
+        
+        if(ig) {
+            ig.setEnabled(enable);
+
+            // If there is no weapon, and this is a alt-fire make sure to disable the other alt-fires
+            if(ig.weapon && ig is 'WeaponAltFire') {
+                let w = ig.getWeapon(ig.weapon);
+                if(!w) {
+                    for(let p = player.Inv; p != null; p = p.Inv) {
+                        WeaponAltFire af = WeaponAltFire(p);
+
+                        if(af && af.weapon == ig.weapon && af != ig) {
+                            af.setEnabled(false);
+                        }
+                    }
+                }
+            }
+            return true;
+        } else {
+            Console.Printf("\c[YELLOW]Tried to toggle upgrade (%s) but player (%d) does not have it!", cls.getClassName(), playerNum);
+            return false;
+        }
+
+        return false;
+    }
+
+    static bool BuyUpgrade(class< WeaponUpgrade > cls, int playerNum) {
+        if(!cls) {
+            Console.Printf("\c[RED]Tried buy invalid or null upgrade!");
+            return false;
+        }
+        
+        PlayerPawn player = players[playerNum].mo;
+        readonly< WeaponUpgrade > upgrade = GetDefaultByType(cls);
+        WeaponUpgrade ig = WeaponUpgrade(player.FindInventory(cls));
+        
+        if(!ig || ig.Amount < ig.MaxAmount) {
+            // Check for resources
+            if( player.countInv("weaponParts") < upgrade.cost ||
+                player.countInv("creditsCount") < upgrade.creditsCost ||
+                players[consolePlayer].mo.countInv("WorkshopTierItem") < upgrade.requiredSaferooms
+            ) {
+                Console.Printf("\c[YELLOW]Tried to purchase upgrade (%s) but player does not have enough resources!", upgrade.getClassName());
+                return false;
+            }
+
+            // Take resources
+            player.TakeInventory("weaponparts", upgrade.cost);
+            player.TakeInventory("creditscount", upgrade.creditsCost);
+
+            // Give item
+            player.GiveInventory(cls, 1);
+            Stats.AddStat(STAT_UPGRADES_BOUGHT, 1, 0); 
+            ig = WeaponUpgrade(player.FindInventory(cls));
+            if(ig) {
+                ig.setEnabled();
+                return true;
+            } else {
+                Console.Printf("\c[RED]Bought an upgrade (%s) but it was not installed!", upgrade.getClassName());
+            }
+
+            return false;
+        }
+
+        return false;
+    }
+
+    // Simple function to retrieve a weapon. Currently used to adjust stats
+    SelacoWeapon getWeapon(class<SelacoWeapon> targetWeapon, int playerNum = -999) {
+        if(playerNum == -999) playerNum = PlayerNumber();
+
+        PlayerPawn player = players[playerNum].mo;
+        if(player) return SelacoWeapon(player.FindInventory(targetWeapon));
+        else return null;
+    }
+}
+
+
+
+class WeaponAltFire : WeaponUpgrade {
+    int workshopOrder;
+
+    property WorkshopOrder : workshopOrder;
+
+    default {
+        Inventory.MaxAmount             1;
+        WeaponAltFire.workshopOrder     0;
+        WeaponUpgrade.UpgradeImage "UPGRAFRE";
+    }
+
+    override void AttachToOwner(Actor other) {
+        // Tell Dawn to reset the current weapon state
+        let d = PlayerPawn(other);
+        if(d && d.player) {
+            let w = SelacoWeapon(d.player.ReadyWeapon);
+
+            if(w) {
+                w.swapAltFire();
+            }
+        }
+
+        Super.AttachToOwner(other);
+    }
+}

@@ -1,0 +1,45 @@
+class OilSplatterDefinition : PurpleSplatterEffectDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.3);
+        self.SetBaseScale(0.22);
+        self.DefaultRenderStyle = STYLE_NORMAL;
+        sequence = AddAnimationSequence();
+        AddAnimationFrames(sequence, "OILA", "ABCDEFGHIJKLMNO", 1);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Alpha = 1;
+        particle.Roll = random(0, 360);
+        PlayAnimationSequence(particle, sequence, 0);
+        particle.InitLife(GetAnimationLengthInTicks(sequence)+5);
+        particle.SetScaleStep(1.005);
+    }   
+}
+
+class OilSplatterLargeDefinition : OilSplatterDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.38);
+    }
+}
+
+class OilSplatterSlowDefinition : OilSplatterDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.3);
+        self.SetBaseScale(0.22);
+        self.DefaultRenderStyle = STYLE_NORMAL;
+        sequence = AddAnimationSequence();
+        AddAnimationFrames(sequence, "OILA", "ABCDEFGHIJKLMNO", 2);
+    }
+
+}
+
+class OilSplatterTrailDefinition : OilSplatterDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.08);
+    }
+}

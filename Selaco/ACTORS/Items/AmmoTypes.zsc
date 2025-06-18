@@ -1,0 +1,423 @@
+class SelacoAmmo : Ammo {
+	meta int shopPrice, shopAmount, grenadeOrder;
+	meta string AmmoName;
+	meta Color ammoColor;
+
+	property ShopPrice 	: shopPrice;
+	property AmmoName 	: AmmoName;
+	property ShopAmount : shopAmount;
+	property GrenadeOrder : grenadeOrder;
+	property AmmoColor : ammoColor;
+
+	private int ammoFlags;
+	flagdef Equipment : ammoFlags, 1;
+	flagdef Unlocked : ammoFlags, 2;	// Player has once had possession of this grenade.
+
+	default {
+		SelacoAmmo.ShopPrice  50;
+		SelacoAmmo.AmmoName  "";
+		SelacoAmmo.ShopAmount 1;		// Amount of ammo for each individual purchase
+		SelacoAmmo.AmmoColor 0;			// Color shows up in weapon wheel
+	}
+
+	override Class<Ammo> GetParentAmmo () {
+		class<Object> type = GetClass();
+
+		while (type.GetParentClass() != "SelacoAmmo" && type.GetParentClass() != NULL)
+		{
+			type = type.GetParentClass();
+		}
+		return (class<Ammo>)(type);
+	}
+}
+
+
+// Inventory Items for Dawn
+// DEMO FILES ONLY
+// 2. Roaring Cricket (PT-5 Custom)
+Class PistolAmmo : SelacoAmmo 
+{
+	default {
+		Inventory.Amount 9;
+		Inventory.MaxAmount 9;
+	}
+	States
+	{
+	Spawn:
+		MBLK A -1;
+		Stop;
+	}
+}
+
+Class PistolReserve : SelacoAmmo 
+{
+
+	void increaseAmmo() {
+		MaxAmount = 30;
+	}
+
+	default {
+
+		Scale 0.75;
+		+DONTGIB
+		+FLOORCLIP
+		Inventory.PickUpSound "misc/clip_PickUp";
+		Inventory.Amount 9;
+		Inventory.MaxAmount 45;
+		Ammo.BackpackAmount 8;
+		Ammo.BackpackMaxAmount 45;
+		SelacoAmmo.ShopAmount  9;
+		SelacoAmmo.ShopPrice  50;
+		SelacoAmmo.AmmoName  "$AMMO_CRICKET";
+	}
+    States
+    {
+    Spawn:
+      CLIP A -1;
+      Stop;
+	Pickup:
+		TNT0 A 0 ACS_NamedExecuteAlways("giveMedkit");
+	}
+}
+
+// 3. Shotgun
+class ShotgunReserve : SelacoAmmo
+{
+	default {
+		//$Category SelacoPickups
+		+DoomBounce
+		speed 2;
+		Scale 0.75;
+		Gravity 0.46;
+		Inventory.PickupSound "CBOXPKUP";
+		Inventory.Amount 20;
+		Inventory.MaxAmount 24;
+		SelacoAmmo.ShopAmount  4;
+		SelacoAmmo.ShopPrice  50;
+		SelacoAmmo.AmmoName  "$AMMO_SHELLS";
+		//Inventory.Icon "CLIPA0";
+		+DONTGIB;
+		+FLOORCLIP;
+	}
+	States
+	{
+		Spawn:
+			AMMU A -1;
+			Stop;
+	}
+}
+
+// 4a. Assault Rifle
+Class RifleReserve : SelacoAmmo 
+{
+	default {
+
+		Scale 1.0;
+		+DONTGIB
+		+FLOORCLIP
+		Inventory.PickUpSound "misc/clip_PickUp";
+		Inventory.Amount 10;
+		Inventory.MaxAmount 240;
+		SelacoAmmo.ShopAmount  15;
+		SelacoAmmo.ShopPrice  30;
+		SelacoAmmo.AmmoName  "$AMMO_BULLETS";
+		Ammo.BackpackAmount 30;
+		Ammo.BackpackMaxAmount 180;
+	}
+    States
+    {
+    Spawn:
+      CLIP A -1;
+      Stop;
+	Pickup:
+		TNT0 A 0 ACS_NamedExecuteAlways("giveMedkit");
+	}
+}
+
+Class RifleAmmo : SelacoAmmo
+{
+	Default {
+	   Inventory.Amount 0;
+	   Inventory.MaxAmount 30;
+	   Ammo.BackpackAmount 0;
+	   Ammo.BackpackMaxAmount 30;
+	}
+}
+
+//4b. SMG (Shares ammo with Assault Rifle)
+Class SMGAmmo : SelacoAmmo
+{
+	Default {
+	Inventory.Amount 0;
+	   Inventory.MaxAmount 50;
+	   Ammo.BackpackAmount 0;
+	   Ammo.BackpackMaxAmount 50;
+	}
+}
+
+// 5. Grenade Launcher
+class GLFragAmmo : SelacoAmmo
+{
+   default {
+      Inventory.Amount 0;
+      Inventory.MaxAmount 5;
+      Ammo.BackpackAmount 0;
+      Ammo.BackpackMaxAmount 5;
+   }
+}
+
+class GLFragReserve : SelacoAmmo
+{
+   default {
+      Inventory.Amount 0;
+      Inventory.MaxAmount 15;
+      Ammo.BackpackAmount 0;
+      Ammo.BackpackMaxAmount 5;
+	  SelacoAmmo.AmmoName  "$AMMO_FRAGSHELLS";
+	  SelacoAmmo.ShopAmount  1;
+	  SelacoAmmo.ShopPrice  80;
+   }
+}
+
+class NothingAmmo : SelacoAmmo 
+{
+	default
+	{
+	  Inventory.Amount 0;
+      Inventory.MaxAmount 0;
+      Ammo.BackpackAmount 0;
+      Ammo.BackpackMaxAmount 0;
+	}
+}
+
+class NothingReserve : NothingAmmo
+{
+
+}
+
+class GLAcidAmmo : SelacoAmmo
+{
+   default {
+      Inventory.Amount 0;
+      Inventory.MaxAmount 5;
+      Ammo.BackpackAmount 0;
+      Ammo.BackpackMaxAmount 5;
+   }
+}
+class GLAcidReserve : SelacoAmmo
+{
+   default {
+      Inventory.Amount 0;
+      Inventory.MaxAmount 15;
+      Ammo.BackpackAmount 0;
+      Ammo.BackpackMaxAmount 5;
+   }
+}
+
+class GLIceAmmo : SelacoAmmo
+{
+   default {
+      Inventory.Amount 0;
+      Inventory.MaxAmount 5;
+      Ammo.BackpackAmount 0;
+      Ammo.BackpackMaxAmount 5;
+   }
+}
+class GLIceReserve : SelacoAmmo
+{
+   default {
+      Inventory.Amount 0;
+      Inventory.MaxAmount 15;
+      Ammo.BackpackAmount 0;
+      Ammo.BackpackMaxAmount 5;
+   }
+}
+
+// 6. Nailgun
+Class NailgunAmmo : SelacoAmmo {
+	default {
+		Inventory.Amount 60;
+		Inventory.MaxAmount 60;
+	}
+}
+
+Class NailgunReserve : SelacoAmmo {
+	default {
+		SelacoAmmo.AmmoName  "$AMMO_NAILS";
+	    SelacoAmmo.ShopAmount  20;
+	    SelacoAmmo.ShopPrice  60;
+		Inventory.Amount 30;
+		Inventory.MaxAmount 160;
+	}
+}
+
+// 7. Plasma Rifle
+class PlasmaReserve : SelacoAmmo
+{
+	default {
+		SelacoAmmo.AmmoName  "$AMMO_PLASMA";
+		Inventory.Amount 0;
+		Inventory.MaxAmount 140;
+		Ammo.BackpackAmount 0;
+		Ammo.BackpackMaxAmount 15;
+	    SelacoAmmo.ShopAmount  25;
+	    SelacoAmmo.ShopPrice  80;
+	}
+}
+
+class PlasmaRifleAmmo : SelacoAmmo
+{
+	default {
+		Inventory.Amount 0;
+		Inventory.MaxAmount 35;
+		Ammo.BackpackAmount 0;
+		Ammo.BackpackMaxAmount 5;
+	}
+}
+
+
+// 8. Railgun Ammo - Uses Plasma Ammo
+class RailgunAmmo : SelacoAmmo
+{
+	default 
+	{
+		SelacoAmmo.AmmoName  "$AMMO_SLUGS";
+	    SelacoAmmo.ShopAmount  1;
+	    SelacoAmmo.ShopPrice  100;
+		Inventory.Amount 5;
+		Inventory.MaxAmount 20;
+		Ammo.BackpackAmount 0;
+		Ammo.BackpackMaxAmount 5;
+	}
+}
+
+// 9. DMR
+Class MarksmanRifleReserve : SelacoAmmo 
+{
+	default {
+	    SelacoAmmo.ShopAmount  8;
+	    SelacoAmmo.ShopPrice  40;
+		Scale 1.0;
+		+DONTGIB
+		+FLOORCLIP
+		SelacoAmmo.AmmoName  "$AMMO_SNIPER";
+		Inventory.PickUpSound "misc/clip_PickUp";
+		Inventory.Amount 12;
+		Inventory.MaxAmount 48;
+		Ammo.BackpackAmount 40;
+		Ammo.BackpackMaxAmount 40;
+	}
+    States
+    {
+    Spawn:
+      CLIP A -1;
+      Stop;
+	Pickup:
+		TNT0 A 0 ACS_NamedExecuteAlways("giveMedkit");
+	}
+}
+
+// Weird stuff
+Class Nothing : Ammo // What are we using this for again?
+{
+	default {
+		Scale .58;
+
+		+FLOORCLIP
+		+DONTGIB
+		Inventory.Amount 0;
+		Inventory.MaxAmount 0;
+		Inventory.PickUpSound "cboxpkup";
+		Ammo.BackpackAmount 10;
+		Ammo.BackpackMaxAmount 400;
+	}
+	States
+	{
+	Spawn:
+		MBLK A -1;
+		Stop;
+	}
+}
+
+Class FireExtinquisherAmmo : Ammo 
+{
+	default {
+		Scale .58;
+
+		+FLOORCLIP
+		+DONTGIB
+		Inventory.Amount 1;
+		Inventory.MaxAmount 1;
+		Ammo.BackpackAmount 1;
+		Ammo.BackpackMaxAmount 1;
+	}
+	States
+	{
+	Spawn:
+		MBLK A -1;
+		Stop;
+	}
+}
+
+class HandGrenadeAmmo : SelacoAmmo
+{
+	default
+	{
+		+SelacoAmmo.Equipment;
+		Inventory.Amount 1;
+		Inventory.MaxAmount 3;
+		Ammo.BackPackAmount 1;
+		Ammo.BackPackMaxAmount 3;
+		SelacoAmmo.ShopAmount  1;
+		SelacoAmmo.ShopPrice  100;
+		SelacoAmmo.AmmoName  "$WEAPON_FRAGGRENADE";
+		SelacoAmmo.grenadeOrder 0;
+		SelacoAmmo.AmmoColor  0xFF0000;
+		Inventory.Icon "ICOGGREN";
+		Scale 0.3;
+	}
+
+	States
+	{
+		Spawn:
+			TNT1 D -1;
+			Stop;
+	}
+}
+
+class IceGrenadeAmmo  : SelacoAmmo
+{
+	default {
+		//$Category SelacoPickups
+		Radius 10;
+		SelacoAmmo.grenadeOrder 1;
+		SelacoAmmo.AmmoColor  0x0000FF;
+		Inventory.Amount 3;
+		Inventory.MaxAmount 3;
+		Inventory.PickupSound "GRNPIN";
+		SelacoAmmo.AmmoName  "$WEAPON_ICEGRENADE";
+		Inventory.Icon "ICOIGREN";
+		+SelacoAmmo.Equipment;
+		Scale 3.0;
+	}
+	States
+	{
+		Spawn:
+			GREN Z -1;
+			Loop;
+	}
+}
+
+class MineAmmo : SelacoAmmo
+{
+	default {
+		SelacoAmmo.grenadeOrder 2;
+		SelacoAmmo.AmmoColor  0x00FF00;
+		Inventory.MaxAmount 2;
+		SelacoAmmo.ShopAmount  1;
+		SelacoAmmo.ShopPrice  100;
+		SelacoAmmo.AmmoName  "$WEAPON_MINE";
+		Inventory.Icon "ICOPMINE";
+		+SelacoAmmo.Equipment;
+	}
+}

@@ -1,0 +1,856 @@
+// TO-DO:
+// - Proper sprites
+// - Proper AI
+// - Sound pass
+// - Death sprite and gibbing
+// - Balancing
+// - Add strafing and dodging (make them move sideways when the player is actively firing)
+// - Momentum based tilting [X]
+
+mixin class SawDroneBase 
+{
+    default 
+    {
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+        mass 10000;
+        scale 0.25;
+        health 80;
+        radius 19;
+        height 25;
+    }
+}
+
+Class SawDrone : SelacoEnemyRobot {
+    static const String DeathSprites[] = {"Sawdrone_death1", "Sawdrone_death2", "Sawdrone_death3"};
+    mixin SawDroneBase;
+    mixin EnemySoldierFunctions;
+    bool seeTarget;
+    bool sawSoundLoop;
+    int preferredFloorDistance;
+    bool evasiveManeuvers;
+    int evasionTicks;
+    int evasionLength;
+    float evadeSpeed;
+    float currentEvadeSpeed;
+
+    property preferredFloorDistance : preferredFloorDistance;
+
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        ENEMY_IdentifierTag = "SAWDRONE";
+        if(skill == SKILL_SMF)
+        {
+            speed+=3;
+        }
+        preferredFloorDistance = preferredFloorDistance + frandom(-10,15); // We apply a bit of randomziation so not every Sawdrone has the exact same height while chasing
+    }
+
+    override void grabbedTelek() {
+        Super.grabbedTelek();
+        setStateLabel("grabbed");
+    }
+
+    override void releaseTelek() {
+        Super.releaseTelek();
+        setStateLabel("GrabbedRelease"); 
+        bFlyingEnemy = true;
+        bIsTelekProjectile = false;
+        bNoGravity = true;
+    }
+
+    override void throwTelek()
+    {
+        Super.throwTelek();
+        DamageType = "SawDrone";
+        SetDamage(25);
+        bIsTelekProjectile = true;
+        bFlyingEnemy = false;   // No more air resistance   
+        setStateLabel("TelekThrown");
+    }
+
+    // Execute attack when within melee distance
+    void A_SawDroneAttack()
+        {
+            bool allowHit = true;
+            if (target)
+            {
+                // If player, check if the player is sliding. If so, deny attack.
+                if(target is "dawn")
+                {
+                    PlayerPawn pawn=players[0].mo;
+                    let d = Dawn(pawn);
+                    let w = SelacoWeapon(d.player.ReadyWeapon);
+                    if((target) && (target is "Dawn" && w && w.activeSlideState && d.vel.Length() > 5))
+                    {
+                        allowHit = false;
+                    }
+                }
+
+                // Start hitting the target, if allowed.
+                if(allowHit)
+                {
+                    A_PlaySound("SawDrone/attack", CHAN_AUTO, 1.0, pitch:frandom(1.1,1.2));
+                    A_FaceTarget();
+                    double ang = angle;
+                    double slope = AimLineAttack(ang, MISSILERANGE);
+                    ang  += Random2[PosAttack]() * (22.5/256);
+                    LineAttack(ang, 350, slope, damage, "Hitscan", null);
+                }
+            }
+        }
+
+
+    void doEvasion()
+    {
+        // Always look at the attacker
+        if(target)
+        {
+            A_FACE(target);
+        }
+
+        // Prepare evasion move
+        if(!evasionTicks)
+        {
+            evadeSpeed = frandom(0.02,0.115);
+            // Left or Right?
+            if(random(0,1) == 1) {
+                evadeSpeed = -1*evadespeed;
+            }
+            evasionLength = 17;
+            currentEvadeSpeed = 0;
+        }
+        
+        // Strafe into a direction until evasionLength is over. This happens incrementally.
+        if(evasionTicks < evasionLength && abs(vel.y) < 1.2)
+        {
+            currentEvadeSpeed+=evadeSpeed;
+            A_CHANGEVELOCITY(0.1, currentEvadeSpeed, evadeSpeed*frandom(1.1,1.2), CVF_REPLACE || CVF_RELATIVE);
+        }
+
+        // When the evasionTicks are over, slow down.
+        if(evasionTicks > evasionLength && abs(vel.y) > -1.2)
+        {
+            currentEvadeSpeed-=evadeSpeed;
+            A_CHANGEVELOCITY(0.1, -1*currentEvadeSpeed, evadeSpeed*frandom(-1.1,-1.2), CVF_REPLACE || CVF_RELATIVE);
+        }     
+        evasionTicks++;
+        // When everything is done, set the values back
+        if(evasionTicks >= evasionLength*2)
+        {
+            A_CHANGEVELOCITY(0, 0, 0, CVF_REPLACE || CVF_RELATIVE);
+            evasiveManeuvers = false;
+            evasionTicks = 0;    
+        }  
+    }
+
+    override void tick() 
+    {
+        // Get relative velocities
+        float yVelocity = (Cos(angle) * (vel.y)) - (Sin(angle) * (vel.x));
+        super.tick();
+        if(skill == SKILL_SMF)
+        {
+            bNoPain = true;
+        }
+        if(!bIsTelekProjectile) {
+            if(evasiveManeuvers)
+            {
+                doEvasion();
+            }
+
+            // Adjust roll based on horizontal velocity
+            if(!bNoPain)
+            {
+                A_SETROLL(yVelocity*4, SPF_INTERPOLATE);
+            }
+
+            if(target) {
+                // Frequently check for line of sight to switch to a more 'precise' A_CHASE when close
+                if(level.time % random(5,15) == 0) {
+                    if(isTargetVisible()) {
+                        seeTarget = true;
+                    } else {
+                        seeTarget = false;
+                    }
+                }
+
+                // TO-DO: This must depend on the size of the room.
+                // If too low to the floor, go up until we break the threshold
+                if(pos.z - floorz < preferredFloorDistance) {
+                    SetOrigin((pos.x, pos.y, pos.z+3), true);
+                }
+
+                // If too close to ceiling, go down.
+                if(developer > 1) console.printf("Sawdrone Ceiling distance: %d", ceilingz - pos.z);
+                if(ceilingz - pos.z < 80) {
+
+                    vel.z = -0.1;
+                    SetOrigin((pos.x, pos.y, pos.z-3), true);
+                }
+
+
+                // If close to target but target is lower, fly to a matching level
+                if(seeTarget && distance2Dsquared(target) < 150**2 && (pos.z > target.pos.z+random(-7,7))) {
+                    SetOrigin((pos.x, pos.y, pos.z-3), true);
+                }
+            }
+        }
+        
+    }
+
+	override void shockEffects(int zHeight) {
+        for(int i = 0; i < 2; i++) {
+            EmitDefinition("SparkOrbSlowDefiniton", 1.0, random(1,3), pitch:-90, offset:(frandom(-25,25), frandom(-25,25), frandom(0,height)), particleSpawnOffsets:25);
+        }
+		shockticks++;
+		if (shockticks > random(0,3)) {
+			A_SpawnItemEx("PlasmaPuffTaser", frandom(-16, 16),frandom(-24, 24),frandom(0, 3));
+			A_PLAYSOUND("Sparks/Spawn", CHAN_AUTO);
+			shockticks = 0;
+		}
+	}
+
+    default {
+        MeleeRange 35;
+        damage 7;
+        tag "$CHARACTER_SAWDRONE";
+        SelacoEnemy.EnemyType ENEMY_ROBOT;
+        -SelacoEnemy.AllowStealthKill;
+        -SelacoEnemy.AllowHeadshots;
+        +SelacoActor.AllowGravityManipulation;
+        -SelacoACtor.allowSlideCollision
+        +SELACOENEMY.FlyingEnemy;
+        SelacoEnemy.randomizerSpawnChance 35;
+        SelacoEnemy.ArmorShredding 100;
+        SelacoEnemy.armorPenetration -35;
+        DamageType "SawDrone";
+        Painchance "MeleeImpact", 256;
+        SelacoEnemy.PainChanceAdjustment 0;
+        +NOBLOODDECALS;
+        +FLOAT;
+        +NOGRAVITY;
+        monster;
+        speed 8;
+        painchance 255;
+        mass 10000;
+        health 50;
+        radius 19;
+        height 23;
+        SawDrone.preferredFloorDistance 35;
+        Painsound "impact/mechanical";
+        BloodType "SparkExplosionOil", "SparkExplosionOil", "SparkExplosionOil";
+    }   
+    states {
+        spawn:
+            SADR ABCDEFGHIJKLMNOPQRSTUVWX 3 A_LOOK();
+            loop;
+        See:
+        TNT1 A 0 {
+                bNoPain = false;
+                if(!evasiveManeuvers)
+                {
+                    A_CHANGEVELOCITY(0, vel.y, vel.z, CVF_RELATIVE | CVF_REPLACE);
+                }
+                if(random(0,7) == 0)
+                {
+                    evasiveManeuvers = true;
+                }
+            }
+            // Move towards target
+            SADR AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVVWWXX 1 
+            {
+                EmitDefinition('SparkParticleTiny', chance: 1.0, numTries: 2, pitch:-80,offset:(5,0,12));
+                A_SETROLL(0);
+                if(target && seeTarget && distance2DSquared(target) > 400*400) 
+                {
+                    if(sawSoundLoop) {
+                        sawSoundLoop = false;
+                         A_STOPSOUND(CHAN_7);
+                    }
+                    // Move towards target while locking into them
+                    int oldMoveDir = moveDir;
+                    A_Face(target);
+                    moveDir = (8 * angle / 360) % 8;
+                    if (!TryWalk()) 
+                    {
+                        moveDir = oldMoveDir;
+                        if (!TryWalk())
+                        {
+                            if(level.time % random(10,40) == 0 && !evasiveManeuvers) 
+                            {
+                                A_CHANGEVELOCITY(2, frandom(-5.0,5.0), 0, CVF_RELATIVE);
+                            }
+                            NewChaseDir();
+                        }
+                    }
+                
+                // If close enough, go A_CHASE
+                } 
+                else 
+                {
+                    if(!evasiveManeuvers) 
+                    {
+                        if(!sawSoundLoop) 
+                        {
+                            sawSoundLoop = true;
+                            A_PLAYSOUND("SawDrone/loop", CHAN_7, 0.2, 1, pitch:0.7);
+                        }
+                        A_CHASE("Melee", null);
+                    }
+                }
+            }
+            TNT1 A 0 {
+                if(!evasiveManeuvers)
+                {
+                    A_CHANGEVELOCITY(0,0,frandom(-0.4,0.4));
+                }
+            }
+            loop;
+        Pain:
+            // Evade or Stun?
+            TNT1 A 0 
+            {
+                if(random(0,5) <= 3) 
+                {
+                    evasiveManeuvers = true;
+                } 
+                else 
+                {
+                    setStateLabel("Pain_Normal");
+                }
+            }
+            goto see;
+        Pain.MeleeImpactTaser:
+            TNT1 A 0 {
+                // The initial impact
+                S_EXPLODE(5, 600, 0, 0, 0, 0, 0, "BulletPuff", "StunningShock");
+                A_DamageSelf(500);
+            }
+        Pain.StunningShock:
+        Pain.ShockedFloorSetup:
+            SASH A 0 {
+                bNoPain = true;
+                shockRemainder = 15;
+            }
+        Pain.ShockedFloorActual:
+            SASH A 0 {
+                int random = random(0,3);
+                if (random == 0) {shockFrame = 0;}
+                if (random == 1) {shockFrame = 2;}
+                if (random == 2) {shockFrame = 4;}
+                if (random == 3) {shockFrame = 6;}
+            }
+            SASH AAAA 0 {
+                A_SetTics(random(1,2));
+                frame = shockFrame;
+                if(shockRemainder>0) { shockEffects();}
+            }
+            SASH A 0 {
+                shockFrame++;			
+            }
+            SASH AAAA 0 {
+                A_SetTics(random(1,2));
+                frame = shockFrame;
+                if(shockRemainder>0) { shockEffects();}
+            }
+            SASH A 0 {
+                shockRemainder--;
+                if (shockRemainder == 0) {
+                    SetStateLabel("See");
+                }
+            }
+            loop;
+        Pain.meleeImpact:
+        Pain_Normal:
+            TNT1 A 0 {
+                bNoPain = true;
+            }
+            TNT1 A 0 A_JUMP(256, "Pain_1", "Pain_2", "Pain_Stun");
+        Pain_1:
+            SAP1 ABCDEF 3;
+            TNT1 A 0
+            {
+                bNoPain = false;
+            }
+            goto see;
+        Pain_1:
+            SAP2 ABCDEF 3;
+            TNT1 A 0
+            {
+                bNoPain = false;
+            }
+            goto see;
+        Pain.MeleeImpact:
+        Pain_Stun:
+            TNT1 A 0
+            {
+                A_PLAYSOUND("SawDrone/beep", CHAN_5, 1, 1, 1);
+                A_PAIN();
+                A_CHANGEVELOCITY(-2, frandom(-1,1), frandom(-0.4,0.4), CVF_RELATIVE);
+            }
+            SADR AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 {
+                A_SETROLL(roll+frandom(-12,12), SPF_INTERPOLATE);
+                A_CHANGEVELOCITY(frandom(-0.5,0.5), frandom(-0.5,0.5), frandom(-0.1,0.1), CVF_RELATIVE);
+                if(random(0,8) == 1) {
+                    A_PLAYSOUND("dest/dsparks", CHAN_AUTO);
+                    A_SpawnDefinedParticle("CrawlerMineSparkSmallDefinition", 0, frandom(-10,10), frandom(0,15));
+                    EmitDefinition('SparkParticleTiny', chance: 1.0, numTries: 5, angle:random(0,360), pitch:frandom(-15, 15), speed:frandom(0.4,4.5), velocity:(0,0,5));
+                }
+                A_SETANGLE(angle+12);
+            }
+            TNT1 A 0 {
+                 bNoPain = false;
+                 A_STOPSOUND(CHAN_5);
+            }
+            goto see;
+        Melee:
+            SADR A 3 {
+                A_SawDroneAttack();
+            }
+            SADR BCDEFGH 3;
+            goto See;
+
+        Grabbed:
+            SAGR ABCDEFGHI 2;
+        
+        GrabbedLoop:
+            SAGR JKLMNOPQRSTUVWXYZ 2 {
+                roll = random(-8,8);
+            }
+            loop;
+
+
+        GrabbedRelease:
+            SAGR IHGFEDCBA 2;
+            goto see;
+
+        TelekThrown:
+            SADR ABCDEFGHIJKLMNOPQRSTUVWX 2;
+            loop;
+
+        Death:
+            TNT1 A 0 {
+                for(int x=0;x<5;x++)
+                {
+                    A_SPAWNDEFINEDPARTICLE("OilSplatterDefinition", frandom(-3,3), frandom(-3,3), frandom(-3,3), frandom(-5,5), frandom(-5,5), frandom(-1,5));
+                }
+                Stats.AddStat(STAT_KILLS_SAWDRONE, 1, 0);
+                A_PLAYSOUND("explosion/small", CHAN_AUTO, 0.5, 0, 0.9, 0, frandom(1.1,1.2));
+                SpawnLight(455, 255, 53, 90, shadowrequirement:-1,divisionSpeed:1.1);
+                for(int x=0;x<3;x++) {
+                    A_SpawnItemEx ("SmallExplosionSmokeSlow",frandom(-25,25), frandom(-25,25), frandom(12,36),frandom(0.1,0.7), 0, frandom(-0.6,0.6), angle:random(0,360));
+                }
+                A_SPAWNITEMEX(DeathSprites[random(0,2)], 0, 0, 0, 0, 0, 3);
+            }
+            stop;
+    } 
+}
+
+class SawdroneWing : SelacoActor {
+    string spriteTouse;
+    int frameNum;
+    static const String LegSprites[] = {"SAG1", "SAG2", "SAG3"};
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        spriteTouse = LegSprites[random(0,LegSprites.size()-1)];
+        if(random(0,1) == 1) {
+            bXflip = true;
+        }
+    }
+
+    default {
+        +missile
+        +USEBOUNCESTATE
+        -solid;
+        scale 0.35;
+        speed 5;
+        +DoomBounce
+        BounceFactor 0.5; 
+        BounceCount 4;
+        +SelacoActor.SleepWhenIdle;
+        -SelacoActor.WakeNearPlayer;
+    }
+    States {
+        Indexer:
+            SAG1 A 0;
+            SAG2 A 0;
+            SAG3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                bPreventSleep = true;
+                sprite = GetSpriteIndex(spriteTouse);
+            }
+            TNT1 A 0 A_CHANGEVELOCITY(frandom(-4,4),frandom(-4,4),random(11,13), CVF_RELATIVE);
+        Looper:
+            TNT1 ABCDEFGHI 3 {
+                if(frameNum == 9) {
+                    frameNum = 0;
+                }
+                A_SpawnProjectile ("SmokeTrailPieceSmallShort", 24, 0, random (0, 180), 2, random (0, 180));
+                if(random(0,6) == 2) {
+                    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+				    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+				    //A_SpawnProjectile ("Spark_UpOnce_NoFlare", 3, -3, random (0, 70), 2, random (0, 190));
+                    A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition");
+                }
+                frame = frameNum;
+                frameNum++;
+                if(vel.x == 0 && vel.y == 0 && vel.z == 0) {
+                    setStateLabel("Death");
+                }
+            }
+            loop;
+        Bounce:
+            TNT1 A 0 
+            {
+                A_SPAWNITEMEX("ScorchMarkFloorSmall");
+                for(int x=0;x<=1;x++) {
+                    A_SPAWNITEMEX("BodyImpactSmokeTiny", 0, 0, 0, frandom(-0.3,0.3), frandom(-0.3,0.3), frandom(0.2,1.3));
+                }
+                EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 15, angle:-180, pitch:frandom(-15, 15), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+                A_PlaySound("impact/thinmetal",CHAN_AUTO, 0.2, 0, 1.0, false, frandom(1.05,1.15));
+            }
+            goto Looper;
+        Death:
+            //TNT1 A 0 A_PlaySound("impact/thinmetal",CHAN_AUTO, 0.2, 0, 1.0, false, frandom(1.05,1.15));
+            TNT1 A -1 {
+                bPreventSleep = false;
+            }
+            stop;
+    }
+}
+
+class SAWDRONE_DEATH1 : SelacoActor
+{
+    mixin SawDroneBase;
+    bool floorHit;
+
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+        A_PLAYSOUND("sawdrone/death", CHAN_AUTO, 1.0, 0, 0.7, pitch:frandom(0.9,1.2));
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(random(0,6) == 2 && !floorHit) {
+            A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+		    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+		    //A_SpawnProjectile ("Spark_UpOnce_NoFlare", 3, -3, random (0, 70), 2, random (0, 190));
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition");
+        } 
+    }
+
+    default 
+    {
+        gravity 0.6;
+        scale 0.21;
+        radius 5;
+        height 5;
+
+        -SelacoActor.WakeNearPlayer;
+    }
+
+    states 
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 
+            {
+                A_SPAWNITEMEX("SawdroneWingMirrored", frandom(-3,3), frandom(3,10), 0, frandom(-3,3), frandom(-3,3), frandom(-4,4));
+                A_SPAWNITEMEX("SawdroneWing", frandom(-3,3), frandom(3,10), 0, frandom(-3,3), frandom(-3,3), frandom(-4,4));
+                A_SPAWNITEMEX("SawDroneSaw", frandom(-3,3), frandom(3,10), 0, frandom(-4,4),frandom(-4,4),random(11,13));
+            }
+            SAD1 AB 2;
+        WaitForFloor:
+            SAD1 A 3 
+            {
+                roll+=(random(-5,5));
+                if(vel.z == 0 || floorz == pos.z)
+                {
+                    setStateLabel("ImpactFloor");
+                }
+            }
+            loop;
+        ImpactFloor:
+            TNT1 A 0 A_CHANGEVELOCITY(random(-2,2),random(-2,2),1);
+            TNT1 A 0 {
+                roll = 0;
+            }
+            SAD1 EFGHIJKLMN 2 A_SPAWNITEMEX("SmokeTrailPieceSmallShort");
+            TNT1 A 0 {
+                A_SPAWNITEMEX("ScorchMarkFloorSmall");
+                for(int x=0;x<=3;x++) {
+                    A_SPAWNITEMEX("BodyImpactSmokeTiny", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+                }
+                EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 15, angle:-180, pitch:frandom(-15, 15), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+                floorHit = true;
+            }
+        Death:
+            SAD1 O -1;
+    }
+}
+
+class SAWDRONE_DEATH2 : SAWDRONE_DEATH1
+{
+    default {
+        +NOGRAVITY
+    }
+    states 
+    {
+        Spawn:
+            TNT1 A 0;   
+            TNT1 A 0 
+            {
+                roll = random(6,15);
+                A_CHANGEVELOCITY(0,0,0, CVF_REPLACE);
+                A_SPAWNITEMEX("SawdroneWing", frandom(-3,3), frandom(3,10), 0, frandom(-3,3), frandom(-3,3), frandom(-4,4));
+                A_CHANGEVELOCITY(0,frandom(2,4), 1, CVF_RELATIVE);
+                A_PLAYSOUND("AIRDRONE/BELLYFLOP", CHAN_AUTO, 0.6, 0, 1.0, 0, pitch:frandom(1.0,1.4));
+            }
+            SAD2 ABCDEFGHIJ 3;
+            TNT1 A 0 {
+                bNoGravity = false;
+            }
+            SAD2 KL 2;
+            TNT1 A 0 {
+    
+            }
+        WaitForFloor:
+            SAD2 M 1 
+            {
+                roll+=(random(-2,2));
+                if(vel.z == 0 || floorz == pos.z)
+                {
+                    setStateLabel("ImpactFloor");
+                }
+            }
+            loop;
+        ImpactFloor:
+            TNT1 A 0 A_CHANGEVELOCITY(random(-2,2),random(-2,2),5);
+            TNT1 A 0 {
+                A_SPAWNITEMEX("SawDroneSaw", frandom(-3,3), frandom(3,10), 0, frandom(-4,4),frandom(-4,4),random(11,13));
+                A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition");
+                A_PLAYSOUND("AIRDRONE/BELLYFLOP", CHAN_AUTO, 0.6, 0, 1.0, 0, pitch:frandom(1.0,1.4));
+                A_SPAWNITEMEX("ScorchMarkFloorSmall");
+                for(int x=0;x<=3;x++) {
+                    A_SPAWNITEMEX("BodyImpactSmokeTiny", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+                }
+                roll = 0;
+                EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 15, angle:-180, pitch:frandom(-15, 15), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+            }
+			TNT1 A 0 A_PlaySound("impact/metalsmall",CHAN_AUTO, 0.4, 0, 0.9, false, frandom(1.0,1.15));
+            SAD2 NOPQRSTUVWXY 2 A_SPAWNITEMEX("SmokeTrailPieceSmallShort");
+            TNT1 A 0 
+            {
+                if(random(0,1) == 1)
+                {
+                    A_PLAYSOUND("SawDrone/groundhit", CHAN_AUTO, 0.7, 0, 1.0, 0, pitch:frandom(0.85,1.4));
+                }
+                A_PLAYSOUND("AIRDRONE/BELLYFLOP", CHAN_AUTO, 1.0, 0, 1.0, 0, pitch:frandom(1.0,1.4));
+                floorHit = true;
+            }
+        Death:
+            SAD2 Z -1;
+    }
+}
+
+class SAWDRONE_DEATH3 : SAWDRONE_DEATH1
+{
+    default {
+        +NOGRAVITY
+    }
+    states 
+    {
+        Spawn:
+            TNT1 A 0;   
+            TNT1 A 0 
+            {
+                roll = random(6,15);
+                A_CHANGEVELOCITY(0,0,0, CVF_REPLACE);
+                A_SPAWNITEMEX("SawdroneWing", frandom(-3,3), frandom(3,10), 0, frandom(-3,3), frandom(-3,3), frandom(-4,4));
+                A_CHANGEVELOCITY(0,frandom(-4,4), 4, CVF_RELATIVE);
+            }
+            TNT1 A 0 {
+                bNoGravity = false;
+            }
+            TNT1 A 0 {
+    
+            }
+        WaitForFloor:
+            SAD3 ABCDEFGHIJ 3 
+            {
+                roll+=(random(-2,2));
+                if(vel.z == 0 || floorz == pos.z)
+                {
+                    setStateLabel("ImpactFloor");
+                }
+            }
+            loop;
+        ImpactFloor:
+            TNT1 A 0 A_CHANGEVELOCITY(random(-2,2),random(-2,2),5);
+            TNT1 A 0 {
+                A_SPAWNITEMEX("SawDroneSaw", frandom(-3,3), frandom(3,10), 0, frandom(-4,4),frandom(-4,4),random(11,13));
+                A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition");
+                A_PLAYSOUND("AIRDRONE/BELLYFLOP", CHAN_AUTO, 0.7, 0, 1.0, 0, pitch:frandom(1.0,1.4));
+                A_SPAWNITEMEX("ScorchMarkFloorSmall");
+                for(int x=0;x<=3;x++) {
+                    A_SPAWNITEMEX("BodyImpactSmokeTiny", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+                }
+                EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 15, angle:-180, pitch:frandom(-15, 15), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+                roll = 0;
+            }
+            SAD3 KLM 2;
+            TNT1 A 0 {
+                if(random(0,1) == 1)
+                {
+                    A_PLAYSOUND("SawDrone/groundhit", CHAN_AUTO, 0.7, 0, 1.0, 0, pitch:frandom(0.85,1.4));
+                }
+                A_PLAYSOUND("AIRDRONE/BELLYFLOP", CHAN_AUTO, 0.55, 0, 1.0, 0, pitch:frandom(1.5,1.7));
+                floorHit = true;
+            }
+            SAD3 NOPQRST 2 A_SPAWNITEMEX("SmokeTrailPieceSmallShort");
+            SAD3 UVW 2;
+        Death:
+            SAD3 X -1;
+    }
+}
+
+
+class SawdroneWingMirrored : SawdroneWing {
+    default {
+        +xflip;
+    }
+}
+
+class SawDroneSaw : SelacoActor {
+    string spriteTouse;
+    int frameNum;
+    static const String SawSprites[] = {"SAS1"};
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        spriteTouse = SawSprites[random(0,SawSprites.size()-1)];
+        if(random(0,1) == 1) {
+            bXflip = true;
+        }
+    }
+
+    override void throwTelek()
+    {
+        Super.throwTelek();
+        A_FACE(players[0].mo);
+        angle = angle-180;
+        A_SpawnItemEX("SawDroneSawprojectile", 0, 0, 0, 50);
+        destroy();
+    }
+
+    override void grabbedTelek()
+    {
+        Super.grabbedTelek();
+        setStateLabel("Grabbed");
+    }
+
+    override void releaseTelek()
+    {
+        Super.releaseTelek();
+        setStateLabel("Death");
+    }
+
+    default {
+        +SelacoActor.AllowGravityManipulation;
+        +missile
+        +USEBOUNCESTATE
+        -solid;
+        scale 0.30;
+        speed 5;
+        +DoomBounce
+        BounceFactor 0.5; 
+        BounceCount 4;
+    }
+    States {
+        Indexer:
+            SAS1 A 0;
+            SAS2 A 0;
+            SAS3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                sprite = GetSpriteIndex(spriteTouse);
+                if(random(0,1) == 1)
+                {
+                    bXflip = true;
+                }
+            }
+        Looper:
+            TNT1 ABCDEFGHI 3 {
+                if(frameNum == 9) {
+                    frameNum = 0;
+                }
+                A_SpawnProjectile ("SmokeTrailPieceSmallShort", 24, 0, random (0, 180), 2, random (0, 180));
+                if(random(0,6) == 2) {
+                    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 0, 1);
+				    A_SpawnItemEx("GunFireSmokeMassive", 0, 0, 0, 0, 1, 1);
+				    //A_SpawnProjectile ("Spark_UpOnce_NoFlare", 3, -3, random (0, 70), 2, random (0, 190));
+                    A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition");
+                }
+                EmitDefinition('SparkBriefSmallDefintion', chance: 0.15, numTries: 1, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(0.4,0.6), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));	
+                frame = frameNum;
+                frameNum++;
+                if(vel.x == 0 && vel.y == 0 && vel.z == 0) {
+                    setStateLabel("Death");
+                }
+            }
+            loop;
+        Grabbed:
+            SAS1 ABCDEFGHI 3 {
+                if(frameNum == 9) {
+                    frameNum = 0;
+                }
+            }
+            loop;
+        Bounce:
+            TNT1 A 0 {
+                EmitDefinition('SparkBriefDefintion', 0.75, 30, pitch:frandom(-60,-120), flags:PE_ABSOLUTE_PITCH);
+            }
+            TNT1 A 0 A_PlaySound("impact/thinmetal",CHAN_AUTO, 0.2, 0, 1.0, false, frandom(1.05,1.15));
+            goto Looper;
+        Release:
+        Death:
+            //TNT1 A 0 A_PlaySound("impact/thinmetal",CHAN_AUTO, 0.2, 0, 1.0, false, frandom(1.05,1.15));
+            TNT1 A -1;
+            stop;
+    }
+}
+
+class SawDroneSawProjectile : SawDroneSaw {
+    default {
+        +missile;
+        gravity 0.4;
+        +BLOODSPLATTER
+        WallBounceFactor 0.6;
+        Bouncecount 4;
+        speed 40;
+        damage 35;
+        damageType "SawDroneProjectile";
+    }
+    states {
+        Bounce:
+        Spawn:
+            SAS1 A 1;
+            loop;
+        Death:
+            SAS1 A 1 {
+                A_SPAWNITEMEX("SawDroneSaw");
+            }
+            stop;
+        Xdeath:
+            TNT1 A 0;
+            stop;
+    }
+}

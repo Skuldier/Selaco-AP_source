@@ -1,0 +1,1277 @@
+actor timer : inventory {
+    inventory.maxamount 4
+}
+
+
+ACTOR ShrapnelParticle: ExplosionParticleHeavy
+{
+ speed 40
+ Gravity 0.0
+ +NOGRAVITY
+  Scale 0.3
+   radius 10
+ height 10
+ -DOOMBOUNCE
+ Damage 0
+  alpha 1.0
+    States
+    {
+     Spawn:
+       SPKO AAAAAAAAAAAAAAAAA 1 Bright A_FadeOut(0.05)
+        stop
+     Death:
+	 TNT1 A 0
+       Stop
+    }
+}
+
+
+ACTOR ShrapnelParticle2: ShrapnelParticle
+{
+  Speed 20
+}
+
+Actor ExplosionParticleSpawner
+{
+  +NoClip
+  +NoBlockMap
+  +NoGravity
+  +Missile
+  +FORCEXYBILLBOARD
+  States
+  {
+  Spawn:
+    TNT1 A 0
+        TNT1 AAAAA 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 360), 2, random (0, 180))
+        TNT1 AAAAA 0 A_SpawnProjectile ("ExplosionParticleHeavy", 0, 0, random (0, 180), 2, random (0, 180))
+    TNT1 A 1
+    Stop
+  }
+}
+
+Actor ExplosionParticle
+{
+  Height 0
+  Radius 0
+  Mass 0
+  +Missile
+  +NoBlockMap
+  +NoGravity
+  +DontSplash
+  +FORCEXYBILLBOARD
+  +CLIENTSIDEONLY
+  RenderStyle Add
+  Scale 0.05
+  States
+  {
+  Spawn:
+    SPKO A 1 Bright A_FadeOut(0.02)
+    Loop
+  }
+}
+
+Actor ExplosionParticle5
+{
+  Height 0
+  Radius 0
+  Mass 0
+  +Missile
+  +NoBlockMap
+  -NoGravity
+  +LowGravity
+  +DontSplash
+  +DoomBounce
+  +FORCEXYBILLBOARD
+  BounceFactor 0.2
+  RenderStyle Add
+  Scale 0.04
+  Speed 12
+  States
+  {
+  Spawn:
+  Death:
+    SPKO A 2 Bright A_FadeOut(0.02)
+    Loop
+  }
+}
+
+Actor BrownPlasmaParticleSpawner
+{
+    RenderStyle Add
+    Alpha 0.4
+    Scale 0.21
+    +NoClip
+    +NoBlockMap
+    +NoGravity
+    +Missile
+    +FORCEXYBILLBOARD
+  States
+  {
+  Spawn:
+      PGEX A 1 BRIGHT A_FadeIn
+      PGEX A 11 BRIGHT
+      Goto Death
+  Death:
+      PGEX AAAAAAAAAA 1 BRIGHT A_FadeOut(0.01, FTF_CLAMP | FTF_REMOVE )
+      Loop
+  }
+}
+
+Actor BrownPlasmaParticleSpawnerDimmed : BrownPlasmaParticleSpawner
+{
+    Alpha 0.33
+}
+
+Actor GreenPlasmaParticleSpawner : BrownPlasmaParticleSpawner
+{
+  States
+  {
+  Spawn:
+	PGEX E 1 BRIGHT A_FadeIn
+	PGEX E 18 BRIGHT
+	Goto Death
+  Death:
+	PGEX E 4 BRIGHT A_FadeOut(0.1)
+	Loop
+	
+  }
+}
+
+Actor BrownPlasmaParticleSpawnerTiny : BrownPlasmaParticleSpawner
+{
+  Scale 0.08
+   Alpha 0.15
+}
+
+Actor GreenPlasmaParticleSpawnerTiny : GreenPlasmaParticleSpawner
+{
+  Scale 0.08
+   Alpha 0.15
+}
+
+Actor RedPlasmaParticleSpawnerGrenade : BrownPlasmaParticleSpawner
+{
+  Alpha 0.4
+  States
+  {
+    Spawn:
+      PGEX D 1 BRIGHT A_FadeIn
+      PGEX D 11 BRIGHT
+      Goto Death
+      Death:
+      PGEX DDDDDDDDDD 1 BRIGHT A_FadeOut(0.02, FTF_CLAMP | FTF_REMOVE )
+      Loop
+  }
+}
+
+Actor BlueGrenadeTrail : BrownPlasmaParticleSpawner
+{
+  Alpha 0.4
+  States
+  {
+    Spawn:
+      PGEZ A 1 BRIGHT A_FadeIn
+      PGEZ A 11 BRIGHT
+      Goto Death
+      Death:
+      PGEZ AAAAAAAAAAAAAAAAAAAAAAAAAAA 1 BRIGHT A_FadeOut(0.02, FTF_CLAMP | FTF_REMOVE )
+      Loop
+  }
+}
+
+Actor BluePlasmaParticleSpawner
+{
+  RenderStyle Add
+  Alpha 0.3
+  Scale 0.4
+  +NoClip
+  +NoBlockMap
+  +NoGravity
+  +Missile
+  +FORCEXYBILLBOARD
+  +NoInteraction
+  States
+  {
+  Spawn:
+    PGEZ A 1 BRIGHT A_FadeIn
+    Goto Death
+  Death:
+    PGEZ AAAAAA 1 A_FadeOut(0.05)
+    Loop
+  }
+}
+
+Actor RedPlasmaParticleSpawner : BluePlasmaParticleSpawner
+{
+  States
+  {
+  Spawn:
+    PGEY A 1 BRIGHT A_FadeIn
+    PGEY A 4 BRIGHT
+    Goto Death
+  Death:
+    PGEY A 2 A_FadeOut(0.1)
+    Loop
+
+  }
+}
+
+Actor RedPlasmaParticleSpawnerTiny : RedPlasmaParticleSpawner
+{
+  Scale 0.08
+   Alpha 0.15
+}
+
+Actor BluePlasmaSmallerParticleSpawner : BluePlasmaParticleSpawner
+{
+  Alpha 0.4
+  Scale 0.4
+}
+
+Actor BluePlasmaSuperSmallerParticleSpawner : BluePlasmaParticleSpawner
+{
+  Alpha 0.2
+  Scale 0.2
+  states {
+    Spawn:
+        PGEZ A 1 BRIGHT A_FadeIn
+        PGEZ AAAAAAAAAAAAAAAAAAAAAAAA 1 A_FadeOut(0.01)
+        Goto Death
+    Death:
+        PGEZ A 2 A_FadeOut(0.1)
+        Loop
+  }
+}
+
+
+Actor BlueMuzzleFlash
+{
+  RenderStyle Add
+  Alpha 1.0
+  Scale 0.6
+  +NoClip
+  +NoBlockMap
+  +NoGravity
+  +Missile
+  +FORCEXYBILLBOARD
+  States
+  {
+  Spawn:
+	TNT1 A 0 
+	PGEZ A 2 BRIGHT
+	Goto Death
+  Death:
+	TNT1 A 0
+	stop
+	
+  }
+}
+
+Actor NailgunFlash
+{
+  RenderStyle Add
+  Alpha 1.0
+  Scale 0.1
+  +NoClip
+  +NoBlockMap
+  +NoGravity
+  +Missile
+  +FORCEXYBILLBOARD
+  States
+  {
+  Spawn:
+	TNT1 A 0 
+	PGEZ A 2 BRIGHT
+	Goto Death
+  Death:
+	TNT1 A 0
+	stop
+	
+  }
+}
+
+
+Actor BluePlasmaParticleSpawnerSmall: BluePlasmaParticleSpawner {
+  Alpha 0.8
+  Scale 0.2
+ }
+
+/*Actor AcesGrenadeFlare
+{
+    RenderStyle Add
+    Scale 1.1
+    +NoClip
+    +NoBlockMap
+    +NoGravity
+    +Missile
+    +FORCEXYBILLBOARD
+    States
+    {
+        Spawn:
+        PGEX C 8 BRIGHT //A_SpawnItem("BlueFlare" ,0)
+        TNT1 A 1
+        stop
+    } 
+}*/
+
+Actor BrownPlasmaParticleSpawner2SHORT
+{
+  RenderStyle Add
+  Scale 0.3
+  +NoClip
+  +NoBlockMap
+  +NoGravity
+  +Missile
+  +FORCEXYBILLBOARD
+  States
+  {
+  Spawn:
+	PGEX C 2 BRIGHT //A_SpawnItem("BlueFlare" ,0)
+	TNT1 A 1
+	stop
+  }
+}
+
+Actor PlasmaParticleSpawner: BluePlasmaParticleSpawner
+{
+  States
+  {
+  Spawn:
+    TNT1 A 1
+    Stop
+  }
+}
+
+Actor BluePlasmaParticle
+{
+  Height 0
+  Radius 0
+  Mass 0
+  +Missile
+  +NoBlockMap
+  +DontSplash
+  +DoomBounce
+  +FORCEXYBILLBOARD
+  BounceFactor 0.2
+  Gravity 0.3
+  mass 0
+  RenderStyle Add
+  Scale 0.135
+  //Speed 2
+  Speed 7
+  States
+  {
+    Spawn:
+    Death:
+      SPKB A 1 Bright A_FadeOut(0.04)
+      Loop
+  }
+}
+
+Actor BrownPlasmaParticle
+{
+  Height 0
+  Radius 0
+  Mass 0
+  +Missile
+  +NoBlockMap
+  -NoGravity
+  //+LowGravity
+  +DontSplash
+  +DoomBounce
+  +FORCEXYBILLBOARD
+  BounceFactor 0.2
+  Gravity 0.8
+  RenderStyle Add
+  Scale 0.035
+  //Speed 2
+  Speed 12
+  States
+  {
+  Spawn:
+  Death:
+    SPKB A 2 Bright A_FadeOut(0.04)
+    Loop
+  }
+}
+
+
+Actor BigplasmaEmber: plasmaEmber
+{
+  Scale 2.0
+  Speed 3
+}
+
+Actor PlasmaParticle: BluePlasmaParticle
+
+{
+  States
+  {
+  Spawn:
+  Death:
+    SPKG A 2 Bright A_FadeOut(0.02)
+	SPKG A 0 A_SpawnItem("BlueFlare" ,0)
+    Loop
+  }
+}
+
+ACTOR PlasmaPuffRed: BulletPuff
+{
+  RenderStyle Add
+  Alpha 0.95
+  +NOBLOCKMAP
+  +NOGRAVITY
+  +CLIENTSIDEONLY
+  Scale 1.1
+  states
+  {
+  Spawn:
+    PBEX A 0 BRIGHT// A_SpawnItem("BlueFlare",0,0)
+		TNT1 AAAAAAAAAAAAA 0 A_SpawnItemEx("PlasmaEmber")
+	  TNT1 A 0 A_SpawnItemEx("RedPlasmaParticleSpawner", 0, 0, 0, 0, 0, 0, 0, 128)
+	  EXPL AAAA 0 A_SpawnProjectile ("SmallSmoke", 0, 0, random (0, 360), 2, random (0, 360))
+    PLSE ABCDE 2 BRIGHT
+    stop
+  }
+}
+
+/*ACTOR RailgunPuff: BulletPuff
+{
+  RenderStyle Add
+  Alpha 0.95
+  +NOBLOCKMAP
+  +NOGRAVITY
+  +CLIENTSIDEONLY
+  Scale 1.1
+  states
+  {
+  Spawn:
+    PBEX A 0 BRIGHT// A_SpawnItem("BlueFlare",0,0)
+		TNT1 AA 0 A_SpawnProjectile ("plasmaEmber", 12, 0, random (0, 360), 2, random (0, 360))
+	TNT1 A 0 A_SpawnItemEx("BluePlasmaParticleSpawner", 0, 0, 0, 0, 0, 0, 0, 128)
+	//EXPL AAAA 0 A_SpawnProjectile ("SmallSmoke", 0, 0, random (0, 360), 2, random (0, 360))
+    PLSE ABCDE 2 BRIGHT A_SpawnItem("BlueFlare" ,0)
+    stop
+  }
+}*/
+
+
+Actor LeatherChunk {
+
+	States {
+		spawn:
+			TNT1 AAA 0 A_SpawnProjectile("SmokeTrailPiece", 0, 0, random (0, 60), 2, random (0, 60))
+			TNT1 AAAAAAAAAAAAAAAAAAAAA 0 A_SpawnProjectile ("LeatherChunk_Small", 6, 0, random (0, 360), 2, random (0, 160))
+			stop
+	}
+}
+
+Actor PaperSpawnerForward : PaperChunk {
+	States {
+		spawn:
+      TNT1 A 0
+			TNT1 AAAAA 0 A_SpawnProjectile("PaperPiece", random(5,13), random(-10,10), random (-40, 40), 2, random (60, 180))
+			// GAME DETAIL AT MEDIUM OR LOWER? STOP HERE.
+			TNT1 A 0 {
+          if(getCvar("r_particleIntensity") <= 1)
+          {
+              destroy();
+          }
+      }
+			TNT1 AAA 0 A_SpawnProjectile("PaperPiece", random(5,13), random(-10,10), random (-40, 40), 2, random (60, 180))
+			// GAME DETAIL AT HIGH OR LOWER? STOP HERE.
+			TNT1 A 0 {
+          if(getCvar("r_particleIntensity") <= 2)
+          {
+              destroy();
+          }
+      }
+			TNT1 AAA 0 A_SpawnProjectile("PaperPiece", random(5,13), random(-10,10), random (-40, 40), 2, random (60, 180))
+			// GAME DETAIL AT HIGH OR LOWER? STOP HERE.
+			TNT1 A 0 {
+          if(getCvar("r_particleIntensity") <= 3)
+          {
+              destroy();
+          }
+      }
+			TNT1 AAAA 0 A_SpawnProjectile("PaperPiece", random(5,13), random(-10,10), random (-40, 40), 2, random (60, 180))
+			stop
+		Destroy:
+			TNT1 A 0
+			stop
+	}
+}
+
+ACTOR LeatherPiece
+{
+	  Scale 0.07
+    +NOBLOCKMAP
+    +NOTELEPORT
+    +DONTSPLASH
+	  +MISSILE
+	  +FORCEXYBILLBOARD
+    +CLIENTSIDEONLY
+    +NOINTERACTION
+	  +NOGRAVITY
+	  +DOOMBOUNCE
+    Speed 2
+    Gravity 0.1
+	  height 5
+	  radius 5
+	  States	
+    {
+        Spawn:
+          TNT1 A 1
+          TNT1 A 0 A_ChangeVelocity(frandom(0.9, 0.9), frandom(-0.9, 0.9), frandom(-0.4, 0.4), CVF_RELATIVE)
+          TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("ParticlePhysics")==1,"ParticlePhysics")
+          TNT1 A 1
+        Death:
+            TNT1 A 0
+          stop
+        ParticlePhysics:
+          TNT1 A 0 A_GiveInventory ("Timer", random(1,4))
+        See:
+          TNT1 A 0 A_JumpIfInventory("Timer",4,"See4")
+          TNT1 A 0 A_JumpIfInventory("Timer",3,"See3")
+          TNT1 A 0 A_JumpIfInventory("Timer",2,"See2")
+        See1:
+          DUST AAAAAAAAAAAAAAA 1 A_FADEOUT(0.05)
+          stop
+        See2:
+          DUST BBBBBBBBBBBBBB 1 A_FADEOUT(0.05)
+          stop
+        See3:
+          DUST CCCCCCCCCCCCCC 1 A_FADEOUT(0.03)
+          stop
+        See4:
+          DUST DDDDDDDDDDDDDDD 1 A_FADEOUT(0.05)
+          stop
+        Death:
+          TNT1 A 0 A_JumpIfInventory("Timer",4,"Death4")
+          TNT1 A 0 A_JumpIfInventory("Timer",3,"Death3")
+          TNT1 A 0 A_JumpIfInventory("Timer",2,"Death2")
+        Death1:
+          DUST AAAAAAA 3 A_FADEOUT(0.1)
+          Stop
+        Death2:
+          DUST BBBBBBB 3 A_FADEOUT(0.1)
+          Stop
+        Death3:
+          DUST CCCCCCC 3 A_FADEOUT(0.1)
+          Stop
+        Death4:
+          DUST DDDDDDD 3 A_FADEOUT(0.1)
+          Stop
+	    }
+}
+
+ACTOR LeatherChunk_Small : LeatherPiece
+{
+	Scale 0.16
+	+noteleport
+	-SOLID
+	-missile
+	+forcexybillboard
+    +CLIENTSIDEONLY
+    Speed 1
+    Gravity 0.1
+	height 5
+	radius 5
+	States
+	{
+	Death1:
+		DUST A 25
+		Stop
+	Death2:
+		DUST B 25
+		Stop
+	Death3:
+		DUST C 25
+		Stop
+	Death4:
+		DUST D 25
+		Stop
+	}
+}
+
+ACTOR WallChunk
+{
+	Scale 0.13
+	+noteleport
+	+missile
+	+DoomBounce
+	+DONTSPLASH
+	+forcexybillboard
+    +CLIENTSIDEONLY
+	BounceFactor 0.38
+	WallBounceFactor 0.1
+	BounceCount 4
+    Speed 2
+    Gravity 0.84
+	height 5
+	radius 5
+	States
+	{
+	Spawn:
+     Spawn:
+		TNT1 A 1
+		TNT1 A 0 A_ChangeVelocity(random(1, 4), 0, 0, CVF_RELATIVE)
+	SpawnBricks:
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("ParticlePhysics")==1,"ParticlePhysics")
+	Death:
+	    TNT1 A 0
+		stop
+	ParticlePhysics:
+		TNT1 A 0 A_GiveInventory ("Timer", random(1,4))
+	See:
+		TNT1 A 0 A_JumpIfInventory("Timer",4,"See4")
+		TNT1 A 0 A_JumpIfInventory("Timer",3,"See3")
+		TNT1 A 0 A_JumpIfInventory("Timer",2,"See2")
+	See1:
+		DUST A 1
+		loop
+	See2:
+		DUST B 1
+		loop
+	See3:
+		DUST C 1
+		loop
+	See4:
+		DUST D 1
+		loop
+	Death:
+		TNT1 A 0 A_ChangeFlag ("missile",0)
+		TNT1 A 0 A_ChangeFlag ("doombounce",0)
+		TNT1 A 0 A_JumpIfInventory("Timer",4,"Death4")
+		TNT1 A 0 A_JumpIfInventory("Timer",3,"Death3")
+		TNT1 A 0 A_JumpIfInventory("Timer",2,"Death2")
+	Death1:
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("CheckPersistantParticles")==0,"Death1_Short")
+		DUST A 150 
+		DUST AAAAAAAAAAA 4 A_FADEOUT(0.1)
+		stop
+	Death2:
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("CheckPersistantParticles")==0,"Death2_Short")
+		DUST B 150
+		DUST BBBBBBBBBBBB 4 A_FADEOUT(0.1)
+		stop
+	Death3:
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("CheckPersistantParticles")==0,"Death3_Short")
+		DUST C 150
+		DUST CCCCCCCCCCC 4  A_FADEOUT(0.1)
+		stop
+	Death4:
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("CheckPersistantParticles")==0,"Death4_Short")
+		DUST D 150
+		DUST DDDDDDDDDDD 4 A_FADEOUT(0.1)
+		stop
+	Death1_Short:
+		DUST A 5
+		DUST AAAAAAAAAAA 4 A_FADEOUT(0.1)
+		stop
+	Death2_Short:
+		DUST B 5
+		DUST BBBBBBBBBBBB 4 A_FADEOUT(0.1)
+		stop
+	Death3_Short:
+		DUST C 5
+		DUST CCCCCCCCCCC 4 A_FADEOUT(0.1)
+		stop
+	Death4_Short:
+		DUST D 5
+		DUST DDDDDDDDDDD 4 A_FADEOUT(0.1)
+		stop
+	}
+	
+}
+
+ACTOR WallChunk_short : Wallchunk
+{
+	Scale 0.12
+	BounceFactor 0.2
+	WallBounceFactor 0.15
+	+noteleport
+	+missile
+	+forcexybillboard
+    +CLIENTSIDEONLY
+    Speed 2
+    Gravity 0.7
+	height 5
+	radius 5
+}
+
+ACTOR TinyWallChunk : WallChunk
+{
+	BounceFactor 0.45
+	WallBounceFactor 0.14
+	Scale 0.24
+	speed 2
+}
+ACTOR BigWallChunk : WallChunk
+{
+	BounceFactor 0.27
+	WallBounceFactor 0.1
+	Scale 0.28
+	speed 3
+}
+ACTOR HugeWallChunk : WallChunk
+{
+	BounceFactor 0.16
+	WallBounceFactor 0.1
+	Scale 0.31
+	speed 4
+}
+
+ACTOR GigaWallChunk : WallChunk
+{
+	BounceFactor 0.3
+	speed 5
+	WallBounceFactor 0.1
+	Scale 0.32
+}
+
+ACTOR RidicilousWallChunk : WallChunk
+{
+	BounceFactor 0.3
+	WallBounceFactor 0.1
+	Scale 0.43
+}
+
+
+ACTOR DirtChunk1 : WallChunk_short
+{
+	Scale 0.8
+	Speed 4
+	BounceFactor 0.5
+	Translation "128:151=74:79", "96:111=71:79"
+}
+
+
+ACTOR DirtChunk2 : WallChunk_short
+{
+	Scale 0.9
+	Speed 5
+	BounceFactor 0.3
+	Translation "128:151=74:79", "96:111=71:79"
+}
+
+ACTOR DirtChunk3 : WallChunk_short
+{
+	Scale 0.4
+	Speed 2
+	BounceFactor 0.2
+	Translation "128:151=74:79", "96:111=71:79"
+}
+
+
+ACTOR DirtChunk4 : WallChunk_short
+{
+	Scale 0.3
+	Speed 3
+	BounceFactor 0.2
+	
+	Translation "128:151=74:79", "96:111=71:79"
+}
+
+Actor Porcelain_blue : Porcelain {
+	Translation "0:255=%[0,0,0]:[0.3,0.3,0.7]"
+}
+Actor Porcelain_brown : Porcelain {
+  XScale 0.77
+  Yscale 0.77
+	Translation "0:255=%[0,0,0]:[0.8,0.5,0.1]"
+}
+
+ACTOR LargeGlassParticle2: LargeGlassParticle1
+{
+XScale -0.8
+BounceFactor 0.6
+}
+
+ACTOR LargeGlassParticle3: LargeGlassParticle1
+{
+XScale -0.3
+YScale 0.3
+BounceFactor 0.4
+}
+
+
+ACTOR LargeGlassParticle4: LargeGlassParticle1
+{
+Scale 0.4
+BounceFactor 0.3
+}
+
+Actor BaseEmberLarge : BaseEmber
+{
+  Scale 0.07
+}
+
+Actor BaseEmberGreen
+{
+ +Missile
+ +NoBlockmap
+ +NoInteraction
+ -Solid
+ Radius 0
+ Height 0
+ RenderStyle Add
+ Alpha 0.01
+ Scale 0.035
+ Gravity 0.25
+ States
+ {
+  Spawn:
+   EMBR YYYY 1 Bright A_FadeIn(0.25)
+   EMBR YYYYYYYYYYYYYYYYYYYY 4 Bright A_FadeOut(0.06)
+   Stop
+ }
+}
+
+Actor BaseEmberPurple : BaseEmberGreen
+{
+ States
+ {
+  Spawn:
+   EMBR CCCC 1 Bright A_FadeIn(0.25)
+   EMBR CCCCCCCCCCCCCCCCCCCCCCCCCCCC 4 Bright A_FadeOut(0.06)
+   Stop
+ }
+}
+
+Actor BaseEmberPurpleFast : BaseEmberGreen {
+ alpha 1.0
+ States
+ {
+  Spawn:
+   EMBR CCCCCCCCCCCCCCCCCCCCCCCCCCCC 3 Bright A_FadeOut(0.06)
+   Stop
+ }
+}
+
+Actor BlueBaseEmberBig : BaseEmber
+{
+ Scale 0.009
+}
+
+Actor BlueBaseEmberBigLenghty
+{
+ +Missile
+ +NoBlockmap
+ +NoInteraction
+ -Solid
+ Radius 0
+ Height 0
+ RenderStyle Add
+ Alpha 0.01
+ Scale 0.026
+ Gravity 0.25
+ States
+ {
+    Spawn:
+        TNT1 A 0
+        EMBR BBBB 1 Bright A_FadeIn(0.25)
+        TNT1 A 0 A_Jump(80,8)
+        TNT1 A 0 A_Jump(80,6)
+        TNT1 A 0 A_Jump(80,4)
+        TNT1 A 0 A_Jump(80,2)
+        EMBR BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB 1 Bright A_FadeOut(0.02)
+        Stop
+    FadeAway:
+        EMBR BBBBBBBBBBBBBBBBBBBB 1 Bright A_FadeOut(0.15)
+        stop
+ }
+}
+
+
+Actor BaseEmberBig : BaseEmber
+{
+	Projectile
+  +CLIENTSIDEONLY
+  +MISSILE 
+  +NOBLOCKMAP 
+  +DOOMBOUNCE
+  BounceFactor 0.5
+  Radius 0
+  Height 0
+  RenderStyle Add
+  Alpha 0.08
+  Scale 1.55
+  Gravity 0.1
+    //$Category SelacoEffects
+  Alpha 0.7
+  scale 0.7
+	-NoBlockMap 
+  -NoGravity 
+  +NoSector 
+  -NoInteraction 
+  +CLIENTSIDEONLY
+  states
+  {
+      Spawn:
+      Active:
+        TNT1 A 0
+        TNT1 A 1 ACS_NamedExecuteAlways("particlePhysics", 0, 0, 0, 0)//Check Effects
+        TNT1 A 0 A_JumpIf(Args[1], "Circle")
+        TNT1 AAAAAAAAA 2 A_SpawnItemEx ("BaseEmberLarge", random(0, 400), random(0,400), random(-200, 200), (0.1)*Random(3, 7), random(1,4), (0.1)*Random(1, 10), Random(0, 360), 129, Args[2])
+        stop
+      ParticlePhysics:
+        TNT1 AAAAA 2 A_SpawnItemEx ("BaseEmberLarge", random(0, 100), random(0,100), random(-100, 100), (0.1)*Random(3, 7), random(1,4), (0.1)*Random(1, 10), Random(0, 30), 129, Args[2])
+        stop
+      circle:
+        TNT1 A 0
+        TNT1 A 2 A_SpawnItemEx ("BaseEmberLarge", random(0, 50), random(0,20), random(2, 20), (0.1)*Random(1, 4), 0, (0.1)*Random(1, 10), Random(0, 360), 129, Args[2])
+        Loop
+      active:
+        TNT1 A 1
+        Loop
+  }
+
+}
+
+actor EmberSpawner
+{
+	  //$L
+    scale 0.53
+	  +NoBlockMap +NoGravity +NoSector +NoInteraction -Solid +CLIENTSIDEONLY
+        states
+        {
+        Spawn:
+           Active:
+            TNT1 A 0
+            TNT1 AA 1 A_SpawnItemEx ("GreenBaseEmberLarger", random(100, 490), random(-255, 255), random(-100, 100), (0.1)*Random(-3, 3), random(-2,2), (0.1)*Random(-4, 4), 0, 129, Args[2])
+            TNT1 AA 0 A_SpawnItemEx ("GreenBaseEmberLarger", random(60, 790), random(-155, 155), random(-100, 100), (0.1)*Random(-3, 3), random(-2,2), (0.1)*Random(-4, 4), 0, 129, Args[2])
+            TNT1 AA 0 A_SpawnItemEx ("GreenBaseEmberLarger", random(60, 790), random(-155, 155), random(-100, 100), (0.1)*Random(-3, 3), random(-2,2), (0.1)*Random(-4, 4), 0, 129, Args[2])
+			      stop
+        Circle:
+        	  TNT1 A 0
+        	  TNT1 AAAAA 1 A_SpawnItemEx ("GreenBaseEmberLarger", random(0, 50), random(0,20), random(2, 20), (0.1)*Random(1, 2), 0, (0.1)*Random(1, 10), Random(0, 360), 129, Args[2])
+          Death:
+          Inactive:
+            TNT1 A 0
+            stop
+    }
+}
+
+actor EmberSpawnerExtreme
+{
+	//$L
+Alpha 0.7
+scale 0.53
+	+NoBlockMap +NoGravity +NoSector +NoInteraction -Solid +CLIENTSIDEONLY
+        states
+        {
+        Spawn:
+           Active:
+        	TNT1 A 0
+			TNT1 AAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx ("BaseEmber", random(60, 790), random(-155, 155), random(-100, 100), (0.1)*Random(1, 2), random(1,2), (0.1)*Random(1, 3), 0, 129, Args[2])
+			TNT1 AAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx ("BaseEmber", random(60, 790), random(-155, 155), random(-100, 100), (0.1)*Random(1, 2), random(1,2), (0.1)*Random(1, 3), 0, 129, Args[2])
+			TNT1 AAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx ("BaseEmber", random(60, 790), random(-155, 155), random(-100, 100), (0.1)*Random(1, 2), random(1,2), (0.1)*Random(1, 3), 0, 129, Args[2])
+			stop
+           Circle:
+        	TNT1 A 0
+        	TNT1 AAAAA 1 A_SpawnItemEx ("BaseEmber", random(0, 50), random(0,20), random(2, 20), (0.1)*Random(1, 2), 0, (0.1)*Random(1, 10), Random(0, 360), 129, Args[2])
+        Death:
+		Inactive:
+			TNT1 A 0
+			stop
+        }
+}
+
+actor PurpleEmberSpawner : EmberSpawner
+{
+        states
+        {
+        Spawn:
+           Active:
+        	TNT1 A 0
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAA 1 A_SpawnItemEx ("BaseEmberPurple", random(60, 790), random(-155, 155), random(-100, 100), (0.1)*Random(1, 1), random(3,7), (0.1)*Random(1, 3), 0, 129, Args[2])
+				stop
+        Inactive:
+		TNT1 A 1
+		stop
+        }
+}
+
+actor BlueEmberSpawnerExtreme : EmberSpawner
+{
+        states
+        {
+        Spawn:
+        Active:
+        	TNT1 A 0
+			TNT1 AAA 0 A_SpawnItemEx ("BlueBaseEmberBigLenghty", random(60, 790), random(-155, 155), random(-100, 100), (0.1)*Random(-3, -3), random(-3,-3), (0.1)*Random(-3, 3), 0, 129, Args[2])
+				stop
+        Inactive:
+		TNT1 A 1
+		stop
+        }
+}
+
+actor BlueEmberSpawnerExtremeMenu : EmberSpawner
+{
+        states
+        {
+        Spawn:
+        Active:
+        	TNT1 A 0
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx ("BlueBaseEmberBig", random(0, 40), random(-55, 55), random(-100, 100), (0.1)*Random(1, 2), frandom(1,2), (0.1)*Random(1, 3), 0, 129, Args[2])
+				stop
+        Inactive:
+		TNT1 A 1
+		stop
+        }
+
+}
+
+
+actor BlueEmberSpawnerTight : EmberSpawner
+{
+        states
+        {
+        Spawn:
+           Active:
+        	TNT1 A 0
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx ("BlueBaseEmberBigLenghty", random(-8, 8), random(-8, 8), random(30, 90), (0.1)*Random(1, 2), frandom(-1,-2), (0.1)*Random(1, 3), Random(0, 360), 129, Args[2])
+				stop
+        Inactive:
+		TNT1 A 1
+		stop
+        }
+
+}
+
+
+Actor SteamSpawner : SwitchableDecoration 10000
+{
+	//$Category SelacoEffects
+  Height 5
+  Radius 5
+  Mass 0
+  +NoBlockMap
+  +NoGravity
+  +NoInteraction
+  +ClientSideOnly
+  States
+  {
+  Spawn:
+  Active:
+    TNT1 A 0
+    TNT1 A 0 A_JumpIf(Args[0] == 1, "Down")
+    TNT1 A 0 A_JumpIf(Args[0] > 1, "Forward")
+    TNT1 A 0 A_JumpIf(Args[1] > 0, "UpBurst")
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_5, 1, 1, 1)
+    TNT1 A 1 A_SpawnItemEx("SteamParticle", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    Loop
+  Down:
+    TNT1 A 0 A_JumpIf(Args[1] > 0, "DownBurst")
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_5, 1, 1, 1)
+    TNT1 A 1 A_SpawnDefinedParticle("SteamParticleDefinition", 0, 0, 0, frandom(2.5, 3.2), 0, frandom(-0.5,0.5), Random(-8, 8))
+    Loop
+  Forward:
+    TNT1 A 0 A_JumpIf(Args[1] > 0, "ForwardBurst")
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_5, 1, 1, 1)
+	TNT1 A 0 A_SpawnItemEx("SteamSpawnerForward")
+    stop
+  UpBurst:
+    TNT1 A 1 A_Jump(Args[2]/16, 1)
+    Loop
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Fire", CHAN_AUTO, 0)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticle", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticle", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticle", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    Loop
+  PlayerCough_Forward:
+	TNT1 A 0 ACS_NamedExecute("playercough", 0)
+	goto Forward
+  DownBurst:
+    TNT1 A 1 A_Jump(Args[2]/16, 1)
+    Loop
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Fire", CHAN_AUTO, 0)
+    TNT1 AAAAAAAAAA 1 A_SpawnDefinedParticle("SteamParticleDefinition", 0, 0, 0, frandom(2.5, 3.2), 0, frandom(-0.5,0.5), Random(-8, 8))
+    TNT1 AAAAAAAAAA 1 A_SpawnDefinedParticle("SteamParticleDefinition", 0, 0, 0, frandom(2.5, 3.2), 0, frandom(-0.5,0.5), Random(-8, 8))
+    TNT1 AAAAAAAAAA 1 A_SpawnDefinedParticle("SteamParticleDefinition", 0, 0, 0, frandom(2.5, 3.2), 0, frandom(-0.5,0.5), Random(-8, 8))
+    Loop
+  ForwardBurst:
+    TNT1 A 1 A_Jump(Args[2]/16, 1)
+    Loop
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Fire", CHAN_AUTO, 0)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticle", 0, 0, 0, (0.1)*Random(35, 40), 0, (0.1)*Random(-5, 5), Random(-8, 8), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticle", 0, 0, 0, (0.1)*Random(35, 40), 0, (0.1)*Random(-5, 5), Random(-8, 8), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticle", 0, 0, 0, (0.1)*Random(35, 40), 0, (0.1)*Random(-5, 5), Random(-8, 8), 128)
+    Loop
+  Inactive:
+    TNT1 A 1 A_StopSoundEx(CHAN_AUTO)
+    TNT1 A 1
+    Goto Inactive+1
+  Death:
+	Stop
+  }
+}
+
+Actor SteamSpawnerBig : SteamSpawner 10064 //DoomEdNum Here
+{
+	//$Category SelacoEffects
+  Height 5
+  Radius 5
+  Mass 0
+  +NoBlockMap
+  +NoGravity
+  +NoInteraction
+  +ClientSideOnly
+  States
+  {
+  Spawn:
+  Active:
+    TNT1 A 0
+    TNT1 A 0 A_JumpIf(Args[0] == 1, "Down")
+    TNT1 A 0 A_JumpIf(Args[0] > 1, "Forward")
+    TNT1 A 0 A_JumpIf(Args[1] > 0, "UpBurst")
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_AUTO, 1)
+    TNT1 A 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    Loop
+  Down:
+    TNT1 A 0 A_JumpIf(Args[1] > 0, "DownBurst")
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_AUTO, 1)
+    TNT1 A 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 0, (0.1)*Random(0, 4), 0, (-0.1)*Random(35, 40), Random(0, 360), 128)
+    Loop
+  Forward:
+    TNT1 A 0 A_JumpIf(Args[1] > 0, "ForwardBurst")
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_AUTO, 1)
+	TNT1 A 0 A_SpawnItemEx("SteamSpawnerForward")
+    stop
+  UpBurst:
+    TNT1 A 1 A_Jump(Args[2]/16, 1)
+    Loop
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Fire", CHAN_AUTO, 0)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    Loop
+  PlayerCough_Forward:
+	goto Forward
+  DownBurst:
+    TNT1 A 1 A_Jump(Args[2]/16, 1)
+    Loop
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Fire", CHAN_AUTO, 0)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 0, (0.1)*Random(0, 4), 0, (-0.1)*Random(35, 40), Random(0, 360), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 0, (0.1)*Random(0, 4), 0, (-0.1)*Random(35, 40), Random(0, 360), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 0, (0.1)*Random(0, 4), 0, (-0.1)*Random(35, 40), Random(0, 360), 128)
+    Loop
+  ForwardBurst:
+    TNT1 A 1 A_Jump(Args[2]/16, 1)
+    Loop
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Fire", CHAN_AUTO, 0)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 0, (0.1)*Random(35, 40), 0, (0.1)*Random(-5, 5), Random(-8, 8), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 0, (0.1)*Random(35, 40), 0, (0.1)*Random(-5, 5), Random(-8, 8), 128)
+    TNT1 AAAAAAAAAA 1 A_SpawnItemEx("SteamParticleBig", 0, 0, 0, (0.1)*Random(35, 40), 0, (0.1)*Random(-5, 5), Random(-8, 8), 128)
+    Loop
+  Inactive:
+    TNT1 A 1 A_StopSoundEx(CHAN_AUTO)
+    TNT1 A 1
+    Goto Inactive+1
+  Death:
+	Stop
+  }
+}
+
+Actor SteamSpawnerDownwards : SteamSpawner
+{
+	//$Category SelacoEffects
+  Height 5
+  Radius 5
+  Mass 0
+  States
+  {
+  Spawn:
+  Active:
+    TNT1 A 0
+    TNT1 A 0 A_JumpIf(256, "Down")
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_AUTO, 1)
+    TNT1 A 1 A_SpawnItemEx("SteamParticle", 0, 0, 1, (0.1)*Random(0, 4), 0, (0.1)*Random(35, 40), Random(0, 360), 128)
+    Loop
+  Down:
+    TNT1 A 0 A_JumpIf(Args[1] > 0, "DownBurst")
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_AUTO, 1)
+    TNT1 A 1 A_SpawnDefinedParticle("SteamParticleDefinition", 0, 0, 0, frandom(2.5, 3.2), 0, frandom(-0.5,0.5), Random(-8, 8))
+    Loop
+  Inactive:
+    TNT1 A 1 A_StopSoundEx(CHAN_AUTO)
+    TNT1 A 1
+    Goto Inactive+1
+  }
+}
+
+Actor SteamSpawnerForward : SteamSpawner 29483
+{
+	//$Category SelacoEffects
+  Height 5
+  Radius 5
+  Mass 0
+  States
+  {
+  Spawn:
+    TNT1 A 0
+    TNT1 A 0 A_PlaySound("Steam/Loop", CHAN_AUTO, 1.0, 1)
+    goto Forward
+  Forward:
+    TNT1 A 0 A_JumpIf(Args[3] > 0, 2)
+    TNT1 A 1 A_SpawnDefinedParticle("SteamParticleDefinition", 0, 0, 0, frandom(2.5, 3.2), 0, frandom(-0.5,0.5), Random(-8, 8))
+    loop
+	goto Forward
+  Inactive:
+    TNT1 A 1 A_StopSoundEx(CHAN_AUTO)
+    TNT1 A 1
+    Goto Inactive+1
+  }
+}
+
+Actor HandDryparticle : SteamParticle
+	//$Category SelacoEffects
+{
+  Height 5
+  Radius 5
+  +Missile
+  +NoGravity
+  +NoBlockMap
+  -solid
+  RenderStyle Add
+  Scale 0.26
+  Alpha 0.15
+  states {
+  Spawn:
+    STEM A 2 A_SetTranslucent(0.25, 1)
+    STEM B 2 A_SetTranslucent(0.2, 1)
+    STEM C 2 A_SetTranslucent(0.15, 1)
+    STEM D 2 A_SetTranslucent(0.1, 1)
+    STEM E 2 A_SetTranslucent(0.05, 1)
+    Stop
+  }
+}
+
+Actor SteamParticleBig : SteamParticle
+	//$Category SelacoEffects
+{
+  Height 1
+  Radius 1
+  +Missile
+  +NoGravity
+  +NoBlockMap
+  RenderStyle Add
+  xscale 1.2
+  yscale 0.9
+  Alpha 0.15
+}

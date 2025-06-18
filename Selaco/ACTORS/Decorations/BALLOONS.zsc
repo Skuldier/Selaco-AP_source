@@ -1,0 +1,94 @@
+class BalloonBase : SelacoActor {
+	default {
+		+SHOOTABLE
+		+SOLID
+		+NOGRAVITY
+		-PUSHABLE
+		-Usespecial
+        -NOBLOOD;
+		+Bloodsplatter
+		+noblooddecals
+		BloodType "";
+		health 10;
+		scale 0.7;
+		height 49;
+		radius 13;
+		mass 250;
+		BloodType "BulletImpactSmoke", "BulletImpactSmoke", "BulletImpactSmoke";
+	}
+	states {
+		Spawn:
+			VOXE L 0;
+			VOXE L -1;
+			loop;
+		Xdeath:
+		Death:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("dest/breakballoon", CHAN_AUTO, 1.0, 0, 0.6, 0, frandom(0.8,1.0));
+			stop;
+	}
+}
+
+class RandomBalloon : actor {
+	states {
+		Spawn:
+			VOXE L 0;
+			VOXE L 0 A_JUMP(256, "Balloon_GetWellSoon", "Balloon_1up", "Balloon_basic_blue", "Balloon_basic_red", "Balloon_basic_grey", "Balloon_basic_green", "Balloon_basic_pink", "Balloon_heart");
+		Balloon_GetWellSoon:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_GetWellSoon");
+			stop;
+		Balloon_1up:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_1up");
+			stop;		
+		Balloon_basic_blue:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_basic_blue");
+			stop;
+		Balloon_basic_red:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_basic_red");
+			stop;
+		Balloon_basic_grey:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_basic_grey");
+			stop;
+		Balloon_basic_green:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_basic_green");
+			stop;
+		Balloon_basic_pink:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_basic_pink");
+			stop;
+		Balloon_heart:
+			TNT1 A 0 A_SPAWNITEMEX("Balloon_heart");
+			stop;
+	}
+}
+
+class Balloon_GetWellSoon : BalloonBase {
+
+}
+
+class Balloon_1up : BalloonBase {
+	
+}
+
+class Balloon_basic_blue : BalloonBase {
+	
+}
+
+class Balloon_basic_red : BalloonBase {
+	
+}
+
+class Balloon_basic_grey : BalloonBase {
+	
+}
+
+class Balloon_basic_green : BalloonBase {
+	
+}
+
+class Balloon_basic_pink : BalloonBase {
+	
+}
+
+class Balloon_heart : BalloonBase {
+	
+}

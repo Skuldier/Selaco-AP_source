@@ -1,0 +1,3317 @@
+///////////////////////////////////////////////
+// +++ THIS FILE HAS BEEN STRIPPED DOWN FOR DEMO PURPOSES. ALL CONTENTS NOT REQUIRED FOR THE DEMO IS NOT IN HERE. +++
+///////////////////////////////////////////////
+#include "ACTORS/AI/AI_Controllers/EnemySoldierChase.zsc"
+
+class IsFrozen : Inventory {
+	default {
+		Inventory.maxamount 1;
+	}
+}
+
+class EverSeenThePlayer : Inventory
+{
+	default {
+         inventory.maxamount 1;
+	}
+}
+
+class isInCombatMode : Inventory {
+	default {
+		Inventory.maxamount 1;
+	}
+}
+
+class GrenadeDestination : SelacoEnemy {
+	default {
+		-SelacoEnemy.AllowRandomizerTier
+		+NOINTERACTION
+		+SHOOTABLE
+		RenderStyle "none";
+		scale 0.4;
+	}
+
+	states {
+		Spawn:
+			UNKN A 160 bright;
+			stop;
+	}
+}
+
+
+// Primarily used for icons to get debugging information for AI
+class AINodes : SelacoActor {
+    private int debuggerFlags;
+    flagdef activateDebugMode : debuggerFlags, 1;
+
+	override void beginPlay()
+	{
+		super.beginPlay();
+		if(bActivateDebugMode)
+		{
+			alpha = 1.0;
+		}
+	}
+
+	default {
+		//renderstyle "Translucent";
+		+SelacoActor.PreventSleep
+		-AINodes.activateDebugMode; // If you want to debug AI nodes, comment this out.
+		+NOGRAVITY;
+		alpha 1.0; 
+		scale 0.2;
+	}
+}
+
+mixin class EnemySoldierFunctions {
+    enum DISTANCE_TYPES {
+        CHK_CLOSEST,
+        CHK_FURTHEST,
+    }
+
+	enum SPOT_TYPES {
+		SPOT_FLASHLIGHT, 
+		SPOT_LIGHT,
+	}
+
+
+	// Grenade Target
+	actor grenadeArc;
+	bool grenadeArcSuccess;
+	bool user_sentrymode;
+	bool ignoreStrafenode; // Used when we want soldiers to strafe despite LOS with the target
+	bool isAmmoBearer;
+	bool isArmorBearer;
+	private int masterEnemyFlags;
+	bool mayNotTalk;
+	bool isLayingDown;
+
+	bool forceDefensiveTactics;
+
+	string causeOfDeath;
+
+	vector3 spawnCoordinates;
+
+	Array<State> possibleActions;
+
+	int calloutTimer;
+	int alertNum;
+	int spotted_Flashlight; // Used to detect Flashlights
+	int spotted_lamp; 	// Used to detect lights being turned on or off
+	int unconventionalSpot; // This is increment when the player is spot using an unconvential method (e.g flashlights or sounds). This is then used to detect the next action.
+	float voicePitch;
+    // OVERSEER
+    string alienName;		 	// Used to identify aliens while debugging.
+	BattleOverseer overseer; 	// Link to overseer, null if no overseer assigned
+	BattleSquad	squad;			// Our invidual squad, handled by the overseer
+	int squadID;				// Squad index in overseer
+	SpeechHandler handler;
+	int memberID;				// Member ID of his squad
+
+   flagdef Suppressor : masterEnemyFlags, 0; // For engineers: They cannot rush!
+   flagdef DontSpeak   : masterEnemyFlags, 1;
+   flagdef SquadLeader	: masterEnemyFlags, 2;
+   int speechDelay; // When the soldier is done talking, a short delay occurs that needs to hit zero before the soldier is allow to speak again.
+   LookExParams SearchParamsCloseRange;
+   LookExParams SearchParamsFarRange;
+
+	// If the player has their flashlight on near an enemy, alert allies.
+	virtual void SPOTPLAYER_Flashlight(int scriptNumber = 25, SPOT_TYPES spotType = SPOT_FLASHLIGHT) {
+		if(!target) {
+			calloutTimer--; // Done so the one who sees the light responds first
+			unconventionalSpot = 6;
+			alertNum = scriptNumber;
+		}
+	}
+
+	// Avoids using unneccessary ALERTMONSTER calls by making it squad-based on a cooldown.
+	virtual void S_AlertEnemies()
+	{
+		if(squad)
+		{
+			squad.sendAlert(self);
+			return;
+		}
+
+		// If no squad, alert monsters.
+		A_ALERTMONSTERS();
+	}
+
+	// Returns true if the height difference between this actor and their target exceeds the given number
+	// 'Perspective' decides who to check for. If we check for target, 'True' is returned if target is on a higher positon.
+	virtual bool hasHeightAdvantage(int heightRequirement = 80, actor perspective = null) {
+		int heightdifference;
+		// prevent crashes if no target
+		if(target) {
+			if (perspective == null) {
+				heightDifference = self.pos.z - target.pos.z;
+			} else {
+				heightDifference = perspective.pos.z - self.pos.z;
+			}
+			if(heightDifference >= heightRequirement) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	virtual void playRadioSound() {
+		if (random(0,14) == 1) {
+			A_PLAYSOUND("soldier/radio", CHAN_AUTO, 0.2, 0, 1.0, 0, frandom(0.85,1.02));
+		}
+	}
+
+	virtual bool CheckIfFacingWall(int range = 250) {
+		String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle,range, pitch,offsetz: height,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall) {
+			return true;
+		} 
+		return false;
+	}
+
+	// //-----------//-----------//-----------//----------- //
+    virtual void spawnMeatChunks() {
+	 	A_SPAWNITEMEX("PurpleGoreChunk", frandom(-10,10), frandom(-10,10), frandom(10,30), frandom(3,5), 0, frandom(2,5), angle:frandom(0,360));
+        A_PlaySound("dest/headblow",CHAN_AUTO, 0.7, 0, 1.0, false, frandom(0.86, 1.15));
+        A_SpawnProjectile("xdeath1Alien", 40, 0, random (0, 360), 2, random (-10, -160));
+        A_SpawnProjectile ("XDeath3Alien", 55, random(-30,30), random (0, 360), 2, random (30, 180));
+        A_SpawnDefinedParticleProjectile("PurpleSplatterEffectBigDefinition", 32, random(-30,30), random (170, 190), 2, random (0, 40));
+        A_SpawnDefinedParticleProjectile("PurpleSplatterEffectBigDefinition", 32, random(-30,30), random (170, 190), 2, random (0, 40));
+        A_SpawnDefinedParticleProjectile("PurpleSplatterEffectBigDefinition", 32, random(-30,30), random (170, 190), 2, random (0, 40));
+        A_SpawnDefinedParticle("SuperGoreMistPurpleSmallDefinition");
+    }
+
+
+	virtual void addCornerSlime(int amount = 1) {
+		if(CheckProximity("Dawn", 150) && getCvar("g_screenbloodeffects") == 1) {
+			ACS_NamedExecuteAlways("SpawnSlimeScreen", 0, amount);
+		}
+	}
+}
+
+class EnemySoldier : SelacoEnemy
+{
+
+    int getRateOfFire()
+    {
+        int adjustedRateOfFire = weapon_rateofFire;
+        if(frostTimer > 0)
+        {
+            adjustedRateOfFire+=3;
+        }
+        return adjustedRateOfFire;
+    }
+
+    static const string AlienFirstName[] = {
+        "Zorthak", "Glimmox", "Vorblax", "Xandor", "Draxus", "Nyxar", "Zarkon",
+        "Lunaris", "Krulok", "Zypher", "Vexor", "Quilrax", "Zyglon", "Korvax",
+        "Glozak", "Xylon", "Zarvox", "Gorkon", "Vylar", "Nebulon", "Jaxor",
+        "Zylon", "Xarlon", "Blazar", "Kryptor", "Droxan", "Zendor", "Vorkan",
+        "Klyntor", "Zorblax", "Vylar", "Xandar", "Nyxar", "Zypher", "Draxus",
+        "Zarvox", "Quilrax", "Vexor", "Glozak", "Korvax", "Zyglon", "Gorkon",
+        "Lunaris", "Xylon", "Nebulon", "Krulok", "Jaxor", "Zylon", "Vylar",
+        "Xarlon", "Blazar", "Kryptor", "Droxan", "Zendor", "Vorkan", "Klyntor",
+        "Zorblax", "Glimmox", "Vorblax", "Xandor", "Draxus", "Nyxar", "Zarkon",
+        "Lunaris", "Krulok", "Zypher", "Vexor", "Quilrax", "Zyglon", "Korvax",
+        "Glozak", "Xylon", "Zarvox", "Gorkon", "Vylar", "Nebulon", "Jaxor",
+        "Zylon", "Xarlon", "Blazar", "Kryptor", "Droxan", "Zendor", "Vorkan",
+        "Klyntor", "Zorblax", "Vylar", "Xandar", "Nyxar", "Zypher", "Draxus",
+        "Zarvox", "Quilrax", "Vexor", "Glozak", "Korvax", "Zyglon", "Gorkon",
+        "Lunaris", "Xylon", "Nebulon", "Krulok", "Jaxor", "Zylon", "Vylar",
+        "Xarlon", "Blazar", "Kryptor", "Droxan", "Zendor", "Vorkan", "Klyntor", "Cockatrice"
+    };
+
+    static const string AlienLastName[] = {
+        "Vraxdon", "Zylok", "Krynnor", "Thraxus", "Xalgar", "Gorvax", "Zoltan",
+        "Drakthar", "Nexor", "Vexor", "Zyndor", "Gravax", "Korvax", "Vexxon",
+        "Zygar", "Draxus", "Xylon", "Zarvox", "Nyxar", "Zorvax", "Krallax",
+        "Vorgron", "Xyndor", "Kraxus", "Jorvax", "Xylox", "Zarvok", "Nyxor",
+        "Graxus", "Zyndar", "Krallax", "Vexor", "Zarlon", "Vorgrax", "Xyndar",
+        "Thornax", "Vraxor", "Zarvax", "Graxor", "Zygnar", "Vorlon", "Xygar",
+        "Nexor", "Zarvok", "Thraxus", "Vraxar", "Xygnar", "Korlon", "Nyxar",
+        "Zoltan", "Zorlon", "Krallax", "Jorlon", "Thraxus", "Zyndor", "Xylon",
+        "Vorgrax", "Zarvax", "Krynnor", "Vraxar", "Zylox", "Gravax", "Nexor",
+        "Xylon", "Zoltan", "Gorvax", "Zylok", "Korvax", "Vexor", "Zygar",
+        "Drakthar", "Nexor", "Vexor", "Zyndor", "Gravax", "Korvax", "Vexxon",
+        "Zygar", "Draxus", "Xylon", "Zarvox", "Nyxar", "Zorvax", "Krallax",
+        "Vorgron", "Xyndor", "Kraxus", "Jorvax", "Xylox", "Zarvok", "Nyxor",
+        "Graxus", "Zyndar", "Krallax", "Vexor", "Zarlon", "Vorgrax", "Xyndar",
+        "Thornax", "Vraxor", "Zarvax", "Graxor", "Zygnar", "Vorlon", "Xygar",
+        "Nexor", "Zarvok", "Thraxus", "Vraxar", "Xygnar", "Korlon", "Nyxar",
+        "Zoltan", "Zorlon", "Krallax", "Jorlon", "Thraxus", "Zyndor", "Xylon",
+        "Vorgrax", "Zarvax", "Krynnor", "Vraxar", "Zylox", "Gravax", "Nexor",
+        "Xylon", "Zoltan", "Gorvax", "Zylok"
+    };
+
+	void boneSnap()
+	{
+		if(random(0,2) == 0)
+		{
+			A_PLAYSOUND("bone/snap", chan_auto, 0.7, 0, 0.9);
+		}
+	}
+
+	void doReloadDecision() {
+		if(currentAmmo <= magazineSize * 0.25 && random(0,100) <= 35 && !isTargetVisible()) {
+			SetStateLabel("ReloadWeapon");
+			return;
+		}
+	}
+
+	bool grenadeConditionsMet;
+	virtual bool shouldThrowGrenade() {
+		String hittex;
+		FLineTraceData RemoteRay;
+		grenadeConditionsMet = true;
+		actor beaconSpot;
+		bool targetIsDawnsAlly;
+		int beaconDistance;
+
+		if(!squad.playerPositionKnown) {
+			return false;
+		}
+
+		// Required Invasion Tier?
+		if(!checkInvasionTier(INVTIER_GRENADE))
+		{
+			return false;	
+		}
+
+		// Return early if there's no target
+		if(!target) {
+			return false;
+		}
+
+		// Is the target a friend of Dawn?
+		if(!(target is "Dawn")) {
+			targetIsDawnsAlly = true;
+			beaconDistance = distance3D(target);
+		}
+
+		// Can we see the beacon? (Only if Dawn is the target)
+		if(!targetIsDawnsAlly) {
+			if(self is "EnemySoldier" && (squad.visibleLastKnownPosition(EnemySoldier(self))) )
+			{
+				beaconSpot = squad.overseer.spotbeacon;
+				beaconDistance = distance3D(beaconSpot);
+			} else {
+				return false;
+			}
+		}
+		
+		// If we can see the player, update beacon before throwing
+		if(checkSight(target))
+		{
+			squad.overseer.moveSpotBeacon(target.pos);
+		}
+		
+		// Do we have a grenade?
+		if(grenadeCount == 0)
+		{
+			return false;
+		}
+
+		// Check Distance between Beacon and Thrower
+		if(!targetIsDawnsAlly && (beaconDistance < MIN_GRENADE_RANGE || beaconDistance > MAX_GRENADE_RANGE))
+		{
+			return false;
+		}
+
+		// Make sure there is not an object too close to the thrower.
+		// Check if there is anything between Dawn and the thrower. Ignore objects since these can be destroyed.
+		if(CheckLOF(CLOFF_JUMPOBJECT, 100, 20, 0, 0)) {
+			return false;
+		}
+
+		// Check for minimal safe distance
+		if(!targetIsDawnsAlly && CheckProximity("Dawn", 350)) {
+			return false;
+		}
+
+		// Check for walls
+		// Distance between soldier and beacon
+		if(!(target is "Dawn")) {
+			beaconSpot = target;
+		}
+
+		A_FACE(beaconSpot);
+		LineTrace(angle,beaconDistance, pitch,offsetz: height+12,offsetside:-10,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall || (RemoteRay.HitType == TRACE_HitActor && RemoteRay.HitActor.bSolid)) {
+			return false;
+		} 
+
+		// Spawn a marker at the target, then check for aliens who are danger close
+		actor grenadeDestination;
+		bool spawnDestinationSuccess;
+		[spawnDestinationSuccess, grenadeDestination] = beaconSpot.A_SPAWNITEMEX("GrenadeDestination");
+
+		if(spawnDestinationSuccess && grenadeConditionsMet) 
+		{
+			let grenadeFunctions = GrenadeDestination(grenadeDestination);
+			if(grenadeFunctions.findNearbyAlertedAlien(400.0)) 
+			{
+				// Alien near taret, deny grenade.
+				grenadeConditionsMet = false;
+				grenadeDestination.destroy();
+			} 
+			else 
+			{
+				// No aliens near target, safe to throw!
+				target = grenadeDestination;
+			}
+		}
+
+		if(grenadeConditionsMet) 
+		{
+			return true;
+		}
+		return false;
+	}
+
+
+	bool canSpeak;
+	string displayName, grenadeType;
+	actor flashLightActor;
+	const WEAPON_PART_DROP_CHANCE = 5;
+	const FALLDAMAGE_THRESHOLD = -30;
+	const RAILGUN_EXPLOSIVE_DEATH_CHANCE = 2.5;
+	const STUMBLE_COOLDOWN_TIME = 105;
+	const SHOTGUN_GIBBING_CHANCE = 30;
+
+	const HEAR_IGNORE_BUFFER = TICRATE * 10;
+
+	const MIN_GRENADE_RANGE = 580;
+	const MAX_GRENADE_RANGE = 1250;
+
+	const SENTRYMODE_THRESHOLD = 5; // How far should the enemy be removed from his spawn position before Sentry Mode is turned off
+    int speechOffset;           // I dont like this much. But for now we use a sloppy offset to recognize that enemy type should say something for the Speec Handler.
+	property SpeechOffset		: 	speechOffset;
+	property GrenadeType		: 	grenadeType;
+	property Aggressiveness 	:	aggressiveness;
+	property EvadeChance 		:	evadeChance;
+	property CrouchedShotChance :	CrouchedShotChance;
+	property AccurateShotChance :	accurateShotChance;
+	property SprayShotChance	:	sprayShotChance;
+	property GadgetChance		:	gadgetChance;
+	property CombatDistance		:	combatDistance;
+	property StrafeChance		:	strafeChance;
+	property RateOfFire			: 	rateOfFire;
+	property displayName		: 	displayName;
+	property ShieldCount		: 	shieldCount;
+	property GrenadeCount		:	grenadeCount;
+	property MaxburstLength		: 	maxburstLength;
+	//property WeaponProjectileType	: 	 WeaponProjectileType;
+	property MagazineSize 		: magazineSize;
+
+	private int aiFlags;	
+	flagdef Communicator   			: aiFlags, 0;
+	flagdef AllowSmartReloading   	: aiFlags, 1;	// Makes enemies reload when they get out of side. This is temporarily disabled because it felt a little jank.
+	flagdef KeepDistance   			: aiFlags, 2;
+	flagdef Armored					: aiFlags, 3;  // Does currently nothing but adjust Blood Splatters. This will be implemented in Chapter 2.
+	
+	mixin EnemySoldierFunctions;
+	mixin Pathfinding;
+	mixin CVARBuddy;
+	mixin AI_StrafeNodeSystem;
+
+	// After reaching no HP, a random death animation will be selected depending on the cause of death.
+	bool forceCustomAnimation; // Whenever we need to trigger a specific dead animation, set this to true so the lists are ignored.
+	static const string regularDeathAnimations[] = {"DeathAlienRegular1", "RiflemanDeadLeg", "DeathAlienRegular2", "DeathAlienRegular3", "DeathAlienRegular4", "DeathAlien_LegSweep", "DeathAlien_SpinDrop", "deadalien9", "DeadRiflemanBack"};
+	static const string headshotDeathAnimations[] = {"DeadAlienHeadshot4", "DeadAlienHeadshot3", "DeadAlienHeadshot2", "DeathAlienHead2"};
+	static const string wallSmashDeathAnimations[] = {"DeathAlien_LegSweep"};
+	static const string nailgunDeathAnimation[] = {"DeadAlien_Nailgun1"};
+	static const string shotgunDeathAnimations[] = {"DeathRiflemanOverkill4", "DeathAlienShotgunBackflip", "DEATH_EPICSPINOFDEATH", "DeathAlien11", "DeadAlienCrawler","DeathRiflemanOverkill4", "DeathAlienShotgunBackflip", "DEATH_EPICSPINOFDEATH", "DeathAlien11"}; 	// We need more of these ASAP.
+	static const string sittingDeathAnimation[] = {"RIFLEMAN_WALLSIT"};
+	static const string gibbingAnimation[] = {"RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "RIFLEMAN_GIBBED", "DeadAlienCrawler"};
+	static const string meleeDeathAnimation[] = {"DEATH_EPICSPINOFDEATHNOBLOOD"};
+	static const string plasmaDeathAnimation[] = {"SOLDIER_PLASMARIFLED"};
+
+	// COMBAT PREFERENCES //
+	int sprayShotChance,	originalSprayShotChance; 		// Chance for the enemy to do Spray 'n Pray shots.
+	int accurateShotChance, originalAccurateShotChance; 	// Chance for the enemy to do aimed shots.
+	int crouchedShotChance, originalCrouchedShotChance; 	// Chance for the enemy to do crouched shots.
+	int combatDistance, 	originalCombatDistance; 		// How close should the target be before moving backwards
+	int aggressiveness,		originalAggressiveness; 		// The chance for the soldier to move towards the player while shooting
+	int evadeChance, 		originalEvadeChance; 			// Chance for the enemy to perform an evasive manouvre when feeling in danger
+	int gadgetChance;		//	Chance for soldier to use it's deployable (e.g Turret, Shield)
+	int rateOfFire; 	// LOWER IS FASTER.
+
+	bool originalSuppressor;
+	bool originalKeepDistance;
+
+	int defaultHeight; // Selaco changes the height of soldiers quite often. This is used to store their default height to easily revert.
+	int defaultRadius;
+	int targetTime; // How long did the actor has a target?
+	int strafeAttempts; // How often a strafe action has been attemped
+
+	 // Used to control things for when buffed by a Squad Leader
+	bool squadLeaderBuff;
+	actor squadMemberRing;
+	bool squadMemberRingSuccess;
+	actor squadMemberIcon;
+	bool squadMemberIconSuccess;
+
+	int shieldCount;
+	int animationInterval;
+	int animationFrame;
+	float strafeSpeed;
+	int checkStrafeDirection;
+	int strafeFrames;
+
+	meta string WeaponProjectileType;
+	meta string SPRITE_Walking; 		// SPRITE ANIMATION FOR WALKING.
+	meta string SPRITE_Idle; 			// STANDING
+	meta string SPRITE_Grenade; 		// Animation for grenade throws
+	meta string SPRITE_Pain; 			// PAIN
+	meta string SPRITE_PainHeadshot; 	// Taking headshots
+	meta string SPRITE_PainShoulder1;
+	meta string SPRITE_PainShoulder2;
+	meta string SPRITE_Reload; 
+	meta string SPRITE_CrouchFire;
+	meta string SPRITE_FireAimed;
+	meta string SPRITE_StumbleForward; 	// Stumbles trigger when the enemy is moving into a certain direction 
+	meta string SPRITE_StumbleRight;
+	meta string SPRITE_StumbleLeft;
+	meta string SPRITE_StrafeFiring;
+	meta string SPRITE_AlertAllies; 	// No longer in use. 
+	meta string SPRITE_Hipfiring;
+	meta string SPRITE_HipWalking;		// Moving forward while hipfiring
+	meta string SPRITE_MeleeFly; 		// Enemy got hit, goes flying.
+	meta string SPRITE_Fallingdown;
+	meta string SPRITE_NailgunDeath;
+	meta string SPRITE_DodgeGrenade;
+	meta string SPRITE_Shocked;			// Tased with a Shock Barrel or SMG
+
+	property WeaponProjectileType 	: WeaponProjectileType;
+	property SPRITE_Walking 		: SPRITE_Walking;
+	property SPRITE_Idle 			: SPRITE_Idle;
+	property SPRITE_Grenade 		: SPRITE_Grenade;
+	property SPRITE_Pain 			: SPRITE_Pain;
+	property SPRITE_PainHeadshot 	: SPRITE_PainHeadshot;
+	property SPRITE_PainShoulder1 	: SPRITE_PainShoulder1;
+	property SPRITE_PainShoulder2 	: SPRITE_PainShoulder2;
+	property SPRITE_Reload 			: SPRITE_Reload; 
+	property SPRITE_CrouchFire 		: SPRITE_CrouchFire;
+	property SPRITE_FireAimed 		: SPRITE_FireAimed;
+	property SPRITE_StumbleForward 	: SPRITE_StumbleForward; 
+	property SPRITE_StumbleRight 	: SPRITE_StumbleRight;
+	property SPRITE_StumbleLeft 	: SPRITE_StumbleLeft;
+	property SPRITE_StrafeFiring 	: SPRITE_StrafeFiring;
+	property SPRITE_AlertAllies 	: SPRITE_AlertAllies;
+	property SPRITE_Hipfiring 		: SPRITE_Hipfiring;
+	property SPRITE_HipWalking 		: SPRITE_HipWalking;
+	property SPRITE_MeleeFly 		: SPRITE_MeleeFly;
+	property SPRITE_Fallingdown 	: SPRITE_Fallingdown;
+	property SPRITE_NailgunDeath 	: SPRITE_NailgunDeath;
+	property SPRITE_DodgeGrenade 	: SPRITE_DodgeGrenade;
+	property SPRITE_Shocked 		: SPRITE_Shocked;
+
+	bool isOnFloor;
+	bool strafesLeft;
+	bool isSilentKill;
+	bool chargingForward;
+	bool strafesRight;
+	bool heavyPain; // Used when hit by a powerful gun, like the cricket.
+	bool noStrafeFiring; // When we want the target to strafe without doing shooty shooty.
+	bool wallsmashed; // Enemy recently smashed into a wall. Used to prevent the code from executing too many times.
+	bool isFrightened;
+	bool isThrowingGrenade;
+	bool isFalling;
+	int idleType;		// 0 - Patrol  1 - Return Home
+	int storedStepheight;
+	int stateTic; // Used to count the tics of each state to time things like enemy footsteps
+	int magazineSize; // How many shots can the enemy fire before being having to complete a reload state?
+	int ShouldItShoot; // Decides if the soldier should fire while strafing or not+
+	int delayer; // Used to delay a certain action within states
+	int damagedByEnhancedMelee; // The weapon Dawn currently uses has the Melee Upgrade applied to it.
+	int strafeChance;
+	int grenadeCount;
+	int burstOffset;
+	int startinghealth;
+
+	bool usesTempStance; // Used to keep track of behavior changes. Being in this stance for a certain amount of time will revert the soldier back to previous values
+	const TEMP_STANCE_TIME = 35*15; // The amount of seconds we allow a dude to chance stance.
+	int tempStanceTimer; 
+	
+	override void applyHardboiled()
+	{
+		super.applyHardboiled();
+		grenadeChance*=	HARDBOILED_GADGETCHANCE_MULTI; 	// MORE GRENADES
+		gadgetChance*=	HARDBOILED_GADGETCHANCE_MULTI; 	// MOAR ABILITIES
+		strafeChance*=	HARDBOILED_STRAFECHANCE_MULTI; 	// MOAR STRAFING
+		speed+=			HARDBOILED_SPEED_ADDITION;			// MOAR SPEED
+	}
+
+	// Restore original spawners given at spawning
+	virtual void RestoreCombatStance()
+	{
+		sprayShotChance =	 originalSprayShotChance; 	
+		accurateShotChance = originalAccurateShotChance;
+		crouchedShotChance = originalCrouchedShotChance;
+		combatDistance = 	 originalCombatDistance; 		
+		aggressiveness = 	 originalAggressiveness; 	
+		evadeChance = 		 originalEvadeChance; 			
+		bKeepDistance =		 originalKeepDistance;
+		bSuppressor	=		originalSuppressor;
+	}
+
+	// Switch the enemy to a more aggressive stance
+	virtual void stance_Aggressive()
+	{
+		usesTempStance = true;
+		combatDistance = 100;
+		bKeepDistance = false;
+		aggressiveness = 200;
+		accurateShotChance = 25;
+		sprayShotChance = 25;
+	}
+
+	// Switch the enemy to a defensive
+	virtual void stance_Defensive()
+	{
+		talk(SOLDIER_RETREAT);
+		usesTempStance = true;
+		combatDistance = random(700,1000);
+		bKeepDistance = true;
+		aggressiveness = 35;
+	}
+
+	// Switch the enemy to a strafe-heavy stance.
+	virtual void stance_QuakeMode()
+	{
+		usesTempStance = true;
+		strafeChance = 190;
+		crouchedShotChance = 5;
+		bKeepDistance = false;
+		aggressiveness = 170;
+	}
+
+	override void playBloodSounds(Actor inflictor)
+	{
+		float fleshVolume = 0.9;
+		if(bArmored) 
+		{
+			fleshVolume-=0.25;
+			A_PlaySound("impact/metalArmor", CHAN_6, 0.4, 0, 0.8);
+		}
+		if(inflictor)
+		{
+			if(inflictor is "ShotgunPuff")
+			{
+				A_Playsound("impact/bonehit", CHAN_7, 0.5, pitch:frandom(0.7,1.0));
+			}
+			if(inflictor is "HitPuffExtreme")
+			{
+				A_Playsound("impact/bonehit", CHAN_7, 0.4, pitch:frandom(1.3,1.6));
+			}
+		}
+		A_PlaySound("impact/flesh", CHAN_5, fleshVolume, 0, 0.8);
+		
+	}
+
+	// Because it was migrated from A_JUMP, the chance is 0-256.
+	virtual void addAction(int chance, State stateString)
+	{
+		if(random(0,256) <= chance)
+		{
+			possibleActions.push(stateString);
+		}
+	}
+
+	virtual void giveAmmoBearer() {
+		if(!allyIcon) {
+			bool succ;
+			[succ, allyIcon] = A_SPAWNITEMEX("AmmoBearerIcon", flags:SXF_SETMASTER);
+			isAmmoBearer = true;
+		}
+	}
+
+	virtual void giveArmorBearer() {
+		if(!allyIcon) {
+			bool succ;
+			[succ, allyIcon] = A_SPAWNITEMEX("ArmorBearerIcon", flags:SXF_SETMASTER);
+			isArmorBearer = true;
+		}
+	}
+
+
+	// Get all possible actions and select one.
+	State getRandomAction()
+	{
+		State combatState = possibleActions[random(0, possibleActions.size()-1)];
+		possibleActions.clear(); // Clear first in case of duplicates.
+		return combatState;
+	}
+
+	int adjustSquadLeaderBuff(int damage) {
+		int damageNew = damage;
+		if(squadLeaderBuff) {
+			damageNew*=0.65;
+		}
+		return damageNew;
+	}
+
+	// Soldier takes damage
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+		scale = tempscale;
+		int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+
+		if(source && (!(source is 'PlayerPawn') && source.bFriendly)) {
+			// If we were attacked by a non player, we need to alert others
+			if(!squad) {
+				target = source;
+				A_ALERTMONSTERS(1824, AMF_TARGETNONPLAYER);
+			}
+		} else if(!target && source is 'PlayerPawn') {
+			target = source;
+			SoundAlert(source, false, 1824);
+		}
+
+		damage = adjustSquadLeaderBuff(damage);
+
+        // TODO: Projectiles need a flag so we can easily mark them as 'weak' for armored enemies.
+        if(bArmored && damageType == "SawDroneProjectile")
+        {
+            damage = 0;
+        }
+
+        if(damageType == "SawDroneProjectile" && damage > 5)
+        {
+            setStateLabel("death.head");
+        }
+
+		if(inflictor is "HitPuff" && !bNoblood && !inflictor.bBloodlessImpact)
+		{
+			playBloodSounds(inflictor);
+		}
+
+        // Report that the actor is hurt to his allies
+        if (source && source is 'PlayerPawn' && squad && squad.size() > 1) {
+			talk(SOLDIER_PAIN);
+		}
+
+		return res;
+    }
+
+	// Performs serveral checks to see whether or not it makes sense for the soldier to talk
+	virtual void soldierSpeechHandler(string scriptType, int scriptID = 0 ) {
+		if (allowSpeech()) {
+			speechDelay = 85;
+			if (scriptType == "AI_DialogMasterScript") {
+				//ACS_NamedExecute("AI_DialogMasterScript",0, scriptID);
+			} else {
+				//A_SpawnItemEx(scriptType, flags:SXF_SETMASTER);
+			}
+		}
+	}
+
+	virtual void alertAllies() {
+		calloutTimer--;
+		if(calloutTimer == 1) 
+		{
+			S_AlertEnemies();
+		}
+	}
+
+	virtual void handleSentryMode()
+	{
+		// User is in Sentry Mode, go to Look Mode instead.
+		if(user_sentrymode)
+		{
+			setState(findState("SeeSentryMode"));
+		}
+	}
+
+	virtual void lostPlayerGoPatrol() {
+		idleType = 0;
+
+		A_ClearTarget();
+		goal = null;
+		lastHeard = null;
+		
+		// Make sure we don't retain any path info
+		plan.reset();
+		pathBuilder.reset();
+		
+		if (random(0,10) == 0 ) talk(SOLDIER_SEARCH);
+		SetStateLabel("SearchForPlayer");
+	}
+
+	virtual void lostPlayerReturnHome() {
+		idleType = 1;
+
+		// Make sure we don't retain any path info
+		plan.reset();
+		pathBuilder.reset();
+
+		// TODO: Speech? Animation?
+		SetStateLabel("SearchForPlayer");
+	}
+
+	// We have arrived at our target position, if we got to the last known location
+	// inform the overseer
+	virtual bool checkLostTarget() {
+		losRejectCooldown = 18;
+		if((squad && overseer && target) && target is 'Dawn' && !squad.playerPositionKnown && overseer.spotBeacon && distance2DSquared(overseer.spotBeacon) < 600*600 && checkSight(overseer.spotBeacon)) {
+			// We have reached the most recent location and still don't know where the player is
+			squad.soldierReachedLastKnownLocation(self);
+			return true;
+		}
+
+		return false;
+	}
+
+    virtual void BodyImpact() {
+        A_PLAYSOUND("IMPACT/BODYDROP", volume: 0.5, attenuation:0.85);
+        A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+        A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+        A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+    }
+
+	virtual void SpawnSmashParticles() {
+		wallSmashed = true;
+		ThrustThing(angle*256/360, 10, 0, 0);
+		A_SPawnItemEx("MeleeImpactSplash");
+		A_PlaySound("impact/wallhit", CHAN_AUTO, 0.8, 0, 0.98);
+		A_SpawnItemEx("PlayerShaker4");
+		A_SpawnItemEx("BodyImpactSmoke", 0, 10, 48, frandom(1, 4), frandom(1.5, 2));
+		A_SpawnItemEx("BodyImpactSmoke", 0, -10, 24, frandom(1,4), frandom(-1.5, -2));
+		A_SpawnItemEx("BodyImpactSmoke", 0, 0, -3, frandom(1.5, 4), 0, frandom(1.5, 2));
+		A_SPAWNITEMEX("MeleeWallSmash", 0, 0, 40);
+		A_SPAWNITEMEX("wallSmashDecal", 0, frandom(-15,15), 5);
+		A_SPAWNITEMEX("wallSmashDecal", 0, frandom(-17,17), 25);
+		A_SPAWNITEMEX("wallSmashDecal", 0, frandom(-17,17), 37);
+		EmitDefinition('DebrisChunkParticleDefinition', chance: 1.0, numTries: 80, offset:(0, 0, 6));
+		EmitDefinition('SparkParticleDefinition', chance: 0.75, numTries: 24, angle:random(-35,35), pitch:frandom(-90, 0), speed:frandom(1,4));
+	}
+
+    // Checks if the soldier is in a 'weird' state (e.g shocked, frozen)
+    virtual bool isHealthy()
+    {
+		if(frostTimer==0 && !isLayingDown && shockRemainder==0)
+		{
+			return true;
+		}
+        return false;
+    }
+
+	virtual void spawnSquadMemberRing() {
+		[squadMemberRingSuccess, squadMemberRing] = A_SPAWNITEMEX("SquadMemberRing", flags:SXF_SETMASTER);
+		[squadMemberIconSuccess, squadMemberIcon] = A_SPAWNITEMEX("SquadMemberIcon", flags:SXF_SETMASTER);
+	}
+
+	override bool canCollideWith(Actor other, bool passive) {
+		let stuff = Super.CanCollideWith(other, passive);
+		let actor = SelacoActor(other);
+        
+		// Wake sleepy actors
+		// TODO: This should probably be in SelacoEnemy..
+		if(!passive && actor && actor.bWakeOnTouch) {
+			actor.wake();
+		}
+		
+		if((actor) && bThruDecorations && actor.bDecorativeActor) {
+            return false;
+        }
+		
+		// Special case for pathing, let enemies walk right through each other!
+		if(goal && other is 'EnemySoldier') return false;
+		
+		return stuff;
+	}
+
+	virtual string GetHeadshotDeadAnimation() {
+		string deathSprite = headshotDeathAnimations[random(0,headshotDeathAnimations.size()-1)];
+		return deathSprite;
+	}
+
+	bool gotGibbed;
+	virtual string GetGibbedAnimation() {
+		string deathSprite;
+		if(!gotGibbed) {
+			gotGibbed = true;
+			A_PLAYSOUND("GIB/STOMP", CHAN_AUTO, 0.75, 0, 0.8);
+			deathSprite = gibbingAnimation[random(0,gibbingAnimation.size()-1)];
+		}
+		return deathSprite;
+	}
+
+	virtual string GetMeleeDeathAnimation()
+	{
+		string deathSprite = meleeDeathAnimation[random(0,meleeDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	virtual string GetPlasmaDeathAnimation()
+	{
+		string deathSprite = plasmaDeathAnimation[random(0,plasmaDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	virtual string GetDeadAnimation() {
+		string deathSprite = regularDeathAnimations[random(0,regularDeathAnimations.size()-1)];
+		return deathSprite;
+	}
+
+	virtual string GetShotgunDeathAnimation() {
+		string deathSprite = shotgunDeathAnimations[random(0,shotgunDeathAnimations.size()-1)];
+		return deathSprite;
+	}
+
+	virtual string GetSittingAnimation() {
+		string deathSprite = sittingDeathAnimation[random(0,sittingDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	bool wallSmashSpawned;
+	virtual string GetWallSmashAnimation() {
+		string deathSprite;
+		if(!wallSmashSpawned) {
+			deathSprite = wallSmashDeathAnimations[random(0,wallSmashDeathAnimations.size()-1)];
+			wallSmashSpawned = true;
+		}
+		return deathSprite;
+	}
+
+	virtual string GetnailgunDeathAnimation() {
+		string deathSprite = nailgunDeathAnimation[random(0,nailgunDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	virtual void sprayPurpleDecals() {
+		int oldAngle = angle;
+		for(int x=0;x<10;x++) {
+            angle = random(0,360);
+            vector3 sprayDirection = vecFromAngle(angle, pitch+=frandom(-60,60));
+            A_SprayDecal("PurpleOrgans", 15, offset:(0,0,frandom(-35,35)), direction:sprayDirection);
+        }
+        for(int x=0;x<60;x++) {
+            angle = random(0,360);
+            vector3 sprayDirection = vecFromAngle(angle, pitch+=frandom(-25,90));
+            A_SprayDecal("OminousPurpleSplat", 15, offset:(0,0,frandom(0,80)), direction:sprayDirection);
+        }
+		angle = oldAngle;
+	}
+
+	virtual void spawnGoreOnImpactPos(actor inflictor)
+	{
+		
+		for(int x=0;x<getCvar("r_bloodquality")*2;x++) {
+			inflictor.A_SpawnDefinedParticle("PurpleSplatterEffectTransparantDefined", random(0, 6), random(-5,5),random(-5,5), frandom(-4,4), frandom(-4,4),frandom(-4,6));
+			inflictor.A_SpawnDefinedParticle("PurpleSplatterEffectTransparantDefined", random(0, 6), random(-5,5),random(-5,5), frandom(-2,2), frandom(-2,2),frandom(1,6));
+		}
+		sprayWallDecals(inflictor);
+		for(int x=0;x<=2;x++)
+		{
+			inflictor.A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(-10, 10), frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+		}
+		for(int x=0;x<=3;x++)
+		{
+			inflictor.A_SpawnDefinedParticle("SuperGoreMistPurpleSmallLowAlphaDefinition", frandom(-20,0), frandom(-20,20), frandom(-5,5), frandom(-0.5,0.5), angle:random(0,360));
+		}
+	}
+
+	virtual void sprayWallDecals(actor inflictor)
+	{
+		for(int x=0;x<=12;x++)
+		{
+			// Blood wall decal
+			int oldAngle = angle;
+            for(int x=0;x<8;x++)
+            {
+                angle = random(0,360);
+                vector3 sprayDirection = vecFromAngle(angle, pitch+frandom(-60,60));
+                inflictor.A_SprayDecal("OminousPurpleSplat", 10.0, offset:(0,0,frandom(-40,65)), direction:sprayDirection);
+            }
+			angle = oldAngle;
+			inflictor.A_SpawnDefinedParticle("PurpleBloodMissileDefinition", frandom(-3, 3), frandom(-3, 3),frandom(-8, 8), frandom(-4, 4), frandom(-4, 4), frandom(1, 9), random(0,360));
+		}
+	}
+
+	// Enemy is killed
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		pathBuilder.reset();
+        plan.reset();   // Super necessary, otherwise path links in use will not not be cleared!
+
+		causeOfDeath = MeansOfDeath; // used to tell the overseer the about the death cause.
+
+		if(burnTimer > 0 && MeansOfDeath != "Fire")
+		{
+			explodeFire();
+		}
+
+		if(inflictor && MeansOfDeath == "ExplosiveImpact")
+		{
+			A_FACE(inflictor);
+		}
+
+		if(isGoreyHit) {
+			for(int x=0;x<8;x++) {
+				A_SpawnItem("SuperGorePurpleMist", frandom(-45,45), frandom(-45,45), frandom(-10, 50));
+			}
+		}
+
+        // We need to add a system where we can assign different grenade types to enemies at some point
+        if(grenadeCount > 0 && random(0,100) <= 25)
+        {
+            for(int x=0;x<random(1,2);x++)
+            {
+                A_SPAWNITEMEX("EnemyGrenadeDecorationMissile", frandom(-9,9), frandom(-9,9), frandom(43,50), frandom(1.4,3.2), 0, frandom(2,6), angle:random(0,360));
+            }
+        }
+
+		// Increase drop chance when killed with a Steady Supply upgrade
+		if(MeansOfDeath == "AssaultRifleBullet")
+		{
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			if(d.hasWeaponUpgrade('UpogradeRifleSteadySupply'))
+			{
+				ammoDropChance*=1.25;
+			}
+		}
+		
+		if(inflictor && !inflictor.bBloodlessImpact && damageType != "Fire")
+		{
+			// If DMR or Railgun, the inflictor is as Dawn's position which isn't ideal. Move it to the middle section of the actor instead.
+			// Not ideal either, but it's a better alternative for now >:(
+			actor hitImpact = inflictor;
+			if(MeansOfdeath == "SniperBullet" || MeansOfDeath == "Railattack")
+			{
+				hitImpact.SetOrigin((pos.x, pos.y, pos.z+height/2), false);
+			}
+			spawnGoreOnImpactPos(hitImpact);
+		}
+	
+		if(MeansOfDeath == "Shotgun" || MeansOfDeath == "SniperBullet")
+		{
+			A_PLAYSOUND("dest/bone", CHAN_AUTO, 1.0, 0, 0.9, 0, frandom(0.7,1.1));
+		}
+		else if(damageType == "Fire") {
+			A_PLAYSOUND("fire/ignite", CHAN_AUTO, 1.0, 0, 0.9);
+		}
+		else
+		{
+			A_PLAYSOUND("GORE/KILL", CHAN_AUTO, 1.0, 0, 0.5);
+		}
+
+		// Death by fire
+		if(damageType == "Fire")
+		{
+			for(int x=45;x>0;x--)
+			{
+				A_SpawnDefinedParticle("FlameParticleDefinition",frandom(-1*radius, radius), frandom(-1*radius, radius), frandom(5, height), frandom(4,5.3), 0, frandom(-3,3), angle:random(0,360));
+				A_SPAWNITEMEX("BurningCivilianSmoke", frandom(-1*radius, radius), frandom(-1*radius, radius), frandom(5, height), frandom(2,2.3), 0, frandom(-0.5,0.5), angle:random(0,360));
+			}
+		}
+
+        // Spawn ceiling blood for certain dead causes
+		int ceilingDifference = ceilingZ - pos.z;
+
+/* 		// Spawn a Weapon Part if the level suprassed the first level
+		if(level.levelGroup > 1 && random(0,100) <= WEAPON_PART_DROP_CHANCE)
+		{
+			A_SPAWNITEMEX("WeaponPartPickupNoOverlay", 0, 0, 20, frandom(1,3), 0, frandom(1,3), angle:random(0,360));			
+		}
+ */
+		if(random(0,100) < CEILING_BLOOD_CHANCE && (ceilingDifference < 200 && damageType == 'head' || ceilingDifference < 250 && damageType == 'shotgun'))
+		{
+			for(int x=0; x<4;x++)
+			{
+				A_SPAWNITEMEX("OMINOUS_PurpleSpotCeiling",frandom(-50,50), frandom(-50,50));
+			}
+		}
+		// CEILING GORE -> EXPLOSION
+		if(random(0,100) < CEILING_BLOOD_CHANCE*2 && ceilingDifference < 400 && damageType == 'ExplosiveImpact')
+		{
+			for(int x=0; x<5;x++)
+			{
+				A_SPAWNITEMEX("OMINOUS_PurpleSpotCeiling",frandom(-80,80), frandom(-80,80));
+			}
+		}
+		
+		// TODO: No need to track stuff when there's no source.
+		DropWeaponAmmo();
+
+		// Cancel chatter
+		A_STOPSOUND(CHAN_VOICE);
+
+		// Drop their currently equiped weapon
+		if(weaponModel) {
+			A_SPAWNITEMEX(weaponmodel, 0, 0, 50, 0, 0, 5, angle:random(0,360));
+		}
+
+		// Notify the overseer that we kicked the bucket
+		if(squad) squad.soldierDied(self, source);
+		else if(overseer) overseer.soldierDied(self, source);
+
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+	virtual void handleTempStance()
+	{
+		if(usesTempStance)
+		{
+			tempStanceTimer++;
+			if(tempStanceTimer >= TEMP_STANCE_TIME)
+			{
+				tempStanceTimer = 0;
+				usesTempStance = false;
+				RestoreCombatStance();
+			}
+		}
+	}
+
+	// Death enemies that burn erupt into fire
+	virtual void explodeFire()
+	{
+		S_EXPLODE(15,100, damageType:"Fire");
+		A_PLAYSOUND("explosion/small", CHAN_AUTO, 1.0, 0, 0.4, pitch:0.6);
+        for(int i=0;i<=360;i+=15) {
+            A_SpawnItemEx("SmokeScatteredCloudFast", 35,0,25, 2, angle:i);
+        }
+        for(int i=0;i<=9;i++) {
+            A_SpawnItemEx("SmokeScatteredCloudFast", random(-30,30), frandom(-30,30), frandom(24,34), frandom(0.4,2), frandom(0.4,2), frandom(1,2));
+        }
+        // Fire Effects
+        for(int i=0;i<35;i++) {
+            A_SpawnDefinedParticle("FlameParticleDefinition",frandom(-10,10), frandom(-10,10), 10, frandom(3,6), 0, frandom(-3,3), angle:random(0,360));
+        }
+        for(int x=0;x<5;x++) {
+            A_SPAWNITEMEX("BigExplosionSlow", frandom(-15,15), frandom(-15,15), frandom(6,70));
+        }
+        A_SPAWNITEMEX("propaneExplosionLight");
+	}
+
+	override void tick() {
+		super.tick();
+
+		// This soldier has been marked for a response. Store it, unleash when the speechhandler has free time.
+		if(responseID)
+		{
+			respondToPingWhenReady();
+		}
+
+		if(target)
+		{
+			handleFallDamage();
+			handleTempStance();
+			if(strafeAttempts < 0)
+			{
+				strafeAttempts++;
+			}
+
+			if(weapon_rateoffire_failsafe > 0)
+			{
+				weapon_rateoffire_failsafe--;
+			}
+			if(unconventionalSpot > 0) {
+				unconventionalSpot--;
+			}
+			if(dawnNearbyCooldown > 0)
+			{
+				dawnNearbyCooldown--;
+			}
+
+
+			// Check if enemy is in Sentry mode and got too far removed from his guarding position, or if target got too close
+			if(user_sentrymode && level.time % 10 == 0)
+			{
+				float distance = abs(pos.length() - spawncoordinates.length());
+
+				if(distance > SENTRYMODE_THRESHOLD || (level.time % 30 == 0 && distance3Dsquared(target) < 250*250))
+				{
+					user_sentrymode = false;
+				}
+
+			}
+
+			targetTime++;
+		}
+		if(calloutTimer >= 0) {
+			alertAllies();
+		}
+		if(speechDelay > 0) {
+			speechDelay--;
+		}
+	}
+
+	int downwardVelocity;
+	virtual void handleFallDamage()
+	{
+		// Soldier not on the floor? Start checking downward velocity
+		if (bIsOnFloor() && downwardVelocity < FALLDAMAGE_THRESHOLD && waterlevel <= 1)
+		{
+			A_PLAYSOUND("impact/bone", CHAN_AUTO, 1.0, 0, 0.7);
+			die(self,self);
+		}
+		downwardVelocity = vel.z;
+	}
+
+	// Fall back if target is closer than 'CombatDistance' and actor has no height advantage
+	// @Cockatrice - Now returns if it changed states or not
+	// @Cockatrice - Added fallback timeout to prevent infinite loop and stuttering fallback scenario
+	int fallbackTime;
+	virtual bool fallbackIfNoAdvantage() {
+		if(level.totalTime - fallbackTime > 15 && !hasHeightAdvantage(70) && !CheckRange(combatDistance, false) && !CheckIfwallClear(90, 200) && !CheckIfwallClear(270, 200)) {
+			fallbackTime = level.totalTime;
+			return SetStateLabel("FallBack");
+		}
+		return false;
+	}
+
+
+	virtual bool hasEnoughAmmo(int amountNeeded = 1) {
+		if (currentAmmo < amountNeeded) {
+			return false;
+		}
+		return true;
+	}
+
+	virtual bool bIsOnFloor(void)
+	{
+		return (self.Pos.Z == self.FloorZ) || (self.bOnMObj);
+	}
+
+	void spawnAttackIndicator(string Flare, int zPos = 40) {
+		if(getCvar("g_attackindicators") == 1) {
+			A_SPAWNITEMEX(Flare, 10, 5, zPos);
+		}
+	}
+
+	int getCombatDistance() {
+		return combatDistance;
+	}
+
+	void disablePainState() {
+		bNoPain = true;
+	}
+
+	void enablePainState() {
+		bNoPain = false;
+	}
+
+	virtual void CheckAmmo() {
+		if (currentAmmo <= 0) { //Check magazine size
+			SetStateLabel("ReloadWeapon"); // It reloading time!
+		}
+	}
+
+	virtual bool crouchIsSafe() {
+		String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle,250, pitch,offsetz: 24,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall && RemoteRay.LinePart == Side.bottom) {
+			return false;
+		} 
+		return true;
+	}
+
+	// If there is a forcefield near, hide behind it.
+	virtual void checkNearForcefield() {
+		if (CheckProximity("ShieldPieceMain", 30, 1)) {
+			ThrustThing(angle*256/360+128, 3, 0, 0);
+		}
+	}
+
+	// Returns if Dawn is in distance of the enemy, optionally (and by default) checks for visibility and firing solution
+	virtual bool isDawnNear(int range = 350, bool needSight = true) {
+		if(dawnNearbyCooldown > 0)
+		{
+			return false;
+		}
+		if(!target || Distance2DSquared(target) > range*range) return false;
+
+		return !needSight || (isTargetVisible() && (hasFiringSolution(range)));
+	}
+
+	virtual void saveValidationChecker(int range = 2000) {
+		if(target is "Dawn" && Distance2DSquared(target) <= range) {
+			dawnNearbyCooldown = 150; 
+		}
+	}
+
+	// Soldier took a lot of damage. Set flag to ''Frightened'' to have him run away from Dawn
+	virtual void scareSoldier() {
+		bFRIGHTENED = true;
+		isFrightened = true;
+	}
+
+	void incrementStateTic (void)  {
+		stateTic++;
+	}
+
+	int getStateTic (void) {
+		return stateTic;
+	}
+
+	void defaultEverything (void) {
+		handleSentryMode();
+		stateTic = 0;
+		scale = tempScale;
+		killStrafeNodes();
+		maxStepHeight = storedStepheight;
+		friction = 1.0;
+		bNOBLOCKMONST = false;
+		heavyPain = false;
+		bThruActors = false;
+		mayNotTalk = false;
+		shockRemainder = 0;
+		A_SetSize(defaultRadius, defaultheight);
+		damagedByEnhancedMelee = false;
+		strafesLeft = false;	
+		chargingForward = false;	
+		strafesRight = false;
+		enablePainState();
+	}
+
+	virtual int chanceRoll(void) {
+		return random(0, 100);
+	}
+
+	virtual bool CheckWallNearby(void) {
+		
+		String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle,120, pitch,offsetz: height-12,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall) {
+			return true;
+		} 
+		return false;
+	}
+
+	// Check to see if its 'safe' for the soldier to strafe in a direction without bumping into the wall.
+	virtual void CheckStrafe(int direction, int range = 80) {
+		// 270 = left
+		// 90 = right
+		String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle - direction, range, pitch,offsetz: height-MAXSTEPHEIGHT,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall || (RemoteRay.HitType == TRACE_HitActor && RemoteRay.HitActor is 'VehicleHitbox'))
+		{
+			SetStateLabel("Prepare_ShootWeapon_Aiming");
+		}
+	}
+
+	// OLD, Needs rewriting.
+	virtual bool CheckClear(int direction, int range = 100) {
+	string directionString;
+	// 1 = Check wall to the left
+	// 2 = Check wall to the right
+	// 3 = Check wall to the front
+	// 4 = Check wall to the back
+		int angleToCheck;
+		switch (direction) {
+			case 1:
+				angleToCheck = 90;
+				break;
+			case 2:
+				angleToCheck = 270;
+				break;
+			case 3:
+				angleToCheck = 300;
+				break;
+			case 4:
+				angleToCheck = 180;
+				range = 70;
+				break;
+		}
+			String hittex;
+			FLineTraceData RemoteRay;
+				LineTrace(angle - angleToCheck, range, pitch,offsetz: height-MAXSTEPHEIGHT,data: RemoteRay);
+				if (direction == 3) {
+					if(CheckLOF(0, 400)) {
+						return false;
+					}
+				}
+			
+			if (RemoteRay.HitType == TRACE_HitWall || RemoteRay.HitType == TRACE_HitActor)
+			{
+				if (direction == 4) {
+					int randomizer = random(0,2);
+					if (randomizer == 0) {
+						SetStateLabel("MissileLeft");
+					}
+					if (randomizer == 1) {
+						SetStateLabel("MissileRight");
+					}
+					if (randomizer == 2 && !bFrightened) {
+						SetStateLabel("MissileForward");
+					}
+				}
+				return false;
+			}
+
+			//  Iteration of LineTraces to check for a nearby 3D Object. 
+			//	Given how thin a desk is, we need to perform multiple checks until one of the linetraces touches a desk, meaning there's collision.
+			for (int _height; _height <= MaxStepHeight; _height++) {
+				LineTrace(angle - angleToCheck, range, 10,offsetz: _height,data: RemoteRay);
+				if (RemoteRay.HitType == TRACE_HitCeiling || RemoteRay.HitType == TRACE_HitFloor ) {
+					return false;
+				}
+			}
+
+			// Additional Check to see whether of not the caller is colliding with an actor.
+			if (checkNearbyActor(angleToCheck)) {
+				return false;
+			}
+			return true;
+	}
+
+	virtual bool checkNearbyActor(int angleToCheck, int range = 150) {
+		FLineTraceData RemoteRay;
+		LineTrace(angle - angleToCheck, range, pitch,offsetz: height-35,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitActor) {
+			return true;
+		}
+		return false;
+	}
+
+	virtual bool CharacterIsNearWall(int range = 30) {
+		String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle - 180, range, pitch,offsetz: height+9,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	virtual bool CheckWallSmash() {
+		String hittex;
+		FLineTraceData RemoteRay;
+		for(int x=-1;x<=1;x++)
+		{
+			int sideOffset = x*radius;
+			if(x == 0)
+			{
+				sideOffset = 0;
+			}
+
+			LineTrace(angle-180, 30, pitch,offsetz: maxStepHeight, offsetSide:sideOffset, data: RemoteRay);
+			if ((RemoteRay.HitType == TRACE_HitWall || (RemoteRay.HitType == TRACE_HitActor && (RemoteRay.HitActor.bSolid || RemoteRay.HitActor.bShootable))))
+			{	
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	// Override LookForPlayers() with a local one that filters out the goal
+	bool LookForPlayers(bool allaround, LookExParams params) {
+		params.flags |= LOF_DONTCHASEGOAL;
+		bool res = Super.LookForPlayers(allaround, params);
+
+		// Skip player if they are currently invulnerable and in a menu
+		Dawn d = Dawn(target);
+		if(res && d && d.invulnerableInMenu) {
+			target = null;
+			res = false;
+		}
+
+		return res;
+	}
+
+	void A_LOOK() {
+		LookExParams params;
+		params.fov = 100;
+		params.minDist = 0;
+		params.maxDist = squad && squad.squadStatus == SQUAD_Patrol ? 950 : 4096;
+		params.maxHearDist = 1024;
+		params.flags = LOF_DONTCHASEGOAL;
+		
+		// Check for a sound target
+		Actor targ = (Level.compatflags & COMPATF_SOUNDTARGET) ? CurSector.SoundTarget : LastHeard;
+
+		// If the soundtarget is dead, don't chase it
+		if (targ != NULL && targ.health <= 0) targ = NULL;
+		if (targ && targ.player && ((targ.player.cheats & CF_NOTARGET) || !(targ.bFriendly))) targ = NULL;
+
+		if(targ) {
+			target = targ;
+		} else if (!Super.LookForPlayers(bLOOKALLAROUND, params)) {
+			return;
+		}
+
+		// Skip player if they are currently invulnerable and in a menu
+		Dawn d = Dawn(target);
+		if(d && d.invulnerableInMenu) target = null;
+
+		if (target && SeeState) SetState (SeeState);
+	}
+
+	// Normalize Actor angle
+    double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+
+	default {
+		-EnemySoldier.KeepDistance;
+		-SELACOACTOR.SlopeAlignment;
+		+SelacoEnemy.HasKnockoverState;
+		+SelacoActor.ThruDecorations;
+		+SelacoActor.DisallowGravityManipulation;
+		
+		// Manually apply this per actor!
+		+EnemySoldier.Communicator
+		-EnemySoldier.AllowSmartReloading
+		SelacoEnemy.role "$ROLE_REGULAR";
+		tag "$CHARACTER_RIFLEMAN";
+		SelacoEnemy.EnemyType ENEMY_SOLDIER;
+		EnemySoldier.SPRITE_Walking "RFRU";
+		EnemySoldier.SPRITE_Idle "RFID";
+		EnemySoldier.SPRITE_Pain "ALIP";
+		EnemySoldier.SPRITE_PainHeadshot "RFHE";
+		EnemySoldier.SPRITE_AlertAllies "ALAL";
+		EnemySoldier.SPRITE_Fallingdown "RFFL";
+		EnemySoldier.SPRITE_NailgunDeath "RFN1";
+		EnemySoldier.SPRITE_MeleeFly "RFGU";
+		EnemySoldier.SPRITE_Shocked "RFEL";
+		EnemySoldier.SPRITE_Hipfiring "RFHF";
+		EnemySoldier.SPRITE_HipWalking "RFHW";
+		SelacoEnemy.ENEMY_IdentifierTag "RIFLEMAN";
+		EnemySoldier.TargetVisibleTicks 6;		// Minimum ticks the target has to be visible before pathfinding can end
+
+		decal "";
+		
+		+Rollsprite;
+		+NOBLOODDECALS
+		+USEKILLSCRIPTS;
+		+NOTARGET;
+		-Solid
+		+Shootable
+		+FLOORCLIP;
+		+SLIDESONWALLS;
+
+		// Potentially dangerous, this is used to enable touch against things like plants and obstacles
+		// This means we have to make sure our inventory pickups do not allow anybody but the player to 
+		// pick them up.
+		+PICKUP;
+		SELACOACTOR.SleepDistance 0; // Invaders dont sleep.
+		EnemySoldier.DisplayName "$CHARACTER_RIFLEMAN";
+		EnemySoldier.gadgetChance 4;
+		EnemySoldier.GrenadeType "EnemyThrownGrenade";
+		Painchance "ReportFrag", 120;
+		PainChance "shotgun", 35;
+		PainChance "FriendBullet", 10;
+		PainChance "SniperBullet", 255;
+		PainChance "MeleeImpactExtinguisher", 255;
+		PainChance "DawnFist", 255;
+		PainChance "Heal", 255;
+		PainChance "SMGBullet", 80;
+		PainChance "Ice", 255;
+		PainChance "Mandown", 90;
+		PainChance "ReportHit", 10;
+		PainChance "Avoid", 130;
+		PainChance "Head", 255;
+		PainChance "MeleeImpact", 255;
+		PainChance "MeleeImpactTaser", 255;
+		PainChance "Fire", 0;
+		PainChance "MagnumBullet", 255;
+		PainChance "NailDamage", 110;
+		PainChance "Melee", 255;
+		PainChance "StunningShock", 255;
+		PainChance "Plasma", 80;
+		damagefactor "Crush", 5.0;
+		damageFactor "SawDrone", 2.0;
+		damageFactor "MeleeImpact", 2.0;
+		damageFactor "PlasmaAOE", 1.0;
+		damageFactor "fire", 1.5;
+		MaxStepHeight 22;
+		MaxDropOffHeight 100;
+		radius 16;
+		PainChance "ExplosiveImpact", 255;
+		damageFactor "ExplosiveImpact", 1.1;
+		damagetype "Melee";
+		BloodType "Selaco_PurpleBlood_Armor";
+		selflighting "696969";
+	}
+
+	void DropWeaponAmmo() {
+		float ammoDropChanceAdjusted = ammoDropChance;
+
+		// If the player doesn't have the required weapon, do nothing.
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+		if(weaponRequiredForDropping && d.countInv(weaponRequiredForDropping) == 0)
+		{
+			return;
+		}
+
+		// Adjust drop chance depending on skill level (Higher diff is less ammo)
+		for(int x=0;x<=getCvar("skill");x++) {
+			ammoDropChanceAdjusted*=0.9;
+		}
+		
+		// Dice roll!
+		if(random(0,100) <= ammoDropChanceAdjusted)
+		{
+			A_SPAWNITEMEX(ammoToDrop, 0, 0, 0, frandom(3,5), frandom(3,5), 5, angle + frandom(-15,15), flags:SXF_SETMASTER);
+		}
+	}
+
+	void preventEdgeFalling(StateLabel jumpState = "See")
+	{
+		int sidewaysVelocity = (Cos(angle) * (vel.y)) - (Sin(angle) * (vel.x));
+		int forwardVelocity = (Sin(angle) * (vel.y)) + (Cos(angle) * (vel.x));  
+		if (checkGeometryCollision(-1, maxStepHeight+60, 90, floorOnly:True)) 
+		{
+			A_CHANGEVELOCITY(-1 * (forwardVelocity * 1.5), -1 * (sidewaysVelocity * 1.5), vel.z, CVF_REPLACE | CVF_RELATIVE);
+			if(jumpState)
+			{
+				setStateLabel(jumpState);
+			}
+		}
+	}
+
+	// This is a hack to prevent HEAR from happening when enemies are spawned and immediately alerted
+	// with NoiseAlert. Eventually we will start alerting enemies in a custom manner. Right? 
+	bool canListen() {
+		return level.totalTime - spawnTime >= HEAR_IGNORE_BUFFER;
+	}
+
+    override void BeginPlay() {
+		super.BeginPlay();
+		initPathing();
+		squadID = -1;
+		voicePitch = frandom(0.92,1.06);
+		tempscale = scale;
+		storedStepheight = maxStepHeight;
+		defaultHeight = height;
+		defaultRadius = radius;
+	}
+
+	override void PostBeginPlay() {
+		Super.postBeginPlay();
+
+		assignGuns();
+
+		// Remember spawn position.
+		spawnCoordinates = pos;
+
+		// Register self as a free agent, able to be added to a squad
+		BattleOverseer.instance().registerAgent(self);
+
+		if(skill >= SKILL_ADMIRAL && skill <= SKILL_STORYONLY)
+		{
+			grenadeChance*=1.10;
+		}
+
+		if(getCvar("g_defensiveEnemies")) {
+			forceDefensiveTactics = true;
+			bSuppressor = true;
+			bKeepDistance = true;
+			combatDistance+=frandom(350,450);
+		}
+
+		// Store properties in case we have to later.
+		originalSprayShotChance 	= 	sprayShotChance;
+		originalAccurateShotChance 	= 	accurateShotChance; 
+		originalCrouchedShotChance 	=	crouchedShotChance;
+		originalCombatDistance     	= 	combatDistance;
+		originalAggressiveness 		= 	aggressiveness;
+		originalEvadeChance			= 	evadeChance;
+		originalSuppressor 			= bSuppressor;
+		originalKeepDistance 		= bKeepDistance;
+
+		if(randomizerHandler && randomizerHandler.hasRandomizer && randomizerHandler.allowAmmoBearer && frandom(0,100) <= AMMO_BEARER_CHANCE) {
+			giveAmmoBearer();
+		}
+		if(randomizerHandler && randomizerHandler.hasRandomizer && randomizerHandler.allowArmorBearer &&frandom(0,100) <= ARMOR_BEARER_CHANCE) {
+			giveArmorBearer();
+		}
+	}
+
+	// Give the soldier a name. This does literally nothing but makes the debugging tool look epic.
+	void generateName() {
+        alienName.appendFormat("%s %s", alienFirstName[random(0, alienFirstName.size()-1)], alienLastName[random(0, alienLastName.size()-1)]);
+	}
+
+	states {
+
+		Indexer:
+			RFRU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFID ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			ALIP ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFHE ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFN1 A 0;
+			RFSI ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFFL ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFGU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFEL ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;		
+			RFGR ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;		
+			RFP1 A 0;
+			RFP2 A 0;
+
+		Stand:
+			TNT1 A 0;
+			// LOAD ALL POSSIBLE SPRITES TO PREVENT SPRITE INDEXING FROM GOING NUTS.
+			RFRU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFID ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			ALIP ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFN1 A 0;
+			RFHE ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFSI ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFFL ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFGU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+			RFEL ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+
+			TNT1 A 0 {
+				invoker.animationFrame = 0;
+				invoker.animationInterval = 0;
+				sprite = GetSpriteIndex(SPRITE_Idle); 
+			}
+			TNT1 AAAAAABBBBBBCCCCCCCCCCCCBBBBBAAAAAA 1
+			{
+				if(!canListen() || !A_LISTEN())  {
+					A_Look();
+				}
+			}
+			Loop;
+		
+		BuildPathIdle:
+			TNT1 A 0 {
+				invoker.animationFrame = 0;
+				invoker.animationInterval = 0;
+				sprite = GetSpriteIndex(SPRITE_Idle); 
+			}
+			// This frame prevents an infinite loop if an enemy goes to idle and then builds a path in a single tick
+			// Remove it if you dare.
+			TNT1 A 1;
+			TNT1 AAAAABBBBBBCCCCCCCCCCCCBBBBBAAAAAA 1
+			{
+				handleSentryMode();
+				if(!user_sentrymode && A_TRACK() != TRACK_BuildingPath) {
+					sprite = GetSpriteIndex(SPRITE_Walking);
+					SetStateLabel("SeeContinueLoop");
+					return;
+				}
+			}
+			Loop;
+			
+		Hear:	// Moves on to See, but does hearing stuff. Duh
+			TNT1 A 0 {
+				if(health > 0) {
+					if(squad) squad.playerSeen(self, isSound: true);
+					else BattleOverseer.Instance().playerSeen(self, isSound: true);
+				}
+				SetStateLabel("See");
+			}
+			
+		See:
+			TNT1 A 0 A_JumpIfHealthLower(1, "Death");
+			TNT1 A 0 {
+				bThruActors = false;
+				bNODROPOFF = false;	
+				S_AlertEnemies();
+				SetSeenPlayer();
+				SetStateLabel("SeeContinue");
+			}
+	
+	SeeSentryMode:
+		TNT1 AAA 1 {
+			sprite = GetSpriteIndex(SPRITE_Idle);
+		}
+		TNT1 AAABBBBBBCCCCCCCCCCCCBBBBBAAAAAA 1
+		{
+			if(target && isTargetVisible())
+			{
+				setState(findState("Prepare_ShootWeapon_Aiming"));
+			}
+		}
+		loop;
+
+	SeeContinue:	
+		TNT1 A 0 {
+			playRadioSound();
+			ignoreStrafenode = false;
+			defaultEverything();	
+			SetSeenPlayer();
+			killStrafeNodes();
+			if(invoker.currentAmmo == 0) {
+				SetStateLabel("ReloadWeapon");
+				return;
+			}
+
+			handleSentryMode();
+
+		}
+		
+	SeeContinueLoop:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_Walking);
+			// TODO - Make this a flag after beta. If you forget you must polish Cockatrice his car
+			if(!(self is "engineer")) {
+				if(mountedShieldActor)
+				{
+					setState(findState("WaitAndAim"));
+					return;
+				}
+				if((target) && (bKeepDistance) && (distance2DSquared(target) <= CombatDistance*CombatDistance)) {
+					setState(findState("WaitAndAim"));
+				}		
+			}
+			
+			if(isTargetVisible() && target is 'Dawn') {
+				// Inform the rest of the squad we still see the player
+				if(squad) squad.playerSeen(self);
+			} else if (losRejectCooldown < 2){
+				// Check periodically to inform overseer if we have seen the last known position of Dawn
+				checkLostTarget();
+			}
+			doReloadDecision();
+		}
+		TNT1 AAAAABBBBB 1 {
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+				return;
+			}
+
+			// Sniper dont walk, they just look :dawn_smiling_with_hearts: c
+			if(getClassName() == "Sniper")
+			{
+				SetStateLabel("SeeContinue");
+			}
+
+			// Attack if shotgunner near player
+			if(self is "Engineer") {
+				if(LookForPlayers(false, SearchParamsCloseRange) && hasFiringSolution()) {
+					if(squad) squad.playerSeen(self);
+					SetStateLabel("missile");
+					return;
+				}
+				if(!bSuppressor && LookForPlayers(false, SearchParamsFarRange) && hasFiringSolution() && !forwardRushCooldown) {
+					if(squad) squad.playerSeen(self);
+					SetStateLabel("RushToTarget");
+					return;
+				}
+			}
+			
+			switch(a_track()) {
+				case TRACK_Arrived:
+					// We have arrived at the target, but the player is not in sight and a new path needs to be built
+					if(checkLostTarget()) return;
+					else SetStateLabel("BuildPathIdle");
+					return;
+				case TRACK_BuildingPath:
+					SetStateLabel("BuildPathIdle");
+					return;
+				case TRACK_FoundTarget:
+					if(squad) squad.playerSeen(self);
+					return;				
+			}
+		}
+		TNT1 A 0 {
+			if (random(0,256) <= grenadeChance && shouldThrowGrenade()) {
+				SetStateLabel("ActuallyThrowGrenade");
+			}
+			fallbackIfNoAdvantage();
+			lookForHazard();
+			checkNearForcefield();
+			doReloadDecision();
+			if (!hasHeightAdvantage(70) && isDawnNear(combatDistance-10) == true) {
+				SetStateLabelIfExists("MissileBackward");
+			}
+			if (random(0,300) == 0 ) {		
+			    talk(SOLDIER_PURSUIT);
+			}
+		}
+		TNT1 A 0 playFootstepSound();
+		TNT1 CCCCCCDDDDDD 1 {
+			switch(a_track()) {
+				case TRACK_Arrived:
+					// We have arrived at the target, but the player is not in sight and a new path needs to be built
+					if(checkLostTarget()) return;
+					else SetStateLabel("BuildPathIdle");
+					return;
+				case TRACK_BuildingPath:
+					SetStateLabel("BuildPathIdle");
+					return;
+				case TRACK_FoundTarget:
+					if(squad) squad.playerSeen(self);
+					return;	
+			}
+		}
+		TNT1 A 0 {
+			if (random(0,256) <= grenadeChance && shouldThrowGrenade()) {
+				SetStateLabel("ActuallyThrowGrenade");
+			}
+			lookForHazard();
+			if (random(0,300) == 0 ) {		
+			    talk(SOLDIER_PURSUIT);
+			}
+			checkNearForcefield();
+			if (!hasHeightAdvantage(70) && isDawnNear(combatDistance-10) == true) {
+				SetStateLabelIfExists("MissileBackward");
+			}
+		}
+		TNT1 A 0 playFootstepSound();
+		Loop;
+
+		SearchForPlayer:
+		Idle:
+			TNT1 A 0 A_ClearTarget;
+			TNT1 A 0 A_JumpIfHealthLower(1, "Death");
+			TNT1 A 0 { 
+				sprite = GetSpriteIndex(SPRITE_Walking);
+				if (random(0,800) == 0 ) {
+					talk(SOLDIER_SEARCH);
+				}
+			}
+			TNT1 AAAAAAAAAAAAAAAAAAAA 1 {
+				
+				// STEP 1
+				if (invoker.animationInterval == 6) {
+					invoker.animationFrame++;
+				}
+				// STEP 2
+				if (invoker.animationInterval == 12) {
+					playFootstepSound();
+					invoker.animationFrame++;
+				}
+				// STEP 3
+				if (invoker.animationInterval == 18) {
+					invoker.animationFrame++;
+				}
+				// STEP 4
+				if (invoker.animationInterval == 24) {
+					invoker.animationFrame++;
+					invoker.animationInterval = 0;
+					playFootstepSound();
+				}
+				
+				if(invoker.animationFrame == 4) { invoker.animationFrame = 0;}
+				Frame = invoker.animationFrame;
+				invoker.animationInterval++;
+				
+				
+				if (animationInterval % 6 == 0 && CheckProximity("ShieldPieceMain", 50, 1, CPXF_CHECKSIGHT)) {
+					ThrustThing(angle*256/360+128, 23, 0, 0);
+				}
+
+				// TODO: Add a look around state to make patrolling more authentic
+				if(idleType == 0) {
+					let state = A_PATROL(lookState: "None");
+					if(state) {
+						// Since we have no look state, we can just assume we are moving to the SEE state
+						SetState(state);
+					}
+				} else if(idleType == 1) {
+					let state = A_RETURN(arriveState: "ArrivedHome");
+					if(state) SetState(state);
+					else if(!isPathMoving) SetStateLabel("ReturnBuildPath");
+				}
+			}
+		Loop;
+
+		RushToTarget:
+			TNT1 A 0;
+			TNT1 A 0 {
+				setState(findState("RushForward"));
+				return;
+			}
+			goto stand;
+
+		// Idle state for building path before returning home
+		// This should usually only run like one or two frames at most
+		// Runs idle frames until isPathMoving is set, then moves on to SearchForPlayer
+		ReturnBuildPath:
+			TNT1 A 0 {
+				invoker.animationFrame = 0;
+				invoker.animationInterval = 0;
+				sprite = GetSpriteIndex(SPRITE_Idle); 
+			}
+			TNT1 A 1;
+			TNT1 AAAAABBBBBBCCCCCCCCCCCCBBBBBAAAAAA 1
+			{
+				let state = A_RETURN(arriveState: "ArrivedHome");
+				if(state) SetState(state);
+				else if(isPathMoving) SetStateLabel("SearchForPlayer");
+			}
+			Loop;
+
+		// Arrived back roughly at starting point. Go back to idle
+		ArrivedHome:
+			TNT1 A 0 {
+				if(squad) squad.soldierHasReturnedHome(self);
+				A_ClearTarget();		// Triple make sure target is clear, so A_LOOK doesn't get a false positive
+				clearSeenPlayer();		// Pretend we never saw her...
+				lastHeard = null;		// Make sure we can hear Dawn again to alert
+				goal = null;
+				plan.reset();
+				pathBuilder.reset();	// Clear node usage so others don't think the route is occupied
+				responseID = 0;			// Make sure the soldier does not respond after coming out of idle
+				SetStateLabel("Stand"); // Stand around and flatulate
+			}
+			loop;
+
+	StrafeFiringFromDefense:
+		TNT1 A 0 {
+			strafeAttempts = 0;
+			Sprite = GetSpriteIndex(SPRITE_FireAimed);
+			ignoreStrafenode = true;
+		}	
+		TNT1 A 0 A_Jump(256, "MissileLeft", "MissileRight");
+		goto stand;
+	WaitAndAim:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_FireAimed);
+		}
+		TNT1 ABC 2 A_FACETARGET();
+		TNT1 A 0 
+		{
+			// Actor is is Mounting mode, so instead go to a mountingshield state.
+			if(mountedShieldActor)
+			{
+				setStateLabel("MountingShield");
+			}
+		}
+	WaitAndAimLooper:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_FireAimed);
+			if(target)
+			{
+				if(target is "PathNode") {
+					if(squad && squad.squadStatus == SQUAD_Chase) {
+						target = squad.squadTarget;	// Pick squad target
+					} else {
+						target = players[0].mo;
+					}
+					if(developer) A_PrintBold(String.Format("%s targeted a pathnode and we fixed it to: %s", getClassName(), target ? target.getClassName() : 'none'));
+
+					if(!target) {
+						setStateLabel("See");
+						return;
+					}
+				}
+				if (isTargetVisible() && hasFiringSolution()) {
+					setStateLabel("PrepMissile");
+				}
+			}
+			// No target, somehow. Wander.
+			else
+			{
+				setStateLabel("See");
+			}
+		}
+		TNT1 DDDDD 2 {
+			A_FACETARGET();
+		}
+		TNT1 A 0 {
+			lookForHazard();
+			if(random(0,5) == 5) {
+				noStrafeFiring = true;
+				SetStateLabel("StrafeFiringFromDefense");
+			}
+		}
+		TNT1 A 0 {
+			// If the player is facing a nearby wall, it is most likely not a good waiting position. Wander around and try again.
+			if(CheckIfFacingWall()) {
+				SetStateLabel("WaitAndAim_GetBetterPosition");
+			}
+			// Target no longer in range? Get chasing again to catch up.
+			if(!CheckInRange(combatDistance, false)) {
+				setStateLabel("ShootWeapon1");
+			}
+		}
+		loop;
+	WaitAndAim_GetBetterPosition:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_FireAimed);
+		}
+		TNT1 CBA 2;
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_Walking);
+		}
+		TNT1 AAAAABBBBB 1 {
+			A_WANDER();
+			//A_LOOK();
+		}
+		TNT1 A 0 {
+			if ((target) && Distance2DSquared(target) <= combatDistance*combatDistance-40 && isTargetVisible(checkWeaponLOSRejection: false)) {
+				if( SetStateLabelIfExists("MissileBackward") ) return;
+			}
+			checkNearForcefield();
+			playFootstepSound();
+		}
+		TNT1 CCCCCCDDDDDD 1 {
+			A_LOOK();
+			A_WANDER();
+		}
+		TNT1 A 0 {
+			playFootstepSound();
+		}
+		goto PrepMissile;
+
+	// Enemy has mounted a shield. Take a brief period to wind up before opening fire.
+	MountingShield:
+		TNT1 A 0 
+		{
+			invoker.mountedShieldSightThreshold = 0;
+			sprite = GetSpriteIndex(SPRITE_FireAimed);
+			lookForHazard();
+			A_FACETARGET();
+		}
+	MountingShieldLoop:
+		TNT1 DDDD 2 
+		{
+			// Look at target on light of sight
+			// We use LookForPlayers to give a narrow FOV
+			if(target && lookforPlayers(false, MountedShieldLineOfSight))
+			{
+				A_FACETARGET();
+				setStateLabel("MountingShieldAttack");
+				return;
+			}
+
+			// No line of sight should increase the threshold. If condition is met, stop mounting
+			else
+			{
+				invoker.mountedShieldSightThreshold++;
+				if(invoker.mountedShieldSightThreshold >= 75)
+				{
+					invoker.mountedShieldSightThreshold = 0;
+					SetStateLabel("MountingShieldDismount");
+				}
+			}
+		}
+
+	// Wind up completed, begin the attack. 
+	MountingShieldAttack:
+		// Check the angle. Dismount if too far removed from facing the shield
+		TNT1 A 0
+		{	
+
+			if(!checkValidShieldAngle())
+			{
+				if(mountedShieldActor)
+				{
+					ShieldPieceMain(mountedShieldActor).mountCooldown = 120;
+					mountedShieldActor = null;
+				}
+				setStateLabel("Missile");				
+			}
+		}
+		TNT1 D 0 {
+			A_SetTics(invoker.weapon_rateoffire+random(0,2));
+		}
+		TNT1 D 1
+		{
+			if(target && lookforPlayers(false, MountedShieldLineOfSight))
+			{
+				FireWeapon(6, 9, 42, random(2,3), frandom(1,2), 10);
+			}
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			if(!mountedShieldActor)
+			{
+				setStateLabel("Missile");
+			}
+			lookForHazard();
+		}
+		goto MountingShieldLoop;
+
+	// Stop mounting
+	MountingShieldDismount:
+		TNT1 A 0 
+		{
+			mountedShieldActor = null;
+			sprite = GetSpriteIndex(SPRITE_FireAimed);
+			lookForHazard();
+			A_FACETARGET();
+		}
+		TNT1 DCBA 2;
+		goto seecontinue;		
+
+	ScriptedFireCrouchingAtSomethingRandom:
+		TNT1 A 0 {
+			bNoPain = true;
+			Sprite = GetSpriteIndex(SPRITE_CrouchFire);
+		}
+		TNT1 D 1 {
+			A_settics(random(4,7));
+		}
+		TNT1 D 1 {
+			A_PLAYSOUND("grunt/firegun", CHAN_AUTO, 0.8, 0, 0.8);
+			A_SpawnItemEx("AlienMuzzle", 30, 18, 26);
+			A_SpawnItemEx("AlienTracerDummy", 40, 18, frandom(19,20), 60, angle:frandom(-3,3));
+			A_SpawnItem ("RifleCaseSpawnEnemy", 0, 30,0);
+		}
+		loop;
+	ScriptedMoveForwardScattered:
+		TNT1 A 0 {
+			A_SETTICS(random(2,11));
+		}
+	ScriptedMoveForward: 
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_Walking);
+		}
+		TNT1 ABCDABCDABCDABCDABCDABCDABCDABCD 7 {
+			IncrementStateTic();
+			if(stateTic % 2 == 0) {
+				playFootstepSound();
+			}		
+			ThrustThing(angle*256/360, 3, 0, 0);
+		}
+		loop;
+
+	PrepMissile:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_FireAimed);	
+		}
+		TNT1 DDDDDDDD 1 A_FACETARGET();
+		TNT1 D 2 {
+			if (target && hasFiringSolution()) {
+				setStateLabel("ShootWeapon_Aiming");
+			}
+			A_FACETARGET();
+		}
+		goto WaitAndAimLooper;
+	
+	Pain.LandOnYourAss:
+		TNT1 A 1 {
+			bNoPain = true;
+			sprite = GetSpriteIndex(SPRITE_Fallingdown);
+		}
+		TNT1 AB 2 {
+			A_FACETARGET();
+		}
+	Pain.LandOnYourAssContinue:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_MeleeFly);
+		}
+		TNT1 ABC 2;
+		TNT1 A 0 BodyImpact();
+		TNT1 DEFG 2;
+	Pain.LandOnYourAssLayingDown:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_MeleeFly);
+		}
+		TNT1 HHHHHH random(1,7);
+		goto GetUp;
+	
+	Pain.ExtremePunches:
+	Pain.ExplosiveImpact:
+	Pain.Explosive:
+	        TNT1 A 0;
+			TNT1 A 0 {
+			bNoDropoff = false;
+		}
+		TNT1 A 0 A_Pain;
+		TNT1 A 0 ThrustThingZ(0,40,0,1);
+		Goto Pain.LandOnYourAss;
+
+	Pain.head:
+		TNT1 A 0 {
+			// Drop grenade is soldier was about to throw
+			if (invoker.isThrowingGrenade == true) {
+				Stats.AddStat(STAT_HOT_DROP, 1, 0);
+				A_SpawnItemEx("EnemyThrownGrenadeHotDrop", 0, 0, 32, random(1,1), 0, random(1,2));
+				invoker.isThrowingGrenade = false;
+			}
+			// Finish pain state before doing anything else
+			disablePainState();
+			A_PAIN();
+			boneSnap();
+		}
+		TNT1 A 0 A_Jump (invoker.evadeChance, "Evade");
+		TNT1 A 0 {
+			invoker.animationFrame = 0;
+		}
+
+		TNT1 A 0 A_Jump(128, "Pain.Shoulder_right", "Pain.Shoulder_left", "Pain.Shoulder_right", "Pain.Shoulder_left", "Evade");
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_PainHeadshot);
+		}
+		TNT1 ABCDEF 3 {
+			if(heavyPain) {
+				A_SETTICS(4); // Hit by heavy pain, longer stagger.
+			} else {
+				A_SETTICS(2);
+			}
+		}
+		TNT1 A 0 {
+			bNoPain = false;
+			SetStateLabel("SeeContinue");
+		}
+
+	Pain.Shoulder_right:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_PainShoulder1);
+			A_Pain();
+		}
+		TNT1 ABCDEFG 3 {
+			if(heavyPain) {
+				A_SETTICS(4); // Hit by heavy pain, longer stagger.
+			}
+		}
+	    Goto SeeContinue;
+	Pain.Shoulder_left:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_PainShoulder2);
+		}
+		TNT1 ABCDEFG 3 {
+			if(heavyPain) {
+				A_SETTICS(4); // Hit by heavy pain, longer stagger.
+			}
+			A_Pain();
+		}
+	    Goto SeeContinue;
+	// MELEE WEAPON BUTT
+	Pain.MeleeImpactTaser:
+	Pain.MeleeImpactSplash:
+		TNT1 A 0 A_CHANGEVELOCITY(-3, 0, 0, CVF_RELATIVE);
+    Pain.MeleeImpact:
+		 TNT1 A 0 A_STOPSOUND(CHAN_VOICE);
+		 TNT1 A 0 {
+			 mayNotTalk = true;
+		 }
+		 TNT1 A 0 {
+			 // This does not apply to an enemy who is shocked because a taser hit might end up more benefitial than an instant kill.
+			if (!getSeenPlayer() && shockRemainder==0) {
+		       A_DamageSelf(250);
+               SetStateLabel("death.spinner");
+			}
+			bNoPain = true;
+			bNoDropoff = false;
+			invoker.wallsmashed = false;
+			if (CheckProximity("WeaponMeleeEnhanced", 80)) {
+				invoker.damagedByEnhancedMelee = true;
+			}
+		}
+		 TNT1 A 0 A_PlaySound("grunt/meleepain");
+		 TNT1 A 0 A_SetSize(-1, 32);
+		 TNT1 A 0 {
+			bNoPain = true;
+			setStateLabel("PainFalling");
+		}
+
+	Pain.SniperBullet:	
+	Pain:
+		TNT1 A 0 {
+			if (invoker.isThrowingGrenade == true) {
+				Stats.AddStat(STAT_HOT_DROP, 1, 0);
+				A_SpawnItemEx("EnemyThrownGrenadeHotDrop", 0, 0, 32, random(1,1), 0, random(1,2));
+				invoker.isThrowingGrenade = false;
+			}
+		}
+		TNT1 A 0 A_Pain();
+		TNT1 A 0;
+		TNT1 A 0 {
+			boneSnap();
+			if(!isHeadshot && stumbleCooldown <= 0 && random(0,100) <= STUMBLE_CHANCE)
+			{
+				setStateLabel("pain.stumbleToDirection");
+			}
+		}
+		TNT1 A 0 A_Jump (invoker.evadeChance, "Evade");
+		TNT1 A 0 A_Jump(256, "Pain.Shoulder_right", "Pain.Shoulder_left", "Pain.Shoulder_right", "Pain.Shoulder_left");
+		TNT1 A 0 A_Jump(15, "DeployGadget");
+		goto Pain.Shoulder_right;
+	Pain.MeleeImpactExtinguisher:
+		TNT1 A 0 {
+			vel = (0,0,0);
+			A_CHANGEVELOCITY(-3, 0, 0, CVF_RELATIVE);
+			sprite = GetSpriteIndex(SPRITE_Fallingdown);
+			setFallHeight();
+			A_PAIN();
+			A_SpawnItemEx("MeleeImpactLarger", -5, 0, 40);
+			A_PLAYSOUND("IMPACT/EXTINGUISHERHIT", CHAN_AUTO, 0.8, pitch:frandom(0.8,1.1));
+		}
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_Fallingdown);
+		}
+		TNT1 AB 2 {
+			if(shockRemainder>0) { shockEffects();}
+		}
+		goto Pain.Shotgun2;
+	Pain.StumbleToDirection:
+		TNT1 A 0 {
+			if (invoker.strafesLeft) {
+				invoker.strafesLeft = false;
+				setStateLabel("Pain.StumbleLeft");
+			}
+			if (invoker.strafesRight) {
+				invoker.strafesRight = false;
+				setStateLabel("Pain.StumbleRight");
+			}
+			if (invoker.chargingForward) {
+				invoker.chargingForward = false;
+				setStateLabel("Pain.StumbleForward");
+			}
+		}
+		goto pain;
+	PainFalling:
+		TNT1 A 0 {
+			setFallHeight();
+		}
+		TNT1 A 0 {
+			if(invoker.damagedByEnhancedMelee) {
+				ThrustThingZ(0,7,0,1);
+			} else {
+				ThrustThingZ(0,4,0,1);
+			}
+		}
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_Fallingdown);
+		}
+		TNT1 AB 2 {
+			if(shockRemainder>0) { shockEffects();}
+		}
+		goto Pain.shotgun+1;
+	Pain.shotgun:
+		TNT1 A 0 {
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			// If Crowd Control, fly backward instead
+			if(d.countinv("UpgradeShotgunCrowdControl") == 1)
+			{
+				setStateLabel("Pain.ShotgunNext");
+			} else {
+				setStateLabel("Pain");
+			}
+		}
+		goto pain;
+	Pain.ShotgunNext:
+		TNT1 A 0 
+		{
+			sprite = GetSpriteIndex(SPRITE_Fallingdown);
+		}
+        TNT1 CC 1 {
+			if(shockRemainder>0) { shockEffects();}
+			bNoPain = true;
+		 }
+	Pain.ContinueFalling:
+		TNT1 CC 1 {
+			 ThrustThing(angle*256/360+128, 2, 0, 0);
+		}
+	Pain.ContinueFalling_2:
+		TNT1 CCCCC 1 {
+			 if(shockRemainder>0) { shockEffects();}
+			 if (CheckWallSmash() && !invoker.wallsmashed) {
+				 SpawnSmashParticles();
+				 SetStateLabel("SmashedWall");
+			 }
+			 ThrustThing(angle*256/360+128, 2, 0, 0);
+		 }
+	Pain.Shotgun2:
+		 // Check if soldier should fire while being down
+		 TNT1 A 0 {
+			 sprite = GetSpriteIndex(SPRITE_MeleeFly);
+		 }
+		 TNT1 AAAABBBB 1 {
+			if (CheckWallSmash() && !invoker.wallsmashed) {
+				 SpawnSmashParticles();
+				 SetStateLabel("SmashedWall");
+			 }
+			if(shockRemainder>0) { shockEffects();}
+		 }
+	LoopUntilFloorHit:
+	    TNT1 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 1 {
+			if (CheckWallSmash() && !invoker.wallsmashed) {
+				 SpawnSmashParticles();
+				 SetStateLabel("SmashedWall");
+			 }
+			 if(bIsOnFloor()) {
+				SetStateLabel("ImpactFloorAfterFalling");
+			 }
+			if(shockRemainder>0) { shockEffects();}
+		 }
+	ImpactFloorAfterFalling:
+		 TNT1 D 2 {
+			if (ApplyFallDamage()) {
+				SetStateLabel("Death.Down");
+			}
+			A_PLAYSOUND("IMPACT/BODYDROP", CHAN_AUTO, 0.6);
+       		A_SPAWNITEMEX("SpawnImpactSmokeSmallSuperShort", frandom(-3,3), frandom(-3,3), 5);
+        	A_SPAWNITEMEX("SpawnImpactSmokeSmallSuperShort", frandom(-3,3), frandom(-3,3), 5);
+        	A_SPAWNITEMEX("SpawnImpactSmokeSmallSuperShort", frandom(-3,3), frandom(-3,3), 5);
+			sprite = GetSpriteIndex(invoker.SPRITE_MeleeFly);
+		 }
+		 TNT1 EF 2;
+		 TNT1 FGG 2;
+		 TNT1 A 0 {
+			 if(shockRemainder>0) {
+				 setStateLabel("Pain.ShockedFloorSetup");
+			 }
+		 }
+		 TNT1 HHHHHHHHHHH 2;
+		 TNT1 A 0 {
+			 if(ENEMY_IdentifierTag == "RIFLEMAN" && random(0,5) == 2) {
+				 SetStateLabel("FireWhileDown");
+			 }
+		 }
+		 TNT1 A 0 {
+			if(shockRemainder<=0) {
+			 	setStateLabel("GetUp");
+			 }
+		 }
+	Pain.ShockedFloorSetup:
+	Pain.ShockedFloorActual:
+		 TNT1 A 1 {
+			bNoPain = true;
+			int random = random(0,1);
+			if (random == 0) {shockFrame = 0;}
+			if (random == 1) {shockFrame = 2;}
+			sprite = GetSpriteIndex(invoker.SPRITE_Shocked);
+		}
+		TNT1 AAAA 0 {
+			A_SetTics(random(1,2));
+			frame = shockFrame;
+			if(shockRemainder>0) { shockEffects();}
+		}
+		TNT1 A 0 {
+			shockFrame++;			
+		}
+		TNT1 AAAA 0 {
+			A_SetTics(random(1,2));
+			frame = shockFrame;
+			if(shockRemainder>0) { shockEffects();}
+		}
+		TNT1 A 0 {
+			shockRemainder--;
+			if(random(0, 100) >= 99 && shockAmplified) {
+				setStateLabel("stomped");
+			}
+			if (shockRemainder == 0) {
+				SetStateLabel("Pain.LandOnYourAssLayingDown");
+			}
+		}
+		loop;
+	Pain.ShockedFloorFinished:
+		 TNT1 H random(90,120) {
+			sprite = GetSpriteIndex(invoker.SPRITE_MeleeFly);
+			shockRemainder = 0;
+		 }
+		 TNT1 A 0 {
+			 setStateLabel("GetUp");
+		 }
+	GetUpElectric:
+		 TNT1 EEFFGG 2 {
+			if(shockRemainder>0) { shockEffects();}
+		 }
+		 TNT1 HHHHHHHHHHH 2 {
+			if(shockRemainder>0) { shockEffects();}
+		 }
+		 TNT1 A 0 {
+			 if (shockRemainder<=0) {
+			 	setStateLabel("GetUp");
+			 }
+		 }
+
+
+    GetBackUp:
+	    TNT1 A 0 {invoker.isLayingDown = true; }
+	GetUp:
+		TNT1 A 0 {
+			bNoPain = true;
+			FindFloorCeiling();
+			sprite = GetSpriteIndex(invoker.SPRITE_MeleeFly);
+		}
+        TNT1 IJK 4;
+		TNT1 A 0;
+		TNT1 LMNO 4;
+		TNT1 A 0 A_SetSize(-1, defaultheight);
+		TNT1 PQR 4;
+		TNT1 A 0 {
+			bNoPain = false;
+			invoker.wallsmashed = false;
+		 }
+		goto SeeContinue;
+	Pain.StunningShock:
+		TNT1 A 0 {
+			bNoPain = true;
+		}
+	Pain.ShockedStandActual:
+		 TNT1 A 1 {
+			sprite = GetSpriteIndex(invoker.SPRITE_Shocked);
+		 }
+	Pain.ShockedStandActualLooper:
+		TNT1 A 0 {
+			bNoPain = true;
+			int random = random(0,3);
+			if (random == 0) {shockFrame = 4;}
+			if (random == 1) {shockFrame = 6;}
+			if (random == 2) {shockFrame = 8;}
+			if (random == 3) {shockFrame = 10;}
+		}
+		TNT1 A 2 {
+			shockEffects(60);
+			frame = shockFrame;
+		}
+		TNT1 A 0 {
+			shockFrame++;
+		}
+		TNT1 A 2 {
+			shockEffects(60);
+			frame = shockFrame;
+		}
+		TNT1 A 0 {
+			shockRemainder--;
+			if(random(0, 100) >= 99 && shockAmplified) {
+				setStateLabel("stomped");
+			}
+			if(shockRemainder == 0) {
+				if(shockStrength < 20) {
+					setStateLabel("See");
+					return;
+				}
+				SetStateLabel("Pain.LandOnYourAss");
+				return;
+			}
+		}
+		loop;		
+	Pain.MagnumBullet:
+		TNT1 A 0;
+		TNT1 A 0 {
+			bool hasKnockback;
+			int dice = random(0,100);
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			let weapon = SelacoWeapon(pawn.FindInventory('RoaringCricket'));
+			//TODO: Hacky way to tell the enemy the player has the Impact Hammer upgrade. Improve after preview!
+			if(weapon)
+			{
+				if(weapon.hasUpgradeClass('UpgradeCricketImpact') == 1) {	
+					heavyPain = true;
+				}
+				if(weapon.hasUpgradeClass('UpgradeCricketKnockback') == 1) {	
+					hasKnockback = true;
+				}
+			}
+			if (dice <= 20 && hasKnockback) {	
+				SetStateLabel("Pain.MeleeImpact");
+			} else {
+				SetStateLabel("Pain.MagnumStagger");
+			}
+		}
+
+	DodgeGrenade:
+		TNT1 A 0 {
+			sprite = GetSpriteIndex(SPRITE_DodgeGrenade);
+		}
+		TNT1 ABC 4;
+		TNT1 A 0 {
+			A_SETSIZE(-1, 25);
+			A_CHANGEVELOCITY(20, 0, 3, CVF_REPLACE | CVF_RELATIVE);
+		}
+		TNT1 DE 4;
+		TNT1 A 0 
+		{
+			BodyImpact();
+			friction = 0.8;
+		}
+		TNT1 FGHHHHIJKLMNO 4;
+		TNT1 A 0 {
+			scale = tempScale;
+		}
+		goto SeeContinue;
+
+		ActuallyThrowGrenade:
+			TNT1 A 0 A_Stop;
+			// Spawn a grenade destination actor. This is the area the soldier will throw a grenade at.
+			// We do this so that when the player moves, it does not end up messing with the 
+			TNT1 A 0 {
+				sprite = GetSpriteIndex(SPRITE_Grenade);
+				invoker.grenadeCount--;
+				bGhost = false;
+				invoker.isThrowingGrenade = true;
+				bNoDropoff = false;
+
+				// We shouldn't have arrived here if we didn't have a target to begin with, or this wasn't a scripted throw
+				if(!target) target = players[0].mo;	// Quick hack because enemy was sometimes losing target before the throw
+			}
+			TNT1 BCD 3 A_FACETARGET;
+			TNT1 A 0 A_PlaySound("OPNGRN", 1);
+			TNT1 A 0 talk(SOLDIER_THROWGRENADE);
+			TNT1 EF 3 A_FACETARGET;
+			TNT1 A 0 A_PlaySound("THRGRN", 1);
+			TNT1 A 0 A_SpawnProjectile("GrenadePin", 42, -5, 0, CMF_OFFSETPITCH, -11);
+			TNT1 A 0 {
+				actor thrownGrenadeActor;
+				thrownGrenadeActor = A_SpawnProjectile(grenadeType, 42, -5, 0, CMF_OFFSETPITCH, -11);
+				
+				// Check distance between Thrower and Target, and increase velocity of the grenade per every unit.
+				if (thrownGrenadeActor && target)
+				{
+					int targetDistance = Distance2D(target);
+				
+					// Calculate the time needed to cover the distance at base speed (in ticks)
+					float baseSpeed = 50; // Base speed for grenade
+					float baseTime = targetDistance / baseSpeed;
+				
+					// How long do we want the grenade to travel
+					float desiredTime = TICRATE;
+				
+					// Calculate the scaling factor to achieve the desired time
+					float scaleFactor = baseTime / desiredTime;
+				
+					// Apply speed scaling
+					thrownGrenadeActor.A_ScaleVelocity(scaleFactor);
+				}
+
+				if(firstTarget) {
+					target = firstTarget;
+				}
+				bGhost = false;
+				invoker.isThrowingGrenade = false;
+				bNoDropoff = false;
+			}
+			TNT1 GHIJ 3 A_FACETARGET;
+        Goto SeeContinue;
+
+
+	SmashedWall:
+		TNT1 A 0;
+		TNT1 A 0;
+		TNT1 A 0 A_PAIN();
+		TNT1 A 0 A_playSound("impact/wallcollider", CHAN_AUTO, 1.0, 0, 0.9);
+		TNT1 A 0 {
+			if(shockRemainder>0) {
+				bNoPain = true;
+				emitdefinition('DebrisChunkParticleDefinition', 1.0, 35);
+				if(shockAmplified) {
+					setStateLabel("stomped");
+				}
+
+				PlayerPawn pawn=players[0].mo;
+				let d = Dawn(pawn);
+				if(d.hasWeaponUpgrade('UpgradeSMGUnderVolt'))
+				{
+					shockNearbyTargets(500);
+				}
+
+				A_SPAWNITEMEX("WhiteShockWave", 0, 0, 0);
+				A_SPAWNITEMEX("WhiteShockWave", 0, 0, 3);
+				A_SPAWNITEMEX("WhiteShockWave", 0, 0, -3);
+				SetStateLabel("Pain.ShockedFloorSetup");
+			}
+		}
+		TNT1 D 2 {
+			sprite = GetSpriteIndex(invoker.SPRITE_Fallingdown);
+		}
+		TNT1 A 0;
+		TNT1 A 0 A_Stop;
+		TNT1 A 0 A_PLAYSOUND("IMPACT/BODYDROP", CHAN_AUTO, 0.2);
+		TNT1 DE 3;
+		TNT1 A 0 A_SetSize(-1, 56);
+		TNT1 A 0 {
+			bNoPain = false;
+		}
+		TNT1 FGHIJLM 3;
+		TNT1 A 0;
+        Goto SeeContinue;
+
+
+	FallingAfterImpact:
+		RFFL I 1;
+		RFFL I 1 A_CheckFloor ("GetUp");
+		NULL A 0 A_JumpIf (vel.z == 0, "GetUp");
+		Loop;
+
+	FallingDie:
+		TNT1 A 0;
+		TNT1 A 0 {
+			bCountKill = false;
+			bSHOOTABLE = false;
+		}
+
+	Insta:
+		TNT1 A 1 A_DamageSelf(250);
+		goto death.stomp;
+
+   Death.Down:
+		POSS I 0 A_Scream;
+		TNT1 A 0 A_Stop;
+		POSS J 0 A_NoBlocking;
+		RFGU EF 2;
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 2, 0, random (0, 360), 2, random (0, 40));
+		TNT1 A 0 {
+			forceCustomAnimation = true;
+			Stats.AddStat(STAT_COLLISION_KILLS, 1, 0);
+		}
+        TNT1 A 0 A_SpawnItem("DeadAlien1");
+		TNT1 A 0 die(self,self);
+        Stop;
+
+	Death.FrostExplosion:
+		TNT1 A 0 A_StopSound(CHAN_VOICE );
+		TNT1 A 0  A_PlaySound("dest/glassm",CHAN_AUTO);
+		TNT1 A 0 A_PLAYSOUND("destruction/glassbreak", CHAN_AUTO, pitch:0.6);
+		TNT1 A 0 
+		{
+			for(int x = 25; x>0;x--)
+			{
+				EmitDefinition('GlassParticleIceShatterDefinition', 1.0, 25, offset:(frandom(-15,15), frandom(-15,15), frandom(5,15)));
+			}
+		}
+		TNT1 AAAA 0 A_SpawnItem("SuperGorePurpleMist", frandom(-30,30), frandom(-30,30), frandom(-10, 40));
+	    TNT1 AAA 0 A_SpawnItem("MeatDeathSmallPurple");
+	    TNT1 AA 0 A_SpawnDefinedParticleProjectile("PurpleBloodMissileDefinition", random(20,70), random(-30,30), random (-120, -240), 2, random (30, 60));
+		TNT1 AAAAAAAAAA 0 A_SpawnDefinedParticle("PurpleSplatterEffectDefinition", random(-10, 10), random(-10,10),random(10,40), random(-3, -6), random(-6,6),random(2,4));
+		TNT1 AAAAAAAAAAA 0 A_SpawnProjectile ("AlienIntestine", 55, random(-30,30), random (0, 360), 2, random (-30, -180));
+		TNT1 AAAAAAAAAAAA 0 A_SpawnProjectile ("XDeath1Alien", 5, frandom(-10, 10), frandom(-120, -240), 2, random (170, 190));
+		stop;
+
+	Death.MagnumBullet:
+		TNT1 AAAA 0 A_SpawnDefinedParticle("PurpleSplatterEffectDefinition", random(-5, 5), random(-3,3),random(25,40), random(-3,3), random(-3,3),random(1,6));
+		TNT1 AAAAAAA 0 A_SpawnDefinedParticle("PurpleBloodMissileDefinition", frandom(-4, 4), frandom(-4, 4),frandom(0, 2), frandom(-4, 4), frandom(-4, 4), frandom(0, 5), random(0,360));
+		Goto Death;
+
+	Death.DawnFist:
+		TNT1 A 0 A_PLAYSOUND("bounce/bone", CHAN_AUTO, 1.0, 0, 0.6, 0, frandom(0.7,1.1));
+		TNT1 A 0 {
+			A_PlaySound("dest/headblow", CHAN_AUTO, 0.7, 0,7, 0, frandom(0.8,1.1));
+			A_PLAYSOUND("impact/meleeplus", CHAN_AUTO);
+		}
+		TNT1 A 0 A_StopSound(CHAN_VOICE);
+		TNT1 A 0 A_FACETARGET();
+		TNT1 AAAAA 0 A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(24, 48), frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+		TNT1 A 0 {
+       		 A_SpawnDefinedParticle("SuperGoreMistPurpleSmallDefinition");
+	  	 	 A_SpawnItem("MeatDeathSmallPurple");
+		}
+		TNT1 A 0 A_FaceTarget();
+	    TNT1 A 0 {
+			spawnDeathActor(GetShotgunDeathAnimation(), 0, 0, 5, -2, 0, 2, flags:SXF_TRANSFERTRANSLATION);
+		}
+		stop;
+	Death.SawDrone:
+		TNT1 A 0 {
+			if(getCvar("g_censoredMode") == 1) {
+				spawnDeathActor(GetDeadAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			} else {
+				spawnDeathActor(GetShotgunDeathAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			}
+		}
+		stop;
+	Death.Shotgun:
+		// @Cockatrice - This block is a cheap hack for accumulating shotgun pellets for total damage
+		// Instead of killing the enemy right away we hold still for a frame and wait for all pellets to resolve
+		// Damage accumulates through DamageMobj()
+		TNT1 A 1 {
+			// Increase or set overkill damage based on health missing
+			overkill += -health + (overkill != 0 ? 0 : 1);
+			bNoPain = true;		// Don't trigger a pain state going forward
+			bShootable = true;	// Allow more pellets to damage
+		}
+		// Determine if we have a headshot death, this ignores overkill but headshot deaths should be rewarded as such
+		TNT1 A 0 A_JumpIf(double(headshotDmg) * 0.3333 >= double(takenDmg), "Death.Head");
+		TNT1 A 0 A_StopSound(CHAN_VOICE);
+		TNT1 A 0 A_FACETARGET();
+		TNT1 A 0 {
+       		 for(int i=0;i<11;i++)
+			 {
+				A_SpawnDefinedParticle("SuperGoreMistPurpleSmallDefinition", frandom(-23,23), frandom(-40,40), frandom(0,60), frandom(0.1,0.7), angle:random(0,360));
+			 }
+	  	 	 //A_SpawnItem("MeatDeathSmallPurple");
+		}
+		TNT1 A 0 A_FaceTarget();
+		TNT1 A 0 {
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			int playerDistance = distance2D(d);
+			int gibbingDistance = SHOTGUN_GIBBING_DISTANCE;
+			int gibbingChance = SHOTGUN_GIBBING_CHANCE;
+			let shotgunWeapon = SelacoWeapon(pawn.FindInventory('shot_gun'));
+			if(shotgunWeapon && shotgunWeapon.hasUpgradeClass('UpgradeShotgunGore'))
+			{	
+				gibbingChance*=1.05;
+				gibbingDistance+=400;
+			}
+
+			// If player has Recall, refill slide meter.
+			if(playerDistance <= gibbingDistance)
+			{
+				PlayerPawn pawn=players[0].mo;
+				let d = Dawn(pawn);
+				if(d.hasWeaponUpgrade('UpgradeShotgunRecall'))
+				{
+					d.recallTimer = d.RECALL_TIME_MAX;
+				}		
+			}
+
+			// Gib the enemy
+			if((random(0,100) <= SHOTGUN_GIBBING_CHANCE || overkill > Default.health*2) && playerDistance <= gibbingDistance) {
+				SetStateLabel("death.shotgunstomp");
+			}
+
+		}
+	Death.extreme:
+		TNT1 AAAAA 0 A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(24, 48), frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+		TNT1 A 0 {
+			A_SpawnDefinedParticle("SuperGoreMistPurpleSmallDefinition");
+			if(getCvar("g_censoredMode") == 1) {
+				spawnDeathActor(GetDeadAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			} else {
+				spawnDeathActor(GetShotgunDeathAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			}
+		}
+		stop;
+
+	Death.MeleeImpactSplash:
+		TNT1 A 0;
+		TNT1 A 0 {
+			A_STOPSOUND(CHAN_VOICE);
+			spawnDeathActor(GetWallSmashAnimation(), 0, 0, 0, 12, flags:SXF_TRANSFERTRANSLATION);
+		}
+		stop;
+
+	Death.MeleeImpactExtinguisher:
+		TNT1 A 0 {
+			A_SpawnItemEx("MeleeImpactEffect", -5, 0, 40);
+			A_PLAYSOUND("IMPACT/EXTINGUISHERHIT", CHAN_AUTO, pitch:frandom(0.8,1.1));
+		}
+    Death.MeleeImpact:
+		TNT1 A 0 A_FACE(target);
+		TNT1 A 1 {
+			A_CheckProximity(null, "dawn", 700, 1, CPXF_SetTarget);
+		}
+		TNT1 A 0 A_FaceTarget();
+		TNT1 A 0 spawnDeathActor(GetMeleeDeathAnimation(), 0, 0, 10, 0, 0, 2);
+		stop;
+
+	Vanish:
+		stop;
+
+	DSFStop:
+		TNT1 A 0; //A_PRINTBOLD("DSFSTop");
+		TNT1 A 0 A_Stop;
+	
+		TNT1 A 0 A_PLAYSOUND("IMPACT/BODYDROP", CHAN_AUTO, 0.6);
+		Stop;
+
+	DSFStop2:
+		TNT1 A 0 A_StopSound(CHAN_VOICE);
+		TNT1 A 0 A_Stop;
+		TNT1 A 0 A_PLAYSOUND("IMPACT/BODYDROP", CHAN_AUTO, 0.6);
+		Stop;
+
+
+	DeathShotgunFly:
+		TNT1 A 0 A_StopSound(CHAN_VOICE);
+		TNT1 A 0 {
+			bSLIDESONWALLS = false;
+			bNoDropoff = true;
+			invoker.wallsmashed = false;
+		}
+		TNT1 A 0 ThrustThingZ(0,30,0,1);
+		TNT1 A 0 A_Scream;
+		TNT1 A 0 A_NoBlocking;
+        TNT1 A 0 A_FACETARGET;
+        TNT1 A 0 A_Recoil (12);
+        POS4 UUVVWWXXYY 1 {
+			A_SpawnDefinedParticleProjectile("PurpleBloodMissileDefinition", 15, 0, random (0, 360), 2, random (0, 40));
+			 if (CheckWallSmash() && !invoker.wallsmashed) {
+				 SpawnSmashParticles();
+				 A_SpawnItem("DeadAlien1");
+				 
+				 SetStateLabel("Vanish");
+			 }
+		}
+		TNT1 A 0 A_PLAYSOUND("IMPACT/BODYDROP", CHAN_AUTO, 0.6);
+
+		TNT1 A 0 A_SpawnItem("DeadAlien1");
+        Stop;
+
+	Death.NailDamage:
+		TNT1 A 0 
+		{
+			if (CharacterIsNearWall(135)) {
+				MaxStepHeight = 50;
+				Stats.AddStat(STAT_WALLNAILS, 1, 0);
+			}
+ 			else 
+			{
+				SetStateLabel("Death");
+			}
+		}
+		TNT1 A 0 
+		{
+			sprite = GetSpriteIndex(SPRITE_NailgunDeath);
+		}
+	    TNT1 A 0 A_FACETARGET();
+        TNT1 BC 2 {
+			   A_ChangeLinkFlags(1);
+			   bMOVEWITHSECTOR = true;
+			   A_SetSize(7, 46);
+			   A_RECOIL(10);
+               A_SPAWNITEMEX("OMINOUS_PurpleSpot", frandom(-25, 25),frandom(-25, 25));
+               A_SPAWNITEMEX("OMINOUS_PurpleSpot", frandom(-25, 25),frandom(-25, 25));
+               A_SpawnItemEx("SmokeTrailPieceArmorPurpleSlow", random(-4, 4), random(-4, 4), random(6, 12),  frandom(-1, 1), frandom(-1, 1), frandom(-1, 1));
+        }
+	NailgunDeathLooper:
+		TNT1 A 0
+		{
+			sprite = GetSpriteIndex(SPRITE_NailgunDeath);
+		}
+		TNT1 BBCCDDEEFF 1 {
+			if (CharacterIsNearWall(10)  || (vel.length() <= 0.3))  {
+				SetStateLabel("NailgunDeath1Spawn");
+			}
+			A_Recoil(3);
+		}
+		// Didn't find a wall in time, die normal
+		TNT1 A 0
+		{
+			A_SPAWNITEMEX("DeadAlien1");
+		}
+	   stop;
+	NailgunDeath1Spawn:
+	   TNT1 A 0 spawnDeathActor(GetnailgunDeathAnimation(), 0, 0, 0, -30, 0, 1, flags:SXF_TRANSFERTRANSLATION);
+	   stop;
+
+
+	Death.Melee:
+
+	// Regular death cases - The soldier is killed by traditional means.
+	Death.knife:
+	Death.SniperBullet:
+	Death:
+		TNT1 A 0 {
+			if(isFrozen) {setStateLabel("death.frostexplosion");}
+		}
+
+/* 		TNT1 A 0 {
+			 A_SpawnProjectile("xdeath1Alien", 40, 0, random (0, 360), 2, random (-10, -160));
+		} */
+		TNT1 A 0 A_StopSound(CHAN_VOICE);
+		TNT1 A 0 A_Scream;
+		TNT1 A 0 A_FACETARGET();
+        TNT1 A 0;
+		TNT1 A 0 A_StopSound(CHAN_VOICE);
+		TNT1 A 0 {
+			A_StopSound(CHAN_VOICE);
+			A_Scream();
+			A_NoBlocking();
+			if (CharacterIsNearWall(50) && !forceCustomAnimation) {
+				spawnDeathActor(GetSittingAnimation(),flags:SXF_TRANSFERTRANSLATION);
+				SetStateLabel("Stopper");
+			}
+		}
+		//TNT1 A 0 A_SpawnProjectile ("CutoffLeg", 0, 0, random (0, 360), 2, random (0, 90));
+		TNT1 A 0 {
+			if(!forceCustomAnimation) {
+				spawnDeathActor(GetDeadAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			}
+		}
+		stop;
+
+	// Headshot cases - The soldier is killed by taking too much damage to the head
+	Death.Head:
+		TNT1 A 0 A_Playsound("Smallheadshot", CHAN_AUTO);
+		TNT1 A 0 A_StopSound(CHAN_VOICE);
+	    TNT1 A 0 A_PlaySound("combat/headshot", CHAN_AUTO, 1.0, 0, 0.6);
+		TNT1 A 0 addCornerSlime(2);
+		TNT1 A 0 {
+			if(isFrozen) {setStateLabel("death.frostexplosion");}
+		}
+		TNT1 AAAAAA 0 A_SpawnProjectile ("AlienBrainPiece", height, 0, random (0, 360), 2, random (-140,-160));
+		TNT1 A 0 A_SpawnProjectile ("XDeath1Alien", 32, 0, random (0, 360), 2, random (-10, -70));
+		//TNT1 A 0 A_SpawnDefinedParticle("PurpleSplatterEffectGiganticDefinition", random(-10, 10), random(-8,8),frandom(height,height+20), random(-3,3), random(-3,3),random(1,6));
+		TNT1 AAAAA 0 A_SpawnDefinedParticle("PurpleSplatterEffectDefinition", random(-10, 10), random(-8,8),frandom(height,height+20), random(-3,3), random(-3,3),random(1,6));
+		TNT1 A 0 {
+			for(int x=0;x<getCvar("r_bloodquality");x++) {
+				for(int x=0;x<=3;x++) {
+					A_SpawnDefinedParticle("PurpleBloodMissileDefinition", frandom(-4, 4), frandom(-4, 4),frandom(height,height-10), frandom(-4, 4), frandom(-4, 4), frandom(3, 10), random(0,360));
+				}
+				for(int y=0;y<=2;y++)
+				{
+					A_SpawnProjectile ("AlienIntestine", 45, random(-30,30), random (0, 360), 2, random (-180, -210));
+				}
+			}
+		}
+		TNT1 A 0 {
+			 A_SpawnProjectile("xdeath1Alien", 40, 0, random (0, 360), 2, random (-10, -70));
+		}
+		TNT1 A 0 {
+			EmitDefinition('HeadshotBlueSparkWildDefinition', 1.0, 50, pitch:frandom(-35,35), offset:(0,0,height-10));
+		}
+		TNT1 A 0;
+		TNT1 A 0 {
+			// No decapitated head for Censored Mode
+			if(getCvar("g_censoredMode") == 1) {
+				spawnDeathActor(GetDeadAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			} else {
+				spawnDeathActor(GetHeadshotDeadAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			}
+		}
+		stop;
+	
+	Pain.DoStumble:
+		TNT1 A 0 A_Jump(256, "Pain.StumbleLeft", "Pain.StumbleRight", "Pain.StumbleForward");
+
+	Pain.StumbleLeft:
+		TNT1 A 0 ThrustThing(angle*256/360+192, 4, 0, 0);
+		TNT1 A 0 {
+			invoker.stumbleCooldown = STUMBLE_COOLDOWN_TIME;
+			sprite = GetSpriteIndex(SPRITE_StumbleLeft);
+			disablePainState();
+			A_SetSize(invoker.defaultRadius, 40);
+		}
+		TNT1 AB 4;
+		TNT1 A 0 A_PLAYSOUND("FOOTSTEP/SQUEAK", CHAN_AUTO, attenuation:0.7);
+		TNT1 CDEFGHIJ 4;
+		TNT1 A 0 {
+			defaultEverything();
+			SetStateLabel("SeeContinue");
+		}
+		goto SeeContinue;
+
+	Pain.StumbleRight:
+		TNT1 A 0 ThrustThing(angle*256/360+64, 4, 0, 0);
+		TNT1 A 0 {
+			invoker.stumbleCooldown = STUMBLE_COOLDOWN_TIME;
+			sprite = GetSpriteIndex(SPRITE_StumbleRight);
+			disablePainState();
+			A_SetSize(invoker.defaultRadius, 40);
+		}
+		TNT1 AB 4;
+		TNT1 A 0 A_PLAYSOUND("FOOTSTEP/SQUEAK", CHAN_AUTO, attenuation:0.7);
+		TNT1 CDEFGHIJ 4;
+		TNT1 A 0 {
+			defaultEverything();
+			SetStateLabel("SeeContinue");
+		}
+		goto SeeContinue;
+
+	Pain.StumbleForward:
+		TNT1 A 0 ThrustThing(angle*256/360, 4, 0, 0);
+		TNT1 A 0 {
+			invoker.stumbleCooldown = STUMBLE_COOLDOWN_TIME;
+			sprite = GetSpriteIndex(SPRITE_StumbleForward);
+			disablePainState();
+			A_SetSize(invoker.defaultRadius, 40);
+		}
+		TNT1 AB 4;
+		TNT1 A 0 A_PLAYSOUND("FOOTSTEP/SQUEAK", CHAN_AUTO, attenuation:0.7);
+		TNT1 CDEFGHIJ 4;
+		TNT1 A 0 {
+			defaultEverything();
+			SetStateLabel("SeeContinue");
+		}
+		goto SeeContinue;
+
+    Death.fire:
+	Death.Burn:
+        TNT1 A 0 A_Scream;
+        TNT1 A 0 A_NoBlocking;
+		TNT1 A 0 A_SpawnItemEx("burningAlien",0,0,0,0,0,0,0,288);
+        //TNT1 A 0 A_SpawnItem("BurningCivilianMan", 0, 10);
+	Stop;
+
+	Death.Desintegrate:
+        TNT1 A 0 A_Scream;
+        TNT1 A 0 A_NoBlocking;
+		Stop;
+
+	Death.Blast:
+		goto Death.stomp;
+		TNT1 A 0 A_JUMP(255, "stomp", "Death.SSG", "Death.railattack");
+
+	Death.Acid:
+		TNT1 A 0 {
+			for(int x=0;x<30;x++) {
+				A_SpawnDefinedParticle("BonePartLargeDefinition", random(-20,20), random(-20, 20), random(0, 60), frandom(-5.2,5.2), frandom(-5.2,5.2), frandom(0.2,7.4));
+				A_SpawnDefinedParticle("BonePartDefinition", random(-20,20), random(-20, 20), random(0, 60), frandom(-5.2,5.2), frandom(-5.2,5.2), frandom(0.2,7.4));
+				A_SpawnDefinedParticle("BonePartDefinition", random(-20,20), random(-20, 20), random(0, 60), frandom(-5.2,5.2), frandom(-5.2,5.2), frandom(0.2,7.4));
+			}
+		}
+	 	goto Death.Stomp;
+	 Death.railattack:
+		TNT1 AAAAAAAAAAAAAAAAAAAAA 0  A_SpawnDefinedParticle("BonePartDefinition", random(-20,20), random(-20, 20), random(0, 60), frandom(-0.2,0.2), frandom(-0.2,0.2), frandom(0.2,0.4));
+		TNT1 A 0
+		{
+			sprayPurpleDecals();
+			// Maybe explode because it's fun. Dumb and very not-scientificly accurate, but fun
+			if(random(0,100) <= RAILGUN_EXPLOSIVE_DEATH_CHANCE)
+			{
+				A_SPAWNITEMEX("PrettyExplosionGrenadeLauncher");
+				actor explosionEffectActor;
+				bool successExplosionEffect;
+				[successExplosionEffect, explosionEffectActor] =  A_SpawnItemEx ("PrettyExplosionSmaller",0,0,frandom(5, height-5),0,0,0,0,SXF_NOCHECKPOSITION,0);
+				if(explosionEffectActor)
+				{
+					ExplosionEffect(explosionEffectActor).explosionAmountMin-=3;
+					ExplosionEffect(explosionEffectActor).explosionAmountMax-=3;
+					ExplosionEffect(explosionEffectActor).explosionSpreadHorizontal-=3;
+					ExplosionEffect(explosionEffectActor).explosionSpreadVertical-= 5;
+				}
+			}
+		}
+	 Death.plasma:
+	 	TNT1 A 0 
+		{
+			a_playsound("ELECTRIC/GIB", CHAN_AUTO, 0.8, 0, 0.7, pitch:0.8);
+			A_PLAYSOUND("dest/JunctionBox", CHAN_AUTO, 0.7, 0, 0.9, pitch:frandom(1.6,2.2));
+			A_SpawnItem("BaseShockwaveSmaller", 0, 0, 40);
+			sprite = GetSpriteIndex("TNT1");
+			actor deathAnimation;
+			bool succ;
+			deathAnimation = spawnDeathActor(GetPlasmaDeathAnimation(), flags:SXF_TRANSFERTRANSLATION);
+			if(deathAnimation && random(0,1) == 1) {
+				deathAnimation.bXflip = true;
+			}
+			for(int x=0;x<7;x++) {
+				A_SpawnDefinedParticle("BonePartLargeDefinition", random(-20,20), random(-20, 20), random(0, 60), frandom(-5.2,5.2), frandom(-5.2,5.2), frandom(0.2,7.4));
+			}
+		}
+	 	TNT1 AAAAA 4
+		{
+			A_PLAYSOUND("dest/dsparks", CHAN_AUTO, 0.3, 0, 0.9);
+			SpawnLight(rColor:237, gColor:203, bColor:92, lightRadius:random(90,110), shadowRequirement:-1, xOffset:frandom(-45,45), divisionSpeed:1.4, zOffset: frandom(10,45), lightSettingRequirement:2);
+			for(int x=0;x<3;x++)
+			{
+				float randX = frandom(30,40);
+				float randZ = frandom(0,60);
+				int randAngle = random(0,360);
+				A_SPAWNITEMEX("PurpleGoreSmokeEffect", randX, 0, randZ, frandom(0.1,2.7),0, frandom(-1.5,1.5),angle:randAngle);
+				A_SPAWNITEMEX("BulletImpactEffectMetalZpuffTransparant", randX, 0, randZ, frandom(0.1,2.7),0, frandom(-1.5,1.5),angle:randAngle);
+			} 
+		}
+		stop;
+	 Death.ExplosiveImpact:
+	 	TNT1 AAAAAAAA 0 A_SpawnDefinedParticle("SuperGorePurpleMistLongerDefinition", frandom(-120,120), frandom(-120,120), frandom(-35, 110));
+	 	TNT1 A 0 
+		{
+			for(int x=random(60,90);x>0;x--) {
+				A_SPAWNITEMEX("OMINOUS_PurpleSpot", frandom(-190, 190),frandom(-190,190));
+			}
+            for(int x=0;x<45;x++) {
+                A_SpawnDefinedParticle("PurpleSplatterEffectGiganticDefinition", frandom(-45,45), frandom(-45,45), frandom(0,55), frandom(1,7), 0, frandom(-0.5,5.5), angle:random(0,360));
+            }
+			if(random(0,100) <= 20)
+			{
+				spawnDeathActor(GetGibbedAnimation(), flags:SXF_TRANSFERTRANSLATION);
+				return;
+			}
+			spawnDeathActor(GetShotgunDeathAnimation(), frandom(4,5), flags:SXF_TRANSFERTRANSLATION);
+		}
+		stop;
+	 Death.telefrag:
+	 XDeath:
+
+	 Death.Stomp:
+	 Stomped:
+	 	TNT1 A 0;
+	 	TNT1 A 0 spawnDeathActor(GetGibbedAnimation(), flags:SXF_TRANSFERTRANSLATION);
+		stop;
+
+	death.shotgunstomp:
+		goto stomped;
+
+	Stopper:
+		stop;
+	}
+
+	// To facilitate shotgun gibbing, don't reduce height on death
+	override double GetDeathHeight() {
+		return Height;
+	}
+}
+
+
+class SoldierFlashlight : Spotlight {
+	private int playerLightFlags;
+	int innerAngle;
+	bool killLight;
+	vector3 warpPosition; // Both the outer and inner code use slightly different positions. We define the warp per actor
+
+	flagdef AllowShadowCasting : playerLightFlags, 1;
+
+	default {
+		+DYNAMICLIGHT.NoShadowMap;
+		dynamiclight.SpotOuterAngle 55;
+		dynamiclight.SpotInnerAngle 10;
+	}
+
+	override void BeginPlay() {
+		super.BeginPlay();
+		args[0] = 555;
+		args[1] = 85;
+		args[2] = 35;
+		args[3] = 150;
+		checkShadowSetting();
+	}
+
+	// Took this from SelacoActor. No idea who wrote it
+    double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+	void checkShadowSetting()
+	{
+		if(getCvar("r_shadowQuality") >= 2)
+		{
+			warpPosition = (-50, 0, -25);
+			bNoShadowMap = false;
+		}
+		else
+		{
+			warpPosition = (-50, 0, -25);
+			bNoShadowMap = true;
+		}		
+	}
+
+	override void tick() {
+		super.tick();
+		// Check the 'Flashlight Shadow' setting
+		if(bAllowShadowCasting) 
+		{
+			if(level.time % 10 == 0) 
+			{
+				checkShadowSetting();
+			}
+		}
+
+		if(!master)
+		{
+			destroy();
+			return;
+		}
+
+		// Calculate the angle towards the master
+		float masterAngle = normA(master.angle);
+
+		// Calculate the difference between the current angle and the master angle
+		float angleDifference = normA(masterAngle - angle);
+
+		// Ensure that the angle difference is within the range of -180 to 180 degrees to avoid having to spin in incorrect directions
+		if(angleDifference > 180) {
+			angleDifference -= 360;
+		} else if(angleDifference < -180) {
+			angleDifference += 360;
+		}
+
+		// Apply inertia
+		angle += angleDifference * 0.1;
+
+		// Stick light to soldier
+		// No longer using A_WARP because the way it does angles annoys me.
+		setOrigin((master.pos.x, master.pos.y, floorz+master.height-5), true);
+	}
+
+	default {
+		+INTERPOLATEANGLES;
+		+NOINTERACTION
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A -1;
+			stop;
+	}	
+}

@@ -1,0 +1,123 @@
+OptionMenu "CustomizeControlsSelaco"
+{
+	Title "$CNTRLMNU_TITLE"
+	StaticText "$SETTING_CATEGORY_CONTROLS", "OMNIBLUE"
+	TooltipOptionBar "$TITLE_ZOOMMODE",			"$DESCRIPTION_ZOOMMODE", 	"",  "g_toggleZoom", "ToggleOrHold"
+	TooltipCommand  "$OPTMNU_PRESET_CONTROLS",		"$DESCRIPTION_RESET_CONTROLS", "", "none", "resetControls"
+	//Option "$OPTMNU_PRESET_CONTROLS",			    "cl_defaultconfiguration", "LayoutsSelaco"
+    //SafeCommand "\t$OPTMNU_ASSIGN_CONTROLS",		"resetb2defaults"
+	Space 30
+	SubText	"$SUBTEXT_CONTROL_INSTRUCTIONS", "WHITE", "PDA13FONT"
+    StaticText "$SETTING_CATEGORY_MOVEMENT", "OMNIBLUE"
+	Control    "$CNTRLMNU_FORWARD"          , "+forward"
+	Control    "$CNTRLMNU_BACK"             , "+back"
+	Control    "$CNTRLMNU_MOVELEFT"         , "+moveleft"
+	Control    "$CNTRLMNU_MOVERIGHT"        , "+moveright"
+    Control    "$CNTRLMNU_DASHES"           , "+DashMode"
+
+    Space 20
+    StaticText "$SETTING_CATEGORY_COMBAT", "OMNIBLUE"
+	Control    "$CNTRLMNU_ATTACK"           , "+attack"
+	Control    "$CNTRLMNU_ALTATTACK"        , "+altattack"
+    Control    "$CNTRLMNU_MELEE"            , "meleeButton"
+	
+	Space 20
+	StaticText "$SETTING_CATEGORY_ACTIONS", "OMNIBLUE"
+    Control    "$CNTRLMNU_USE"              , "+use"
+	Control    "$CNTRLMNU_RELOAD"           , "+reload"
+	Control    "$CNTRLMNU_USE_RELOAD"       , "+usereload"
+    Control    "$CNTRLMNU_MEDKIT"           , "usemeds"
+    Control    "$CNTRLMNU_THROWABLE"        , "useGadget"
+    Control    "$CNTRLMNU_SWITCHTHROWABLE"  , "switchGadget"
+    Control    "$CNTRLMNU_FLASHLIGHT"       , "Toggle_Flashlight"
+	Control    "$CNTRLMNU_PLACEMARKER"      , "Place_Marker"
+
+	Space 20
+	Control    "$CNTRLMNU_JUMP"             , "+jump"
+	Control    "$CNTRLMNU_CROUCH"           , "+crouch"
+	Control    "$CNTRLMNU_TOGGLECROUCH"     , "crouch"
+
+	Space 20
+	StaticText "$SETTING_CATEGORY_VIEW", "OMNIBLUE"
+    Control    "$CNTRLMNU_MOUSELOOK"        , "+mlook"
+	Control    "$CNTRLMNU_KEYBOARDLOOK"     , "+klook"
+	Control    "$CNTRLMNU_LOOKUP"                  , "+lookup"
+	Control    "$CNTRLMNU_LOOKDOWN"                , "+lookdown"
+	Control    "$CNTRLMNU_CENTERVIEW"              , "centerview"
+
+	Space 20
+    StaticText "Weapon Controls", "OMNIBLUE"
+	Control    "$CNTRLMNU_NEXTWEAPON"     , "weapnext"
+	Control    "$CNTRLMNU_PREVIOUSWEAPON" , "weapprev"
+	Control	   "$CNTRLMNU_LASTWEAPON"	  , "lastWeapon"
+	Control    "$CNTRLMNU_WEAPONWHEEL"    , "weaponWheel"
+	Space 20
+	
+	Control    "$CNTRLMNU_SLOT0"          , "slot 0"
+	Control    "$CNTRLMNU_SLOT1"          , "slot 1"
+	Control    "$CNTRLMNU_SLOT2"          , "slot 2"
+	Control    "$CNTRLMNU_SLOT3"          , "slot 3"
+	Control    "$CNTRLMNU_SLOT4"          , "slot 4"
+	Control    "$CNTRLMNU_SLOT5"          , "slot 5"
+	Control    "$CNTRLMNU_SLOT6"          , "slot 6"
+	Control    "$CNTRLMNU_SLOT7"          , "slot 7"
+	Control    "$CNTRLMNU_SLOT8"          , "slot 8"
+	Control    "$CNTRLMNU_SLOT9"          , "slot 9"
+
+	Space 20
+    StaticText "$SETTING_CATEGORY_OTHERCONTROLS", "OMNIBLUE"
+    Control    "$CNTRLMNU_OBJECTIVES"           , "printObjectives"
+	Control    "$CNTRLMNU_AUTOMAP"         , "togglemap"
+    Control    "$CNTRLMNU_OPENCODEX"                , "codex"
+	Space 20
+	Control    "$CNTRLMNU_TURNLEFT"         , "+left"
+	Control    "$CNTRLMNU_TURNRIGHT"        , "+right"
+	Control    "$CNTRLMNU_TURN180"          , "turn180"
+	Control    "$CONTROLS_SPEED"              , "+speed"
+	Control    "$CONTROLS_WALKMODE"        , "toggle cl_run"
+
+	//Space 20
+	//Control    "$CNTRLMNU_CHASECAM"        , "chase"
+
+	Space 20
+	Control    "$CNTRLMNU_MOVEUP"           , "+moveup"
+	Control    "$CNTRLMNU_MOVEDOWN"         , "+movedown"
+
+	Space 20
+	Control    "$CNTRLMNU_SCREENSHOT"      , "screenshot"
+	Control    "$CNTRLMNU_CONSOLE"         , "toggleconsole"
+	Control	   "$CNTRLMNU_TOGGLEHUD"	   , "toggle_HUD"
+    Control    "$CNTRLMNU_QUICKSAVE"                , "quicksaveselaco"
+	Control    "$CNTRLMNU_QUICKLOAD"       		   , "quickload"
+
+    Space 20
+    StaticText "$SETTING_CATEGORY_MAPCONTROLS", "OMNIBLUE"
+	SubText	"$SUBTEXT_AUTOMAP", "WHITE", "PDA13FONT"
+	MapControl "$MAPCNTRLMNU_PANLEFT",			"+am_panleft"
+	MapControl "$MAPCNTRLMNU_PANRIGHT",			"+am_panright"
+	MapControl "$MAPCNTRLMNU_PANUP",			"+am_panup"
+	MapControl "$MAPCNTRLMNU_PANDOWN",			"+am_pandown"
+
+	Space 20
+	MapControl "$MAPCNTRLMNU_ZOOMIN",			"+am_zoomin"
+	MapControl "$MAPCNTRLMNU_ZOOMOUT",			"+am_zoomout"
+
+	Space 20
+	MapControl "$MAPCNTRLMNU_TOGGLEZOOM",		"am_gobig"
+	//MapControl "$MAPCNTRLMNU_CENTER",			"am_center"
+	MapControl "$MAPCNTRLMNU_CENTER",			"am_togglefollow"
+	MapControl "$MAPCNTRLMNU_TOGGLELEGEND",		"am_togglelegend"
+}
+
+OptionValue "LayoutsSelaco"
+{
+	0, "$OPTVAL_MODERN"
+	2, "$SETTING_CONTROLS_PRO"
+	1, "$OPTVAL_CLASSICZ"
+}
+
+OptionValue "ToggleOrHold"
+{
+	0, "$SETTING_HOLD"
+	1, "$SETTING_TOGGLE"
+}

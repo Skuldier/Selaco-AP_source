@@ -1,0 +1,417 @@
+class ElevatorButton : Interactable {
+    meta class<Actor> graphicClass;
+
+    property GraphicClass : graphicClass;
+
+    FBFOfficeButtonGraphic graphic;
+    FBFElevatorPanel panelParent;
+
+    bool hoverMode;
+    bool isEnabled;
+
+    default {
+        RenderStyle "None";
+        +MOVEWITHSECTOR;
+        //-SHOOTABLE;
+        -SOLID;
+        +NOCLIP
+        +DONTTHRUST
+        +NOGRAVITY;
+        -SelacoActor.WakeNearPlayer;
+        -SelacoActor.WakeOnTouch;
+        -SelacoActor.WakeOnPain;
+        -SelacoActor.SlopeAlignment;
+        ElevatorButton.GraphicClass 'FBFOfficeButtonGraphic';
+        SelacoActor.UseTag "$ACT_PRESS";
+        Tag "$FBF_ELEVATOR_BUTTON";
+        Radius 10.5;
+        Height 5;
+        +USESPECIAL;
+	    Activation THINGSPEC_Activate;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A -1 {
+                let vec = angleToVector(angle);
+                // Push back so our hitbox aligns with where the button should be
+                SetXYZ((pos.xy - (vec * (radius - 0.05)), pos.z));     // Intentionally do not relink sectors! Do not use SetOrigin.
+                bool whocares;
+                Actor a;
+                [whocares, a] = A_SPAWNITEMEX(graphicClass, radius, 0, 0, 0, 0, 0);
+                graphic = FBFOfficeButtonGraphic(a);
+                graphic.master = self;
+                //sleepIndefinite();
+            }
+            stop;
+    }
+
+    override void activate (Actor activator) {
+        //panelParent.disableAllButtons();
+	panelParent.enableAllButtonsNoUse();
+        graphic.SetStateLabel("Pressed");
+        A_PLAYSOUND("FBFELEVATOR/PRESS", CHAN_AUTO, 0.65);
+	}
+
+    override void Deactivate (Actor activator) {
+
+	}
+
+    override void playerLooked(int playerIndex, Vector3 hitPos) {
+        graphic.hover();
+    }
+
+    // Must use from the front and point at the front of the actor
+    override bool CanInteractFrom(Actor activator, Vector3 usePos) {
+        if(abs(deltaAngle(activator.angle, angle)) < 85) return false;
+
+        if(usePos.z > pos.z + height - 0.5) return false;
+        if(usePos.z < pos.z + 0.5) return false;
+        
+        // Make sure we touched the front face
+        let angVec = angleToVector(angle, 1);
+        let dir = (-angVec.y, angVec.x);
+        let wallPos = pos.xy + (angVec * radius);
+
+        if(Line.DistanceToLine(dir, wallPos, usePos.xy) > 1.0) return false;
+        
+        return true;
+    }
+}
+/*
+The point of these changes is to devolve control of the elevator down to the level scripting itself
+While it requires maintenence of scripts in 3 seperate levels (which is inconvenient), the benefit is in avoiding the awkward split between 
+elements that are managed via the actor/global ACS and elements managed in the level which can create annoying, unintended behavior.
+It also makes the addition of special cases much easier as it is no longer locked into a generic one-set-of-rules-for-all-cases global state
+We can still use the previously defined elevator functions on a map level to save some effort.
+*/
+
+class FBFOfficeButton : ElevatorButton {
+
+    override void activate (Actor activator)
+    {
+        if(activator.countinv("BombTimer06"))
+        {
+            A_PLAYSOUND("FBFELEVATOR/PRESS", CHAN_AUTO, 0.65);
+            A_PRINTBOLD(string.format("%s", stringtable.localize("$FLOOR_UNAVAILABLE")));
+            return;
+        }
+        super.activate(activator);
+        
+        //ACS_NamedExecute("MoveToFloor1", 0);
+	    ACS_NamedExecuteWithResult("FBFElevatorButtonPressed",0);
+        
+        // If we want to run a script in ACS we call it here.
+        ACS_NamedExecute("ElevatorUsed", 0);
+    }
+
+    default {
+        ElevatorButton.GraphicClass 'FBFOfficeButtonGraphic';
+        Tag "$FBF_ELEVATOR_OFFICES";
+    }
+}
+
+class FBFResearchButton : ElevatorButton {
+
+    override void activate (Actor activator)
+    {
+        super.activate(activator);
+        //ACS_NamedExecute("MoveToFloor2", 0);
+	ACS_NamedExecuteWithResult("FBFElevatorButtonPressed",1);
+
+        // If we want to run a script in ACS we call it here.
+        ACS_NamedExecute("ElevatorUsed", 0);
+    }
+
+    default {
+        ElevatorButton.GraphicClass 'FBFResearchButtonGraphic';
+        Tag "$FBF_ELEVATOR_RESEARCH";
+    }
+}
+
+class FBFCloningButton : ElevatorButton {
+    override void activate (Actor activator)
+    {
+        super.activate(activator);
+        //ACS_NamedExecute("MoveToFloor3", 0);
+	ACS_NamedExecuteWithResult("FBFElevatorButtonPressed",2);
+        
+        // If we want to run a script in ACS we call it here.
+        ACS_NamedExecute("ElevatorUsed", 0);
+    }
+    default {
+        ElevatorButton.GraphicClass 'FBFCloningButtonGraphic';
+        Tag "$FBF_ELEVATOR_CLONING";
+    }
+}
+
+class FBFCloseButton : ElevatorButton {
+
+    override void Activate (Actor activator) {
+        super.activate(activator);
+        //ACS_NamedExecute("CloseElevatorDoorButton", 0);
+	ACS_NamedExecuteWithResult("FBFElevatorButtonPressed",3);
+	}
+
+    default {
+        Radius 6;
+        ElevatorButton.GraphicClass 'FBFCloseButtonGraphic';
+        SelacoActor.UseTag "$FBF_ELEVATOR_CLOSE";
+        Tag "$FBF_ELEVATOR_DOOR";
+    }
+}
+
+class FBFOpenButton : ElevatorButton {
+
+    override void Activate (Actor activator) {
+        //ACS_NamedExecute("OpenElevatorDoorButton", 0);
+        super.activate(activator);
+	ACS_NamedExecuteWithResult("FBFElevatorButtonPressed",4);
+
+	}
+
+    default {
+        Radius 6;
+        ElevatorButton.GraphicClass 'FBFOpenButtonGraphic';
+        SelacoActor.UseTag "$FBF_ELEVATOR_OPEN";
+        Tag "$FBF_ELEVATOR_DOOR";
+    }
+}
+
+
+class FBFOfficeButtonGraphic : Actor {
+    int hoverCountdown;
+
+    default {
+        RenderStyle "Translucent";
+        +MOVEWITHSECTOR;
+        -SHOOTABLE;
+        +DONTTHRUST
+        +NOINTERACTION;
+        +NOGRAVITY;
+        Radius 43;
+        Scale 0.2;
+        alpha 1.0;
+    }
+
+    states {
+        Idle:
+        Spawn: 
+            TNT1 A 0;
+            ELEV B -1 BRIGHT { 
+                alpha = 1.0;
+                hoverCountdown = 0;
+                if(master && ElevatorButton(master).isEnabled)
+                {
+                    master.ActivationType = THINGSPEC_Activate;
+                }
+                sleepIndefinite();
+            }
+            loop;
+        Pressed:
+            TNT1 A 0
+            {
+                alpha = 0;
+            }
+            ELEV DDDDD 1 BRIGHT A_FADEIN(0.2);
+            ELEV D 60 BRIGHT { 
+                wake(); 
+            }
+            goto Spawn;
+        Hover:
+            ELEV C 1 BRIGHT {
+                if(--hoverCountdown <= 0) {
+                    SetStateLabel("Spawn");
+                }
+            }
+            loop;
+    }
+
+    void hover() {
+        wake();
+
+        if(hoverCountdown <= 0) {
+            A_PLAYSOUND("FBFELEVATOR/HOVER", CHAN_AUTO, 0.65);
+            hoverCountdown = 5;
+            SetStateLabel("Hover");
+        } else {
+            hoverCountdown = 4;
+        }
+    }
+}
+
+
+class FBFResearchButtonGraphic : FBFOfficeButtonGraphic {
+    
+}
+
+
+class FBFCloningButtonGraphic : FBFOfficeButtonGraphic {
+    
+}
+
+class FBFCloseButtonGraphic : FBFOfficeButtonGraphic {
+    
+}
+
+class FBFOpenButtonGraphic : FBFOfficeButtonGraphic {
+    
+}
+
+class FBFElevatorScreen : SelacoActor {
+    int randomTime;
+
+    default {
+        +MOVEWITHSECTOR;
+        -SHOOTABLE;
+        +NOINTERACTION;
+        +NOGRAVITY;
+        -SELACOACTOR.SlopeAlignment;
+        Radius 25;
+        Scale 0.2;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0 { randomTime = random(25, 90); } // x2
+        Idle:
+            FBFS A 2 bright {
+                if(--randomTime <= 0) {
+                    SetStateLabel("Glitch");
+                }
+            }
+            loop;
+        Glitch:
+            FBFS B 2 bright;
+            FBFS C 2 bright;
+            FBFS D 2 bright;
+            FBFS E 2 bright;
+            FBFS F 2 bright;
+            FBFS G 2 bright;
+            FBFS H 2 bright;
+            goto Spawn;            
+    }
+}
+
+
+
+class FBFElevatorPanel : Actor {
+    ElevatorButton officesButton, researchButton, cloningButton, openButton, closeButton;
+    array<ElevatorButton> usableButtons; // Store all buttons here so we can control them.
+
+    void disableAllButtons()
+    {
+        for(int x=0;x<usableButtons.size();x++)
+        {
+            let button = usableButtons[x];
+            button.isEnabled = false;
+            button.bUseSpecial = false;
+            button.ActivationType = THINGSPEC_DEFAULT;
+        }
+    }
+
+    void enableAllButtons()
+    {
+        for(int x=0;x<usableButtons.size();x++)
+        {
+            let button = usableButtons[x];
+            button.isEnabled = true;
+            button.bUseSpecial = true;
+            button.ActivationType = THINGSPEC_Activate;
+        }
+    }
+	//you can hover over buttons but not actually press them
+	void enableAllButtonsNoUse()
+    {
+        for(int x=0;x<usableButtons.size();x++)
+        {
+            let button = usableButtons[x];
+            button.isEnabled = true;
+            button.bUseSpecial = false;
+            button.ActivationType = THINGSPEC_Activate;
+        }
+    }
+
+
+    default {
+        +MOVEWITHSECTOR;
+        -SHOOTABLE;
+        +NOINTERACTION;
+        +NOGRAVITY;
+        radius 80;
+        scale 0.2;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            ELEV Z -1 { 
+                // Summon the buttons
+                //let vec = angleToVector(angle + 90);
+                bool whocares;
+                Actor a;
+                [whocares, a] = A_SPAWNITEMEX("FBFOfficeButton", 0, -0.5, 23.5 + 0.45, 0, 0, 0, flags:SXF_SETMASTER);
+                officesButton = ElevatorButton(a);
+                usableButtons.push(officesButton);
+
+                [whocares, a] = A_SPAWNITEMEX("FBFResearchButton", 0, -0.5, 18 + 0.45, 0, 0, 0, flags:SXF_SETMASTER);
+                researchButton = ElevatorButton(a);
+                usableButtons.push(researchButton);
+
+                [whocares, a] = A_SPAWNITEMEX("FBFCloningButton", 0, -0.5, 12.5 + 0.45, 0, 0, 0, flags:SXF_SETMASTER);
+                cloningButton = ElevatorButton(a);
+                usableButtons.push(cloningButton);
+
+                [whocares, a] = A_SPAWNITEMEX("FBFCloseButton", 0, 5.1, 8 + 0.45, 0, 0, 0, flags:SXF_SETMASTER);
+                closeButton = ElevatorButton(a);
+                usableButtons.push(closeButton);
+
+                [whocares, a] = A_SPAWNITEMEX("FBFOpenButton", 0, -6.2, 8 + 0.45, 0, 0, 0, flags:SXF_SETMASTER);
+                openButton = ElevatorButton(a);
+                usableButtons.push(openButton);
+
+                // Screen
+                [whocares, a] = A_SPAWNITEMEX("FBFElevatorScreen", 0.01, -1, 30.1, 0, 0);
+                openButton = ElevatorButton(a);
+
+                // Prepare the button
+                for(int x=0;x<usableButtons.size();x++)
+                {
+                    let usableButton = usableButtons[x];
+                    usableButton.isEnabled = true;
+                    usableButton.panelParent = self;
+                }
+			
+			//be a schizo and then immediately disable them so the panel must be explicitly activated in the map
+			//disableAllButtons();
+			enableAllButtonsNoUse();
+            }
+        Idle:
+            ELEV Z -1
+            {
+                //sleepIndefinite();
+            }
+            loop;
+        EnableButtons:
+            TNT1 A 0
+            {
+                enableAllButtons();
+            }
+            goto idle;
+	DisableButtons:
+            TNT1 A 0
+            {
+                disableAllButtons();
+            }
+            goto idle;
+	EnableButtonsNoUse:
+            TNT1 A 0
+            {
+                enableAllButtonsNoUse();
+            }
+            goto idle;
+
+
+    }
+}

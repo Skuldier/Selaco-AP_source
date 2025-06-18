@@ -1,0 +1,607 @@
+Model DirtDecal    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD A 0 0
+}
+Model DirtDecal    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD B 0 0
+}
+Model DirtDecal    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD C 0 0
+}
+Model DirtDecal    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD D 0 0
+}
+Model DirtDecalTiny 
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD A 0 0
+}
+Model DirtDecalTiny    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD B 0 0
+}
+Model DirtDecalTiny    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD C 0 0
+}
+Model DirtDecalTiny    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"   
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   offset 0 0 1
+   Scale 70 70 70
+   FrameIndex DIRD D 0 0
+}
+
+Model DirtDecal1    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"    
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDA0.png"
+   Scale 50 50 50
+   offset 0 0 0.5
+   FrameIndex DIRT A 0 0
+}
+Model DirtDecal2    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"    
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDB0.png"
+   Scale 50 50 50
+   offset 0 0 0.5
+   FrameIndex DIRT A 0 0
+}
+Model DirtDecal3    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"      
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDC0.png"
+   Scale 50 50 50
+   offset 0 0 0.5
+   FrameIndex DIRT A 0 0
+}
+Model DirtDecal4    
+{
+   Path "MD/Decals"   
+   Model 0 "TrashPapers.md3"    
+   Path "SPRITES/EFFECTS/DECALS"    
+   Skin 0 "DIRDD0.png"
+   Scale 50 50 50
+   offset 0 0 0.5
+   FrameIndex DIRT A 0 0
+}
+
+model RedBloodPool {
+   Path "MD/Decals"   
+   Model 0 "DECALBASE.md3"    
+   Path "SPRITES/EFFECTS/GORE/"    
+   Skin 0 "RPOLA0.png"
+   Scale 50 50 50
+   FrameIndex RPOL A 0 0
+}
+model RedBloodPool {
+   Path "MD/Decals"   
+   Model 0 "DECALBASE.md3"    
+   Path "SPRITES/EFFECTS/GORE/"    
+   Skin 0 "RPOLA0.png"
+   Scale 50 50 50
+   FrameIndex RPOL B 0 0
+}
+model RedBloodPool {
+   Path "MD/Decals"   
+   Model 0 "DECALBASE.md3"    
+   Path "SPRITES/EFFECTS/GORE/"    
+   Skin 0 "RPOLA0.png"
+   Scale 50 50 50
+   FrameIndex RPOL C 0 0
+}
+
+model PurpleBloodPool {
+   Path "MD/Decals"   
+   Model 0 "DECALBASE.md3"    
+   Path "SPRITES/EFFECTS/GORE/"    
+   Skin 0 "PPOLA0.png"
+   Scale 50 50 50
+   FrameIndex PPOL A 0 0
+}
+model PurpleBloodPool {
+   Path "MD/Decals"   
+   Model 0 "DECALBASE.md3"    
+   Path "SPRITES/EFFECTS/GORE/"    
+   Skin 0 "PPOLB0.png"
+   Scale 50 50 50
+   FrameIndex PPOL B 0 0
+}
+model PurpleBloodPool {
+   Path "MD/Decals"   
+   Model 0 "DECALBASE.md3"    
+   Path "SPRITES/EFFECTS/GORE/"    
+   Skin 0 "PPOLC0.png"
+   Scale 50 50 50
+   FrameIndex PPOL C 0 0
+}
+model PurpleBloodPool {
+   Path "MD/Decals"   
+   Model 0 "DECALBASE.md3"    
+   Path "SPRITES/EFFECTS/GORE/"    
+   Skin 0 "PPOLD0.png"
+   Scale 50 50 50
+   FrameIndex PPOL D 0 0
+}
+
+Model Stretchbed_piece1    
+{
+   USEACTORPITCH
+   USEACTORROLL
+   NoPerPixelLighting
+   Path "MD/Stretchbed"   
+   Model 0 "STRETCHBED_PIECE1.md3"    
+   Skin 0 "STRETCHBED_PIECE1.png"
+   Scale 0.65 0.65 0.65   
+   FrameIndex VOXE L 0 0
+}
+
+Model Stretchbed_piece2    
+{
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/Stretchbed"   
+   Model 0 "STRETCHBED_PIECE2.md3"    
+   Skin 0 "STRETCHBED_PIECE2.png"
+   Scale 0.65 0.65 0.65   
+   FrameIndex VOXE L 0 0
+}
+
+Model BloodBagStand_piece1    
+{
+   USEACTORPITCH
+   NoPerPixelLighting
+   USEACTORROLL
+   Path "MD/BloodBagStand"   
+   Model 0 "BloodBagStand_piece1.md3"    
+   Skin 0 "BloodBagStand_piece1.png"
+   Scale 0.65 0.65 0.65   
+   FrameIndex VOXE L 0 0
+}
+
+Model BloodBagStand_piece2   
+{
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BloodBagStand"   
+   Model 0 "BloodBagStand_piece2.md3"    
+   Skin 0 "BloodBagStand_piece2.png"
+   Scale 0.65 0.65 0.65   
+   FrameIndex VOXE L 0 0
+}
+
+Model Stretchbed_piece3    
+{
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/Stretchbed"   
+   Model 0 "STRETCHBED_PIECE3.md3"    
+   Skin 0 "STRETCHBED_PIECE3.png"
+   Scale 0.65 0.65 0.65   
+   FrameIndex VOXE L 0 0
+}
+
+Model RainBoxLarge    
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainBoxLarge.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainBoxMedium    
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainBoxMedium.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainBoxSmall    
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainBoxSmall.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainRectLarge    
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainRectLarge.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainRectMedium  
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainRectMedium.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainRectSmall    
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainRectSmall.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainRect192
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainRect192.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainBlobSmall    
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainBlobSmall.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model RainBlobTiny  
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/EFFECTS"
+   Model 0 "rainBlobTiny.md3"    
+   Skin 0 "RAINA0"
+   Scale 1 1 1
+   FrameIndex RAIN A 0 0
+}
+
+Model HockeyBumper  
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/HOCKEY"
+   Model 0 "Bumper.md3"    
+   Skin 0 "BUMPMD"
+   Scale 0.85 0.85 0.85
+   FrameIndex VOXE L 0 0
+}
+
+Model HockeyPuck  
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/HOCKEY"
+   Model 0 "Puck.md3"    
+   Skin 0 "PUCKMD"
+   Scale 0.85 0.85 0.85
+   FrameIndex VOXE L 0 0
+}
+
+Model FunBall  
+{
+   NOPIXELSTRETCH
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "ball.md3"
+   Skin 0 "BALLMD"
+   Scale 0.5 0.5 0.5
+   FrameIndex VOXE L 0 0
+}
+
+Model FunBallNet  
+{
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "net.md3"
+   SurfaceSkin 0 0 "BALLMD"
+   SurfaceSkin 0 1 "NETMD"
+   Scale 0.5 0.5 0.5
+   FrameIndex VOXE L 0 0
+}
+
+Model Skeeball  
+{
+   NOPIXELSTRETCH
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "ball.md3"
+   Skin 0 "BALLMD"
+   Scale 0.5 0.5 0.5
+   FrameIndex VOXE L 0 0
+}
+
+Model Cueball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_white.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE A 0 0
+}
+
+
+// Various frames of pool ball
+// ===============================
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no1.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE A 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no2.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE B 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no3.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE C 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no4.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE D 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no5.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE E 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no6.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE F 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no7.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE G 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no8.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE H 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no9.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE I 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no10.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE J 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no11.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE K 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no12.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE L 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no13.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE M 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no14.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE N 0 0
+}
+
+Model Poolball  
+{
+   NOPIXELSTRETCH
+   NoPerPixelLighting
+   USEACTORPITCH
+   USEACTORROLL
+   Path "MD/BALL"
+   Model 0 "pool.md3"
+   Skin 0 "cueballs_no15.png"
+   Scale 0.45 0.45 0.45
+   FrameIndex VOXE O 0 0
+}

@@ -1,0 +1,110 @@
+
+// TODO: Update when ParticleSpawnOffset is corrected
+// This is awfully made and is just a desperate attempt to recreate the original awful code.
+class PaperParticleChunkDefinition : ParticleDefinition {
+    const GLOBAL_SPEED_MULT_XY = 0.15;
+    const GLOBAL_SPEED_MULT_Z = 0.17;
+    override void init() {
+        super.init();
+        self.ClearFlag(PDF_BOUNCEONFLOORS);
+        self.SetFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+
+        self.FadeLifeRange(0, 40);
+        self.DefaultRenderStyle = STYLE_TRANSLUCENT;
+        self.SetLifespanMultipliers(0.25, 1.0, 1.0, 1.2, 1.4);
+        self.RandomLife(50,100);
+        self.RandomSpeed(0,0);
+        self.RandomRollSpeed(-9,9);
+        self.RandomRoll(0,360);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("PAPR", "ABCD");
+        particle.scale.x = frandom(0.15, 0.75);
+        particle.scale.y = frandom(0.15, 0.75);
+        particle.vel.x+= GLOBAL_SPEED_MULT_XY*frandom(-3.8,3.8);
+        particle.vel.y+= GLOBAL_SPEED_MULT_XY*frandom(-3.8,3.8);
+        particle.vel.z+= GLOBAL_SPEED_MULT_Z*frandom(-3.5,3.5);
+    }
+
+    // This is a terrible mess and largely just a desperate attempt to recreate 
+    // a look I made 7 years ago :/
+    override void ThinkParticle(in out ParticleData particle) {
+        if (random(0,4 )== 0) {
+            particle.vel.x += GLOBAL_SPEED_MULT_XY * frandom(-3.4, 3.4);
+            particle.vel.y += GLOBAL_SPEED_MULT_XY * frandom(-3.4, 3.4);
+            particle.vel.z += GLOBAL_SPEED_MULT_Z * frandom(-2.1, 2.1);
+            particle.vel.xy *= 1.001;
+        }
+    }
+}
+
+class CardboardChunkSmallDefinition : PaperParticleChunkDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.alpha = 0.8;
+        particle.Texture = SelectRandomFrame("PAPR", "EF");
+    }
+}
+
+class TrashbagChunkSmallDefinition : CardboardChunkSmallDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refactor);
+        particle.color = "BLACK";
+    }    
+}
+
+class PaperPieceParticleDefinition : ParticleDefinition {
+    const PitchIncrement = 3;
+    const AngleIncrement = 3;
+
+    override void init() {
+        super.init();
+        self.bounceFactor(0);
+        self.SetGravity(0.03);
+        self.RandomLife(-1,-1);
+        self.SetFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_KILLSTOP);
+        self.drag = frandom(0.001, 0.002);
+        self.SetDefaultParticleFlag(DPF_FLAT);
+        self.FadeLifeRange(0, 10);
+        self.DefaultRenderStyle = STYLE_TRANSLUCENT;
+        self.SetLifespanMultipliers(0.75, 1.0, 1.0, 1.0, 1.0);
+        self.RandomSpeed(0,3);
+        self.SetBaseScale(0.15);
+        self.RandomRollSpeed(-5,5);
+        self.RandomRoll(0,360);
+        self.RandomPitch(-50, -140);
+        Self.randomangle(0,360);
+    }
+
+    override void ThinkParticle(in out ParticleData particle) {
+        particle.pitch += PitchIncrement;
+        particle.angle += AngleIncrement;
+    }
+    
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.Texture = SelectRandomFrame("PAPP", "ABCD");
+        particle.pitch = random(0, 360);
+        particle.InitLife(random(190,200));
+    }
+
+    override bool OnParticleDeath(in out ParticleData particle) {
+        spawnPaperDecal(particle);
+        return 1;
+    }
+
+    virtual void spawnPaperDecal(in out ParticleData particle) {
+        actor paper;
+        paper = particle.SpawnActor('paperDecalSingle');
+        if(paper) {
+            paperDecalSingle(paper).frameID = random(0,3);
+            paper.angle = particle.angle;
+        }
+    }
+}

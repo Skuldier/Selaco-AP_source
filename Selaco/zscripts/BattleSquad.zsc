@@ -1,0 +1,724 @@
+enum SquadStatus {
+    SQUAD_Idle      = 0,
+    SQUAD_Chase     = 1,
+    SQUAD_WillPatrol = 2,
+    SQUAD_Patrol    = 3,
+    SQUAD_Return    = 4
+}
+
+// I made this for you
+class BattleSquad play {
+    const PATROL_AFTER = 15;                // Seconds to wait after checking last-known position before enemies go to patrol
+    const RETURN_AFTER = 75;                // Seconds that patroling squad members will return to spawn after
+    const SPAWN_SEEK_TIME = 25;             // How long do we track the player directly without seeing them after the squad is formed
+    const WEAPON_CALLOUT_CHANCE = 5;        // Chance for soldier to callout the player weapon
+    const AMMO_CALLOUT_CHANCE = 15;         // Chance for soldier to mention a reloading player
+    const LOWAMMO_PUSH_CHANCE = 20;         // Chance per reload for one enemy to start attacking
+    const ALERT_COOLDOWN_MAX  = 3*TICRATE;  // How often we A_ALERTMONSTERS to be called.
+
+    bool  playerPositionKnown, hasSeenPlayerOnce, hasVisual;
+    int   playerLastKnownPosTime;           // Keeps track of how long it has been since any unit saw the player
+    int   patrolStartTime;                  // When did/will we start patrolling
+    int   squadInitTime;                    // When was the squad formed, or activated?
+    int   lastAgressorTime;                 // Time we last forced an agressor
+    int   squadStatus;                      // What action is the squad performing
+    int   index;
+    int   maxSquadSize;                     // Max amount of members ever in the squad
+    int   alertCooldown;
+    String name;
+    bool  debug;
+    bool  wiped;                            // Is this squad now retired, since all members died?
+
+    Actor squadTarget;                      // Usually Dawn, but other objects like turrets can trigger a squad
+    BattleOverseer overseer;         
+
+    Array<EnemySoldier> members;
+
+    static const string[] SquadNames = {
+        "Alpha",
+        "Bravo",
+        "Charlie",
+        "Delta",
+        "Echo",
+        "Foxtrot",
+        "Golf",
+        "Hotel",
+        "India",
+        "Juliet",
+        "Kilo",
+        "Lima",
+        "Mike",
+        "Nerd",
+        "Oscar",
+        "Papa",
+        "Quebec",
+        "Romero",
+        "Sierra",
+        "Tango",
+        "Uniform",
+        "Victor",
+        "Whiskey",
+        "X-Ray",
+        "Yankee",
+        "Zulu"
+    };
+
+    //
+    void sendAlert(actor soldier)
+    {
+        if(alertCooldown <= 0)
+        {
+            alertCooldown = ALERT_COOLDOWN_MAX;
+            soldier.A_ALERTMONSTERS();
+        }
+    }
+
+    BattleSquad init(BattleOverseer overseer, int index, string name = "", bool debugMode = false) {
+        self.overseer = overseer;
+        self.index = index;
+        self.debug = debugMode;
+        if(name == "") self.name = SquadNames[index % SquadNames.size()];
+        else self.name = name;
+
+        squadStatus = SQUAD_Idle;
+        squadInitTime = level.time;
+        playerLastKnownPosTime = level.time;
+        if(debug) Console.Printf("\c[green]Squad (%d) %s Created =========", index, self.name);
+
+        return self;
+    }
+
+    // Member Management ==================================
+    // ====================================================
+    void add(EnemySoldier soldier) {
+        if(members.find(soldier) == members.size()) members.push(soldier);
+        maxSquadSize = max(maxSquadSize, members.size());
+
+        // Set the player target if 
+        if(squadStatus == SQUAD_Chase && soldier.target == null) {
+            soldier.target = squadTarget;
+        }
+
+        if(squadStatus != SQUAD_Chase && soldier.target) {
+            squadTarget = soldier.target;
+            squadStatus = SQUAD_Chase;
+
+            for(int x = 0; x < members.size(); x++) {
+                if(members[x] && !members[x].target) members[x].target = squadTarget;
+            }
+        }
+
+        if(debug) Console.Printf("\c[green][%d] Squad (#%d) %s : \c-Assigned %s (%s) to the squad. Target: %s", level.totalTime, index, name, soldier.alienName, soldier.getClassName(), soldier.target ? soldier.target.getClassName() : 'None');
+    }
+
+
+    void remove(EnemySoldier soldier) {
+        let pos = members.find(soldier);
+        if(pos != members.size()) members.delete(pos);
+    }
+
+
+    int size() {
+        return members.size();
+    }
+
+
+    void printVitals() {
+        if(wiped) {
+            //Console.Printf("\c[red]====== SQUAD %s IS WIPED ======", name);
+            return;
+        }
+
+        Console.Printf("\n\c[red]====== SQUAD %s Status: %s ====================", name, statusName());
+
+        for(int x = 0; x < members.size(); x++) {
+            if(members[x]) printVital(members[x], true);
+        }
+
+        Console.Printf("\c[red]== Squad Size: \c[green]%d\c[red] ========================\n", size());
+    }
+
+
+    void printVital(EnemySoldier soldier, bool active) {
+        let mindex = members.find(soldier);
+        Console.Printf("\c[green]-- Member %d %s--", mindex != members.size() ? mindex : -1, active ? "" : "(INACTIVE)");
+        Console.Printf( "Name: %s\nRole: %s\nHealth: %d\nAggression: %d\nStafeChance: %d\nPrefered Combat Distance: %d\nPosition: X:%.2f Y:%.2f Z:%.2f\nTarget: %s (Has seen player: %s)", 
+                        soldier.alienName, soldier.roleTag, soldier.health, soldier.aggressiveness, soldier.strafeChance, soldier.combatDistance,
+                        soldier.pos.x, soldier.pos.y, soldier.pos.z,
+                        soldier.target ? soldier.target.getClassName() : 'none', soldier.everSeenPlayer ? "Yes" : "No"
+                    );
+    }
+
+    void handleWeaponCallout()
+    {
+        if(members.size() == 0) return;
+        
+        // Find random soldier in squad
+        if(random(0,100) <= WEAPON_CALLOUT_CHANCE) {
+            EnemySoldier soldier = null;
+
+            // Make sure a soldier can see the player
+            for(int x = random(0, members.size() - 1), index = x; x < 5; x++, index = x % members.size()) {
+                if(members[index]) {
+                    soldier = members[index];
+                    break;
+                }
+            }
+
+            if(!soldier) return;
+
+            if(players[0].ReadyWeapon.getClassName() == "shot_gun") 
+			{
+				soldier.talk(SOLDIER_CALLOUTSHOTGUN, urgent:true);
+			}
+			if(players[0].ReadyWeapon.getClassName() == "GrenadeLauncher") 
+			{
+				soldier.talk(SOLDIER_CALLOUTGRENADELAUNCHER, urgent:true);
+			}
+            if(players[0].ReadyWeapon.getClassName() == "DMR")
+            {
+                soldier.talk(SOLDIER_CALLOUTSNIPER, urgent:true);
+            }
+		}
+    }
+
+    void handleAmmoCallout()
+    {
+        if(members.size() == 0) return;
+
+        bool shouldGoAggressive;
+        if(random(0,100) <= AMMO_CALLOUT_CHANCE)     
+        {
+            // Make sure a soldier can see the player before calling out
+            for(int x = random(0, members.size() - 1), index = x; x < 5; x++, index = x % members.size()) {
+                if(members[index] && members[index].isTargetVisible(2)) {
+                    members[index].talk(SOLDIER_CALLOUTTARGETAMMO, delay:16);
+                    shouldGoAggressive = true;
+                    break;
+                }
+            }
+        }  
+
+        // Find closest soldier and push
+        if((random(0,100) <= LOWAMMO_PUSH_CHANCE || shouldGoAggressive))
+        {
+            if(!shouldGoAggressive) {
+                // Make sure we have seen the player recently
+                if(level.time - playerLastKnownPosTime > 350) return;
+            }
+            EnemySoldier closestSoldier = getClosestToTarget();
+            if(closestSoldier) {
+                closestSoldier.talk(SOLDIER_PUSH, urgent:true);
+                closestSoldier.stance_Aggressive();
+            }
+        }
+    }
+
+
+    EnemySoldier getRandomSquadMember()
+    {
+        if(members.size())
+        {
+            return members[random(0,members.size()-1)];
+        }
+        return null;
+    }
+
+    EnemySoldier getClosestToTarget()
+    {
+        if(squadTarget && members.size() > 0)
+        {
+            EnemySoldier closestSoldier = members[0];  // Assume the first soldier is the closest initially
+            float closestDistance = members[0].distance2D(squadTarget);
+
+            for(int x=1; x<members.size(); x++)
+            {
+                float currentDistance = members[x].distance2D(squadTarget);
+
+                if(currentDistance < closestDistance)
+                {
+                    // Update closest soldier and distance
+                    closestSoldier = members[x];
+                    closestDistance = currentDistance;
+                }
+            }
+            return closestSoldier;
+        }
+
+        // Return a default enemy soldier if squadTarget is not set
+        return getRandomSquadMember();
+    }
+
+    // Remove soldier from our lists and check for a full squad wipe
+    void soldierDied(EnemySoldier soldier, Actor source) {
+        let pos = members.find(soldier);
+
+        if(pos != members.size()) {
+            members.delete(pos);
+        }
+
+        if(size() >= 2) 
+        {
+            // Report Squad leader down
+            if(soldier.bSquadLeader)
+            {
+                assignCalloutToSquadmate(SOLDIER_SQUADLEADERDOWN, urgent:true, delayOffset: 35); 
+            }
+            // Report man down
+            else
+            {
+                assignCalloutToSquadmate(SOLDIER_MANDOWN, urgent:true, delayOffset: 35); 
+            }
+        } else if(size() == 1) {
+            if(debug) Console.printf("\c[green]Squad Overseer: Last Man Standing.");
+            aggressiveSquadStance();
+            assignCalloutToSquadmate(SOLDIER_SQUADLOST, urgent:true, ignoreSizeRequirement:true, delayOffset:35);
+        }
+
+        lookForDiver(soldier);
+
+        // Inform overseer
+        overseer.soldierDied(soldier, source);
+
+        if(size() == 0) wipe();
+    }
+
+    // Look for a random nearby soldier and have him dive!
+    void lookForDiver(actor fallenSoldier)
+    {
+        int diveChance = 10;
+        if(random(0,100) <= diveChance && members.size() > 0)
+        {
+            for(int x=0;x<members.size();x++)
+            {
+                EnemySoldier member = members[x];
+                if(member && member.target && member.isHealthy() && member.bAllowGrenadeDodging && member.distance3DSquared(fallenSoldier) < 200*200 && member.distance3DSquared(member.target) > 100*100)
+                {
+                    member.A_FACE(fallenSoldier);
+                    member.angle+=180;
+                    member.setStateLabel("DodgeGrenade");
+                }
+            }
+        }
+    }
+
+    void wipe() {
+        if(size() > 0 || wiped) 
+        {
+            return;
+        }
+
+        if(debug) {
+            //players[consolePlayer].mo.A_PLAYSOUND("ui/buy/small", CHAN_AUTO, 1.0, 0, 0, pitch:0.7);
+            players[consolePlayer].mo.A_PRINTBOLD(String.Format("\c[red]%s Squad Wiped!", name), 3.0, "SEL21OFONT");
+        }
+
+        wiped = true;
+    }
+
+
+    // Returns the averaged center location of the squad
+    Vector3 getSquadLocation() {
+        if(!size()) return (0,0,0);
+
+        Vector3 pos;
+
+        for(int x = 0; x < members.size(); x++) {
+            if(members[x])
+            {
+                pos += members[x].pos;
+            }
+        }
+
+        return pos / members.size();
+    }
+
+
+    
+    // Upkeep =============================================
+    // ====================================================
+
+    void tick() {
+        if(!size()) return;
+
+
+        if(alertCooldown)
+        {
+            alertCooldown--;
+        }
+
+       // console.printf("AlertCooldown: %d", alertCooldown);
+
+        // Retire missing soldiers
+        for(int x = members.size() - 1; x >= 0; x--) {
+            if(!members[x]) members.delete(x);
+        }
+
+        if(members.size() == 0) {
+            wipe();
+            return;
+        }
+
+        // Cancel target if current target is dead
+        // Redistribute targets where possible
+        if(squadTarget && squadTarget.health <= 0) {
+            let oldTarget = squadTarget;
+            squadTarget = null;
+
+            // If a soldier has a different target than the rest of the squad, focus that target with the rest of the squad
+            for(int x = members.size() - 1; x >= 0; x--) {
+                if(members[x].target && members[x].target != oldTarget && !(members[x].target is 'PathNode')) {
+                    squadTarget = members[x].target;
+                    break;
+                }
+            }
+
+            // Set everyone to the new target, who is targeting the dead one
+            for(int x = members.size() - 1; x >= 0; x--) {
+                if(members[x].target == oldTarget) {
+                    members[x].target = squadTarget;
+                }
+            }
+        }
+
+        // Force a patrol if the player has "escaped" and is in the end menu
+        bool forcePatrol = false;
+        Dawn d = Dawn(squadTarget);
+        if(d && d.invulnerableInMenu && squadStatus == SQUAD_Chase) {
+            forcePatrol = true;
+        }
+
+        // Check if our soldiers are dumb and completely lost the target
+        if( forcePatrol ||
+            (squadStatus == SQUAD_WillPatrol && !playerPositionKnown && level.time - patrolStartTime > (PATROL_AFTER * TICRATE) && level.time - squadInitTime > (SPAWN_SEEK_TIME * TICRATE)) ) {
+            squadStatus = SQUAD_Patrol;
+            patrolStartTime = level.time;
+            assignCalloutToSquadmate(SOLDIER_SEARCH, urgent:true, ignoreSizeRequirement:false, delayOffset:35);
+			squadTarget = null;
+            for(int x = 0; x < members.size(); x++) {
+                if(!members[x]) continue;
+
+                let m = members[x];
+                if(m.bKeepDistance) {
+                    // Defenders and campers etc should return to their spawn locations
+                    members[x].lostPlayerReturnHome();
+                } else {
+                    // Only agressive soldiers go on patrol
+                    members[x].lostPlayerGoPatrol();
+                }
+            }
+
+            if(debug) members[0].A_PRINTBOLD("Squad is starting patrol...");
+        } else if(squadStatus == SQUAD_Patrol && !playerPositionKnown && level.time - patrolStartTime > (RETURN_AFTER * TICRATE)) {
+            squadStatus = SQUAD_Return;
+            squadTarget = null;
+
+            assignCalloutToSquadmate(SOLDIER_SEARCH_RESPONSE, urgent:false, ignoreSizeRequirement:false);
+
+            for(int x = 0; x < members.size(); x++) {
+                members[x].A_ClearTarget();
+                if(members[x]) members[x].lostPlayerReturnHome();
+            }
+            if(debug) members[0].A_PRINTBOLD("Squad is ending patrol and members are heading back to spawn.");
+        }
+
+        let count = size();
+        if(squadStatus == SQUAD_Chase) {
+            // Make sure we have a valid target, always move on to Dawn eventually
+            if(!squadTarget || squadTarget.health <= 0) {
+                // Find Dawn as the next target, if possible
+                let d = Dawn(players[0].mo);
+                if(d && d.health > 0 && players[0].health > 0) {
+                    squadTarget = d;
+                }
+            }
+
+            //bool hasOneAggressor = false;
+            if(squadTarget) {
+                for(int x = count - 1; x >= 0; x--) {
+                    let soldier = members[x];
+
+                    // Make sure everyone has a target
+                    // Also check for agressors
+                    if(soldier) {
+                        if(!soldier.target) {
+                            soldier.target = squadTarget;
+                            if(!soldier.everSeenPlayer || soldier.bDormant) {
+                                // Set state if soldier is completely idle
+                                soldier.SetState(Soldier.SeeState);
+                            }
+                        }
+                    }
+                }
+            }
+            
+
+            // If we have no agressors, don't let the whole squad sit back and wait, send someone in
+            // We may want to prevent this from happening if it's a squad of one person, although this way you will be able to find the last guy easier?
+            // Squads of 1 will take longer to go on the offensive at least
+            // Commented out for now because it's quite abusable
+            /*if( !hasOneAggressor && 
+                ((count > 1 && level.totalTime - lastAgressorTime > 5) || (count == 1 && level.totalTime - lastAgressorTime > 15))
+            ) {
+                lastAgressorTime = level.totalTime;
+
+                int numAggressors = random(1, clamp(count / 2.0, 1, 5));
+                for(int x = 0; x < numAggressors && x < count; x++) {
+                    let soldier = members[x];
+                    if(soldier) soldier.stance_Aggressive();
+                }
+            }*/
+        } else if(squadStatus == SQUAD_Return || squadStatus == SQUAD_Patrol) {
+            if(squadStatus == SQUAD_Patrol && level.time % TICRATE == 0 && random(0, 70) == 27) {
+                assignCalloutToSquadmate(SOLDIER_SEARCH, urgent:false, ignoreSizeRequirement:false);
+            }
+        }
+    }
+
+    void playerLeftLastKnownLocation() {
+        if(developer) Console.Printf("%d: Player left last known location", level.totalTime);
+        playerPositionKnown = false;
+    }
+
+    bool visibleLastKnownPosition(EnemySoldier soldier)
+    {
+        if(overseer.spotBeacon && soldier.checkSight(overseer.spotBeacon))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    // A soldier has seen the player..
+    void playerSeen(EnemySoldier spotter, bool isSound = false) {
+        if(developer > 1 && spotter.target is 'PathNode') {
+            ThrowAbortException("Targeted PATH NODE! %s", spotter.lastEnemy ? spotter.lastEnemy.getClassName() : 'none');
+        }
+
+        // Wake squad members if necessary
+        if(squadStatus != SQUAD_Chase) {
+            // Call out, since we were not actively pursuing player yet/anymore
+            // Make sure to not to repeat often, so this only gets called out if the squad lost the player for more than 10 seconds
+            if(members.size() >= 2 && spotter.target is 'Dawn' && (playerLastKnownPosTime == 0 || (level.time - playerLastKnownPosTime > 350 && random(0, 100) > 10))) {
+                spotter.talk(isSound ? SOLDIER_HEAR : SOLDIER_SIGHT, urgent: true);
+            }
+
+            for(int x = 0; x < members.size(); x++) {
+                if(members[x] && !members[x].target) members[x].target = spotter.target;
+            }
+        } else if(!isSound && !hasVisual) {
+            // If this is the first time we have a visual, try a SIGHT line
+            spotter.talk(SOLDIER_SIGHT, urgent: false);
+        }
+    
+        if(!isSound) hasVisual = true;
+
+        playerPositionKnown = true;
+        hasSeenPlayerOnce = true;
+        playerLastKnownPosTime = level.time;
+
+        let oldStatus = squadStatus;
+
+        squadTarget = spotter.target;
+        squadStatus = SQUAD_Chase;
+        
+        if(debug && squadTarget && oldStatus != SQUAD_Chase) Console.Printf("\c[GREEN]Squad %s is now in pursuit of %s", name, squadTarget.getClassName());
+        
+        // Inform the overseer
+        overseer.playerSeen(spotter, isSound);
+    }
+
+
+    void otherSquadSawPlayer(EnemySoldier spotter, bool isSound = false) {
+        if(!spotter.target) return;
+
+        let ms = members.size();
+
+        // Don't alert this squad if they have not seen the player, or have returned to idle, unless they are close to the target
+        if(!hasSeenPlayerOnce) {
+            for(int x = 0; x < ms; x++) {
+                if(members[x] && members[x].Distance2DSquared(spotter.target) < 300.0*300.0) {
+                    break;
+                }
+                if(x == ms - 1) return;
+            }
+        }  
+
+        if(!isSound) hasVisual = true;
+        playerPositionKnown = true;
+        playerLastKnownPosTime = level.time;
+
+        if(squadStatus != SQUAD_Chase) {
+            for(int x = 0; x < ms; x++) {
+                if(members[x] && !members[x].target) members[x].target = spotter.target;
+            }
+
+            if(random(0, 100) > 70) assignCalloutToSquadmate(SOLDIER_GIVINGCOVER, delayOffset: 35);
+        }
+
+        let oldStatus = squadStatus;
+
+        squadTarget = spotter.target;
+        squadStatus = SQUAD_Chase;
+
+        if(debug && squadTarget && oldStatus != SQUAD_Chase) Console.Printf("\c[GREEN]Squad %s is now in pursuit of %s", name, squadTarget.getClassName());
+    }
+
+
+    // A soldier has reached or can see the last known location without finding player
+    void soldierReachedLastKnownLocation(EnemySoldier soldier) {
+        if(!playerPositionKnown && squadStatus == SQUAD_Chase) {
+            if(debug && level.time - squadInitTime > (SPAWN_SEEK_TIME * TICRATE)) soldier.A_PRINTBOLD(String.Format("%s at last known location, %d ticks until patrol", soldier.alienName, (PATROL_AFTER * TICRATE)));
+            squadStatus = SQUAD_WillPatrol;
+            patrolStartTime = level.time;
+        }
+    }
+
+
+    void soldierHasReturnedHome(EnemySoldier soldier) {
+        if(squadStatus == SQUAD_Return) {
+            if(debug) soldier.A_PRINTBOLD(String.Format("%s has arrived home.", soldier.alienName));
+            
+            // Check members to see if they are all home and return the squad to IDLE status
+            bool foundOne = false;
+            for(int x = 0; x < members.size(); x++) {
+                if(members[x] && members[x].getSeenPlayer()) {
+                    foundOne = true;
+                    break;
+                }
+            }
+
+            if(!foundOne) {
+                squadStatus = SQUAD_Idle;
+                playerPositionKnown = false;
+                hasSeenPlayerOnce = false;
+            }
+        } else if(squadStatus == SQUAD_Patrol) {
+            //soldier.CurSector.SoundTarget = null;
+
+            // Soldier should be patrolling
+            soldier.lostPlayerGoPatrol();
+
+            if(debug) soldier.A_PRINTBOLD(String.Format("%s has arrived home, going to patrol!", soldier.alienName));
+        } else if(squadStatus == SQUAD_Chase) {
+            // TODO: Alert soldier, go to chase
+            soldier.target = squadTarget ? squadTarget : Actor(players[consoleplayer].mo);
+
+            if(debug) soldier.A_PRINTBOLD(String.Format("%s has arrived home, going to chase!", soldier.alienName));
+        }
+    }
+
+
+    string statusName() {
+        switch(squadStatus) {
+            case SQUAD_Idle:
+                return "Idle";
+            case SQUAD_Chase:
+                return "Chase";
+            case SQUAD_Return:
+                return "Return";
+            case SQUAD_WillPatrol:
+                return "Will-Patrol";
+        }
+
+        return "Unknown";
+    }
+
+    bool shouldChaseDirectly() {
+        return playerPositionKnown || level.time - squadInitTime <= (SPAWN_SEEK_TIME * TICRATE);
+    }
+
+
+
+
+    // VOICE LINES ============================================
+    // ========================================================
+
+    // Find a random squadmate to mention sommething.
+    void assignCalloutToSquadmate(int speechID, bool urgent = false, bool ignoreSizeRequirement = false, int delayOffset = 0) {
+        if(members.size() > 0)
+        {
+            int assignedMember = random(0,members.size()-1);
+            if(members[assignedMember] && !members[assignedMember].speechDelay)
+            {
+                if(debug) Console.printf("\c[Yellow]Speech System: \c[green] assignCalloutToSquadmate has succeeded");
+                members[assignedMember].talk(speechID, urgent, ignoreSizeRequirement, delay:delayOffset);    
+            }
+            return;
+        }
+        if(debug) Console.printf("\c[Yellow]Speech System: \c[red]Assign Speech has failed, no squadmates were found.");
+    }
+
+    // Makes the entire squad more aggressive
+    void aggressiveSquadStance()
+    {
+        if(members.size() > 0)
+        {
+            int assignedMember = random(0,members.size()-1);
+            if(members[assignedMember])
+            {
+                members[assignedMember].combatDistance = 50;
+                members[assignedMember].aggressiveness*=2;
+                members[assignedMember].bKeepDistance = false;
+            }
+            return;
+        }        
+    }
+
+    // Oh no, a grenade! Soldier will attempt to warn allies.
+    // returns TRUE if a victim was found and told to jabber about it
+    bool warnGrenade(actor grenadeActor, int explosionRange = 250) {
+        EnemySoldier grenadeVictim;
+        //console.printf("\c[Yellow]Speech System: A grenade is thrown, who was close enough to notice?");
+        
+        if(grenadeActor && members.size() > 0)
+        {
+            for(int x=0;x<members.size();x++)
+            {
+                if(members[x] && members[x].distance2DSquared(grenadeActor) <= explosionRange*explosionRange)
+                {
+                    grenadeVictim = members[x];
+                    grenadeVictim.talk(SOLDIER_GRENADEWARNING, urgent:true);
+                    break;
+                }
+            }
+        }
+        if(grenadeVictim)
+        {
+            if(debug) console.printf("\c[Yellow]Speech System: %s noticed! Call it out.", grenadeVictim.alienName);
+            return true;
+        } 
+        else
+        {
+            if(debug) console.printf("\c[Yellow]Speech System: No one noticed lmfao");
+        }
+
+        return false;
+    }
+
+    // Follow-up from Ping Response in Speech Handler. 
+    // Returns a squadmate that can take the ping request.
+    EnemySoldier pingResponse_GetSquadmate(int response, EnemySoldier caller)
+    {
+        if(members.find(caller) == members.size()) return null;
+
+        array<EnemySoldier> availableResponders;
+        // Find all the soldiers that aren't the caller
+        for(int x = 0; x < members.size(); x++)
+        {
+            if(!members[x]) continue;
+            if(members[x] == caller)
+            {
+                if(debug) console.printf("\c[yellow]Speech System: %s wanted to reply to himself. He has been denied.", caller.alienName, caller.alienName);
+                continue;
+            }
+            availableResponders.push(members[x]);
+        }
+
+        // Assign a random caller and return it to the Speech Handler
+        // TO-DO: Maybe find the closest one? Not sure.
+        EnemySoldier responder = availableResponders[random(0,availableResponders.size()-1)];
+        if(debug) console.printf("\c[yellow]Speech System (RESPONSE):\c- What's up %s, My name is %s and I'll gladly respond to your call. Finish your sentence and I'll talk!", caller.alienName, responder.alienName);
+        return responder;
+    }
+}

@@ -1,0 +1,289 @@
+enum InvasionTierType {
+    INVTIER_NOTHING             = 0,
+    INVTIER_GRENADE             = 1,
+    INVTIER_SHIELDS             = 2,
+    INVTIER_SMOKEGRENADES       = 3,
+    INVTIER_GUNNERSHIELDS       = 4,
+    INVTIER_CRAWLERMINESPEED    = 5,
+    INVTIER_SENTRYGUNS          = 6,
+    INVTIER_SQUADLEADERS        = 7,
+    INVTIER_SIEGERBOMBS         = 8,
+    INVTIER_RIFLEMANDAMAGE      = 9,
+    INVTIER_PLASMAAOE           = 10,
+    INVTIER_INCREASEDPELLETS    = 11,
+    INVTIER_STUNDROID           = 12,
+    INVTIER_CONCUSSIVEROUNDS    = 13,
+    INVTIER_BASESTATS1          = 14,
+    INVTIER_DUMMY               = 15,
+    INVTIER_COUNT               = 16
+}
+
+class InvasionTier play
+{
+    const CONSOLE_DESCRIPTION_LENGTH = 100;
+
+    int id;
+    bool unlocked, bypassed;
+    string name, description, icon;
+
+    static InvasionTier Create(Class<InvasionTier> cls, int tierID, string tierName, string tierDescription, string tierIcon, bool tierUnlocked = false) {
+        let invTier = InvasionTier(new(cls));
+        invTier.id  = tierID;
+        invTier.name = tierName;
+        invTier.description = tierDescription;
+        invTier.icon = tierIcon;
+        invTier.unlocked = tierUnlocked;
+        return invTier;
+    }
+
+    void unlockTier(bool notify = false)
+    {
+        if(unlocked) return;    // Prevent duplicate or redundant notifications
+        
+        unlocked = true;
+        if(developer) console.printf("%s is unlocked.", name);
+        if(notify)
+        {
+            string titleText = "\c[INVASION]Invasion Tier:  \c[RED]" .. name;   // TODO: LANGUAGE
+            string tutText = StringTable.Localize("$NOTIFICATION_INVASION_TIER");
+
+            // Notification
+            let n = new("InvasionNotification");
+            n.init(titleText, tutText, "");
+            Notification.Queue(n, NotificationItem.SLOT_BOT_LEFT);
+
+            let item = InvasionTierSystem.Instance().getInvasionTierItem();
+            if(item) {
+                item.hasNewTiers = true;
+            }
+        }
+    }
+
+    void printData()
+    {
+        int maxDescriptionLength = CONSOLE_DESCRIPTION_LENGTH;
+        string truncatedDescription = description.mid(0, maxDescriptionLength);
+        
+        console.printf("Invasion Tier: %d\n\c[red]name:\c- %s\n\c[red]Description:\c- %s\n\c[red]Icon:\c- %s\n\c[red]Unlocked: \c[green]%d\n\n", id, name, truncatedDescription, icon, unlocked);
+    }
+
+    // Permanently kills an Invasion Tier. Used for Chapter 2
+    void bypassTier()
+    {
+        bypassed = true;
+        if(developer) console.printf("%s has been cancelled permanently.", name);
+    }
+
+}
+
+// Used to contain the classes 
+class InvasiontierItem : Inventory
+{
+    bool hasNewTiers;           // Used to notify codex that we have un-viewed tiers
+
+    InvasionTier tiers[INVTIER_COUNT]; 
+}
+
+class InvasionTierSystem : EventHandler
+{
+    InvasionTierItem tierItem;
+    // Make sure the order matches with the enum ID's defined on top.
+    static const string invasionTierTypeStrings[] = {
+        "Nothing",
+        "Grenade",
+        "Shields",
+        "SmokeGrenades",
+        "GunnerShields",
+        "CrawlerMineSpeed",
+        "SentryGuns",
+        "SquadLeaders",
+        "SiegerBombs",
+        "Riflemandamage",
+        "PlasmaAOE",
+        "IncreasedPellets",
+        "StunDroid",
+        "ConcussiveRounds",
+        "BaseStats1",
+        "dummy"
+    };
+
+    static clearscope InvasionTierSystem Instance() {
+        return InvasionTierSystem(EventHandler.Find('InvasionTierSystem'));
+    }
+
+    // Create all Invasion Tier classes
+    void createInvasionTiers()
+    {
+        for(int x=0;x<INVTIER_COUNT;x++)
+        {
+            tierItem.tiers[x] = InvasionTier.Create('InvasionTier', x, getTierTitle(x), getTierDescription(x), getTierIcon(x));
+        }
+    }
+
+
+    override void WorldLoaded (WorldEvent e)
+    {
+
+        tierItem = getInvasionTierItem();
+
+        // Fresh new game? Create Invasion Tier classes
+        if(tierItem && !tierItem.tiers[0])
+        {
+            createInvasionTiers();
+        }
+
+        // Check Invasion Tier requirement for the level and give it.
+        int levelTiers = level.invasionTier;
+        int playerTiers = getInvasionTierCount();
+        if(CVar.FindCVar("g_harshInvasion").GetInt() && !(level.mapName ~== "TITLEMAP"))
+        {
+            levelTiers = INVTIER_COUNT-2;
+        }
+        if(levelTiers > playerTiers)
+        if(!e.IsReopen)
+        {   
+            setInvasionTier(levelTiers);
+        }
+    }
+
+    // Set the `InvasionTier` value to the MAPINFO value of the level.
+    void setInvasionTier(int tier)
+    {
+        for(int x=0;x<=tier;x++)
+        {
+            if(tierItem.tiers[x])
+            {
+                tierItem.tiers[x].unlockTier();
+            }
+        }        
+    }
+
+    // Check a specific invasion tier. Mostly used by enemies to validate an attack
+    bool validateInvasionTier(int tierID)
+    {
+        
+        if(tierItem.tiers[tierID] && tierItem.tiers[tierID].unlocked && !tierItem.tiers[tierID].bypassed)
+        {
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    // (ACS) Scriptcall to give the player an Invasion Tier. 
+    // TO-DONE: This must trigger a Notification prompt
+    static void giveInvasionTier(string tierStringID) 
+    {
+        let handler = instance();
+        for(int x=0;x<handler.invasionTierTypeStrings.size();x++)
+        {
+            if(tierStringID == handler.invasionTierTypeStrings[x])
+            {
+                console.printf("UNLOCKING: %s", tierStringID);
+                handler.tierItem.tiers[x].unlockTier(notify:true);
+            }
+        }
+	}
+
+    override void NetworkProcess (ConsoleEvent e) 
+    {
+        if(!e.IsManual || sv_cheats > 0) 
+        {
+            if(e.name ~== "invtier_set") {
+                setInvasionTier(e.args[0]);
+            }
+            else if(e.name ~== "invtier_getUnlocks")
+            {
+                getAllInvasionTierData(unlocksOnly:1);
+            }          
+            else if(e.name ~== "createInvasionTiers")
+            {
+                createInvasionTiers();
+            } else if(e.name ~== "seenTiers") {
+                let item = getInvasionTierItem();
+                if(item) {
+                    item.hasNewTiers = false;
+                }
+            }
+        }
+    }
+
+    // ----------- GETTERS -----------
+    // Class creation
+    string getTierTitle(int tierID)
+    {
+        return stringTable.localize(string.format("$INVTIER_%s%s", invasionTierTypeStrings[tierID], "_NAME"));
+    }
+    string getTierDescription(int tierID)
+    {
+        return stringTable.localize(string.format("$INVTIER_%s%s", invasionTierTypeStrings[tierID], "_DESCRIPTION"));
+    }
+    string getTierIcon(int tierID)
+    {
+        return string.format("TUTINV%d", tierID);
+    }
+
+    // (DEBUG) Retrieve a full list of all created Invasion // tierItem.tiers.
+    void GetAllInvasionTierData(int unlocksOnly = 0)
+    {
+        for(int x=1; x<INVTIER_COUNT; x++)
+        {
+            if(!unlocksOnly || tierItem.tiers[x].unlocked)
+            {
+                tierItem.tiers[x].printData();
+            }
+        }
+    }
+
+    // Retrieve Invasion Tier class based on ID
+    InvasionTier getInvasionTier(int tierID)
+    {
+        if (tierID >= 0 && tierID < INVTIER_COUNT)
+        {
+            return tierItem.tiers[tierID];
+        }
+        else
+        {
+            return InvasionTier.Create(null, -1, "Err, ", "This is", "A problem. Fix this");
+        }
+    }
+
+
+    // Get the number of invasion tiers the player has unlocked
+    int getInvasionTierCount()
+    {
+        int invasionTierNum;
+        for(int x=0;x<INVTIER_COUNT;x++)
+        {
+            if(tierItem && tierItem.tiers[x] && tierItem.tiers[x].unlocked)
+            {
+                invasionTierNum++;
+            }
+        }
+        return invasionTierNum;
+    }
+
+    clearscope InvasiontierItem getInvasionTierItem() const
+    {
+        if(players[consoleplayer].mo && players[consoleplayer].mo.FindInventory("InvasionTierItem"))
+        {
+            return InvasiontierItem(players[consoleplayer].mo.FindInventory("InvasionTierItem"));
+        }
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// DM @cockatrice on Twitter and call him a nerd.

@@ -1,0 +1,79 @@
+
+class CarpetPuffDefinition : ParticleDefinition {
+    override void init() {
+        self.DefaultRenderStyle = STYLE_TRANSLUCENT;
+        self.SetGravity(0.01);
+        self.SetBaseScale(0.11);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.setflag(PDF_SLEEPSTOP);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ScaleLifeRange(0,1);
+        self.SetLifespanMultipliers(0.5, 1, 1, 1, 1);
+        self.RandomLife(20,25);
+        self.StopSpeed = 2;
+        self.Drag = 0.1;
+        self.RandomAngle(-75,75);
+        self.RandomPitch(-30,-150);
+        self.RandomSpeed(1,6);
+        self.RandomRoll(0,360);
+        self.RandomScaleX(1,2);
+        self.RandomScaleY(1,2);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("DUST", "ABCDE");
+    }
+}
+
+
+class CarpetBulletPuffDefinition : CarpetPuffDefinition {
+    override void init() {
+        super.Init();
+        self.SetGravity(0.02);
+        self.SetBaseScaleXY(0.13, 0.07);
+        self.Drag = 0.085;
+        self.RandomRoll(0,360);
+        self.SetLifespanMultipliers(0.75, 1, 1.25, 1.5, 2);
+        self.RandomRollSpeed(-15,15);
+        self.RandomAngle(-75,75);
+        self.RandomPitch(-40,-140);
+        self.RandomLife(45,100);
+        self.RandomSpeed(1,15);
+        self.RandomScaleX(1,2);
+        self.RandomScaleY(1,2);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("CARP", "ABCDE");
+    }
+
+}
+
+class carpetBulletPuffWildDefinition : CarpetBulletPuffDefinition {
+    override void init() {
+        super.Init();
+        self.RandomPitch(-20, -160);
+    }
+}
+
+
+class ClothPuffWallDefinition : CarpetBulletPuffDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScaleXY(0.1, 0.05);
+        self.drag = 0.045;
+        self.RandomAngle(-45,45);
+        self.RandomPitch(-45,45);
+        self.RandomSpeed(1,6);
+    }
+}
+
+class CarpetPuffFastShortDefinition : CarpetPuffDefinition {
+    override void init() {
+        super.Init();
+        self.RandomSpeed(1,12);
+    }
+}

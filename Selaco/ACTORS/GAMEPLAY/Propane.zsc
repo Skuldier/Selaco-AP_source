@@ -1,0 +1,346 @@
+// I sell propane and propane accessoires. 
+class PropaneTank : EnvironmentalHazard {
+
+    bool detachedFromContainer;
+    
+	int sizzleLoops;
+    int sizzleAngle;
+    bool sizzles;
+    bool wasThrown;
+	const ticksToDetonate = 90;
+
+    override void tick() {
+        super.tick();
+        if(overCharged) {
+            explosionRadius = 350;
+        }
+        if(detachedFromContainer && sizzles && !pickedUpOwner && wasThrown)
+        {
+            A_SETPITCH(90, SPF_INTERPOLATE);
+            bSlopeAlignment = false;
+        }
+        if(detachedFromContainer && sizzles && pos.z == floorz)
+        {
+            A_SPAWNITEMEX("ScorchMarkFloorShort");
+            A_SPAWNITEMEX("ScorchMarkFloorShort", 4);
+            EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 5, angle:0, pitch:5, speed:5, velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+        }
+        sizzle();
+    }
+
+    override void drop()
+    {
+        super.drop();
+        wasThrown = true;
+    }
+
+    override void throw(double force)
+    {
+        super.throw(force);
+        wasThrown = true;
+    }
+
+
+    override bool canCollideWith(actor other, bool passive)
+    {
+        if(other.bisMonster && detachedFromContainer && sizzles)
+        {
+            die(self,self);
+        }
+        return super.canCollideWith(other, passive);
+    }
+
+    override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
+		if(damage > 5 && source && inflictor && inflictor is "hitpuff" && !sizzles)
+        {
+            bPreventSleep = true;
+            wake();
+            actor sizzleActor;
+            bool succ;
+            A_PlaySound("Extinquisher/leak", CHAN_5, 1);
+            inflictor.A_FACE(source);
+            sizzleAngle = inflictor.angle;
+            [succ, sizzleActor] = inflictor.A_SPAWNITEMEX("propaneSizzle", angle:inflictor.angle, flags:SXF_ABSOLUTEANGLE );
+            if(sizzleActor)
+            {
+                sizzleActor.angle = inflictor.angle;
+                propaneSizzle(sizzleActor).propaneTarget = self;
+            }
+            if(detachedFromContainer)
+            {
+                prepareForLaunch(source);
+            }
+            sizzles = true;
+        }
+        return Super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+	}    
+
+    void prepareForLaunch(actor source)
+    {
+        A_FACE(source);
+        bUseSpecial = false;
+        bCanPickUp = false;
+        friction = 1.5;
+        frameNum = 2;
+        bSlopeAlignment = false;
+        gravity = 0.7;
+        A_ChangeVelocity(0,0,5);
+        WorldOffset.z+=8;
+        bMissile = true;
+    }
+
+    override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+        A_SPAWNITEMEX("PropaneExplosionEffects");
+        Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+    }  
+
+
+    void sizzle()
+    {
+        if(sizzles)
+        {
+            blinkDangerIndicator(explosionRadius);
+            sizzleLoops++;
+            // When detached, fly towards the opposite direction of the shot
+            if(detachedFromContainer && !pickedUpOwner && wasThrown)
+            {
+                if(sizzleAngle)
+                {
+                    if(vel.length() <= 1)
+                    {
+                        die(self,self);
+                        setStateLabel("Death");
+                    }
+                    VelFromAngle(7+(sizzleLoops*0.25), sizzleAngle+180);
+                }
+            }
+            if (sizzleLoops >= ticksToDetonate) {
+                A_StopSound(CHAN_5);
+                die(self,self);
+                SetStateLabel("Death");
+            }
+        }
+    }
+
+	override bool Slam(Actor victim) {
+		if(victim is 'EnemySoldier' && sizzles) {
+			die(self,self);
+            return true;
+		}
+
+		if(victim.bShootable) {
+			// Bounce off object
+			vel.xy = (0,0);
+			convertBackFromProjectile();
+			return false;
+		}
+
+		return true;
+	}
+
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+        frameNum = 0;
+    }
+
+    override void pickUp(Actor source)
+    {
+        if(!detachedFromContainer)
+        {
+            A_PLAYSOUND("impact/cannister", CHAN_AUTO, 0.7);
+            detachedFromContainer = true;
+            A_SETANGLE(sizzleAngle);
+            A_SPAWNITEMEX("propanetank_container");
+        }
+        frameNum = 1;
+        super.pickUp(source);
+    }
+
+    default {
+        tag "$OBJECT_PROPANETANK";
+        +PickupableDecoration.CanPickUp;
+        +SelacoACtor.AllowGravityManipulation;
+        -PickupableDecoration.HoldFromFront;
+        -PickupableDecoration.HoldFromBack;
+        -PickupableDecoration.HoldFromAnyAngle;
+        +SelacoActor.IgnoreEnemyProjectiles
+        SelacoActor.shoveFactor 0.9;
+        radius 7;
+        height 14;
+        friction 0.8;
+        
+		// VALUES
+		selflighting "232323";
+		health 100;
+		Painchance 256;
+		radius 10;
+		height 27;
+		mass 240;
+        MaxStepHeight 7;
+        PickupableDecoration.ThrowVel 24;
+        EnvironmentalHazard.explosionEffect "ExplosionEffectPropane";
+        EnvironmentalHazard.explosionType "PropaneExplosion";
+        DamageFactor "ExplosiveImpact", 0.05;
+		PainChance "MeleeImpact", 0;
+		DamageFactor "MagnumBullet", 8.0;
+		DamageFactor "MeleeImpact", 0.0;
+		DamageFactor "MeleeImpactSplash", 0;
+		DamageFactor "shotgun", 8.0;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                explosionRadius = 200;
+            }
+            VOXE A -1
+            {
+                frame = frameNum;
+            }
+            stop;
+            
+        Pain.explosiveImpact:
+            TNT1 A 0 {
+                sizzleLoops = 15;
+            }
+            
+    }
+}
+
+class propaneSizzle : actor
+{
+    int initialAngle;
+    actor propaneTarget;
+	const steamParticleCount = 3;
+
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(!propaneTarget)
+        {
+            console.printf("DESTROY.");
+            destroy();
+            return;
+        }
+
+        setOrigin(propaneTarget.pos, true);
+        for(int x=0;x<=steamParticleCount;x++) {
+            A_SpawnItemEx("SteamParticle", 5, 0, 6, (0.1)*Random(35, 40), 0, (0.1)*Random(-5, 5), Random(-8, 8), 128);
+        }
+    }
+
+    default
+    {
+        +NOBLOCKMAP;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A -1;
+            loop;
+    }
+}
+
+class propanetank_container : PickupableDecoration
+{
+
+    override bool canCollideWith(actor other, bool passive)
+    {
+        if(other is "PropaneTank")
+        {
+            return false;
+        }
+        return super.canCollideWith(other, passive);
+    }
+
+    default
+    {
+        tag "$OBJECT_PROPANEACCESSORY";
+        health 7;
+        DamageFactor "BulletAlien", 5.0;
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+        PainSound "impact/breakable";
+        +SELACOACTOR.ThruPlayers
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+        
+    }
+}
+
+class propaneExplosionLight : SelacoLightEffect 
+{
+    default {
+        SelacoLightEffect.rColor 255;
+        SelacoLightEffect.gColor 164;
+        SelacoLightEffect.bColor 124;
+        SelacoLightEffect.lightIntensity 150;
+        SelacoLightEffect.fadeoutSpeed 5;
+    }
+}
+
+
+class PropaneExplosion : BarrelExplosion {
+
+	override void PostBeginPlay() 
+    {
+		super.PostBeginPlay();
+		expRadius = 220;
+	}
+
+	default 
+    {
+        BarrelExplosion.ExplosionDamage 175;
+		damageType "fire";
+		+FORCERADIUSDMG;
+	}
+}
+
+class PropaneExplosionSmall : Actor {
+    override void postbeginPlay(){
+        super.postBeginPlay();
+        A_EXPLODE(100, 250, damageType:"Fire");
+        destroy();
+    }
+    default {
+        +NOINTERACTION
+    }
+}
+
+class PropaneExplosionEffects : SelacoActor {
+
+    override void postBeginPlay() {
+        super.postBeginPlay();
+        spawnLight(255*2, 164*2, 124*2, 120, 0, -1 ,overbright:0, divisionSpeed:1.25, zOffset:height+8);
+        for(int i=0;i<=360;i+=15) {
+            A_SpawnItemEx("SmokeScatteredCloudFast", 35,0,25, 5, angle:i);
+        }
+        for(int i=0;i<=9;i++) {
+            A_SpawnItemEx("SmokeScatteredCloudFast", random(-30,30), frandom(-30,30), frandom(24,34), frandom(1,2), frandom(1,2), frandom(1,4));
+        }
+        // Fire Effects
+        for(int i=0;i<35;i++) {
+            A_SpawnDefinedParticle("FlameParticleDefinition",frandom(-10,10), frandom(-10,10), 10, frandom(3,6), 0, frandom(-3,3), angle:random(0,360));
+        }
+        for(int x=0;x<24;x++) {
+            A_SPAWNITEMEX("BigExplosionSlow", frandom(-40,40), frandom(-40,40), frandom(6,70));
+        }
+        A_SPAWNITEMEX("propaneExplosionLight");
+        destroy();
+    }
+
+    default {
+        +NOINTERACTION
+    }
+}

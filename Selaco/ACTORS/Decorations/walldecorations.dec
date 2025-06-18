@@ -1,0 +1,101 @@
+
+
+Actor KeepOutSign : MetalSign 333 {
+	tag "Keep out Sign"
+	scale 0.18
+	height 35
+	radius 15
+	States {
+		Spawn:
+			VOXE L -1
+			stop
+	}
+}
+
+Actor ExonSign1 : KeepOutSign 331 {
+	tag "Exon Sign - Advanced Weaponry"
+	scale 0.2
+}
+
+Actor CafeSign1 : KeepOutSign 332 {
+	tag "Cafeteria Sign"
+	BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite"
+	PainSound "impact/hardmetal"
+	scale 0.15
+	States {
+
+	}
+}
+
+Actor SpaceBroInProgress : WallDecorationBase	 336 {
+	tag "SPACE BRO IN PROGRESS"
+	BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite"
+	PainSound "impact/hardmetal"
+	scale 0.47
+	States {
+		Spawn:
+			SIGN D -1
+			stop
+		Death:
+			TNT1 A 0 A_ChangeFlag("Nogravity", False)
+			SIGN D -1
+			stop
+	}
+}
+
+Actor VoodooCard : WallDecorationBase	 337 {
+	tag "VOODOO CARD"
+    BloodType "BrownCloudSmall"
+    PainSound "impact/grass"
+	scale 0.27
+	States {
+		Spawn:
+			SIGN E -1
+			stop
+		Death:
+			TNT1 A 0 A_ChangeFlag("Nogravity", False)
+			SIGN E -1
+			stop
+	}
+}
+
+Actor PawnClue : WallDecorationBase 334 {
+	tag "Blues Clues"
+  Activation THINGSPEC_Activate
+  +FRIENDLY
+  +USESPECIAL
+  radius 9
+  height 8
+  -SHOOTABLE
+	scale 0.08
+	States {
+		Spawn:
+			PAWN A -1
+			stop
+		Active:
+			PAWN AAAAAAAAAA 1 A_FadeOut(0.1)
+			TNT1 A 0 ACS_NamedExecuteWithResult("ClueFound", 0)
+		Death:
+			TNT1 A 10
+			TNT1 A 0 
+			stop
+
+	}
+}
+
+Actor NoSmoking : WallDecorationBase 335 {
+	tag "No Smoking Sign"
+	scale 0.2
+	radius 10
+	height 15
+	health 1
+	states {
+		SPAWN:
+			NOSM O -1 BRIGHT
+			stop
+		Death:
+			TNT1 AAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("LargeGlassParticle1", 4, frandom(-10,10), frandom(-10,10), frandom(0.1,5), frandom(-1,1), frandom(-2,2))
+			TNT1 A 0 A_playSound("dest/glassm")
+			stop
+	}
+}

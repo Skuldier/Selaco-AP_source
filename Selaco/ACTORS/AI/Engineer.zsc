@@ -1,0 +1,979 @@
+class Engineer: EnemySoldier
+{
+
+	Array<State> availableMoves;
+	private int engineerFlags;
+	private int pelletAmount;
+	private int turretAmount;
+	private int turretDelay;
+	private float pelletSpread;
+	private float attackAttenuation;
+	private string firingSound;
+	bool isGrenadeEngineer;
+	private int StateTickRequirement;
+	property FiringSound : firingSound;
+	property PelletAmount	:	 pelletAmount;
+	property PelletSpread	:	 pelletSpread;
+	property AttackAttenuation	:	 attackAttenuation;
+	flagdef RandomRole : engineerFlags, 1;
+
+	float runSpeed; // Speed when rushing forward
+
+	actor lastVisualHelper;
+	bool lastVisualHelperSuccess;
+	bool forwardRushBlocked;
+	static const string regularDeathAnimations[] = {"DeadEngineer9", "EngineerDeadLeg", "DeathEngineerRegular3", "DeathEngineerWallBang", "DeathEngineerOverkill", "DeadEngineerBack"};
+	static const string headshotDeathAnimationsEngineer[] = {"DeadEngineerHeadshot2", "DeadEngineerHeadshot3", "DeadEngineerHeadshot4"};
+	static const string shotgunDeathAnimationsEngineer[] = {"DEATH_ENGINEERSPINOFDEATHSHOTGUN", "DeathEngineerShotgunBackflip", "DeathEngineer11", "DeathEngineerOverkill4Shotgun"};
+	static const string sittingDeathAnimationEngineer[] = {"Engineer_Wallsit"};
+	static const string wallSmashDeathAnimations[] = {"DeathEngineerWallBang"};
+	static const string nailgunDeathAnimation[] = {"DeadEngineer_Nailgun1"};
+	static const string gibbingAnimationEngineer[] = {"ENGINEER_GIBBED"};
+	static const string meleeDeathAnimation[] = {"DEATH_ENGINEEREPICSPINOFDEATH"};
+
+	override string GetMeleeDeathAnimation() {
+		string deathAnimationToUse = meleeDeathAnimation[random(0,meleeDeathAnimation.size()-1)];
+		return deathAnimationToUse;
+	}
+
+	override string GetHeadshotDeadAnimation() {
+		string deathAnimationToUse = headshotDeathAnimationsEngineer[random(0,headshotDeathAnimationsEngineer.size()-1)];
+		return deathAnimationToUse;
+	}
+
+	override string GetDeadAnimation() {
+		return regularDeathAnimations[random(0,regularDeathAnimations.size()-1)];
+	}
+
+	override string GetnailgunDeathAnimation() {
+		string deathSprite = nailgunDeathAnimation[random(0,nailgunDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+
+	override string GetShotgunDeathAnimation() {
+		return shotgunDeathAnimationsEngineer[random(0,shotgunDeathAnimationsEngineer.size()-1)];
+	}
+	
+	override string GetSittingAnimation() {
+		return sittingDeathAnimationEngineer[random(0,sittingDeathAnimationEngineer.size()-1)];
+	}
+
+	override string GetGibbedAnimation() {
+		string deathSprite;
+		if(!gotGibbed) {
+			gotGibbed = true;
+			A_PLAYSOUND("GIB/STOMP", CHAN_AUTO, 1.0, 0, 0.8);
+			deathSprite = gibbingAnimationEngineer[random(0,gibbingAnimationEngineer.size()-1)];
+		}
+		return deathSprite;
+	}
+
+	override string GetWallSmashAnimation() {
+		return wallSmashDeathAnimations[random(0,wallSmashDeathAnimations.size()-1)];
+	}
+
+	void setupLeftStrafe()
+	{
+		defaultEverything();
+		createStrafeNodes(STF_LEFT, 4);
+		strafesLeft = true;
+		strafeSpeed = -0.4;
+		checkStrafeDirection = 90;
+		strafeFrames = 0;
+	}
+
+	void setupRightStrafe()
+	{
+		defaultEverything();
+		strafesRight = true;
+		createStrafeNodes(STF_RIGHT, 4);
+		strafeSpeed = 0.4;
+		checkStrafeDirection = 270;
+		strafeFrames = 3;
+	}
+
+	int maxShells;
+	bool shellLoaded;
+	bool success;
+	actor indicatorFlare;
+	// Checks if the engineers needs to do a pumpshotgun or not
+	bool shellIsLoaded() {
+		if (!shellLoaded) {
+			return false;
+		}
+		return true;
+	}
+
+	// Runs after BeginPlay. Randomizes behavior per engineer. I'm sure we will extend this at some point.
+	void decideRole() {
+		if(random(0,2) == 2 && bRandomRole) {
+			roleTag = "Shotgunner (Suppressor)";
+			ENEMY_IdentifierTag = "EngineerSuppressor";
+			SearchParamsCloseRange.minDist = 0;
+    		SearchParamsCloseRange.maxDist = 0; // LINE OF SIGHT FOR SHOTGUNNER - Causing them to make an accurate shot
+			SearchParamsFarRange.minDist = 0;
+    		SearchParamsFarRange.maxDist = 2500; // LINE OF SIGHT FOR SHOTGUNNER - Causing them to make an accurate shot
+			bSuppressor = true;
+		}
+	}
+
+	// Used to remember the position of the target. If sight is lost right before shooting, engineer will fire at ths helper instead.
+	void spawnVisualHelper()
+	{
+		if(lastVisualHelper)
+		{
+			lastVisualHelper.destroy();
+		}
+		if(target)
+		{
+			[lastVisualHelperSuccess, lastVisualHelper] = target.A_SPAWNITEMEX("LastVisualHelper", 0, 0, 32);
+		}
+	}
+
+	void fireShotgun(bool skipPump = false) {
+		if (!shellIsLoaded()) {
+			setStateLabel("pumpshotgun");
+			return;
+		}
+		if(!hasEnoughShells()) {
+			setStateLabel("ReloadWeapon");
+			return;
+		}
+		if(target) {
+			if(target is "PathNode") {
+				target = players[0].mo;
+			}
+		}
+
+		actor oldTarget = target;
+		// If we cant see the target, use the last seen beacon instead.
+		
+		if(target && !isTargetVisible() && lastVisualHelper)
+		{
+			target = lastVisualHelper;
+		}
+		A_PLAYSOUND("DISTANT/SHOT", CHAN_AUTO, 1.0, 0, pitch:frandom(0.76, 0.80));
+		Spawnlight(500, 260, 260, 200, 0, -1, divisionSpeed:1.45);
+		consumeShell();
+		shellLoaded = false;
+		A_SpawnItemEx("ShotgunMuzzle", 6, 0, 43);
+		S_AlertEnemies();
+		A_SpawnProjectile("OrangeLensFlareAltShotgun", 34, 10, 15, 0);
+		A_PlaySound(firingSound, CHAN_BODY, 1.0, 0, attackAttenuation, pitch:frandom(0.9,1.05));
+		A_SpawnItemEx("BulletImpactSmokeEnemy",0, 0, 32, frandom(1, 2), frandom(1.5, 2));
+		A_SpawnItemEx("BulletImpactSmokeEnemy",0, 0, 32, frandom(1, 2), frandom(-1.5, -2));
+		A_SpawnItemEx("BulletImpactSmokeEnemy",0, 0, 32, frandom(1.5, 2), 0, frandom(1.5, 2));
+
+		int pelletsToFire = pelletAmount;
+
+		// Increase pellet count for invasion tier
+		if(checkInvasionTier(INVTIER_INCREASEDPELLETS))
+		{
+			pelletsToFire+=2;
+		}
+
+		// SMF? Add a rocket chance.
+		if(skill == SKILL_SMF && random(0,100) <= 10)
+		{
+			fireRocket();
+		} else if(isGrenadeEngineer && checkSight(target)) {
+			fireGrenade();
+		}
+		// Fire all pallets
+		else
+		{
+			for(int i = 0; i < pelletsToFire; i++) {
+				String firingProjectile = WeaponProjectileType;
+				A_FireEnemyWeapon(firingProjectile, 40, 0, frandom(-1*pelletSpread, pelletSpread),  CMF_TRACKOWNER | CMF_OFFSETPITCH, (frandom(-1*pelletSpread, pelletSpread))*0.5);
+				A_SpawnProjectile("ShotgunParticles", 40, 0, random(-9, 9), 6, random(-9, 9));
+			}
+			for(int i = 0; i < 5; i++) {
+				EmitDefinition('SparkParticleDefinitionFastShotgunner', 1.0, 20, pitch:-15, offset:(5,frandom(-3,3), frandom(35,40)));
+			}
+		}
+		target = oldTarget;
+		if(!skipPump) {
+			setStateLabel("pumpshotgun");
+		}
+	}
+
+	void fireRocket() {
+		actor rocketProjectile;
+		rocketProjectile = A_SpawnProjectile("AirdroneRocket", 40, 0, 0, 0, 0);
+		if(rocketProjectile)
+		{
+			rocketProjectile.A_ScaleVelocity(3);
+		}		
+	}
+
+	void fireGrenade() {
+		actor thrownGrenadeActor;
+		thrownGrenadeActor = A_SpawnProjectile("EngineerGrenadeRound", 42, 0, 0, CMF_OFFSETPITCH, -11);
+		
+		// Check distance between Thrower and Target, and increase velocity of the grenade per every unit.
+		if (thrownGrenadeActor && target)
+		{
+			thrownGrenadeActor.master = self;
+			
+			int targetDistance = Distance2D(target);
+		
+			// Ensure the minimum distance is at least 450
+			targetDistance = max(targetDistance, 450);
+
+			// Calculate the time needed to cover the distance at base speed (in ticks)
+			float baseSpeed = 40; // Base speed for grenade
+			float baseTime = targetDistance / baseSpeed;
+		
+			// How long do we want the grenade to travel
+			float desiredTime = TICRATE;
+		
+			// Calculate the scaling factor to achieve the desired time
+			float scaleFactor = baseTime / desiredTime;
+		
+			// Apply speed scaling
+			thrownGrenadeActor.A_ScaleVelocity(scaleFactor);
+		}
+	}
+
+	void shotFired() {
+		shellLoaded = false;
+	}
+
+	void loadShell() {
+		shellLoaded = true;
+	}
+
+	void consumeShell() {
+		currentAmmo--;
+	}
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		decideRole();
+		if(bDormant) {
+			bThruActors = true;
+		}
+		
+		if(randomizerHandler && randomizerHandler.hasRandomizer && randomizerHandler.allowGrenadierEngineers && random(0,100) <= GRENADIER_ENGINEER_CHANCE) {
+			isGrenadeEngineer = true;
+			maxShells = 1;
+		}
+
+		currentAmmo = maxShells;
+	}
+
+	override void performNodeAction() {
+		// Deploy Turret
+		if(checkTurretDeployment()) {
+			SetStateLabel("DeployTurret");
+		}
+	}
+
+	// Check if the soldier should place a turret down
+	bool checkTurretDeployment() {
+		int radius = 1800; // How far to look for Sentry Gun
+		int maxTurrets = 2; // How many turrets do we allow at any given time within `Radius`
+		int totalTurrets;
+		actor currentActor;
+
+		// First, did we recently try?
+		if(turretDelay > 0)
+		{
+			return false;
+		}
+
+		// Make sure the Invasion Tier is high enough
+		if(checkInvasionTier(INVTIER_SENTRYGUNS) == false) {
+			return false;
+		}
+	
+		turretDelay = 15;
+		// Is the engineer active long enough? We dont want him to deploy a turret right away.
+		if(activeTime < 10) {
+			return false;
+		}
+
+		// Does the character still have an available Sentry Gun?
+		if( turretAmount <= 0) {
+			return false;
+		}
+
+		// Roll the dice. False is not hit
+		if(random(0,100) >= gadgetChance) {
+			return false;
+		}
+
+		// Find turrets and check their distance.
+		ThinkerIterator it = ThinkerIterator.Create("SentryGunAlien");
+		SentryGunAlien sentryGun = SentryGunAlien(it.Next());
+		for (; sentryGun; sentryGun = SentryGunAlien(it.Next())) {
+			// Check if turret is close, add one if so
+			if(Distance2DSquared(sentryGun) <= radius) {
+				totalTurrets++;
+			}
+		}
+
+		// Decline if too many turrets
+		if(totalTurrets >= maxTurrets) {
+			return false;
+		}
+		return true;
+	}
+
+	override void BeginPlay() {
+		args[3] = 3;
+		super.BeginPlay();
+		turretAmount = 1; // Every engineer gets to deploy one turret
+		shellLoaded = true;
+		SearchParamsCloseRange.fov = 100;
+    	SearchParamsCloseRange.minDist = 0;
+    	SearchParamsCloseRange.maxDist = 450; // LINE OF SIGHT FOR SHOTGUNNER - Causing them to make an accurate shot
+    	SearchParamsCloseRange.maxHearDist = 1024;
+		SearchParamsCloseRange.flags |= LOF_DONTCHASEGOAL;
+		SearchParamsFarRange.fov = 100;
+    	SearchParamsFarRange.minDist = SearchParamsCloseRange.maxDist;
+    	SearchParamsFarRange.maxDist = SearchParamsCloseRange.maxDist + 1200; // LINE OF SIGHT FOR SHOTGUNNER - Causing them to charge
+    	SearchParamsFarRange.maxHearDist = 0;
+		SearchParamsFarRange.flags |= LOF_DONTCHASEGOAL;
+
+		runSpeed = 1.2;
+		if(skill == SKILL_SMF) {
+			runSpeed = 2.6;
+		}
+
+		maxShells = 4;
+
+	}
+
+	void addShell() {
+		currentAmmo++;
+	}
+
+	bool shotgunIsFull() {
+		if (currentAmmo >= maxShells) {
+			return true;
+	} 
+		return false;
+	}
+
+	bool hasEnoughShells() {
+		//console.printF("Shells: %d", currentAmmo);
+		if (currentAmmo > 0) {
+			return true;
+		}
+		return false;
+	}
+
+	override void MoveAndAttack(int flags) {
+		// States handle when the engineer can fire, so just do movement
+		bThruActors = false;
+		A_CHASE(null, null, flags);
+	}
+
+	override void tick() {
+		if(forwardRushCooldown)
+		{
+			forwardRushCooldown--;
+		}
+		if(turretDelay)
+		{
+			turretDelay--;
+		}
+		super.tick();
+	}
+
+	default {
+		tag "$CHARACTER_ENGINEER";
+		EnemySoldier.DisplayName "$CHARACTER_ENGINEER";
+		SelacoEnemy.role "$ROLE_PUSHER";
+		Species "Alien";
+		EnemySoldier.gadgetChance 7;
+		Health 160;
+		Mass 270;
+		Speed 6;
+		Height 59;
+		scale 0.39;
+		yscale 0.28;
+		FastSpeed 13;
+		Mass 270;
+		PainChance "SMGBullet", 130;
+		PainChance 95;
+		PainChance "Heal", 255;
+		PainChance "BulletSplashDamage", 150;
+		PainChance "Ice", 255;
+		PainChance "Mandown", 90;
+		PainChance "ReportHit", 10;
+		PainChance "Avoid", 130;
+		PainChance "Head", 255;
+		PainChance "MeleeImpact", 255;
+		PainChance "Fire", 255;
+		PainChance "DropLedge", 255;
+		PainChance "MagnumBullet", 255;
+		PainChance "Melee", 255;
+		damagefactor "SSG", 50.0;
+		damageFactor "fire", 50.0;
+		PainChance "ExplosiveImpact", 160;
+		damageFactor "ExplosiveImpact", 1.0;
+
+		SelacoEnemy.weapon AWPN_SHOTGUN;
+
+		EnemySoldier.SPRITE_Walking "ENRU";
+		EnemySoldier.SPRITE_Idle "ENID";
+		EnemySoldier.SPRITE_Pain "SPOS";
+		EnemySoldier.SPRITE_PainHeadshot "ENHE";
+		EnemySoldier.SPRITE_AlertAllies "SHID"; // "SHIC"; ?
+		EnemySoldier.SPRITE_Fallingdown "ENFL";
+		EnemySoldier.SPRITE_MeleeFly "ENGU";
+		EnemySoldier.SPRITE_Shocked "ENEL";
+		EnemySoldier.SPRITE_PainShoulder1 "ENP1";
+		EnemySoldier.SPRITE_PainShoulder2 "ENP2";
+		EnemySoldier.SPRITE_StumbleForward "ENP6";
+		EnemySoldier.SPRITE_StumbleRight "ENP5";
+		EnemySoldier.SPRITE_StumbleLeft "ENP4";
+		EnemySoldier.SPRITE_NailgunDeath "ENN1";
+		EnemySoldier.SPRITE_DodgeGrenade "ENDG";
+		SelacoEnemy.ENEMY_IdentifierTag "ENGINEER";
+
+		engineer.PelletAmount 8;
+        SelacoEnemy.WeaponDamage                6; // Per pellet
+        SelacoEnemy.WeaponDamageOffset          0; // Per pellet
+		engineer.PelletSpread 3.45;
+		engineer.attackAttenuation 0.7;
+		engineer.firingSound "engineer/shotgun";
+		EnemySoldier.WeaponProjectileType "EnemyTracerShotgun";
+		+SelacoEnemy.AllowSquadleaderBuffs;	
+		Selacoenemy.flankingChance 50;
+		-EnemySoldier.AllowSmartReloading
+		+EnemySoldier.Communicator
+		+EnemySoldier.armored;
+		+SelacoEnemy.AllowGrenadeDodging;
+		+Engineer.Randomrole;
+		SelacoEnemy.randomizerSpawnChance 75;
+		+USEKILLSCRIPTS;
+		BloodType "Selaco_Blood_MEDIUMARMOR", "Selaco_Blood_MEDIUMARMOR", "Selaco_Blood_MEDIUMARMOR";
+		damagetype "Melee";
+
+		PainSound "grunt/pain";
+		DeathSound "grunt/death";
+
+		Monster;
+		Obituary "%o got his brains splattered on the wall by an Engineer.";
+	}
+	States
+	{
+
+
+	Precache:
+		ENST ABCDEFG 0;
+		ENP1 A 0;
+		TNT1 A 0;
+		ENRU A 0;
+		ENHE A 0;
+		ENEL A 0;
+		ENFL A 0;
+		ENGU A 0;
+		SHIC A 0;
+		ENP5 A 0;
+		ENP4 A 0;
+		ENEL A 0;
+		RFRU A 0;
+		RFID A 0;
+		ENP6 A 0;
+		RFFR A 0;
+		RFP6 A 0;
+		ENN1 A 0;
+		RFHW A 0;	
+		ALIP A 0;
+		ENP2 A 0;
+		ENP1 A 0;
+		RFHE A 0;
+		RFSI A 0;
+		ENDG A 0;
+		RFFL A 0;
+		RFRE A 0;
+		RFP4 A 0;
+		RFP5 A 0;
+		RFGU A 0;
+		RFEL A 0;
+		RFCR A 0;
+		stop;
+    Spawn:
+		TNT1 A 0 {
+			//invoker.SPRITE_Walking = "ENRU";
+			//invoker.SPRITE_Idle = "ENID";
+			//invoker.SPRITE_Pain = "SPOS";
+			//invoker.SPRITE_AlertAllies = "SHID";
+		}
+		  SPOS B 1;
+		  Goto Stand;
+
+	fdsfsd:
+		ENID AB 2 A_Look();
+		Goto Stand;
+
+	Evade:
+	See:
+		TNT1 A 0 S_AlertEnemies();
+		TNT1 A 0 {
+			bNODROPOFF = false;	
+			A_GiveInventory("isInCombatMode",1 );
+
+			SetSeenPlayer();
+			invoker.strafesleft = false;
+			invoker.strafesright = false;
+
+			if(!shellIsLoaded()) {
+				setStateLabel("pumpshotgun");
+			}
+			if (!findNearbyAlertedAlien()) {
+				SetStateLabel("SeeContinue");
+			}
+		}
+		Goto SeeContinue;
+		
+
+	RushForward:
+		TNT1 A 0 {
+			chargingForward = true;
+			invoker.strafesleft = false;
+			invoker.strafesright = false;
+			A_PlaySound("SHTPICKE", CHAN_AUTO, 0.6, 0, 0.7);
+			talk(SOLDIER_PUSH);
+			if(!shellIsLoaded()) {
+				setStateLabel("pumpshotgun");
+			}
+			if(!hasEnoughShells()) {
+				setStateLabel("ReloadWeapon");
+			}
+			[success, indicatorFlare] = A_SPAWNITEMEX("RedFlare4", 20, 6, 38);	
+		}
+		ENWF AABBCCDDAABBCCDD 2 {
+			if(checkIfForwardMovementBlocked())
+			{
+				forwardRushCooldown = 170;
+				setState(findState("See"));
+			}
+			if (checkGeometryCollision(-1, maxStepHeight, 90, floorOnly:True)) 
+			{
+				A_CHANGEVELOCITY(-2, 0, vel.z, CVF_REPLACE | CVF_RELATIVE);
+				setStateLabel("ReadyToFire");
+			}
+			[success, indicatorFlare] = A_SPAWNITEMEX("RedFlare4", 20, 6, 38);	
+			A_FACETARGET();
+			A_CHANGEVELOCITY(runSpeed, 0, -1, CVF_RELATIVE);
+		}
+		ENWF F 2 {
+			if(checkIfForwardMovementBlocked())
+			{
+				forwardRushCooldown = 170;
+				setState(findState("See"));
+			}
+			lookForHazard();
+			if(hasFiringSolution()) {
+				fireShotgun(true);
+			} else {
+				setStateLabel("see");
+			}
+			A_FACETARGET();
+			A_CHANGEVELOCITY(runSpeed, 0, -1, CVF_RELATIVE);
+		}
+		ENWF FGGHHIIJJ 2 {
+			if(checkIfForwardMovementBlocked())
+			{
+				forwardRushCooldown = 170;
+				setState(findState("See"));
+			}
+			if(target && isTargetVisible())
+			{
+				spawnVisualHelper();
+			}	
+			if (checkGeometryCollision(-1, maxStepHeight, 90, floorOnly:True)) 
+			{
+				A_CHANGEVELOCITY(-2, 0, vel.z, CVF_REPLACE | CVF_RELATIVE);
+				setStateLabel("ReadyToFire");
+			}
+			A_FACETARGET();
+			A_CHANGEVELOCITY(runSpeed, 0, -1, CVF_RELATIVE);
+		}
+		ENWF K 2 {
+			if(target && isTargetVisible())
+			{
+				spawnVisualHelper();
+			}	
+			A_FACETARGET();
+			A_SpawnItem ("ShotCaseSpawnEnemy", 0, 30,0);
+			A_PlaySound("grunt/shotgunpump", CHAN_AUTO, 1.0);
+			loadShell();
+		}
+		ENWF KL 2 {
+			if(target && isTargetVisible())
+			{
+				spawnVisualHelper();
+			}	
+			A_FACETARGET();
+			A_CHANGEVELOCITY(runSpeed, 0, -1, CVF_RELATIVE);
+		}
+		TNT1 A 0 {
+			if(LookForPlayers(false, SearchParamsFarRange) && !bSuppressor) {
+				setStateLabel("RushForward");
+			}
+		}
+		goto See;
+
+	DeployTurret:
+		TNT1 A 0 {
+			actor sentryBase;
+			bool succ;
+			turretAmount--;
+			talk(SOLDIER_DEPLOYTURRET, urgent: true);
+			A_PlaySound("grunt/turret", CHAN_AUTO);
+			A_RECOIL(9);
+			[succ, sentryBase] = A_SpawnItemEx ("SentryGunAlien",35,0,0,0,0,0, flags:SXF_SETMASTER | SXF_NOCHECKPOSITION,0);
+		}
+		Goto Stand;
+
+	DeployGadgetDenied:
+		goto Stand;
+
+	SeeNeverSeen:
+		TNT1 A 0 A_JumpIfCloser(200, "FallBack");
+
+	MissileBackward:	// TODO: Add a backward version of Missile
+	Missile:
+		TNT1 A 0 talk(SOLDIER_ATTACK);
+		TNT1 A 0 S_AlertEnemies();
+		TNT1 A 0 ACS_NamedExecute("ReportAllies", 0, 4);
+		TNT1 A 0 A_Jump(7, "DeployGadget");
+		TNT1 A 0 {
+			lookForHazard();
+		}
+		TNT1 A 0 A_PlaySound("SHTPICKE", CHAN_AUTO, 1.0, 0, 0.7);
+		TNT1 A 0 {
+			defaultEverything();
+			if(target is "PathNode") {
+				target = players[0].mo;
+			}
+			bNoDropOff = false;
+			if (!hasEnoughShells() || !shellIsLoaded()) {
+				setStateLabel("ReloadWeapon");
+			}
+		}
+		TNT1 A 0 A_JUMP(256, "PrepareShotgun","PrepareShotgun", "StrafeFire");
+		goto StrafeFire;
+
+	Prepare_ShootWeapon_Aiming:	
+	PrepareShotgun:
+		TNT1 A 0
+		{
+			invoker.strafesleft = false;
+			invoker.strafesright = false;
+		}
+		ENFI AABBCC 1 A_FACETARGET();
+	ReadyToFire:
+		ENFI DDDDDDDD 1 {
+			if(target && isTargetVisible())
+			{
+				spawnVisualHelper();
+			}	
+			A_FACETARGET();
+			[success, indicatorFlare] = A_SPAWNITEMEX("RedFlare3", 20, 4, 42);
+		}
+		TNT1 A 0 {
+			if(skill == SKILL_SMF) {
+				SetStateLabel("BeginAttack");
+			}
+		}
+		TNT1 A 0 {
+			if(skill >= 3) {
+				setStateLabel("BeginAttack");
+			}
+		}
+		ENFI DDD 1 {
+			if(target && isTargetVisible())
+			{
+				spawnVisualHelper();
+			}	
+			A_FACETARGET();
+			[success, indicatorFlare] = A_SPAWNITEMEX("RedFlare3", 20, 4, 42);
+		}
+	BeginAttack:
+		ENFI D 1 {
+			A_FACETARGET();
+			[success, indicatorFlare] = A_SPAWNITEMEX("RedFlare3", 20, 4, 42);
+			if (squadLeaderBuff) {
+				A_SETTICS(7);
+			} else {
+				A_SETTICS(13);
+			}
+		}
+	FireShotgun:
+		TNT1 A 0 {
+			bNoDropOff = false;
+			if (hasEnoughShells()) {
+				FireShotgun();
+			} else {
+				setStateLabel("ReloadWeapon");
+			}
+		}
+		ENFI FGHI 3 {	
+			A_FaceTarget();
+		}
+		TNT1 A 0 A_Recoil(1);
+	PumpShotgun2:
+	    TNT1 A 0 A_PlaySound("grunt/shotgunpump", 3, 0.6);
+		ENRE FHIJK 5;
+		TNT1 A 0 A_PlaySound("weapons/sgpump", 4);
+        Goto SeeContinue;
+		
+	StrafeFire:
+		// Decide Direction
+		TNT1 A 0 
+		{
+			if(squadLeaderBuff) 
+			{
+				StateTickRequirement = 20;
+			} else {
+				StateTickRequirement = 27;
+			}
+			if(user_sentrymode)
+			{
+				setState(findState("PrepareShotgun"));
+			}
+			killStrafeNodes();
+		}
+
+		// It's a little convoluted for now. I have to find a way to allow the
+		// Strafe Nodes to find their targets right away rather than with a delay.
+		// It's jank but it works, for now.
+		// - Nexxtic
+		ENFI A 1 {
+			availableMoves.clear();
+			A_FACETARGET();
+			createStrafeNodes(STF_LEFT, 4);
+			stateTic = 0;
+		}
+		ENFI B 2;
+		ENFI C 1
+		{
+			A_FACETARGET();
+			if(validateStrafe())
+			{
+				availableMoves.push(FindState("StrafeLeft"));
+			}
+			killStrafeNodes();
+			createStrafeNodes(STF_RIGHT, 4);
+		}
+		ENFI C 2;
+		ENFI C 1
+		{
+			A_FACETARGET();
+			if(validateStrafe())
+			{
+				availableMoves.push(FindState("StrafeRight"));
+			}			
+			killStrafeNodes();
+		}
+
+		// Select random strafe direction
+		TNT1 A 0
+		{
+			if(availableMoves.size() > 0)
+			{
+				SetState(availableMoves[random(0,availableMoves.size()-1)]);
+			}
+		}
+		goto PrepareShotgun;
+	StrafeLeft:
+		ENFI A 0
+		{
+			setupLeftStrafe();
+		}
+		ENFI A 1;
+		goto StrafeFireStart;
+	StrafeRight:
+		ENFI A 0
+		{
+			setupRightStrafe();
+		}		
+		ENFI A 1;
+		goto StrafeFireStart;
+
+	StrafeFireStart:
+		ENST AAAAABBBBBCCCCCDDDDDAAAAABBBBBCCCCCDDDDDAAAAABBBBBCCCCCDDDDD 1
+		{
+			frame = strafeFrames;
+			[success, indicatorFlare] = A_SPAWNITEMEX("RedFlare3", 20, 10, 43, 0, 0, 0, 0, SXF_SETMASTER);
+			invoker.animationInterval++;
+			if(invoker.animationInterval > 2) {
+				if(!validateStrafe() || checkGeometryCollision()) {
+					A_ChangeVelocity(0,0, 0,CVF_RELATIVE | CVF_REPLACE);
+					setState(findState("ReadyToFire"));
+				}
+				preventEdgeFalling("ReadyToFire");
+			}
+			if (invoker.animationInterval % 5 == 0) {
+				spawnVisualHelper();
+				if(strafesRight && strafeFrames)
+				// Update animation after so many ticks.
+				if (invoker.animationInterval == 10) {
+					playFootstepSound();
+					invoker.animationInterval = 0;
+				}
+				// Increment animation when going Left
+				if(invoker.strafesLeft) {
+					strafeFrames++;
+					if (strafeFrames >= 4) {
+						strafeFrames = 0;
+					}
+				}
+
+				// Decrement animation when going left
+				if(invoker.strafesRight) {
+					strafeFrames--;
+					if (strafeFrames < 0) {
+						strafeFrames = 3;
+					}
+				}
+			}
+			incrementStateTic();
+			if (!CheckClear(1, 30)) {
+				//setStateLabel("PrepareShotgun");
+			}
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			A_FACETARGET();
+			
+			if (hasFiringSolution() && getStateTic() >= StateTickRequirement && hasEnoughShells()) {
+				loadShell();
+				fireShotgun();
+			}
+			//ThrustThing(angle*256/360+192, 1, 0, 0);
+			if(getStateTic() > 1) {
+				A_ChangeVelocity(0,strafeSpeed, 0,CVF_RELATIVE);
+			}
+		}
+		Goto pumpshotgun;
+
+		pumpshotgun:
+			ENRE HI 5;
+			TNT1 A 0 A_SpawnItem ("ShotCaseSpawnEnemy", 0, 30,0);
+			TNT1 A 0 A_PlaySound("grunt/shotgunpump", CHAN_AUTO, 0.9);
+			TNT1 A 0 loadShell();
+			ENRE JK 5;
+			ENFI CBA 2;
+			TNT1 A 0 {
+				bNoDropOff = false;
+				if (!hasEnoughShells()) {
+					setStateLabel("ReloadWeapon");
+				}
+			}
+			TNT1 A 0 A_FaceTarget();
+			Goto SeeContinue;	
+
+	ReloadWeapon:
+		TNT1 A 0 {
+			killStrafeNodes();
+			if (random(0,5) == 5) {
+    			talk(SOLDIER_RELOAD);
+			}
+		}
+		TNT1 A 0;
+		ENRE A 3;
+	InsertShells:
+		TNT1 A 0 {
+			if (shotgunIsFull()) {
+				setStateLabel("PumpShotgun");
+			}
+		}
+        ENRE BCD 4;
+		TNT1 A 0 {
+			addShell();
+			A_PlaySound("ENGINEER/RELOADSHELL", CHAN_AUTO, 0.4);
+		}
+		ENRE EF 4;
+		loop;
+
+	Pain:
+		TNT1 A 0 A_Pain();
+		TNT1 A 0 {
+			if(stumbleCooldown <= 0)
+			{
+				if (invoker.strafesLeft) {
+					setStateLabel("Pain.StumbleLeft");
+				}
+				if (invoker.strafesRight) {
+					setStateLabel("Pain.StumbleRight");
+				}
+				if (invoker.chargingForward) {
+					setStateLabel("Pain.StumbleForward");
+				}
+			}
+		}
+		TNT1 A 0 A_Jump(256,"Pain.Shoulder_left", "Pain.Shoulder_right", "Evade");
+		TNT1 A 0 A_Jump (invoker.evadeChance, "Evade");
+		
+		ENP2 BCDEFG 2 A_Pain();
+	    Goto SeeContinue;
+
+}
+}
+
+
+class Engineer_Suppressor : Engineer {
+	default {
+		-Engineer.randomRole;
+		+EnemySoldier.suppressor;
+	}
+}
+class Engineer_Aggressor : Engineer {
+	default {
+		-Engineer.randomRole;
+		-EnemySoldier.suppressor;
+	}
+}
+
+
+class testActor : EnemySoldier
+{
+	default
+	{
+		scale 4;
+	}
+	states
+	{
+		spawn:
+			TNT1 A 0;
+			VOXE L 70;
+			VOXE A 2 
+			{
+				PlayerPawn pawn=players[0].mo;
+				let d = Dawn(pawn);
+				target = d;
+				createStrafeNodes(STF_LEFT, 5);		
+			}
+			VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1
+			{
+				if(validateStrafe())
+				{
+					A_PRINTBOLD("APPROVED.");
+				}
+				else
+				{
+					A_PRINTBOLD("DECLIEND");
+				}
+			}
+			VOXE A 35;
+			stop;
+	}
+}
+
+class EngineerGrenadeRound : GrenadeLauncherFragBomb {
+	default {
+		-ThrowableActor.UseProjectileAssist
+		GrenadeLauncherBombBase.ExplosionDamage 90;
+		GrenadeLauncherBombBase.ExplosionRange 120;
+		Speed 60;
+	}
+}

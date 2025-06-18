@@ -1,0 +1,8 @@
+/* class ArmoredRifleman : Soldier
+{
+	default
+	{
+		SelacoEnemy.randomizerSpawnChance 25;
+		SelacoEnemy.armorHealth 125;
+	}
+} */

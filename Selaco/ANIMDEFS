@@ -1,0 +1,1812 @@
+
+// OPTIONS STUFF
+
+texture OP_TQUA1
+    pic OP_TQUA3 tics 30
+    pic OP_TQUA2 tics 30
+	pic OP_TQUA1 tics 30
+
+texture OP_EFF1
+    pic OP_EFF1	tics 30
+    pic OP_EFF0	tics 30
+
+texture OP_SNOW0
+    pic OP_SNOW0	tics 30
+    pic OP_SNOW1	tics 30
+
+texture NOISA0
+    pic NOISA0	tics 3
+    pic NOISB0	tics 3
+
+texture OP_OBJ1
+    pic OP_OBJ1	tics 30
+    pic OP_OBJ0	tics 30
+
+TEXTURE OP_OPAV0
+    pic OP_OPAV0	tics 30
+    pic OP_OPAV1	tics 30
+	pic OP_OPAV2	tics 30
+    pic OP_OPAV1	tics 30
+
+// OPTIONS STUFF
+
+texture SHOCK1
+    pic SHOCK1	tics 15
+    pic SHOCK2	tics 15
+
+texture NEONHYD1
+    pic NEONHYD1	tics 35
+    pic NEONHYD2	tics 35
+
+texture OP_EFF1
+    pic OP_EFF1	tics 30
+    pic OP_EFF0	tics 30
+
+texture OP_OBJ1
+    pic OP_OBJ1	tics 30
+    pic OP_OBJ0	tics 30
+
+texture OP_SSAOA
+    pic OP_SSAOA	tics 30
+    pic OP_SSAOB	tics 30
+    pic OP_SSAOC	tics 30
+
+texture NEONDON1
+    pic NEONDON1	tics 30
+    pic NEONDON2	tics 30
+	
+TEXTURE SAFFAN1A
+	pic SAFFAN1C	tics 2
+	pic SAFFAN1B	tics 2
+	pic SAFFAN1A	tics 2
+
+TEXTURE PNLELEV5
+	pic PNLELEV8	tics 8
+	pic PNLELEV6	tics 8
+	pic PNLELEV7	tics 8
+	pic PNLELEV5	tics 20
+
+TEXTURE NEONVACS
+	pic NEONVACS	tics 35
+	pic NEONVAC2	tics 35
+
+TEXTURE NEONBU01
+	pic NEONBU01	tics 5
+	pic NEONBU02	tics 5
+	pic NEONBU03	tics 5
+	pic NEONBU04	tics 5
+	pic NEONBU05	tics 5
+	pic NEONBU06	tics 5
+	pic NEONBU07	tics 5
+	pic NEONBU08	tics 5
+	pic NEONBU09	tics 5
+	pic NEONBU10	tics 100
+
+TEXTURE POSERR1
+	pic POSERR1	tics 4
+	pic POSERR2	tics 4
+	pic POSERR3	tics 4
+	pic POSERR4	tics 4
+	pic POSERR5	tics 4
+	pic POSERR6	tics 4
+	pic POSERR7	tics 4
+	pic POSERR8	tics 4
+	pic POSERR9 tics 20
+	pic POSERR8	tics 4
+	pic POSERR7	tics 4
+	pic POSERR6	tics 4
+	pic POSERR5	tics 4
+	pic POSERR4	tics 4
+	pic POSERR3	tics 4
+	pic POSERR2	tics 4
+
+TEXTURE POS76A
+	pic POS76A	tics 3
+	pic POS76B	tics 3
+	pic POS76C	tics 3
+	pic POS76D	tics 3
+	pic POS76E	tics 3
+	pic POS76F	tics 3
+	pic POS76G	tics 3
+	pic POS76H	tics 3
+	pic POS76I	tics 3
+	pic POS76J	tics 3
+	pic POS76K	tics 3
+	pic POS76L	tics 3
+	
+texture POSRES1
+    pic POSRES1	rand 25 65
+    pic POSRES2	rand 1 3
+    pic POSRES3	rand 1 4
+    pic POSRES4	rand 1 3
+    pic POSRES5	rand 1 3
+    pic POSRES6	rand 1 3
+    pic POSRES7	rand 1 4
+    pic POSRES8	rand 1 3
+
+texture POS68A
+    pic POS68A	TICS 5
+    pic POS68B	TICS 5
+	pic POS68C	TICS 5
+	pic POS68D	TICS 5
+	pic POS68E	TICS 5
+	pic POS68D	TICS 5
+	pic POS68C	TICS 5
+	pic POS68B	TICS 5
+
+texture OOORDER1
+    pic OOORDER1	tics 4
+	pic OOORDER2	tics 4
+	pic OOORDER3	tics 4
+	pic OOORDER4	tics 4
+	pic OOORDER5	tics 4
+	pic OOORDER4	tics 4
+	pic OOORDER3	tics 4
+	pic OOORDER2	tics 4
+
+texture POSMM1
+    pic POSMM1	rand 1 7
+    pic POSMM2	rand 1 7
+	pic POSMM3	rand 1 7
+	pic POSMM4	rand 1 7
+	pic POSMM5	rand 1 7
+	pic POSMM6	rand 1 7
+	pic POSMM7	rand 1 7
+	pic POSMM8	rand 1 7
+	pic POSMM9	rand 1 7
+	pic POSMM10	rand 1 7
+	pic POSMM11	rand 1 7
+	pic POSMM12	rand 1 7
+
+
+texture ELECTR01
+    pic ELECTR01	tics 4
+	pic ELECTR02	tics 4
+	pic ELECTR03	tics 4
+	pic ELECTR04	tics 4
+	pic ELECTR05	tics 4
+
+texture ELECTRM1
+    pic ELECTRM1	tics 4
+	pic ELECTRM2	tics 4
+	pic ELECTRM3	tics 4
+	pic ELECTRM4	tics 4
+	pic ELECTRM5	tics 4
+
+
+texture OP_SSH1
+    pic OP_SSH1	tics 30
+    pic OP_SSH0	tics 30
+
+texture OP_LIG1
+    pic OP_LIG1	tics 30
+    pic OP_LIG0	tics 30
+
+texture OP_IRON1
+	pic OP_IRON1	tics 30
+	pic OP_IRON0	tics 30
+
+texture OP_PART1
+	pic OP_PART1	tics 30
+	pic OP_PART0	tics 30
+
+texture OP_SSAO1
+    pic OP_SSAO0	tics 30
+    pic OP_SSAO1	tics 30
+
+texture OP_SHAD1
+    pic OP_SHAD1	tics 30
+    pic OP_SHAD0	tics 30
+
+texture OP_MIRR1
+    pic OP_MIRR1	tics 30
+    pic OP_MIRR0	tics 30
+
+
+texture OP_SCBL1
+    pic OP_SCBL1	tics 30
+    pic OP_SCBL0	tics 30
+
+switch glass1 on sound destruction/glassbreak pic glass2 tics 0
+
+
+switch HATCI on sound ui/consolesuccess
+	pic PANHOR1 tics 1
+	pic PANHOR2 tics 1
+	pic PANHOR3 tics 1
+	pic PANHOR4 tics 1
+	pic PANHOR5 tics 1
+	pic PANHOR6 tics 1
+	pic PANHOR7 tics 1
+	pic PANHOR8 tics 1
+	pic PANHOR9 tics 1
+
+texture LOCKDOW1
+	pic LOCKDOW1 tics 3
+	pic LOCKDOW2 tics 3
+	pic LOCKDOW3 tics 3
+	pic LOCKDOW4 tics 3
+	pic LOCKDOW5 tics 25
+	pic LOCKDOW4 tics 3
+	pic LOCKDOW3 tics 3
+	pic LOCKDOW2 tics 3
+
+texture NEWSRECa
+	pic NEWSRECa tics 25
+	pic NEWSRECb  rand 1 7
+	pic NEWSRECc  rand 1 7
+	pic NEWSRECd  rand 1 7
+	pic NEWSRECe  rand 1 7
+	pic NEWSRECf tics 2
+	pic NEWSRECg  rand 1 3
+	pic NEWSRECh  rand 1 3
+	pic NEWSRECi  rand 1 3
+	pic NEWSRECj  rand 1 7
+	pic NEWSRECk  rand 1 7
+	pic NEWSRECl  rand 1 7
+	pic NEWSRECm  rand 1 7
+	pic NEWSRECn  rand 6 10
+	pic NEWSRECo tics 3
+
+texture SERVCL1A
+    pic SERVCL1A	rand 3 6
+    pic SERVCL1B	rand 3 6
+    pic SERVCL1C	rand 3 6
+	pic SERVCL1D	rand 3 6
+
+texture SERVCL2A
+    pic SERVCL2A	rand 3 6
+    pic SERVCL2B	rand 3 6
+    pic SERVCL2C	rand 3 6
+	pic SERVCL2D	rand 3 6
+
+texture SERVCL3A
+    pic SERVCL3A	rand 3 6
+    pic SERVCL3B	rand 3 6
+    pic SERVCL3C	rand 3 6
+	pic SERVCL3D	rand 3 6
+
+texture SERVCL4A
+    pic SERVCL4A	rand 3 9
+    pic SERVCL4B	rand 3 9
+    pic SERVCL4C	rand 3 9
+	pic SERVCL4D	rand 3 9
+
+texture SERVCL5A
+    pic SERVCL5A	rand 3 9
+    pic SERVCL5B	rand 3 9
+    pic SERVCL5C	rand 3 9
+	pic SERVCL5D	rand 3 9
+
+texture BOARDGL0
+	pic BOARDGL0	rand 35 45
+    pic BOARDGL1	rand 3 4
+    pic BOARDGL2	rand 3 4
+    pic BOARDGL3	rand 3 4
+	pic BOARDGL4	rand 3 4
+    pic BOARDGL5	rand 3 4
+    pic BOARDGL6	rand 3 4
+    pic BOARDGL7	rand 3 4
+
+
+//switch VACFRM0 on sound UI/VACCONSOLE/START pic VACFRM1 tics 0
+
+texture VACFRM1
+	pic VACFRM1		tics 2
+    pic VACFRM2		tics 2
+	pic VACFRM3		tics 2
+	pic VACFRM4		tics 2
+	pic VACFRM5		tics 2
+	pic VACFRM6		tics 2
+	pic VACFRM7		tics 2
+	pic VACFRM8		tics 2
+	pic VACFRM9		tics 2
+	pic VACFRM10	tics 2
+	pic VACFRM11	tics 2
+	pic VACFRM12	tics 2
+	pic VACFRM13	tics 2
+	pic VACFRM14	tics 2
+	pic VACFRM15	tics 2
+	pic VACFRM16	tics 2
+	pic VACFRM17 	tics 2
+	pic VACFRM18	tics 2
+	pic VACFRM19	tics 2
+	pic VACFRM20	tics 2
+	pic VACFRM21	tics 2
+	pic VACFRM22	tics 2
+	pic VACFRM23	tics 2
+	pic VACFRM24	tics 2
+	pic VACFRM25	tics 2
+	pic VACFRM26	tics 2
+	pic VACFRM27	tics 2
+	pic VACFRM28	tics 2
+	pic VACFRM29	tics 2
+
+switch DRLOCKA on sound ui/consolesuccess
+	pic DRLOCKA tics 1
+	pic DRLOCKB tics 1
+	pic DRLOCKC tics 1
+	pic DRLOCKD tics 1
+	pic DRLOCKE tics 1
+	pic DRLOCKF tics 1
+	pic DRLOCKG tics 1
+	pic DRLOCKH tics 1
+	pic DRLOCKI tics 1
+
+switch HATCU off sound Switch2 pic HATCI tics 0
+
+
+switch GENLOCK on sound menu/prompt	pic GENULOCK tics 0
+
+switch GENLOCK on sound menu/prompt	pic GENULOCK tics 0
+
+switch SMLLOCKA on sound menu/prompt pic SMLLOCKB tics 0
+
+switch CPMOXL2 on sound dest/lightbreak pic CPMOXL1 tics 0
+switch CPMOXL5 on sound dest/lightbreak pic CPMOXL1 tics 0
+switch CPMONTR1 on sound dest/lightbreak pic CPMONTR0 tics 0
+switch CPMONTR2 on sound dest/lightbreak pic CPMONTR0 tics 0
+
+switch g1 on sound dest/lightbreak pic ck1 tics 0
+switch g2 on sound dest/lightbreak pic ck1_off tics 0
+switch g3 on sound dest/lightbreak pic ck2 tics 0
+
+switch c1a on sound dest/lightbreak pic ck1 tics 0
+switch c2a on sound dest/lightbreak pic ck1_off tics 0
+switch c3a on sound dest/lightbreak pic ck2 tics 0
+switch c4a on sound dest/lightbreak pic ck2_off tics 0
+
+switch d1 on sound dest/lightbreak pic ck1_off tics 0
+switch d2 on sound dest/lightbreak pic ck2 tics 0
+switch d3 on sound dest/lightbreak pic ck1 tics 0
+
+switch SCRN3 on sound dest/lightbreak pic ck1 tics 0
+
+switch gb1 on sound dest/lightbreak pic ck1_off tics 0
+switch gb2 on sound dest/lightbreak pic ck2 tics 0
+switch gb3 on sound dest/lightbreak pic ck1_off tics 0
+
+switch LCKR1 on sound script/locker pic LCKR2 tics 0
+switch LCKR3 on sound script/lockeru pic LCKR4 tics 0
+
+switch CNTRFRNT on sound destruction/glassbreak pic WROOF2 tics 0
+
+switch FLOLOK1F on sound script/locker pic FLOLOK1D tics 0
+//switch LCKR2 off sound script/locker pic LCKR1 tics 0
+
+switch HANDS1 on sound Switch1 pic HANDS2 tics 0
+switch HANDS2 off sound Switch2 pic HANDS1 tics 0
+
+//switch SHUTU on sound Switch1 pic SHUTL tics 0
+//switch SHUTL off sound Switch2 pic SHUTU tics 0
+
+texture COLTOR1A	
+pic COLTOR1A tics 2
+pic COLTOR1B tics 2
+pic COLTOR1C tics 2
+pic COLTOR1D tics 2
+pic COLTOR1E tics 2
+pic COLTOR1F tics 2
+pic COLTOR1G tics 2
+
+
+WARP2 texture LASWAL1A 3
+WARP texture LASWAL1B 2
+
+texture CITGEN4A
+	pic CITGEN4A tics 12
+	pic CITGEN4D tics 12
+	pic CITGEN4E tics 12	
+
+
+texture CITGEN2A
+	pic CITGEN2A tics 12
+	pic CITGEN2D tics 12	
+	pic CITGEN2E tics 12	
+
+texture MACWAL1A
+	pic MACWAL1A tics 6	
+	pic MACWAL1B tics 6	
+
+texture MEDN4UA
+	pic MEDN4UA tics 47.5	
+	pic MEDN4UB tics 3	
+	pic MEDN4UC tics 3	
+	pic MEDN4UD tics 3	
+	pic MEDN4UE tics 3	
+	pic MEDN4UF tics 3	
+	pic MEDN4UG tics 3	
+	pic MEDN4UH tics 3	
+	pic MEDN4UI tics 3	
+	pic MEDN4UJ tics 3
+	pic MEDN4UK tics 3		
+
+texture UPGRTEXA
+	pic UPGRTEXA tics 25
+	pic UPGRTEXB tics 2
+	pic UPGRTEXC tics 2
+	pic UPGRTEXD tics 2
+	pic UPGRTEXE tics 2
+	pic UPGRTEXF tics 2
+	pic UPGRTEXA tics 25
+	pic UPGRTEXG tics 2
+	pic UPGRTEXH tics 2
+	pic UPGRTEXI tics 8
+	pic UPGRTEXH tics 2
+	pic UPGRTEXG tics 2
+
+texture VACCESS1
+	pic VACCESS1 tics 3
+	pic VACCESS2 tics 3
+	pic VACCESS3 tics 3
+	pic VACCESS4 tics 3
+	pic VACCESS5 tics 35
+	pic VACCESS4 tics 3
+	pic VACCESS3 tics 3
+	pic VACCESS2 tics 3
+
+texture VACCESS6
+	pic VACCESS6 tics 3
+	pic VACCESS7 tics 3
+	pic VACCESS8 tics 3
+	pic VACCESS9 tics 3
+	pic VACCESS0 tics 35
+	pic VACCESS9 tics 3
+	pic VACCESS8 tics 3
+	pic VACCESS7 tics 3
+
+
+/* texture POSMIRB1
+    pic POSMIRB2	tics 2
+    pic POSMIRB3	tics 2
+	pic POSMIRB4	tics 2
+	pic POSMIRB5	tics 2
+	pic POSMIRB6	tics 2
+	pic POSMIRB7	tics 2
+	pic POSMIRB8	tics 2
+	pic POSMIRB9	tics 2
+	pic POSMIRBY	tics 2
+	pic POSMIRBZ	tics 2
+    pic POSMIRBY	tics 2
+    pic POSMIRB9	tics 2
+	pic POSMIRB8	tics 2
+	pic POSMIRB7	tics 2
+	pic POSMIRB6	tics 2
+	pic POSMIRB5	tics 2
+	pic POSMIRB4	tics 2
+	pic POSMIRB3	tics 2
+	pic POSMIRB2	tics 2
+	pic POSMIRB1	tics 2 */
+
+texture WAITS1
+	pic WAITS2 tics 2
+	pic WAITS3 tics 2
+	pic WAITS4 tics 2
+	pic WAITS5 tics 2
+	pic WAITS6 tics 2
+	pic WAITS7 tics 2
+	pic WAITS8 tics 2
+	pic WAITS9 tics 25
+	pic WAITS8 tics 2
+	pic WAITS7 tics 2
+	pic WAITS6 tics 2
+	pic WAITS5 tics 2
+	pic WAITS4 tics 2
+	pic WAITS3 tics 2
+	pic WAITS2 tics 2
+	pic WAITS1 tics 2
+
+texture PLITWH1A
+	pic PLITWH1A tics 20
+	pic PLITWH1B tics 2
+	pic PLITWH1C tics 2
+	pic PLITWH1D tics 2
+	pic PLITWH1E tics 2
+	pic PLITWH1F tics 2
+	pic PLITWH1E tics 2
+	pic PLITWH1D tics 2
+	pic PLITWH1C tics 2
+	pic PLITWH1E tics 2
+	pic PLITWH1D tics 2
+	pic PLITWH1C tics 2
+	pic PLITWH1B tics 2
+
+texture BLUTXSCA
+	pic BLUTXSCA tics 20
+	pic BLUTXSCB tics 2
+	pic BLUTXSCC tics 2
+	pic BLUTXSCD tics 2
+	pic BLUTXSCE tics 2
+	pic BLUTXSCF tics 2
+	pic BLUTXSCG tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCJ tics 2
+	pic BLUTXSCK tics 2
+
+texture MCTCSCA
+	pic MCTCSCA tics 3
+	pic MCTCSCB tics 3
+	pic MCTCSCC tics 3
+	pic MCTCSCD tics 3
+	pic MCTCSCE tics 3
+	pic MCTCSCF tics 3
+
+texture MCTCSDA
+	pic MCTCSDB tics 3
+	pic MCTCSDC tics 3
+	pic MCTCSDD tics 3
+
+texture	DRAINA1
+	pic DRAINA2 tics 2
+	pic DRAINA3 tics 2
+	pic DRAINA4 tics 2
+	pic DRAINA5 tics 2
+	pic DRAINA6 tics 20
+	pic DRAINA5 tics 2
+	pic DRAINA4 tics 2
+	pic DRAINA3 tics 2
+	pic DRAINA2 tics 2
+	pic DRAINA1 tics 20
+
+TEXTURE HEXA1
+	pic HEXA2 tics 3
+	pic HEXA3 tics 3
+	pic HEXA4 tics 3
+	pic HEXA5 tics 3
+	pic HEXA6 tics 3
+	pic HEXA7 tics 3
+	pic HEXA8 tics 3
+	pic HEXA9 tics 3
+	pic HEXA10 tics 3
+	pic HEXA11 tics 3
+	pic HEXA12 tics 3
+	pic HEXA1 tics 3
+
+TEXTURE CPFAN1A
+	pic CPFAN1A tics 2
+	pic CPFAN2A tics 2
+	pic CPFAN3A tics 2
+	pic CPFAN4A tics 2
+
+TEXTURE CPFAN1B
+	pic CPFAN1B tics 1
+	pic CPFAN2B tics 1
+	pic CPFAN3B tics 1
+	pic CPFAN4B tics 1
+
+flat	TOXI00
+	pic TOXI01 tics 2 
+	pic TOXI02 tics 2 
+	pic TOXI03 tics 2 
+	pic TOXI04 tics 2 
+	pic TOXI05 tics 2 
+	pic TOXI06 tics 2 
+	pic TOXI07 tics 2 
+	pic TOXI08 tics 2 
+	pic TOXI09 tics 2 
+	pic TOXI10 tics 2 
+	pic TOXI11 tics 2 
+	pic TOXI12 tics 2 
+	pic TOXI13 tics 2 
+	pic TOXI14 tics 2 
+	pic TOXI15 tics 2 
+	pic TOXI16 tics 2 
+	pic TOXI17 tics 2 
+	pic TOXI18 tics 2 
+	pic TOXI19 tics 2 
+	pic TOXI20 tics 2 
+	pic TOXI21 tics 2 
+	pic TOXI22 tics 2 
+	pic TOXI23 tics 2 
+	pic TOXI24 tics 2 
+	pic TOXI25 tics 2 
+	pic TOXI26 tics 2
+	pic TOXI27 tics 2 
+	pic TOXI28 tics 2
+	pic TOXI29 tics 2 
+	pic TOXI00 tics 2 
+
+flat	WATERL00
+	pic WATERL01 tics 2 
+	pic WATERL02 tics 2 
+	pic WATERL03 tics 2 
+	pic WATERL04 tics 2 
+	pic WATERL05 tics 2 
+	pic WATERL06 tics 2 
+	pic WATERL07 tics 2 
+	pic WATERL08 tics 2 
+	pic WATERL09 tics 2 
+	pic WATERL10 tics 2 
+	pic WATERL11 tics 2 
+	pic WATERL12 tics 2 
+	pic WATERL13 tics 2 
+	pic WATERL14 tics 2 
+	pic WATERL15 tics 2 
+	pic WATERL16 tics 2 
+	pic WATERL17 tics 2 
+	pic WATERL18 tics 2 
+	pic WATERL19 tics 2 
+	pic WATERL20 tics 2 
+	pic WATERL21 tics 2 
+	pic WATERL22 tics 2 
+	pic WATERL23 tics 2 
+	pic WATERL24 tics 2 
+	pic WATERL25 tics 2 
+	pic WATERL26 tics 2
+	pic WATERL27 tics 2 
+	pic WATERL28 tics 2
+	pic WATERL29 tics 2 
+	pic WATERL00 tics 2 
+flat	px1
+	pic px2 rand 2 2
+	pic px3 rand 2 2
+	pic px4 rand 2 2
+	pic px5 rand 2 2
+	pic px6 rand 2 2
+	pic px7 rand 2 2
+	pic px8 rand 2 2
+	pic px9 rand 2 2
+	pic px10 rand 2 2
+	pic px11 rand 2 2
+	pic px12 rand 2 2
+	pic px13 rand 2 2
+	pic px14 rand 2 2
+	pic px15 rand 2 2
+	pic px16 rand 2 2
+	pic px17 rand 2 2
+	pic px18 rand 2 2
+	pic px19 rand 2 2
+
+
+
+flat	GWYN1
+	pic GWYN1 rand 3 3
+	pic GWYN2 rand 3 3
+	pic GWYN3 rand 3 3
+	pic GWYN4 rand 3 3
+	pic GWYN5 rand 3 3
+	pic GWYN6 rand 3 3
+	pic GWYN7 rand 3 3
+	pic GWYN8 rand 3 3
+	pic GWYN9 rand 3 3
+	pic GWYN10 rand 3 3
+	pic GWYN11 rand 3 3
+	pic GWYN12 rand 3 3
+	pic GWYN13 rand 60 60
+	pic GWYN14 rand 3 3
+	pic GWYN15 rand 3 3
+	pic GWYN16 rand 3 3
+	pic GWYN17 rand 3 3
+	pic GWYN18 rand 3 3
+	pic GWYN19 rand 3 3
+	pic GWYN20 rand 3 3
+	pic GWYN21 rand 3 3
+	pic GWYN22 rand 3 3
+	pic GWYN23 rand 3 3
+	pic GWYN1 rand 60 60
+
+flat	SCRN4A
+	pic SCRN4B rand 3 3
+	pic SCRN4C rand 3 3
+	pic SCRN4D rand 3 3
+	pic SCRN4E rand 12 12
+	pic SCRN4D rand 3 3
+	pic SCRN4C rand 3 3
+	pic SCRN4B rand 3 3
+
+flat	GB1
+	pic GB1 rand 9 9
+	pic GB2 rand 9 9
+	pic GB3 rand 9 9
+
+flat	GB2
+	pic GB2 rand 9 9
+	pic GB3 rand 9 9
+	pic GB1 rand 9 9
+
+flat	GB3
+	pic GB3 rand 9 9
+	pic GB2 rand 9 9
+	pic GB1 rand 9 9
+
+flat	G1
+	pic G1 rand 9 9
+	pic G2 rand 9 9
+	pic G3 rand 9 9
+
+flat	G2
+	pic G2 rand 9 9
+	pic G3 rand 9 9
+	pic G1 rand 9 9
+	
+flat	c1a
+	pic c1a rand 9 9
+	pic c1b rand 9 9
+	pic c1c rand 9 9
+flat	c2a
+	pic c2a rand 9 9
+	pic c2b rand 9 9
+	pic c2c rand 9 9
+flat	c3a
+	pic c3a rand 9 9
+	pic c3b rand 9 9
+	pic c3c rand 9 9
+flat	c4a
+	pic c4a rand 9 9
+	pic c4b rand 9 9
+	pic c4c rand 9 9
+	
+	flat CMPIV01
+    pic CMPIV01 rand 2 2
+	pic CMPIV02 rand 2 2
+	pic CMPIV03 rand 2 2
+	pic CMPIV04 rand 2 2
+    pic CMPIV05 rand 2 2
+	pic CMPIV06 rand 2 2
+	pic CMPIV07 rand 2 2
+	pic CMPIV08 rand 2 2
+    pic CMPIV09 rand 2 2
+	pic CMPIV10 rand 2 2
+	pic CMPIV11 rand 2 2
+	pic CMPIV12 rand 2 2
+    pic CMPIV13 rand 2 2
+	pic CMPIV14 rand 2 2
+	pic CMPIV15 rand 2 2
+	pic CMPIV16 rand 2 2
+    pic CMPIV17 rand 2 2
+	pic CMPIV18 rand 2 2
+	pic CMPIV19 rand 2 2
+	pic CMPIV20 rand 2 2
+    pic CMPIV21 rand 2 2
+	pic CMPIV22 rand 2 2
+	pic CMPIV23 rand 2 2
+	pic CMPIV24 rand 2 2
+    pic CMPIV25 rand 2 2
+	pic CMPIV26 rand 2 2
+	pic CMPIV27 rand 2 2
+	pic CMPIV28 rand 2 2
+    pic CMPIV29 rand 2 2
+	pic CMPIV30 rand 2 2
+	pic CMPIV31 rand 2 2
+
+	warp2 flat FHDS01
+	warp2 flat FHDS02
+	warp2 flat FHDS03
+	warp2 flat FHDS04
+	warp2 flat FHDS05
+	warp2 flat FHDS06
+	warp2 flat FHDS07
+	warp2 flat FHDS08
+	warp2 flat FHDS09
+	warp2 flat FHDS10
+	warp2 flat FHDS11
+	warp2 flat FHDS12
+	warp2 flat FHDS13
+	warp2 flat FHDS14
+	warp2 flat FHDS15
+	warp2 flat FHDS16
+	warp2 flat FHDS17
+	warp2 flat FHDS18
+	warp2 flat FHDS19
+	warp2 flat FHDS20
+	warp2 flat FHDS21
+	warp2 flat FHDS22
+	warp2 flat FHDS23
+	warp2 flat FHDS24
+	warp2 flat FHDS25
+	warp2 flat FHDS26
+	warp2 flat FHDS27
+	warp2 flat FHDS28
+	warp2 flat FHDS29
+	warp2 flat FHDS30
+	warp2 flat FHDS31
+	warp2 flat FHDS32
+	
+	
+	
+	
+
+	
+	
+	
+	warp2 flat FHDB01
+	warp2 flat FHDB02
+	warp2 flat FHDB03
+	warp2 flat FHDB04
+	warp2 flat FHDB05
+	warp2 flat FHDB06
+	warp2 flat FHDB07
+	warp2 flat FHDB08
+	warp2 flat FHDB09
+	warp2 flat FHDB10
+	warp2 flat FHDB11
+	warp2 flat FHDB12
+	warp2 flat FHDB13
+	warp2 flat FHDB14
+	warp2 flat FHDB15
+	warp2 flat FHDB16
+	warp2 flat FHDB17
+	warp2 flat FHDB18
+	warp2 flat FHDB19
+	warp2 flat FHDB20
+	warp2 flat FHDB21
+	warp2 flat FHDB22
+	warp2 flat FHDB23
+	warp2 flat FHDB24
+	warp2 flat FHDB25
+	warp2 flat FHDB26
+	warp2 flat FHDB27
+	warp2 flat FHDB28
+	warp2 flat FHDB29
+	warp2 flat FHDB30
+	warp2 flat FHDB31
+	warp2 flat FHDB32
+
+	
+	
+	//Water
+	
+	flat FWATER1
+    pic FHDW01 rand 3 3
+	pic FHDW02 rand 3 3
+	pic FHDW03 rand 3 3
+	pic FHDW04 rand 3 3
+	pic FHDW05 rand 3 3
+	pic FHDW06 rand 3 3
+	pic FHDW07 rand 3 3
+	pic FHDW08 rand 3 3
+	pic FHDW09 rand 3 3
+	pic FHDW10 rand 3 3
+	pic FHDW11 rand 3 3
+	pic FHDW12 rand 3 3
+	pic FHDW13 rand 3 3
+	pic FHDW14 rand 3 3
+	pic FHDW15 rand 3 3
+	pic FHDW16 rand 3 3
+	pic FHDW17 rand 3 3
+	pic FHDW18 rand 3 3
+	pic FHDW19 rand 3 3
+	pic FHDW20 rand 3 3
+	pic FHDW21 rand 3 3
+	pic FHDW22 rand 3 3
+	pic FHDW23 rand 3 3
+	pic FHDW24 rand 3 3
+	pic FHDW25 rand 3 3
+	pic FHDW26 rand 3 3
+	pic FHDW27 rand 3 3
+	pic FHDW28 rand 3 3
+	pic FHDW29 rand 3 3
+	pic FHDW30 rand 3 3
+	
+	
+
+		flat CAUST0
+    pic CAUST0 rand 2 2
+	pic CAUST1 rand 2 2
+	pic CAUST2 rand 2 2
+	pic CAUST3 rand 2 2
+    pic CAUST4 rand 2 2
+	pic CAUST5 rand 2 2
+	pic CAUST6 rand 2 2
+	pic CAUST7 rand 2 2
+    pic CAUST8 rand 2 2
+	pic CAUST9 rand 2 2
+	pic CAUST10 rand 2 2
+	pic CAUST11 rand 2 2
+    pic CAUST12 rand 2 2
+	pic CAUST13 rand 2 2
+	pic CAUST14 rand 2 2
+	pic CAUST15 rand 2 2
+    pic CAUST16 rand 2 2
+	pic CAUST17 rand 2 2
+	pic CAUST18 rand 2 2
+	pic CAUST19 rand 2 2
+	pic CAUST20 rand 2 2
+	pic CAUST21 rand 2 2
+    pic CAUST22 rand 2 2
+	pic CAUST23 rand 2 2
+	pic CAUST24 rand 2 2
+	pic CAUST25 rand 2 2
+    pic CAUST26 rand 2 2
+	pic CAUST27 rand 2 2
+	pic CAUST28 rand 2 2
+
+texture JAXBAR1 range JAXBAR2 tics 15
+texture JAXBAR2 range JAXBAR1 tics 15
+
+switch S1 on sound script/lightbreak pic SBROKEN tics 0
+switch S2 on sound script/lightbreak pic SBROKEN tics 0
+switch BOX1 on sound impact/metal pic BOX12 tics 0
+switch BOX12 off sound impact/metal pic BOX1 tics 0
+
+texture CPMONTR1 range CPMONTR2 tics 35
+texture CPMONTR2 range CPMONTR1 tics 35
+	
+
+texture S1
+pic S1	tics 8
+pic S2	tics 8
+
+texture S2
+pic S2	tics 6
+pic S1	tics 6
+
+texture NEON13A
+pic NEON13A	tics 8
+pic NEON13B	tics 8
+
+texture NEON14A
+pic NEON14B	tics 3
+pic NEON14C	tics 3
+pic NEON14D	tics 9
+pic NEON14C	tics 3
+pic NEON14B	tics 3
+pic NEON14A	tics 3
+
+texture FLTILE3A
+pic FLTILE3B	tics 20
+pic FLTILE3C	tics 70
+pic FLTILE3D	tics 20
+pic FLTILE3A	tics 20
+
+texture NEON11A
+pic NEON11B	tics 8
+pic NEON11C	tics 8
+pic NEON11A	tics 8
+
+
+texture POS13
+pic POS13A tics 75
+pic POS13B tics 1
+pic POS13C tics 1
+pic POS13D tics 1
+pic POS13E tics 1
+pic POS13F tics 1
+pic POS13G tics 1
+pic POS13H tics 1
+pic POS13I tics 1
+pic POS13J tics 1
+pic POS13K tics 1
+pic POS13L tics 1
+pic POS13M tics 1
+pic POS13N tics 1
+pic POS13O tics 66
+pic POS13P tics 1
+pic POS13Q tics 1
+pic POS13R tics 1
+pic POS13S tics 1
+pic POS13T tics 1
+pic POS13U tics 1
+pic POS13V tics 1
+pic POS13W tics 1
+pic POS13Y tics 1
+pic POS13X tics 1
+pic POS13Z tics 1
+pic POS13Z2 tics 1
+
+
+
+texture CAB_I_A
+pic CAB_I_A	tics 4
+pic CAB_I_B	tics 4
+pic CAB_I_C	tics 4
+
+texture CAB_L_A
+pic CAB_L_A	tics 4
+pic CAB_L_B	tics 4
+pic CAB_L_C	tics 4
+pic CAB_L_D	tics 4
+pic CAB_L_E	tics 4
+
+texture CAB_U_A
+pic CAB_U_A	tics 4
+pic CAB_U_B	tics 4
+pic CAB_U_C	tics 4
+pic CAB_U_D	tics 4
+pic CAB_U_E	tics 4
+
+texture HSdef1
+pic HSdef2	tics 4
+pic HSdef3	tics 4
+pic HSdef1	tics 4
+
+texture HSgrn1
+pic HSgrn2	tics 4
+pic HSgrn3	tics 4
+pic HSgrn1	tics 4
+
+switch HSdef1 on sound ui/consolesuccess pic HSgrn1 tics 0
+switch HANDS2 off sound ui/consolesuccess pic HANDS1 tics 0
+
+switch HSdef1i on sound ui/consolesuccess pic HSgrn1 tics 0
+
+warp texture SP_FACE1
+warp texture SKSNAKE1
+warp texture SKSNAKE2
+
+
+warp flat LAVA1
+warp flat LAVA2
+warp flat LAVA3
+warp flat LAVA4
+warp flat SFLR6_1
+warp flat SFLR6_4
+
+
+//warp2 flat SMK2B0 These cause bugs on software mode.
+//warp2 flat SMK2a0
+//warp2 flat SMK1J0
+//warp2 flat SMK1l0
+
+texture CAUST0
+pic CAUST0	tics 2
+pic CAUST1	tics 2
+pic CAUST2	tics 2
+pic CAUST3	tics 2
+pic CAUST4	tics 2
+pic CAUST5	tics 2
+pic CAUST6	tics 2
+pic CAUST7	tics 2
+pic CAUST8	tics 2
+pic CAUST9	tics 2
+pic CAUST10	tics 2
+pic CAUST11	tics 2
+pic CAUST12	tics 2
+pic CAUST13	tics 2
+pic CAUST14	tics 2
+pic CAUST15	tics 2
+pic CAUST16	tics 2
+pic CAUST17	tics 2
+pic CAUST18	tics 2
+pic CAUST19	tics 2
+pic CAUST20	tics 2
+pic CAUST21	tics 2
+pic CAUST22	tics 2
+pic CAUST23	tics 2
+pic CAUST24	tics 2
+pic CAUST25	tics 2
+pic CAUST26	tics 2
+pic CAUST27	tics 2
+pic CAUST28	tics 2
+
+// Glitched elevator panel
+TEXTURE PNLELEG1
+    pic PNLELEG1	tics 15
+    pic PNLELEG2	rand 2 5
+	pic PNLELEG3	rand 2 5
+    pic PNLELEG4	rand 2 5
+	pic PNLELEG3	rand 2 5
+	pic PNLELEG2	rand 2 5
+	pic PNLELEG5	rand 2 5
+	
+// wash. your. hands
+TEXTURE BLLEDW2A
+	pic BLLEDW2A	tics 35
+    pic BLLEDW2B	tics 35
+    pic BLLEDW2C	tics 70
+	pic BLLEDW1B	tics 15
+
+// Idle state of the ArachnoCola machine
+TEXTURE PNLARCI0
+    pic PNLARCI0	tics 70
+    pic PNLARCI1	tics 3
+	pic PNLARCI2	tics 3
+	pic PNLARCI3	tics 3
+	pic PNLARCI4	tics 3
+	pic PNLARCI5	tics 3
+	pic PNLARCI6	tics 3
+	pic PNLARCI7	tics 3
+	pic PNLARCI8	tics 3
+  	pic PNLARCI9	tics 3
+
+texture OP_HUDS1
+    pic OP_HUDS1 tics 30
+    pic OP_HUDS0 tics 30
+
+texture OP_REF01
+    pic OP_REF01	tics 30
+    pic OP_REF02	tics 30
+	pic OP_REF03	tics 30
+
+texture OP_SATU0
+    pic OP_SATU0	tics 30
+    pic OP_SATU1	tics 30
+
+texture OP_SSAOA
+    pic OP_SSAOA	tics 30
+    pic OP_SSAOB	tics 30
+    pic OP_SSAOC	tics 30
+
+texture OP_TEXM1
+    pic OP_TEXM1	tics 30
+    pic OP_TEXM2	tics 30
+    pic OP_TEXM3	tics 30
+
+texture OP_BLOM1
+    pic OP_BLOM1	tics 30
+    pic OP_BLOM2	tics 30
+
+texture OP_GRAN1
+    pic OP_GRAN1	tics 30
+	pic OP_GRAN3	tics 30
+    pic OP_GRAN2	tics 30
+
+texture OP_SMOK1
+    pic OP_SMOK1	tics 30
+	pic OP_SMOK2	tics 30
+
+texture OP_FXAA1
+    pic OP_FXAA1	tics 30
+	pic OP_FXAA2	tics 30
+
+texture OP_BRSK1
+    pic OP_BRSK0	tics 30
+	pic OP_BRSK1	tics 30
+
+texture OP_MAP1
+    pic OP_MAP1	tics 30
+    pic OP_MAP2	tics 30
+
+texture OP_SSH1
+    pic OP_SSH1	tics 30
+    pic OP_SSH0	tics 30
+
+texture OP_LIG1
+    pic OP_LIG1	tics 30
+    pic OP_LIG0	tics 30
+
+texture OP_FLAS1
+    pic OP_FLAS1	tics 30
+    pic OP_FLAS2	tics 30
+
+
+texture OP_IRON1
+	pic OP_IRON1	tics 30
+	pic OP_IRON0	tics 30
+
+texture OP_PART1
+	pic OP_PART1	tics 30
+	pic OP_PART0	tics 30
+
+texture OP_SSAO1
+    pic OP_SSAO0	tics 30
+    pic OP_SSAO1	tics 30
+
+texture OP_SHAD1
+    pic OP_SHAD1	tics 30
+    pic OP_SHAD0	tics 30
+
+texture OP_MIRR1
+    pic OP_MIRR1	tics 30
+    pic OP_MIRR0	tics 30
+
+
+texture OP_SCBL1
+    pic OP_SCBL1	tics 30
+    pic OP_SCBL0	tics 30
+
+texture OP_QUAL1
+    pic OP_QUAL1	tics 30
+    pic OP_QUAL2	tics 30
+	pic OP_QUAL3	tics 30
+	pic OP_QUAL4	tics 30
+
+texture WILTEKA
+    pic WILTEKA	tics 6
+    pic WILTEKB	tics 6
+	pic WILTEKC	tics 6
+	pic WILTEKD	tics 6
+	pic WILTEKE	tics 6
+	pic WILTEKF	tics 30
+	
+texture CPMONTR3 range CPMONTR4 tics 35
+texture CPMONTR4 range CPMONTR3 tics 35
+
+switch glass1 on sound destruction/glassbreak pic glass2 tics 0
+texture PTHSFUL1
+    pic PTHSFUL1	rand 1 3 allowdecals
+    pic PTHSFUL2	rand 1 3 allowdecals
+    pic PTHSFUL3	rand 1 3 allowdecals
+    pic PTHSFUL4	rand 1 3 allowdecals
+    pic PTHSFUL5	rand 1 3 allowdecals
+    pic PTHSFUL6	rand 1 3 allowdecals
+    pic PTHSFUL7	rand 1 3 allowdecals
+	pic PTHSFULL	rand 7 15 allowdecals
+texture LITGLIT1
+	pic LITGLIT1 tics 17
+	pic LITGLIT2 tics 3
+	pic LITGLIT3 tics 3
+	pic LITGLIT4 tics 3
+	pic LITGLIT5 tics 3
+	pic LITGLIT6 tics 3
+	pic LITGLIT7 tics 3
+	pic LITGLIT8 tics 3
+	pic LITGLIT9 tics 3
+
+switch SMLLOCKD on sound ui/consolesuccess
+	pic SMLLOCKD tics 1
+	pic SMLLOCKE tics 1
+	pic SMLLOCKF tics 1
+	pic SMLLOCKG tics 1
+	pic SMLLOCKH tics 1
+	pic SMLLOCKI tics 1
+	pic SMLLOCKJ tics 1
+	pic SMLLOCKK tics 1
+	pic SMLLOCKL tics 1
+
+switch HATCI on sound ui/consolesuccess
+	pic PANHOR1 tics 1
+	pic PANHOR2 tics 1
+	pic PANHOR3 tics 1
+	pic PANHOR4 tics 1
+	pic PANHOR5 tics 1
+	pic PANHOR6 tics 1
+	pic PANHOR7 tics 1
+	pic PANHOR8 tics 1
+	pic PANHOR9 tics 1
+
+texture LOCKDOW1
+	pic LOCKDOW1 tics 3
+	pic LOCKDOW2 tics 3
+	pic LOCKDOW3 tics 3
+	pic LOCKDOW4 tics 3
+	pic LOCKDOW5 tics 25
+	pic LOCKDOW4 tics 3
+	pic LOCKDOW3 tics 3
+	pic LOCKDOW2 tics 3
+
+texture MCTCSEA
+	pic MCTCSEA tics 3
+	pic MCTCSEB tics 3
+	pic MCTCSEC tics 3
+	pic MCTCSED tics 3
+	pic MCTCSEE tics 3
+	pic MCTCSEF tics 3
+	pic MCTCSEG tics 3
+	pic MCTCSEH tics 3
+	pic MCTCSEI tics 3
+	pic MCTCSEJ tics 3
+	pic MCTCSEK tics 35
+
+texture LABMON1A
+	pic LABMON1B tics 3
+	pic LABMON1C tics 3
+	pic LABMON1D tics 3
+	pic LABMON1C tics 3
+	pic LABMON1B tics 3
+	pic LABMON1A tics 3
+
+texture NEWSRECa
+	pic NEWSRECa tics 25
+	pic NEWSRECb  rand 1 7
+	pic NEWSRECc  rand 1 7
+	pic NEWSRECd  rand 1 7
+	pic NEWSRECe  rand 1 7
+	pic NEWSRECf tics 2
+	pic NEWSRECg  rand 1 3
+	pic NEWSRECh  rand 1 3
+	pic NEWSRECi  rand 1 3
+	pic NEWSRECj  rand 1 7
+	pic NEWSRECk  rand 1 7
+	pic NEWSRECl  rand 1 7
+	pic NEWSRECm  rand 1 7
+	pic NEWSRECn  rand 6 10
+	pic NEWSRECo tics 3
+
+
+switch DRLOCKA on sound ui/consolesuccess
+	pic DRLOCKA tics 1
+	pic DRLOCKB tics 1
+	pic DRLOCKC tics 1
+	pic DRLOCKD tics 1
+	pic DRLOCKE tics 1
+	pic DRLOCKF tics 1
+	pic DRLOCKG tics 1
+	pic DRLOCKH tics 1
+	pic DRLOCKI tics 1
+
+switch HATCU off sound Switch2 pic HATCI tics 0
+
+
+switch GENLOCK on sound menu/prompt	pic GENULOCK tics 0
+
+switch GENLOCK on sound menu/prompt	pic GENULOCK tics 0
+
+switch SMLLOCKA on sound menu/prompt pic SMLLOCKB tics 0
+
+switch CPMOXL2 on sound dest/lightbreak pic CPMOXL1 tics 0
+switch CPMOXL5 on sound dest/lightbreak pic CPMOXL1 tics 0
+switch CPMONTR1 on sound dest/lightbreak pic CPMONTR0 tics 0
+switch CPMONTR2 on sound dest/lightbreak pic CPMONTR0 tics 0
+
+switch g1 on sound dest/lightbreak pic ck1 tics 0
+switch g2 on sound dest/lightbreak pic ck1_off tics 0
+switch g3 on sound dest/lightbreak pic ck2 tics 0
+
+switch c1a on sound dest/lightbreak pic ck1 tics 0
+switch c2a on sound dest/lightbreak pic ck1_off tics 0
+switch c3a on sound dest/lightbreak pic ck2 tics 0
+switch c4a on sound dest/lightbreak pic ck2_off tics 0
+
+switch d1 on sound dest/lightbreak pic ck1_off tics 0
+switch d2 on sound dest/lightbreak pic ck2 tics 0
+switch d3 on sound dest/lightbreak pic ck1 tics 0
+
+switch SCRN3 on sound dest/lightbreak pic ck1 tics 0
+
+switch gb1 on sound dest/lightbreak pic ck1_off tics 0
+switch gb2 on sound dest/lightbreak pic ck2 tics 0
+switch gb3 on sound dest/lightbreak pic ck1_off tics 0
+
+
+switch CNTRFRNT on sound destruction/glassbreak pic WROOF2 tics 0
+
+switch LCKR1 on sound script/locker pic LCKR2 tics 0
+switch LCKR3 on sound script/lockeru pic LCKR4 tics 0
+//switch LCKR2 off sound script/locker pic LCKR1 tics 0
+
+switch HANDS1 on sound Switch1 pic HANDS2 tics 0
+switch HANDS2 off sound Switch2 pic HANDS1 tics 0
+
+//switch SHUTU on sound Switch1 pic SHUTL tics 0
+//switch SHUTL off sound Switch2 pic SHUTU tics 0
+
+texture COLTOR1A	
+pic COLTOR1A tics 2
+pic COLTOR1B tics 2
+pic COLTOR1C tics 2
+pic COLTOR1D tics 2
+pic COLTOR1E tics 2
+pic COLTOR1F tics 2
+pic COLTOR1G tics 2
+
+texture MEDN4UA
+	pic MEDN4UA tics 47.5	
+	pic MEDN4UB tics 3	
+	pic MEDN4UC tics 3	
+	pic MEDN4UD tics 3	
+	pic MEDN4UE tics 3	
+	pic MEDN4UF tics 3	
+	pic MEDN4UG tics 3	
+	pic MEDN4UH tics 3	
+	pic MEDN4UI tics 3	
+	pic MEDN4UJ tics 3
+	pic MEDN4UK tics 3		
+
+texture VACCESS1
+	pic VACCESS1 tics 3
+	pic VACCESS2 tics 3
+	pic VACCESS3 tics 3
+	pic VACCESS4 tics 3
+	pic VACCESS5 tics 35
+	pic VACCESS4 tics 3
+	pic VACCESS3 tics 3
+	pic VACCESS2 tics 3
+
+texture VACCESS6
+	pic VACCESS6 tics 3
+	pic VACCESS7 tics 3
+	pic VACCESS8 tics 3
+	pic VACCESS9 tics 3
+	pic VACCESS0 tics 35
+	pic VACCESS9 tics 3
+	pic VACCESS8 tics 3
+	pic VACCESS7 tics 3
+
+texture WAITS1
+	pic WAITS2 tics 2
+	pic WAITS3 tics 2
+	pic WAITS4 tics 2
+	pic WAITS5 tics 2
+	pic WAITS6 tics 2
+	pic WAITS7 tics 2
+	pic WAITS8 tics 2
+	pic WAITS9 tics 25
+	pic WAITS8 tics 2
+	pic WAITS7 tics 2
+	pic WAITS6 tics 2
+	pic WAITS5 tics 2
+	pic WAITS4 tics 2
+	pic WAITS3 tics 2
+	pic WAITS2 tics 2
+	pic WAITS1 tics 2
+
+texture BLUTXSCA
+	pic BLUTXSCA tics 20
+	pic BLUTXSCB tics 2
+	pic BLUTXSCC tics 2
+	pic BLUTXSCD tics 2
+	pic BLUTXSCE tics 2
+	pic BLUTXSCF tics 2
+	pic BLUTXSCG tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCH tics 2
+	pic BLUTXSCI tics 2
+	pic BLUTXSCJ tics 2
+	pic BLUTXSCK tics 2
+
+texture MCTCSCA
+	pic MCTCSCA tics 3
+	pic MCTCSCB tics 3
+	pic MCTCSCC tics 3
+	pic MCTCSCD tics 3
+	pic MCTCSCE tics 3
+	pic MCTCSCF tics 3
+
+texture MCTCSDA
+	pic MCTCSDB tics 3
+	pic MCTCSDC tics 3
+	pic MCTCSDD tics 3
+
+
+TEXTURE CPFAN1A
+	pic CPFAN1A tics 2
+	pic CPFAN2A tics 2
+	pic CPFAN3A tics 2
+	pic CPFAN4A tics 2
+
+TEXTURE CPFAN1B
+	pic CPFAN1B tics 1
+	pic CPFAN2B tics 1
+	pic CPFAN3B tics 1
+	pic CPFAN4B tics 1
+
+flat	WATERL00
+	pic WATERL01 tics 2 
+	pic WATERL02 tics 2 
+	pic WATERL03 tics 2 
+	pic WATERL04 tics 2 
+	pic WATERL05 tics 2 
+	pic WATERL06 tics 2 
+	pic WATERL07 tics 2 
+	pic WATERL08 tics 2 
+	pic WATERL09 tics 2 
+	pic WATERL10 tics 2 
+	pic WATERL11 tics 2 
+	pic WATERL12 tics 2 
+	pic WATERL13 tics 2 
+	pic WATERL14 tics 2 
+	pic WATERL15 tics 2 
+	pic WATERL16 tics 2 
+	pic WATERL17 tics 2 
+	pic WATERL18 tics 2 
+	pic WATERL19 tics 2 
+	pic WATERL20 tics 2 
+	pic WATERL21 tics 2 
+	pic WATERL22 tics 2 
+	pic WATERL23 tics 2 
+	pic WATERL24 tics 2 
+	pic WATERL25 tics 2 
+	pic WATERL26 tics 2
+	pic WATERL27 tics 2 
+	pic WATERL28 tics 2
+	pic WATERL29 tics 2 
+	pic WATERL00 tics 2 
+
+
+
+flat	GWYN1
+	pic GWYN1 rand 3 3
+	pic GWYN2 rand 3 3
+	pic GWYN3 rand 3 3
+	pic GWYN4 rand 3 3
+	pic GWYN5 rand 3 3
+	pic GWYN6 rand 3 3
+	pic GWYN7 rand 3 3
+	pic GWYN8 rand 3 3
+	pic GWYN9 rand 3 3
+	pic GWYN10 rand 3 3
+	pic GWYN11 rand 3 3
+	pic GWYN12 rand 3 3
+	pic GWYN13 rand 60 60
+	pic GWYN14 rand 3 3
+	pic GWYN15 rand 3 3
+	pic GWYN16 rand 3 3
+	pic GWYN17 rand 3 3
+	pic GWYN18 rand 3 3
+	pic GWYN19 rand 3 3
+	pic GWYN20 rand 3 3
+	pic GWYN21 rand 3 3
+	pic GWYN22 rand 3 3
+	pic GWYN23 rand 3 3
+	pic GWYN1 rand 60 60
+
+flat	SCRN4A
+	pic SCRN4B rand 3 3
+	pic SCRN4C rand 3 3
+	pic SCRN4D rand 3 3
+	pic SCRN4E rand 12 12
+	pic SCRN4D rand 3 3
+	pic SCRN4C rand 3 3
+	pic SCRN4B rand 3 3
+
+flat	GB1
+	pic GB1 rand 9 9
+	pic GB2 rand 9 9
+	pic GB3 rand 9 9
+
+flat	GB2
+	pic GB2 rand 9 9
+	pic GB3 rand 9 9
+	pic GB1 rand 9 9
+
+flat	GB3
+	pic GB3 rand 9 9
+	pic GB2 rand 9 9
+	pic GB1 rand 9 9
+
+flat	G1
+	pic G1 rand 9 9
+	pic G2 rand 9 9
+	pic G3 rand 9 9
+
+flat	G2
+	pic G2 rand 9 9
+	pic G3 rand 9 9
+	pic G1 rand 9 9
+	
+flat	c1a
+	pic c1a rand 9 9
+	pic c1b rand 9 9
+	pic c1c rand 9 9
+flat	c2a
+	pic c2a rand 9 9
+	pic c2b rand 9 9
+	pic c2c rand 9 9
+flat	c3a
+	pic c3a rand 9 9
+	pic c3b rand 9 9
+	pic c3c rand 9 9
+flat	c4a
+	pic c4a rand 9 9
+	pic c4b rand 9 9
+	pic c4c rand 9 9
+
+	warp2 flat FHDS01
+	warp2 flat FHDS02
+	warp2 flat FHDS03
+	warp2 flat FHDS04
+	warp2 flat FHDS05
+	warp2 flat FHDS06
+	warp2 flat FHDS07
+	warp2 flat FHDS08
+	warp2 flat FHDS09
+	warp2 flat FHDS10
+	warp2 flat FHDS11
+	warp2 flat FHDS12
+	warp2 flat FHDS13
+	warp2 flat FHDS14
+	warp2 flat FHDS15
+	warp2 flat FHDS16
+	warp2 flat FHDS17
+	warp2 flat FHDS18
+	warp2 flat FHDS19
+	warp2 flat FHDS20
+	warp2 flat FHDS21
+	warp2 flat FHDS22
+	warp2 flat FHDS23
+	warp2 flat FHDS24
+	warp2 flat FHDS25
+	warp2 flat FHDS26
+	warp2 flat FHDS27
+	warp2 flat FHDS28
+	warp2 flat FHDS29
+	warp2 flat FHDS30
+	warp2 flat FHDS31
+	warp2 flat FHDS32
+	
+	
+	
+	
+
+	
+	
+	
+	warp2 flat FHDB01
+	warp2 flat FHDB02
+	warp2 flat FHDB03
+	warp2 flat FHDB04
+	warp2 flat FHDB05
+	warp2 flat FHDB06
+	warp2 flat FHDB07
+	warp2 flat FHDB08
+	warp2 flat FHDB09
+	warp2 flat FHDB10
+	warp2 flat FHDB11
+	warp2 flat FHDB12
+	warp2 flat FHDB13
+	warp2 flat FHDB14
+	warp2 flat FHDB15
+	warp2 flat FHDB16
+	warp2 flat FHDB17
+	warp2 flat FHDB18
+	warp2 flat FHDB19
+	warp2 flat FHDB20
+	warp2 flat FHDB21
+	warp2 flat FHDB22
+	warp2 flat FHDB23
+	warp2 flat FHDB24
+	warp2 flat FHDB25
+	warp2 flat FHDB26
+	warp2 flat FHDB27
+	warp2 flat FHDB28
+	warp2 flat FHDB29
+	warp2 flat FHDB30
+	warp2 flat FHDB31
+	warp2 flat FHDB32
+
+	
+	
+	//Water
+	
+	flat FWATER1
+    pic FHDW01 rand 3 3
+	pic FHDW02 rand 3 3
+	pic FHDW03 rand 3 3
+	pic FHDW04 rand 3 3
+	pic FHDW05 rand 3 3
+	pic FHDW06 rand 3 3
+	pic FHDW07 rand 3 3
+	pic FHDW08 rand 3 3
+	pic FHDW09 rand 3 3
+	pic FHDW10 rand 3 3
+	pic FHDW11 rand 3 3
+	pic FHDW12 rand 3 3
+	pic FHDW13 rand 3 3
+	pic FHDW14 rand 3 3
+	pic FHDW15 rand 3 3
+	pic FHDW16 rand 3 3
+	pic FHDW17 rand 3 3
+	pic FHDW18 rand 3 3
+	pic FHDW19 rand 3 3
+	pic FHDW20 rand 3 3
+	pic FHDW21 rand 3 3
+	pic FHDW22 rand 3 3
+	pic FHDW23 rand 3 3
+	pic FHDW24 rand 3 3
+	pic FHDW25 rand 3 3
+	pic FHDW26 rand 3 3
+	pic FHDW27 rand 3 3
+	pic FHDW28 rand 3 3
+	pic FHDW29 rand 3 3
+	pic FHDW30 rand 3 3
+
+
+switch S1 on sound script/lightbreak pic SBROKEN tics 0
+switch S2 on sound script/lightbreak pic SBROKEN tics 0
+switch BOX1 on sound impact/metal pic BOX12 tics 0
+switch BOX12 off sound impact/metal pic BOX1 tics 0
+
+texture CPMONTR1 range CPMONTR2 tics 35
+texture CPMONTR2 range CPMONTR1 tics 35
+
+texture S1
+pic S1	tics 8
+pic S2	tics 8
+
+texture S2
+pic S2	tics 6
+pic S1	tics 6
+
+texture FLTILE3A
+pic FLTILE3B	tics 20
+pic FLTILE3C	tics 70
+pic FLTILE3D	tics 20
+pic FLTILE3A	tics 20
+
+texture POS13
+pic POS13A tics 75
+pic POS13B tics 1
+pic POS13C tics 1
+pic POS13D tics 1
+pic POS13E tics 1
+pic POS13F tics 1
+pic POS13G tics 1
+pic POS13H tics 1
+pic POS13I tics 1
+pic POS13J tics 1
+pic POS13K tics 1
+pic POS13L tics 1
+pic POS13M tics 1
+pic POS13N tics 1
+pic POS13O tics 66
+pic POS13P tics 1
+pic POS13Q tics 1
+pic POS13R tics 1
+pic POS13S tics 1
+pic POS13T tics 1
+pic POS13U tics 1
+pic POS13V tics 1
+pic POS13W tics 1
+pic POS13Y tics 1
+pic POS13X tics 1
+pic POS13Z tics 1
+pic POS13Z2 tics 1
+
+
+
+texture CAB_I_A
+pic CAB_I_A	tics 4
+pic CAB_I_B	tics 4
+pic CAB_I_C	tics 4
+
+texture CAB_L_A
+pic CAB_L_A	tics 4
+pic CAB_L_B	tics 4
+pic CAB_L_C	tics 4
+pic CAB_L_D	tics 4
+pic CAB_L_E	tics 4
+
+texture CAB_U_A
+pic CAB_U_A	tics 4
+pic CAB_U_B	tics 4
+pic CAB_U_C	tics 4
+pic CAB_U_D	tics 4
+pic CAB_U_E	tics 4
+
+texture HSdef1
+pic HSdef2	tics 4
+pic HSdef3	tics 4
+pic HSdef1	tics 4
+
+texture HSgrn1
+pic HSgrn2	tics 4
+pic HSgrn3	tics 4
+pic HSgrn1	tics 4
+
+// Burger Flipper Ad
+texture BBAD
+pic BBAD	rand 200 800
+pic BBAD2	rand 200 800
+pic BBAD3	rand 200 800
+pic BBAD4	rand 200 800
+pic BBAD5	rand 200 800
+pic BBAD6	rand 200 800
+RANDOM
+
+switch HSdef1 on sound ui/consolesuccess pic HSgrn1 tics 0
+switch HANDS2 off sound ui/consolesuccess pic HANDS1 tics 0
+
+switch HSdef1i on sound ui/consolesuccess pic HSgrn1 tics 0
+
+warp texture SP_FACE1
+warp texture SKSNAKE1
+warp texture SKSNAKE2
+	
+cameratexture TCAMTEX1 256 256 fit 80 56
+cameratexture TCAMTEX2 256 256 fit 80 56
+cameratexture TCAMTEX3 256 256 fit 80 56
+cameratexture TCAMTEX4 256 256 fit 80 56
+

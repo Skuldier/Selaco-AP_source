@@ -1,0 +1,241 @@
+
+model Foodplate_Future
+{
+   noperpixellighting
+   UseActorRoll
+   Path "MD/Food"   
+   Model 0 "Foodplate_Future.md3"    
+   Skin 0 "Foodplate_Future.png"
+   ZOffset 0
+   Scale 0.26 0.26 0.26 
+   FrameIndex VOXE L 0 0
+}
+
+model Foodplate_Future_PLUTO
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "Foodplate_Future.md3"    
+   Skin 0 "Foodplate_Future_PLUTO.png"
+   ZOffset 0
+   Scale 0.26 0.26 0.26 
+   FrameIndex VOXE L 0 0
+}
+
+Model Sandwich_Bitten    
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "sandwich.md3"    
+   Skin 0 "sandwich.png"
+   ZOffset 0
+   Scale 0.2 0.2 0.2        
+   FrameIndex VOXE L 0 0
+}
+
+Model chococake    
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "chococake.md3"    
+   Skin 0 "chococake.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4       
+   FrameIndex VOXE L 0 0
+}
+
+Model Hotdog_mostard    
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "hotdog.md3"    
+   Skin 0 "hotdog.png"
+   ZOffset 0
+   Scale 0.2 0.2 0.2        
+   FrameIndex VOXE L 0 0
+}
+
+
+
+Model Hotdog_Ketchup    
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "hotdog.md3"    
+   Skin 0 "hotdog2.png"
+   ZOffset 0
+   Scale 0.2 0.2 0.2        
+   FrameIndex VOXE L 0 0
+}
+
+Model Burger1   
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "Burger1.md3"    
+   Skin 0 "Burger1.png"
+   ZOffset 0
+   Scale 0.2 0.2 0.2        
+   FrameIndex VOXE L 0 0
+}
+Model Burger1_bitten   
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "Burger1_bitten.md3"    
+   Skin 0 "Burger1_bitten.png"
+   ZOffset 0
+   Scale 0.2 0.2 0.2        
+   FrameIndex VOXE L 0 0
+}
+
+Model fries   
+{
+   noperpixellighting
+   Path "MD/Food"   
+   Model 0 "fries.md3"    
+   Skin 0 "fries.png"
+   ZOffset 0
+   Scale 0.25 0.25 0.25        
+   FrameIndex VOXE L 0 0
+}
+
+Model BurgerFlag
+{
+   noperpixellighting
+   USEACTORPITCH
+   Path "MD/Food"   
+   Model 0 "BurgerFlag.md3"    
+   Skin 0 "BurgerFlag.png"
+   ZOffset 0
+   Scale 0.2 0.2 0.2        
+   FrameIndex VOXE L 0 0
+}
+
+Model Banana
+{
+   noperpixellighting
+   Path "MD/Food"  
+   Model 0 "Banana.md3"    
+   Skin 0 "Banana.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4     
+   FrameIndex VOXE L 0 0
+}
+
+
+Model Banana_peel
+{
+   noperpixellighting
+   Path "MD/Food"  
+   Model 0 "Banana_peel.md3"    
+   Skin 0 "Banana_peel.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4        
+   FrameIndex VOXE L 0 0
+}
+
+Model PizzaboxClosed
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZABOX_CLOSED.md3"    
+   Skin 0 "PIZZABOX_CLOSED.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4        
+   FrameIndex VOXE L 0 0
+}
+
+Model PizzaboxOpen
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZABOX_OPEN.md3"    
+   Skin 0 "PIZZABOX_OPEN.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4        
+   FrameIndex VOXE L 0 0
+}
+
+Model PIZZA1
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_1.md3"    
+   Skin 0 "PIZZA_1.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+Model PIZZA2
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_2.md3"    
+   Skin 0 "PIZZA_2.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+
+Model PIZZA3
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_3.md3"    
+   Skin 0 "PIZZA_3.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+
+Model PIZZA4
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_4.md3"    
+   Skin 0 "PIZZA_4.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+Model PIZZA5
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_5.md3"    
+   Skin 0 "PIZZA_5.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+Model PIZZA6
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_6.md3"    
+   Skin 0 "PIZZA_6.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+Model PIZZA7
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_7.md3"    
+   Skin 0 "PIZZA_7.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+Model PIZZA8
+{
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_8.md3"    
+   Skin 0 "PIZZA_8.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}

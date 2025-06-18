@@ -1,0 +1,19 @@
+class MuffledWind : SelacoActor {
+    default {
+        SelacoActor.sleepdistance 3096;
+    }
+
+    override void wake() {
+        super.wake();
+        A_PLAYSOUND("ambient/wind", CHAN_5, 0.75, 0, 0.6, pitch:0.3);
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1 A_PLAYSOUND("ambient/wind", CHAN_5, 0.75, 0, 0.6, pitch:0.3);
+        Waiting:
+            TNT1 A -1;
+            stop;
+    }
+}

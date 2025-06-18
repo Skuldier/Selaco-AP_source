@@ -1,0 +1,58 @@
+[enu default]
+
+OPTMNU_SPRITESHADOW = "Customize SpriteShadow";
+SPRITESHADOWMNU_TITLE = "SpriteShadow Options";
+SPRITESHADOWMNU_MAXSHADOWDISTANCE = "Max Shadow Distance";
+SPRITESHADOWMNU_MAXSHADOWS = "Max Shadows";
+SPRITESHADOWMNU_HELPTEXT_MAXSHADOWDISTANCE = "Maximum distance to show shadows beneath Actors.";
+SPRITESHADOWMNU_HELPTEXT_MAXSHADOWS = "Maximum number of shadows to show (regardless of distance).";
+
+PLAYSTYLE_HEADER = "Choose Your Playstyle";
+PLAYSTYLE_TRAD = "The game will AUTOSAVE at checkpoints. Additionally, you can Quick Save by pressing \c[OMNIBLUE][$<quicksaveselaco>$]\c-.\n\n\c[GREEN][Recommended Mode].";
+PLAYSTYLE_HARD = "No Checkpoints or Quicksaves. You can save by spending 600 credits at a Gwyn Machine.\n\nHealth Regeneration is disabled.\n\nSpare ammo is thrown away after reloading.";
+PLAYSTYLE_RANDO = "Randomizes enemy placement, pickups, behavior and more.\n\n\c[ORANGE]Not available in the demo.";
+
+PLAYSTYLE_TRAD_CARD = "TRADITIONAL\nMODE";
+PLAYSTYLE_HARD_CARD = "HARDCORE\nMODE";
+PLAYSTYLE_RANDO_CARD = "RANDOMIZER\nMODE";
+
+RIFLE_START = "Rifle Start Mode";
+RIFLE_START_TEXT = "Upon completing a level, most of your items are removed. Only your Fists, Rifle, Weapon Parts and Upgrades are kept.";
+
+SKILL_0 = "Ensign";
+SKILL_1 = "Lieutenant";
+SKILL_2 = "Commander";
+SKILL_3 = "Captain";
+SKILL_4 = "Admiral";
+SKILL_5 = "Selaco Must Fall";
+SKILL_6 = "Exploration Mode";
+PROCEED = "PROCEED";
+SKILL_TITLE = "Difficulty";
+SKILL_TITLE_MUTATORS = "Select Mutators";
+SKILL_NEWOPTIONS = "Choose Skill and Mutators";
+SKILL_NEWOPTIONS_ONLY = "Choose Mutators";
+SKILL_MUTATOR_ADD = "Add Mutators...";
+SKILL_MUTATOR_CHANGE = "Change Mutators...";
+
+SKILL_DESC_0 = "\c[OMNIBLUE]Easy Difficulty\n\c[OMNIBLUE]For players new to First Person Shooters or with less experience with First Person Shooters.\c-\n\nThe enemy's reflexes are slower, they use less deadly tactics, and will move around less during combat.";
+SKILL_DESC_1 = "\c[OMNIBLUE]Medium Difficulty\n\c[OMNIBLUE]For players with some First Person Shooter experience (or those looking for a more forgiving experience).\c-\n\nThe enemies will give you a hard time, but leave plenty of room for error.\n\nShoot them before they shoot you!";
+SKILL_DESC_2 = "\c[OMNIBLUE]Hard Difficulty\n\c[OMNIBLUE]For players with plenty of First Person Shooter experience.\c-\n\nThe enemy is lethal, fast, and will use advanced tactics to bring you down.\n\nBe smart, fast, and resourceful to win. ";
+SKILL_DESC_3 = "\c[OMNIBLUE]Very Hard Difficulty\n\c[OMNIBLUE]For players with lots of First Person Shooter experience.\c-\n\nYour enemies are relentless, accurate, fast, and unforgiving.\n\nYou'll have to be on top of your game for a chance at survival. Never let your guard down.";
+SKILL_DESC_4 = "\c[OMNIBLUE]Extreme Difficulty\n\c[OMNIBLUE]For the absolute best of the bests.\c-\n\nThis difficulty is similar to Captain in many ways, but makes the enemy much more accurate, hard-hitting and mobile.\n\nForget survival, this is suicide.";
+SKILL_DESC_5 = "\c[SMF]Selaco Must Fall (BETA)\n\c[gold]Unlocked by completing Chapter 1\n\n\c-Nothing is how you remembered and everything will try to kill you. If you came for an experience that is designed to be unbeatable, you've come to the right place.\n\nAny complaints in regards to difficulty for Selaco Must Fall will be ignored.";
+SKILL_DESC_6 = "\c[SOFT]Exploration Mode\n\c-The amount of combat is greatly reduced, making the experience more story focused and less action packed. \n\nIf you want to be able to freely explore large portions of Selaco with less danger, play this mode.";
+
+
+TOS_TITLE = "\c[OMNIBLUE]Foreword";
+TOS_ACCEPT = "I understand this is \c[omniblue]incomplete\c- and will have \c[hi]bugs\c-!";
+TOS = "Welcome to the \c[OMNIBLUE]Special Campaign Beta!\n\n\c-You are about to play a test version of an upcoming major update that features the new \c[hi]Special Campaign\c- feature. \n\nThe Special Campaign is Selaco's answer to \c[hi]New Game Plus\c-, albeit with a slightly different approach, hence the different name.\n\nThis mode allows players to replay the campaign with unique \c[hi]Endgame Content\c- and \c[hi]Randomization elements\c-, including new Enemy Types, a Weapon Rarity and Trait system, Traps, new Enemy Abilities, and more.\n\n\c[orange]IMPORTANT:\n\c-Later during the Beta, we will be applying \c[hi]a major engine update\c- that adds roughly 3 years' worth of engine progress. We expect that this will not only improve performance but also improve the general feel of the game. However, \c[hi]technical changes invite technical problems\c-, so please keep an eye out for anything unusual once this happens.\n\nWe are actively listening to feedback on the \c[hi]Steam Forums\c-, our \c[hi]Reddit page\c-, and our \c[hi]Discord channel\c-. We hope to see you there!\n\nGood Luck & Have Fun\n\n\c[purple]- Altered Orbit Studios";
+
+
+// Increment this every time there is new news to display
+NEWS_COUNTER = "55";
+NEWS_TITLE = "News & Updates";
+
+// News has moved to NEWSTXT.txt, make changes in there, nerd! - @Cockatrice
+
+EndScreenMessage = "Thanks for playing!";
+THANKS = "While Selaco is far from being completed, we hope you enjoyed this early taste of Selaco and have faith in the direction that we are taking this project. Feel free to give us your thoughts on the game through Discord or on the Steam Forums! Let us know what works, what doesn't or what ideas you would like us to explore.\n\nThank you so much for giving the demo a shot! If you liked the game, please remember to Wishlist us on Steam, it helps us out a whole bunch!\n\n\c[PURPLE] - Altered Orbit Studios";

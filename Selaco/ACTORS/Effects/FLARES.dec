@@ -1,0 +1,558 @@
+
+// This whole page is such a mess.. Will fix that before the demo launches.
+// - Nexxtic
+actor Flare_General
+{
+	+NOINTERACTION
+	+NOGRAVITY
+	+CLIENTSIDEONLY
+	renderstyle Add
+	radius 5
+	height 5
+	alpha 0.4
+	scale 0.4
+}
+
+Actor RedFlareLarge : Flare_General {
+	alpha 0.7
+	scale 0.2
+	states
+		{
+		Spawn:
+			TNT1 A 0
+		flare1:
+			LENR B 4 bright
+			stop
+		Destroy:
+			TNT1 A 0
+			stop
+		}
+}
+
+Actor RedFlareLargeNoLight : RedFlareLarge {
+	
+}
+
+Actor RedFlareLargeShort : Flare_General {
+	alpha 0.7
+	scale 0.4
+	states
+		{
+		Spawn:
+			TNT1 A 0
+		flare1:
+			LENR B 2 bright
+			stop
+		Destroy:
+			TNT1 A 0
+			stop
+		}
+}
+
+Actor RedFlareLonger : Flare_General
+{
+	scale 0.13
+	Alpha 0.4
+	states	{
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 {
+				if(getCvar("g_dimmuzzleflashes") == 1) {
+					destroy();
+				}
+			}
+			TNT1 A 0 A_Jump(128,2)
+			LENR A 2 bright
+			stop
+			TNT1 A 0
+			LENR B 2 bright
+			stop
+		}
+}
+
+Actor RedFlarePermanent : Flare_General
+{
+	scale 0.11
+	Alpha 0.7
+	states	{
+		Spawn:
+			TNT1 A 0
+			LENR B -1 bright
+			loop
+		}
+}
+
+Actor RedFlare3 : Flare_General
+{
+	alpha 0.2
+	scale 0.25
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		PGEX DD 1 bright
+		PGEX DD 1 BRIGHT {
+			A_FADEOUT(0.1);
+		}
+		stop
+	}
+}
+
+actor RedFlare3Big : RedFlare3 {
+	scale 0.75
+}
+
+Actor RedFlare3Small : RedFlareLargeShort
+{
+	scale 0.04
+	Alpha 0.7
+}
+
+Actor RedFlare4 : Flare_General
+{
+scale 0.25
+Alpha 0.7
+states
+	{
+	Spawn:
+		TNT1 A 0
+		PGEX D 4 bright
+		stop
+	}
+}
+
+
+Actor YellowFlare3 : Flare_General
+{
+scale 0.25
+alpha 0.7
+states
+	{
+	Spawn:
+		TNT1 A 0
+		PGEX B 1 bright
+		PGEX BB 1 bright A_FADEOUT(0.3)
+		stop
+	}
+}
+
+Actor 1tickBlueFlare
+{
+	RenderStyle Add
+	Alpha 0.8
+	Scale 0.51
+	+ROLLSPRITE
+	+NOINTERACTION
+	States
+	{
+	Spawn:
+		TNT1 A 0 
+		PGEZ A 1 BRIGHT
+		Goto Death
+	Death:
+		TNT1 A 0
+		stop
+  }
+}
+
+Actor BlueFlare : Flare_General
+{
+	alpha 0.15
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		PGEZ A 1 bright
+		stop
+	}
+}
+
+actor BlueFlareNoLight : BlueFlare { 
+	scale 0.9
+	alpha 0.75
+	states
+	{
+	Spawn:
+		TNT1 A 0
+		PGEZ A 2 bright
+		stop
+	}
+}
+
+Actor YellowFlare : Flare_General
+{
+	alpha 0.8
+	scale 2.8
+	+ROLLSPRITE
+	states
+	{
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_setRoll(random(0,360))
+			TNT1 A 0 A_Jump(128,2)
+			LENY ABABABAB 1 BRIGHT A_FADEOUT(0.09)
+			stop
+			TNT1 A 0
+			LENY BABABABA 1 BRIGHT A_FADEOUT(0.09)
+			stop
+	}
+}
+
+actor YellowFlareProjectile : YellowFlare {
+	scale 0.6
+}
+
+actor YellowFlareProjectileBaby : YellowFlareProjectile {
+	scale 0.2
+}
+
+
+
+Actor YellowFlareLong : Flare_General
+{
+states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Jump(128,2)
+		LENY A 8 bright
+		stop
+		TNT1 A 0
+		LENY B 8 bright
+		stop
+	}
+}
+
+Actor PurpleFlareMedium : YellowFlare
+{
+	Translation "0:255=%[0,0,0]:[1,0,1]"
+	scale 0.20
+	alpha 0
+}
+
+
+Actor YellowFlareSmall : YellowFlare
+{
+	scale 1.2
+}
+
+
+Actor YellowFlareSmallShadowCaster : YellowFlare
+{
+scale 1.2
+}
+
+Actor YellowFlareSmallSparks : YellowFlare
+{
+scale 0.60
+}
+
+// Animated version that is not intended to spawn each frame
+// GLDEFS adds a flicker point light to this sprite
+Actor YellowFlareSmallSparksFlicker : YellowFlare {
+	scale 0.60
+
+	states {
+		Spawn:
+			LENY AAAAAAAAAA 1 {//38
+				A_SetTranslucent(frandom(0.6, 0.9), 1);
+			}
+		Destroy:
+			TNT1 A 0
+			stop
+	}
+}
+
+Actor BlueFlareMedium : BlueFlare
+{
+	alpha 0
+	scale 0.15
+	states {
+		Spawn:
+			TNT1 A 0
+			PGEZ A 1 bright
+			stop
+		}
+}
+
+Actor BlueFlareSmall2 : BlueFlare
+{
+	alpha 0.2
+	scale 0.05
+}
+
+Actor WhiteFlareSmall : Flare_General
+{
+alpha 0.05
+scale 0.15
+states
+	{
+	Spawn:
+		LENW A 5 bright
+		stop
+	}
+}
+
+ACTOR OrangeFlareSpawner
+{
+	Speed 20
+	Alpha 0
+	PROJECTILE
+	+NOCLIP
+	+NOGRAVITY
+	States
+	{
+	Spawn:
+		TNT1 AA 1 A_SpawnProjectile("YellowFlareSmallB",-5,0,-85,0,random(-10,10))
+		Stop
+	}
+}
+
+Actor YellowFlareSmallB : YellowFlare
+{
++FORCEXYBILLBOARD
+scale 1.9
+Alpha 0
+states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Jump(256,2)
+		LENY A 1 bright
+		stop
+		TNT1 A 0
+		LENY B 1 bright
+		stop
+	}
+}
+
+Actor YellowFlareSmallBB : YellowFlareSmallB {
+	scale 1.0
+	alpha 0.5
+	states
+		{
+		Spawn:
+			TNT1 A 0
+			LENY AB 2 bright	
+			stop
+		}
+}
+
+Actor BlueFlareSmall : YellowFlare
+{
++FORCEXYBILLBOARD
+scale .30
+Alpha 0.3
+states
+	{
+	Spawn:
+		TNT1 A 0
+		PGEZ A 4 bright
+		stop
+		TNT1 A 0
+		PGEZ B 1 bright
+		stop
+	}
+}
+
+ACTOR YellowFlareSpawn
+{
+	Speed 20
+	Alpha 0
+	PROJECTILE
+	+NOCLIP
+	+NOGRAVITY
+	States
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 {
+			if(GetCvar("g_dimMuzzleFlashes") == 1) {
+				setStateLabel("Destroy");
+			}
+		}
+		TNT1 A 1 {
+			A_SpawnProjectile("YellowFlareSmallB",-5,0,-85,0,random(-10,10));
+			if(getCvar("lightingquality") == 3) {
+				A_SpawnProjectile("YellowMuzzleFlashUltra",-5,0,0,0,random(-10,10));
+			} else {
+				A_SpawnProjectile("YellowMuzzleFlashLow",-5,0,0,0,random(-10,10));
+			}
+		}
+		Stop
+	Destroy:
+		TNT1 A 0
+		stop
+	}
+}
+
+ACTOR YellowMuzzleFlashUltra {
+	states {
+		Spawn:
+			TNT1 AAA 1
+			stop
+	}
+}
+
+ACTOR YellowMuzzleFlashLow {
+	states {
+		Spawn:
+			TNT1 AA 1
+			stop
+	}
+}
+
+
+ACTOR MarineMuzzle1
+{
+	Speed 0
+	scale 0.2
+	PROJECTILE
+	+NOCLIP
+	+NOGRAVITY
+	Speed 5
+	States
+	{
+	Spawn:
+	    TNT1 A 0
+		TNT1 A 0 A_Stop
+		FMU1 A 1 BRIGHT A_SetScale(0.15)
+		FMU1 A 1 BRIGHT A_SetScale(0.18)
+		FMU1 A 1 BRIGHT A_SetScale(0.21)
+		Stop
+	}
+}
+
+Actor ShotgunMuzzle : AlienMuzzle {
+	Renderstyle add
+	scale 0.35
+	states {
+		Spawn:
+			STMZ AABBCC 1 BRIGHT
+			stop
+	}
+}
+
+ACTOR AlienMuzzleBlue : AlienMuzzle
+{
+	Speed 0
+	PROJECTILE
+	+NOCLIP
+	+NOGRAVITY
+	+ROLLSPRITE
+	Speed 5
+	SCALE 0.2
+	States
+	{
+	Spawn:
+	    TNT1 A 0
+		TNT1 A 0 A_SpawnItemEx("BlueFlareNoLight", 5, 0, 0)
+		TNT1 A 0 A_JUMP(256, "muzzle1", "muzzle2", "muzzle3")
+		Muzzle1:
+			ALMB A 1 BRIGHT A_SetScale(0.45, 0.35)
+			ALMB A 1 BRIGHT A_SetScale(0.6, 0.6)
+			ALMB A 2 BRIGHT A_SetScale(0.7, 0.7)
+			Stop
+		Muzzle2:
+			ALMB B 1 BRIGHT A_SetScale(0.45, 0.35)
+			ALMB B 1 BRIGHT A_SetScale(0.6, 0.6)
+			ALMB B 2 BRIGHT A_SetScale(0.7, 0.7)
+			Stop
+		Muzzle3:
+			ALMB A 1 BRIGHT A_SetScale(0.45, 0.35)
+			ALMB A 1 BRIGHT A_SetScale(0.6, 0.6)
+			ALMB A 2 BRIGHT A_SetScale(0.7, 0.7)
+			Stop
+	}
+}
+
+
+
+Actor YellowFlare22 : Flare_General
+{
+states
+	{
+	Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_Jump(128,2)
+		L2NY A 2 bright
+		stop
+		TNT1 A 0
+		L2NY B 2 bright
+		stop
+	}
+}
+
+Actor YellowFlareSmall22 : YellowFlare22
+{
+scale 0.15
+}
+
+Actor LensFlareAlt : Flare_General
+{
+alpha 0.5
+xscale 0.6
+yscale 0.3
+states
+	{
+	Spawn:
+		LENS A 5 bright
+		stop
+	}
+}
+
+Actor OrangeLensFlareCricket : Flare_General
+{
++MISSILE
+Speed 20
+alpha 0.6
+xscale 0.5
+yscale 0.2
+states
+	{
+	Spawn:
+		LEYS O 4 bright A_FADEOUT(0.2)
+		stop
+	}
+}
+
+Actor OrangeLensFlareAlt : Flare_General
+{
++MISSILE
+Speed 20
+alpha 0.6
+xscale 0.8
+yscale 0.4
+states
+	{
+	Spawn:
+	    TNT1 A 1
+	    TNT1 A 0 A_Stop
+		LEYS O 3 bright
+		stop
+	}
+}
+
+actor OrangeLensFlareAltShotgun : OrangeLensFlareAlt {
+
+}
+
+ACTOR WhiteShockWave: BaseShockwave
+{ 
++FLATSPRITE
+Scale 2.5
+Alpha 0.5
+   States 
+   { 
+   Spawn: 
+      SHWK A 1
+      SHWK CEGIKMOQ 2 A_FadeOut(0.04)
+      Stop 
+   } 
+} 
+
+ACTOR WhiteShockWaveBig: WhiteShockWave
+{ 
+Scale 3.0
+} 
+

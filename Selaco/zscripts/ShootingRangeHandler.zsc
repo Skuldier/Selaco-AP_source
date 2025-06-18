@@ -1,0 +1,1382 @@
+// TODO:
+// - DPS calculation currently has a dumb oversight. Needs a redo
+// - Deny autosaves? 
+
+class ShootingRangeHandler : EventHandler
+{
+
+    enum RANGE_TARGET_DISTANCE
+    {
+        RANGE_DISTANCE_RANDOM = 0, 
+        RANGE_DISTANCE_CLOSE = 1,
+        RANGE_DISTANCE_MEDIUM = 2,
+        RANGE_DISTANCE_LONG = 3,
+		RANGE_DISTANCE_FAVOR_CLOSE = 4, 	// Random, but with a bias
+		RANGE_DISTANCE_FAVOR_MEDIUM = 5, 	// Random, but with a bias
+		RANGE_DISTANCE_FAVOR_LONG = 6 		// Random, but with a bias
+    };
+
+    enum RANGE_GAMEMODE
+    {
+        RANGE_MODE_TIMED = 0,           // Timer counts down to 0, the session then ends.
+        RANGE_MODE_ENDLESS = 1,         // Endless dummies spawn in.
+        RANGE_MODE_PUNCHINGBAG = 2,     // Single dummy that cannot be killed. Great for DPS measuring.
+    };
+
+	enum RANGE_TIMER
+	{
+		RANGE_TIMER_SHORT = 30,
+		RANGE_TIMER_MEDIUM = 60,
+		RANGE_TIMER_LONG = 90,
+		RANGE_TIMER_VERYLONG = 120,
+		RANGE_TIMER_RIDICULOUS = 240
+	};
+
+	enum RANGE_SETTING
+	{
+		RANGE_SETTING_MODE = 0,
+		RANGE_SETTING_TIMELIMIT,
+		RANGE_SETTING_TARGET_DISTANCE,
+		RANGE_SETTING_MOVEMENT,
+		RANGE_SETTING_SPAWNRATE
+	};
+
+	enum RANGE_MOVING
+	{
+		RANGE_MOVING_NEVER = 0,
+		RANGE_MOVING_DEFAULT = 1,
+		RANGE_MOVING_ALWAYS = 2,
+	}
+
+	enum RANGE_SPAWNRATE
+	{
+		RANGE_SPAWNRATE_SLOW		= 0,
+		RANGE_SPAWNRATE_DEFAULT 	= 1,
+		RANGE_SPAWNRATE_FAST	 	= 2,
+	}
+
+	array<shootingRangeRail> shootingRangeRails;
+
+    int totalDamageDealt;
+    int seconds;
+    int minutes; 
+	int timerTicks; 			// We cannot rely on level.time since that can be unfair if you start the range right before a second ends. Instead we use this.
+	int gameModeID;
+	int targetModeID;
+    bool inShootingRangeSession; // Player activated Shooting Range stuff. Start doing things
+	int endedShootingRangeSession; // TotalTime when session was ended. Used to remove the HUD
+
+    int dpsCalculationTicks; 	// Number of ticks since the last damage was applied
+    int lastDamageTime;      	// Time (in ticks) when the last damage was applied
+
+	int timerSetting;
+
+	int spawnDistance; 
+
+	// Stat Trackers
+    int currentDPS;          	// The current DPS value being calculated
+    int highestDPS;          	// The highest DPS reached in the last 35 ticks (1 second)
+    int highestRecentDPS;    	// Like highestDPS, but doesn't reset until after the player shoots a target again.
+    int shotsFired; 			// The amount of times the player has fired their gun.
+    int shotDamage; 			// Damage of the last shot
+	int targetHits; 			// How often did we hit something
+	int targetHeadshots;
+	int targetsKilled;
+	int targetsMissed;
+	int score; 
+
+	int movementSetting;
+	int spawnRateSetting;
+
+	int autoSpawnTimer;
+	int countDown;
+	int spawnDelayCountdown;
+	
+	int shotTick;
+
+	bool beatTychusChallenge;
+	bool isTimedMode; 			// If the clock has seconds on it after starting, this is set to True to it counts down instead
+	bool autoTargetSpawning;	// Targets spawn automatically every so often.
+
+	transient ui bool hudOn;	// Is the hud element added?
+
+	const SHOOTINGRANGE_LEVEL_NUM = 100;
+	const TARGET_RAIL_LENGTH = 520;					// How long is the rail for them to spawn on?
+	const DOUBLE_TARGET_CHANCE = 20; 				// Chance to get 2 targets at one.
+	const MAX_TARGETS = 7; 							// How many targets do we allow at once before we stop spawning?
+	const COUNTDOWN_TIMER = TICRATE*4; 				// How long to wait before the game begins after setup?
+	const FAVOR_BIAS_AMOUNT = 75;					// Higher values results in a stronger bias.
+
+
+	override void WorldLoaded(WorldEvent e)
+	{
+		if(level.levelnum == SHOOTINGRANGE_LEVEL_NUM)
+		{
+			storeWeaponData();
+		}
+	}
+
+	// Player leaves the shooting range
+	override void WorldUnloaded(WorldEvent e)
+	{
+		if(level.levelnum == SHOOTINGRANGE_LEVEL_NUM)
+		{
+			retrieveStoredWeaponData();
+			inShootingRangeSession = false;
+			resetStats();
+		}
+	}
+
+	int getSpawnNumber()
+	{	
+		// Figure out spawn distance
+		int randomNum;
+		int spawnDistMin, spawnDistMax;
+
+		// Set default range based on spawnDistance
+		switch (spawnDistance)
+		{
+			case RANGE_DISTANCE_CLOSE:
+				spawnDistMin = 0;
+				spawnDistMax = 1;
+				break;
+			case RANGE_DISTANCE_MEDIUM:
+				spawnDistMin = 2;
+				spawnDistMax = 3;
+				break;
+			case RANGE_DISTANCE_LONG:
+				spawnDistMin = 4;
+				spawnDistMax = 5;
+				break;
+			case RANGE_DISTANCE_RANDOM:
+				spawnDistMin = 0;
+				spawnDistMax = 5;
+				break;
+		}
+
+		// Check for favor conditions
+		if (spawnDistance == RANGE_DISTANCE_FAVOR_CLOSE || spawnDistance == RANGE_DISTANCE_FAVOR_MEDIUM || spawnDistance == RANGE_DISTANCE_FAVOR_LONG)
+		{
+			// If favor condition is met, set the specific range
+			if (random(1, 100) <= FAVOR_BIAS_AMOUNT)
+			{
+				switch (spawnDistance)
+				{
+					case RANGE_DISTANCE_FAVOR_CLOSE:
+						spawnDistMin = 0;
+						spawnDistMax = 1;
+						break;
+					case RANGE_DISTANCE_FAVOR_MEDIUM:
+						spawnDistMin = 2;
+						spawnDistMax = 3;
+						break;
+					case RANGE_DISTANCE_FAVOR_LONG:
+						spawnDistMin = 4;
+						spawnDistMax = 5;
+						break;
+				}
+			}
+			else
+			{
+				// If favor condition is not met, set a random range from 0 to 5
+				spawnDistMin = random(0, 5);
+				spawnDistMax = spawnDistMin;
+			}
+		}
+
+		randomNum = random(spawnDistMin, spawnDistMax);
+		return randomNum;
+	}
+
+	bool getMovementSetting()
+	{
+		switch(movementSetting)
+		{
+			case RANGE_MOVING_NEVER:
+				return false;
+			case RANGE_MOVING_DEFAULT:
+				return random(0,1);			
+			case RANGE_MOVING_ALWAYS:
+				return true;	
+		}
+		return false;
+	}
+
+	shootingRangeRail getPunchingBagSpawnPosition()
+	{
+		switch(spawnDistance)
+		{
+			case RANGE_DISTANCE_FAVOR_CLOSE:
+			case RANGE_DISTANCE_CLOSE:
+				return shootingRangeRails[1];
+			case RANGE_DISTANCE_FAVOR_MEDIUM:
+			case RANGE_DISTANCE_MEDIUM:
+				return shootingRangeRails[3];
+			case RANGE_DISTANCE_FAVOR_LONG:
+			case RANGE_DISTANCE_LONG:
+				return shootingRangeRails[5];
+		}
+		return shootingRangeRails[1];
+	}
+
+	void selectRailAndSpawn()
+	{
+		if (inShootingRangeSession)
+		{
+			array<int> checkedRails; // To store ID's we have checked
+			int numCheckedRails = 0;
+			int spawnDistMin = 0;
+			int spawnDistMax = shootingRangeRails.size() - 1;
+
+			int numRails = spawnDistMax;
+			int loops;
+
+			while (numCheckedRails <= numRails)
+			{
+				// Select a random rail, depending on spawn setting
+				int randomIndex = getSpawnNumber();
+
+				// Check if the rail has already been checked
+				bool railAlreadyChecked = false;
+				bool targetHasExpirationDate = true;
+				numCheckedRails++;
+				for (int i = 0; i < checkedRails.size(); i++)
+				{
+					if (checkedRails[i] == randomIndex)
+					{
+						railAlreadyChecked = true;
+						break;
+					}
+				}
+
+				// If the rail has already been checked, try another random rail
+				if (railAlreadyChecked)
+				{
+					continue;
+				}
+
+				// Mark the rail as checked
+				checkedRails.push(randomIndex);
+				// Select the rail and check if it's available for spawning
+				shootingRangeRail selectedRail = shootingRangeRails[randomIndex];
+
+				if (selectedRail && selectedRail.dummyTarget)
+				{
+					// This rail is busy, try selecting another rail.
+					continue;
+				}
+
+				// Some modes have targets that never despawn.
+				if (gameModeID == RANGE_MODE_TIMED || gameModeID == RANGE_MODE_PUNCHINGBAG)
+				{
+					targetHasExpirationDate = false;
+				}
+
+				// Find random spot on the rail.
+				int spawnOffset = frandom(-1 * (TARGET_RAIL_LENGTH / 2), TARGET_RAIL_LENGTH / 2);
+
+				// Should the target move?
+				bool allowMoving = getMovementSetting();
+
+				if(gameModeID == RANGE_MODE_PUNCHINGBAG)
+				{
+					selectedRail = getPunchingBagSpawnPosition();
+					spawnOffset = 0;
+					allowMoving = false;
+				}
+
+				// Attempt to spawn actor on selected position, give selected parameters from the handler.
+				selectedRail.spawnTargetOnRail(spawnOffset, allowMoving, targetHasExpirationDate);
+
+				// The spawn was successful. Break the loop.
+				if (selectedRail.dummyTarget)
+				{
+					if (gameModeID != RANGE_MODE_TIMED && random(0, 100) <= DOUBLE_TARGET_CHANCE)
+					{
+						selectRailAndSpawn();
+					}
+					break;
+				}
+			}
+		}
+	}
+
+
+    override void worldTick()
+    {
+
+		// Start a countdown. Once 0, start range and approve validation
+		if(countdown > 0)
+		{			
+			decrementCountDown();
+		}
+
+        // Check if one second has passed
+        if (validatedShootingRange())
+        {
+			if(autoTargetSpawning && autoSpawnTimer % getSpawnRateValue() == 0)
+			{
+				// Spawn a target.
+				selectRailAndSpawn();
+			}
+			autoSpawnTimer++;
+			getDisplayTime();
+
+			// If we were counting down, and the timer hit 0, quit the program!
+			if(isTimedMode && minutes == 0 && seconds == 0)
+			{
+				endShootingRangeSession();
+			}
+
+			// TODO: Fundamentaly flawed. Should be ignored for now.
+            dpsCalculationTicks++;
+            if (dpsCalculationTicks >= TICRATE)
+            {
+                // 1 Second has passed. update highest DPS and reset current DPS
+                if (currentDPS > highestDPS)
+                {
+                    highestDPS = currentDPS;
+					if(highestDPS >= 1200)
+					{
+						LevelEventHandler leh = LevelEventHandler.instance();
+                        leh.SetAchievement("GAME_DPS");
+					}
+                }
+                currentDPS = 0;
+                dpsCalculationTicks = 0;
+            }
+
+            if(level.time - lastDamageTime >= TICRATE)
+            {
+                if(highestDPS > 0)
+                {
+                    highestRecentDPS = highestDPS;
+                }
+                highestDPS = 0;
+                currentDPS = 0;
+            }
+
+            // Reset highestRecentDPS
+            if(level.time - lastDamageTime == 0)
+            {
+                highestRecentDPS = 0;
+            }
+        }
+    }
+
+	void decrementCountDown()
+	{
+		countdown--;
+
+		PlayerPawn pawn=players[consoleplayer].mo;
+		let d = Dawn(pawn);
+		if(!d) return;
+
+		// BEEP...
+		if(countdown % TICRATE == 0 && countdown != 0)
+		{
+			d.A_PLAYSOUND("SHOOTINGRANGE/COUNTDOWN", CHAN_AUTO, 0.3);
+		}
+		
+		// BEEEEEEEEEEEEEP !!!
+		if(countDown == 0)
+		{
+			d.A_PLAYSOUND("SHOOTINGRANGE/START", CHAN_AUTO, 0.4);
+			StartShootingRange();
+		}
+	}
+
+	override void uiTick() {
+		if(inShootingRangeSession && !hudOn) {
+			let e = HUDElementShootingRange(HUD.FindElement("HUDElementShootingRange"));
+			if(e) {
+				e.fadeOutTime = 0;	// Cancel any fade out
+			} else {
+				// Show the interface in the HUD, this could be added at a later time
+				// Interface will automatically delete itself when we are no longer in the level
+				HUD.AddElement("HUDElementShootingRange");
+			}
+			
+			hudOn = true;
+		}
+
+		// 15 seconds after a session, close the HUD
+		if(endedShootingRangeSession != 0 && level.totalTime - endedShootingRangeSession == (35 * 15)) {
+			let e = HUDElementShootingRange(HUD.FindElement("HUDElementShootingRange"));
+			if(e) {
+				e.startFadeOut();
+				hudOn = false;
+			}
+		}
+
+		if(countdown > 0 && !HUD.FindElement("HUDElementCountdown")) {
+			HUD.AddElement("HUDElementCountdown");
+		}
+	}
+
+	string getDisplayTime()
+	{
+		timerTicks++;
+		string displayTime;
+
+		// Increment timer
+        if (timerTicks >= TICRATE)
+        {
+			timerTicks = 0;
+          	updateTimer();
+        }
+
+		// Format the clock
+        displayTime.appendFormat("%02d:%02d", minutes, seconds);
+		return displayTime;
+	}
+
+	void updateTimer()
+	{
+		// Decrement
+		if (isTimedMode)
+		{
+			if (seconds > 0 || minutes > 0)
+			{
+				if (seconds == 0)
+				{
+					seconds = 59;
+					minutes--;
+				}
+				else
+				{
+					seconds--;
+				}
+			}
+
+			// Beeps before the end
+			if(minutes == 0 && seconds <= 3 && seconds > 0)
+			{
+				playerPawn pawn=players[consoleplayer].mo;
+				let d = Dawn(pawn);
+				d.A_PLAYSOUND("SHOOTINGRANGE/COUNTDOWN", CHAN_AUTO, 0.8);
+			}
+		}
+		
+		// Increment
+		else
+		{
+			seconds++;
+
+			if (seconds >= 60)
+			{
+				seconds = 0;
+				minutes++;
+			}
+		}
+	}
+
+	clearscope float getAccuracy()
+	{
+		if (shotsFired == 0)
+		{
+			return 0.0; // To avoid division by zero, return 0% accuracy if no shots are fired.
+		}
+
+		int accuracyPercentage = (targetHits * 100) / shotsFired;
+		if(accuracyPercentage > 100)
+		{
+			return 100;
+		}
+		return accuracyPercentage;
+	}
+
+    // Used to check if the player is participating in a shooting range or not.
+    bool validatedShootingRange()
+    {
+        if(level.LevelNum == SHOOTINGRANGE_LEVEL_NUM && inShootingRangeSession)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    // Reset everything. Usually called when a new session starts.
+    void resetStats()
+    {
+        shotsFired = 0;
+        targetHits = 0;
+		targetsMissed = 0;
+		targetHeadshots = 0;
+		targetsKilled = 0;
+		shotDamage = 0;
+		score = 0;
+		highestDPS = 0;
+		currentDPS = 0;
+		minutes = 0;
+		seconds = 0;
+		autoTargetSpawning = false;
+		autoSpawnTimer = 0;
+		isTimedMode = false;
+    }
+
+	// Start the session through ACS. Delete when we have a UI.
+    static void DEBUG_StartShootingRange() 
+    {
+        let handler = instance();
+		// In a session, end it
+		if(handler.inShootingRangeSession)
+		{
+			handler.endShootingRangeSession();
+		}
+		// Not in a session, start one 
+		else
+		{
+			handler.startShootingRangeCountdown();
+		}
+	}
+
+	void StartShootingRange()
+	{
+		int timerSetter = getTimerSetting(timerSetting);
+
+		// Count down the clock during a Time Attack
+		if(gameModeID == RANGE_MODE_TIMED)
+		{
+			isTimedMode = true;
+			setTimerSetting(timerSetter);
+		}
+
+
+		// Inform the handler that we're going to start shooting things.
+        inShootingRangeSession = true;
+
+		// Time Attack -> Spawn multiple targets right away.
+		if(gameModeID == RANGE_MODE_TIMED)
+		{
+			int spawnCount = 3;
+			if(spawnDistance == RANGE_DISTANCE_CLOSE || spawnDistance == RANGE_DISTANCE_MEDIUM || spawnDistance == RANGE_DISTANCE_LONG)
+			{
+				spawnCount = 2;
+			}
+			for(int x=0;x<spawnCount;x++)
+			{
+				selectRailAndSpawn();
+			}
+		}
+
+		if(gameModeID == RANGE_MODE_PUNCHINGBAG)
+		{
+			selectRailAndSpawn();
+		}
+
+		if(gameModeID == RANGE_MODE_ENDLESS)
+		{
+			autoTargetSpawning = true;
+		}
+
+	}
+
+	void startShootingRangeCountdown()
+	{
+		resetStats();
+		if(inShootingRangeSession)
+		{
+			endShootingRangeSession();
+		}
+		countdown = COUNTDOWN_TIMER;
+		players[consoleplayer].mo.ACS_NamedExecute("StartRange", 0);
+	}
+
+	// Called when the player decides to cancel the session, timer reached zero or the target limit is reached.
+	void endShootingRangeSession()
+	{
+		// Find all targets, 'expire' them.
+		for(int x=0; x<shootingRangeRails.size();x++)
+		{
+			shootingRangeRails[x].A_PLAYSOUND("script/klaxon", CHAN_AUTO, 1.0);
+			shootingRangeRails[x].expireTargets();
+		}
+
+		PlayerPawn pawn=players[consoleplayer].mo;
+		let d = Dawn(pawn);
+
+		d.ACS_NamedExecute("StopRange", 0);
+
+		// Did the player beat the Tychus Challenge?
+		if(!beatTychusChallenge && gameModeID == RANGE_MODE_TIMED && timerSetting == 1 && score >= 3200 && d.countInv("TychusChallengeBeaten") == 0 && movementSetting == RANGE_MOVING_ALWAYS && spawnDistance == 0)
+		{
+			d.ACS_NamedExecute("CompleteTychusChallenge");
+			d.A_GiveInventory("TychusChallengeBeaten", 1);
+			beatTychusChallenge = true;
+		}
+		inShootingRangeSession = false;
+		endedShootingRangeSession = level.TotalTime;
+	}
+
+	int getTimerSetting(int givenTimeSetting)
+	{
+		switch(givenTimeSetting)
+		{
+			case 0:
+				return RANGE_TIMER_SHORT;
+			case 1:
+				return RANGE_TIMER_MEDIUM;
+			case 2:
+				return RANGE_TIMER_LONG;
+			case 3:
+				return RANGE_TIMER_VERYLONG;
+			case 4:
+				return RANGE_TIMER_RIDICULOUS;
+		}
+		return 0;		
+	}
+
+	int getSpawnRateValue()
+	{
+		switch(spawnRateSetting)
+		{
+			case RANGE_SPAWNRATE_SLOW:
+				return TICRATE*6;
+			case RANGE_SPAWNRATE_DEFAULT:
+				return TICRATE*3;
+			CASE RANGE_SPAWNRATE_FAST:
+				return TICRATE*2;
+		}
+		return TICRATE*3;
+	}
+
+
+	// Turns the amount of seconds into minutes and seconds.
+	void setTimerSetting(int timerSetting)
+	{
+		int setTime;
+		switch(timerSetting)
+		{
+			case RANGE_TIMER_SHORT:
+				setTime = 30; 
+				break;
+			case RANGE_TIMER_MEDIUM:
+				setTime = 60;
+				break;
+			case RANGE_TIMER_LONG:
+				setTime = 90;
+				break;
+			case RANGE_TIMER_VERYLONG:
+				setTime = 120;
+				break;
+			case RANGE_TIMER_RIDICULOUS:
+				setTime = 240;
+				break;
+		}
+
+		minutes = setTime / 60;
+		seconds = setTime % 60;
+	}
+
+	clearscope string getGameMode()
+	{
+		switch(gameModeID)
+		{
+			case RANGE_MODE_TIMED:
+				return "$SHOOTINGRANGE_MODE_TIMEATTACK";
+			case RANGE_MODE_ENDLESS:
+				return "$SHOOTINGRANGE_MODE_ENDLESS";
+			case RANGE_MODE_PUNCHINGBAG:
+				return "$SHOOTINGRANGE_MODE_PUNCHINGBAG";
+		}
+		return "";
+	}
+
+	clearscope string getDistanceMode()
+	{
+		switch(targetModeID)
+		{
+			case RANGE_DISTANCE_RANDOM:
+				return "$SHOOTINGRANGE_DISTANCE_RANDOM";
+			case RANGE_DISTANCE_CLOSE:
+				return "$SHOOTINGRANGE_DISTANCE_CLOSE";
+			case RANGE_DISTANCE_MEDIUM:
+				return "$SHOOTINGRANGE_DISTANCE_MEDIUM";
+			case RANGE_DISTANCE_LONG:
+				return "$SHOOTINGRANGE_DISTANCE_LONG";
+			case RANGE_DISTANCE_FAVOR_CLOSE:
+				return "$SHOOTINGRANGE_DISTANCE_FAVORCLOSE";
+			case RANGE_DISTANCE_FAVOR_MEDIUM:
+				return "$SHOOTINGRANGE_DISTANCE_FAVORMEDIUM";
+			case RANGE_DISTANCE_FAVOR_LONG:
+				return "$SHOOTINGRANGE_DISTANCE_FAVORLONG";
+		}
+		return "Unknown.";
+	}
+
+	clearscope string getMovingMode()
+	{
+		switch(movementSetting)
+		{
+			case RANGE_MOVING_NEVER:
+				return "$SETTING_NEVER";
+			case RANGE_MOVING_DEFAULT:
+				return "$SETTING_RANDOM";
+			case RANGE_MOVING_ALWAYS:
+				return "$SETTING_ALWAYS";
+		}
+		return "Jerry's Mother";
+	}
+
+	////// DEBUGGING / TESTING //////////
+	// Running these through ACS for debugging, for the time being because no UI!
+    static void DEBUG_SetGameModeToTimeAttack() 
+    {
+        let handler = instance();
+		handler.gameModeID = RANGE_MODE_TIMED;
+		handler.timerSetting = RANGE_TIMER_MEDIUM;
+		// Set Timer to 90 seconds
+    }
+
+	static void StopShootingRange()
+	{
+		let handler = instance();
+		handler.countdown = 0;
+		if(handler.inShootingRangeSession)
+		{
+			handler.endShootingRangeSession();
+		}
+	}
+
+    static void DEBUG_SetGameModeToDPS() 
+    {
+        let handler = instance();
+		handler.gameModeID = RANGE_MODE_PUNCHINGBAG;
+		handler.timerSetting = 0;
+		// Set Timer to 90 seconds
+    }
+
+	static void DEBUG_SetGameModeToEndless()
+	{
+		let handler = instance();
+		handler.gameModeID = RANGE_MODE_ENDLESS;
+	}
+
+	static void showShootingRangeMenu()
+	{
+		let handler = instance();
+		PlayerPawn pawn=players[consoleplayer].mo;
+		let d = Dawn(pawn);
+		d.A_PLAYSOUND("SHOOTINGRANGE/MENU/OPEN", CHAN_AUTO, 1.0);
+		Menu.SetMenu("ShootingRangeMenu");
+	}
+
+	/////////////////////////////////////////////////////////////////////////////
+
+    clearscope static ShootingRangeHandler Instance() {
+        return ShootingRangeHandler(EventHandler.Find('ShootingRangeHandler'));
+    }
+
+
+	IntTable loadedWeaponAmmo;
+	array<int> grenadeLauncherAmmo;
+	void storeWeaponData()
+	{
+		grenadeLauncherAmmo.clear();
+		loadedWeaponAmmo = new("IntTable").init(10);
+		for (int x = 0; x < AllClasses.size(); x++) 
+		{
+			// Find a list of all weapons
+			if (AllClasses[x] is 'SelacoWeapon' || AllClasses[x] is 'SelacoAmmo')
+			{
+				Inventory i = players[0].mo.FindInventory((class<SelacoWeapon>)(AllClasses[x]));
+				if (i && i.amount > 0)
+				{
+					SelacoWeapon w = SelacoWeapon(i);
+					if (w && w.ammo2 && w.SlotNumber)
+					{
+						loadedWeaponAmmo.put(w.SlotNumber, w.ammo2.amount);
+					}
+
+				}
+			}
+		}
+
+		// Store Grenade Launcher values in order.
+		grenadeLauncherAmmo.push(players[0].mo.countInv("GLFragAmmo"));
+		grenadeLauncherAmmo.push(players[0].mo.countInv("GLIceAmmo"));
+		grenadeLauncherAmmo.push(players[0].mo.countInv("GLAcidAmmo"));
+
+		grenadeLauncherAmmo.push(players[0].mo.countInv("GLFragReserve"));
+		grenadeLauncherAmmo.push(players[0].mo.countInv("GLIceReserve"));
+		grenadeLauncherAmmo.push(players[0].mo.countInv("GLAcidReserve"));
+
+	}
+
+	void retrieveStoredWeaponData()
+	{
+		Inventory i;
+		SelacoWeapon w;
+		SelacoAmmo a;
+		for (int x = 0; x < AllClasses.size(); x++) 
+		{
+			if (AllClasses[x] is 'SelacoWeapon')
+			{
+				i = players[0].mo.FindInventory((class<SelacoWeapon>)(AllClasses[x]));
+				if (i && i.amount > 0)
+				{
+					w = SelacoWeapon(i);
+					if (w && w.ammo2)
+					{
+						uint value;
+						bool found;
+
+						[value, found] = loadedWeaponAmmo.get(w.SlotNumber);
+						if (found)
+						{
+							w.ammo2.amount = value;
+						}
+					}
+				}
+			}
+
+			players[0].mo.SetInventory("GLFragAmmo", grenadeLauncherAmmo[0]);
+			players[0].mo.SetInventory("GLIceAmmo", grenadeLauncherAmmo[1]);
+			players[0].mo.SetInventory("GLAcidAmmo", grenadeLauncherAmmo[2]);
+
+			players[0].mo.SetInventory("GLFragReserve", grenadeLauncherAmmo[3]);
+			players[0].mo.SetInventory("GLIceReserve", grenadeLauncherAmmo[4]);
+			players[0].mo.SetInventory("GLAcidReserve", grenadeLauncherAmmo[5]);
+
+		}
+	}
+	// Staging values for setting up a new mode
+	int tempGameModeID;
+	int tempTimerSetting;
+	int tempTargetModeID;
+	int tempMovementSetting;
+	int tempSpawnRateSetting;
+
+	// Network Events: Handle changes sent by the UI
+	// TODO: Actually do stuff when the value changes!
+	override void NetworkProcess(ConsoleEvent e) {
+
+		if(e.Name == "srange") {
+			switch(e.args[0]) {
+				case RANGE_SETTING_MODE:
+					tempGameModeID = e.args[1];
+					break;
+				case RANGE_SETTING_TIMELIMIT:
+					tempTimerSetting = e.args[1];
+					break;
+				case RANGE_SETTING_TARGET_DISTANCE:
+					tempTargetModeID = e.args[1];
+					break;
+				case RANGE_SETTING_MOVEMENT:
+					tempMovementSetting = e.args[1];
+					break;
+				case RANGE_SETTING_SPAWNRATE:
+					tempSpawnRateSetting = e.args[1];
+					break;
+				default:
+					break;
+			}
+		} else if(e.Name == "srangeStart") {
+			// Start from new settings!
+			gameModeID = tempGameModeID;
+			timerSetting = tempTimerSetting;
+			targetModeID = tempTargetModeID;
+			movementSetting = tempMovementSetting;
+			spawnDistance = tempTargetModeID;
+			spawnRateSetting = tempSpawnRateSetting;
+
+			// Start countdown
+			startShootingRangeCountdown();
+		}
+	}
+}
+
+extend class SelacoWeapon
+{
+
+    // called from PlayerIsFiring
+    void processShootingRange()
+    {
+		ShootingRangeHandler rangeHandler = ShootingRangeHandler.instance();
+		if(rangeHandler.validatedShootingRange())
+		{
+			rangeHandler.shotsFired++;
+		}
+    }
+}
+
+// These are placed using UDB and connect to the shooting range handler.
+class shootingRangeRail : actor
+{
+	ShootingRangeHandler handler;
+	bool occupied; // Rail has a dummy on it.
+	actor dummyTarget;
+	bool cockIsANerd;
+
+	int respawnDelayCountdown;
+
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		handler = ShootingRangeHandler.instance();
+		handler.shootingRangeRails.push(self);
+	}
+
+
+	override void tick()
+	{
+		super.tick();
+
+		// If we spawn with a delay, tick down and spawn at 0
+		if(respawnDelayCountdown)
+		{
+			respawnDelayCountdown--;
+			if(respawnDelayCountdown == 0)
+			{
+				handler.selectRailAndSpawn();
+			}
+		}
+	}
+
+	void spawnTargetOnRail(int position, bool movingTarget, bool targetHasExpirationDate = true)
+	{
+		if(!dummyTarget)
+		{
+			[cockIsANerd, dummyTarget] = A_SPAWNITEMEX("TargetPracticeDummy", 0, position, flags: SXF_SETMASTER);
+		}
+		if(dummyTarget)
+		{
+			TargetPracticeDummy(dummyTarget).hasExpirationDate = targetHasExpirationDate;
+
+			// Strafe left to right
+			if(movingTarget)
+			{
+				dummyTarget.setStateLabel("MovingTarget");
+			}
+			occupied = true;
+		}
+	}
+
+	// Sad. No longer occupied
+	void targetHasDied()
+	{
+		if(dummyTarget && TargetPracticeDummy(dummyTarget).countsAsKill)
+		{
+			handler.targetsKilled++;
+		}
+		Stats.AddStat(STAT_TARGETDUMMY_KILLS, 1, 0);
+		occupied = false;
+		dummyTarget = null;
+
+		// If it's a time attack, inform the handler right away that a new one should spawn
+		if(handler.gameModeID == handler.RANGE_MODE_TIMED)
+		{
+			spawnWithDelay();
+		}
+	}
+
+	// Force expiration for all targets on this rail
+	void expireTargets()
+	{
+		if(dummyTarget)
+		{
+			let targetDummy = TargetPracticeDummy(dummyTarget);
+			if(targetDummy.expirationTime < targetDummy.EXPIRATIONTIME_MAX)
+			{
+				targetDummy.countsAsKill = false;
+				targetDummy.expirationTime = targetDummy.EXPIRATIONTIME_MAX;
+			}
+		}
+	}
+
+	void spawnWithDelay()
+	{
+		respawnDelayCountdown = 35;
+	}
+
+	void targetHasExpired()
+	{
+		if(dummyTarget)
+		{
+			let targetDummy = TargetPracticeDummy(dummyTarget);
+			if(targetDummy.countsAsKill)
+			{
+				handler.targetsMissed++;
+			}
+		}
+	}
+
+	default
+	{
+		+NOINTERACTION;
+	}
+}
+
+class TargetPracticeDummy : SelacoEnemy {
+
+	protected int dummyProps;
+	flagdef destructibleDummy          :  dummyProps, 0;  
+	bool stationaryMode;
+	bool movingMode;
+	bool stopPitch;
+	int aliveTime;
+	int expirationTime;
+    int timeWhenFirstHit;
+	int totalDamageTaken;
+
+	bool killedByHeadshot;
+
+	int deadTimer;
+
+	bool isExpired;
+	bool hasExpirationDate;
+	bool countsAsKill; // Used to ensure that, when the timer of the range ends, these are not considered kills or misses
+	string spriteToUse;
+	string damageSprite;
+	bool isDead;
+	int frameID;
+
+    ShootingRangeHandler rangeHandler;
+
+	const EXPIRATIONTIME_MAX = 35*10; 			// Target dies after this amount of ticks
+	const DAMAGE_STATE_THRESHOLD = 60;		// When does a piece break off? (This *3 will be its health)
+	const CORPSE_DESPAWN_TIMER = TICRATE*60;	// When to remove corpse
+	static const String SPRITE_DamageStates[] =
+	{
+		"DUM2",
+		"DUM3",
+		"DUM4"
+	};	
+
+	override void beginPlay() {
+		super.beginPlay();
+        rangeHandler = ShootingRangeHandler.instance();
+		countsAsKill = true;
+		spriteToUse = "DUM1";
+		damageSprite = SPRITE_DamageStates[random(0,SPRITE_DamageStates.size()-1)];
+		//damageSprite = "DUM2";
+		A_PLAYSOUND("DUMMY/APPEAR", CHAN_AUTO, 1.0, 0, 0.8);
+		A_SETPITCH(-180);
+	}
+
+	override void tick()
+	{
+		super.tick();
+		// Raise after spawning
+		if(!isDead && pitch < -90)
+		{
+			A_SETPITCH(pitch+5);
+		}
+		// Fall when dying
+		if(isDead && pitch > -180)
+		{
+			A_SETPITCH(pitch-5);
+		}
+		if(pitch <= -180)
+		{
+			if(!isExpired && deadTimer == 0)
+			{
+				A_PLAYSOUND("DUMMY/DEAD", CHAN_AUTO, 0.15, 0, 0);
+			}
+			deadTimer++;
+			if(deadTimer >= CORPSE_DESPAWN_TIMER)
+			{
+				A_FADEOUT(0.05);
+			}
+		}
+		if(aliveTime == 1)
+		{
+			bInterpolateAngles = true; // This bugs out on spawn because it's set to -180 at the beginning. Activating it on tick 1 instead.
+		}
+
+		if(!isDead && expirationTime == EXPIRATIONTIME_MAX)
+		{
+			isExpired = true;
+			if(master)
+			{
+				shootingRangeRail(master).targetHasExpired();
+			}
+			markForDead();
+		}
+
+		aliveTime++;
+		if(hasExpirationDate && !isDead)
+		{
+			expirationTime++;
+			if(expirationTime == EXPIRATIONTIME_MAX)
+			{
+				A_PLAYSOUND("DUMMY/EXPIRE", CHAN_AUTO, 0.7, 0, 0.8);
+			}
+		}
+	}
+
+    // Amount of damage. We mostly care about 'Damage' since it indicates the amount of damage has been inflicted.
+    override int takeSpecialDamage(Actor inflictor, Actor source, int damage, Name damagetype)
+    {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		
+		if(pitch > -111)
+		{
+			pitch-=7;
+		}
+		if(level.time > rangeHandler.Shottick)
+		{
+			rangeHandler.shotDamage = 0;
+		}
+
+		rangeHandler.shottick = level.time;
+
+        // Update the time of the last damage
+        rangeHandler.lastDamageTime = level.time; // Convert milliseconds to ticks
+
+		if(damage > 0)
+		{
+			totalDamageTaken+=damage;
+        	rangeHandler.currentDPS += damage;
+			rangeHandler.shotDamage += damage;
+			rangeHandler.targetHits++;
+		}
+
+        // Increase FrameID every 75 damage
+        if (!isDead && bDestructibleDummy && totalDamageTaken >= DAMAGE_STATE_THRESHOLD && rangeHandler.gameModeID != rangeHandler.RANGE_MODE_PUNCHINGBAG)
+        {
+			spriteToUse = damageSprite;
+            int damageMultiplier = totalDamageTaken / DAMAGE_STATE_THRESHOLD; // Calculate the number of times FrameID should be increased
+            totalDamageTaken %= DAMAGE_STATE_THRESHOLD; // Remainder to track the remaining damage
+
+            // Increase FrameID by the damage multiplier
+            frameID += damageMultiplier;
+
+			for(int x=0;x<=5;x++)
+			{
+				A_SPAWNITEMEX("PaperDustEffectShort", frandom(-20,20), frandom(-20,20), random(0,59));
+			}
+
+            // Limit the FrameID to the maximum number of damage states
+            int maxDamageStates = SPRITE_DamageStates.size();
+            frameID = Min(frameID, maxDamageStates);
+
+			// Killed
+			if(frameID == 3)
+			{
+				deathEffects();
+				markForDead();
+			}
+        }
+
+
+        A_PLAYSOUND("impact/hardmetal", CHAN_AUTO, 1.0, 0, 0.5);
+        return res;
+    }
+
+	// Particles and sounds
+	void deathEffects()
+	{
+		if(headshotHit)
+		{
+			A_SPAWNITEMEX("scorePopup150", 0, 0, 40, 0, 0, 1.2);
+			rangeHandler.score+=150;
+		}
+		else
+		{
+			A_SPAWNITEMEX("scorePopup100", 0, 0, 40, 0, 0, 1.2);
+			rangeHandler.score+=100;
+		}
+		A_PLAYSOUND("DUMMY/DIE", CHAN_AUTO, 1.0, 0, 0.7, pitch:frandom(0.8,1.1));
+		for(int x=0;x<30;x++)
+		{
+			A_SPAWNITEMEX("PaperDustEffectShort", frandom(-20,20), frandom(-20,20), random(0,59), 0, frandom(-2,2), frandom(-2,2));
+		}
+	}
+
+	// Do death things and inform handler
+	void markForDead()
+	{
+		if(!isDead)
+		{
+			isDead = true;
+			A_ChangeVelocity(0, 0, 0, CVF_REPLACE); // The dead cant move!
+			A_PLAYSOUND("DUMMY/DISAPPEAR", CHAN_AUTO, 1.0, 0, 0.5, pitch:frandom(0.8,1.1));
+			bNoInteraction = true;
+
+			setStateLabel("GoIdleAndDie"); // Make sure it stops doing anything.
+
+			// Let the rail know so it can be marked as available.
+			if(master)
+			{
+				shootingRangeRail(master).targetHasDied();
+			}
+		}
+	}
+
+	override void takenHeadShotDamage()
+	{
+		rangeHandler.targetHeadshots++;
+	}
+
+	default 
+    {
+		health 650;
+		mass 25000;
+		scale 0.39;
+		+DONTTHRUST
+		+FLATSPRITE;
+		monster;
+		yscale 0.37;
+		Radius 30;
+		Height 69;
+		-NOPAIN;
+		-PUSHABLE
+		-CASTSPRITESHADOW 
+		-SelacoActor.SlopeAlignment
+		+NOBLOODDECALS
+		+SelacoActor.thrudecorations;
+		+SelacoActor.decorativeActor;
+		-SelacoEnemy.AllowStealthKill;
+		+SelacoEnemy.AllowHeadshots;
+		-SelacoEnemy.HasHeadshotPainAnimation;
+		+TargetPracticeDummy.DestructibleDummy;
+		-SelacoEnemy.AllowRandomizerTier
+		bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+	    PainSound "impact/hardmetal";
+	}
+
+	states {
+
+		precache:
+			DUM1 ABC 0;
+			DUM2 ABC 0;
+			DUM3 ABC 0;
+			DUM4 ABC 0;
+			stop;
+		Spawn:
+			TNT1 A 0;
+			DUM1 A 5
+			{
+				bBuddha = true;
+				sprite = GetSpriteIndex("DUM1");
+			}
+		StationaryTarget:
+			TNT1 A 2
+			{
+				sprite = GetSpriteIndex(spriteToUse);
+				frame = frameID;
+			}
+			loop;
+		MovingTarget:
+			TNT1 A 0 {
+				bBuddha = true;
+			}
+		MoveLeft:
+			TNT1 A 2 
+			{
+				sprite = GetSpriteIndex(spriteToUse);
+				frame = frameID;
+				FLineTraceData RemoteRay;
+				A_ChangeVelocity(0, 0.9, 0, CVF_RELATIVE);
+				LineTrace(90, 120, 0,offsetz: height-12,data: RemoteRay);
+				if (RemoteRay.HitType == TRACE_HitWall)
+				{
+					A_ChangeVelocity(0, 0, 0, CVF_REPLACE);
+					setStateLabel("MoveRight");
+				}				
+			}
+			loop;
+		MoveRight:
+			TNT1 A 2 
+			{
+				sprite = GetSpriteIndex(spriteToUse);
+				frame = frameID;
+				FLineTraceData RemoteRay;
+				A_ChangeVelocity(0, -0.9, 0, CVF_RELATIVE);
+				LineTrace(270, 120, 0,offsetz: height-12,data: RemoteRay);
+				if (RemoteRay.HitType == TRACE_HitWall)
+				{
+					A_ChangeVelocity(0, 0, 0, CVF_REPLACE);
+					setStateLabel("MoveLeft");
+				}				
+			}
+			loop;
+		LoopDoNothing:
+			TNT1 A 0;
+			TNT1 A 0 {
+				stationaryMode = true;
+			}
+			DUMT C 120;
+			goto vanish;
+		Death:
+			TNT1 A 0 {
+				EmitDefinition('SparkParticleDefinition', chance: 0.75, numTries: 25, angle:random(0,360), pitch:frandom(-90, 90), speed:frandom(1,2), velocity:(0,0,frandom(0,2)));
+				for(int i=0;i<16;i++) {
+					A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", 0, frandom(-20,20), frandom(20,40));
+				}
+				ACS_NamedExecute("DummyShot", 0);
+				A_PLAYSOUND("ui/challengeupdated", CHAN_AUTO, 1.0, 0, 0.6);
+				bSolid = true;
+			}
+			DUM2 D 20;
+			DUMT DDDDDDDDDDDDDDDDD 1 A_Setpitch(pitch - 5);
+			DUMT DDDDDDDDDDD 1 A_FADEOUT(0.1);
+			stop;
+		Vanish:
+			DUMT AAAAAAAAAAAAAAAAAAA 1 A_Setpitch(pitch - 5);
+			DUMT AAAAAAAAAAAA 1 A_FADEOUT(0.1);
+			stop;
+		GoIdleAndDie:
+			TNT1 A -1
+			{
+				sprite = GetSpriteIndex(spriteToUse);
+				frame = frameID;
+			}
+			stop;
+
+	}
+}
+
+class scorePopupBase : actor
+{
+	int tickTime;
+	default
+	{
+		+NOBLOCKMAP
+		+NOGRAVITY
+		scale 1.25;
+	}
+
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		A_SETPITCH(0);
+	}
+
+	override void tick()
+	{
+		super.tick();
+		tickTime++;
+		if(tickTime > 15)
+		{
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}
+		if(vel.z > 0)
+		{
+			A_ChangeVelocity(0,0,vel.z-0.02, CVF_REPLACE);
+		}
+	}
+
+}
+
+class scorePopup100 : scorePopupBase
+{
+	states
+	{
+		Spawn:
+			DUMS A -1 BRIGHT;
+			stop;
+	}
+}
+
+class scorePopup150 : scorePopupBase
+{
+	states
+	{
+		Spawn:
+			DUMS B -1 BRIGHT;
+			stop;
+	}
+}

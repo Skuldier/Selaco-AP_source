@@ -1,0 +1,3489 @@
+#library "main"
+#include "zcommon.acs"
+
+world str 0:objectives[];
+int upgradekitsinlevel;
+int doTag = 999;
+int upgradekitsfound;
+// OMNIMUS CODE 
+int DatapadsInLevel;
+int currentEAX; 
+int DatapadsFound;
+int cabinetCardsInLevel;
+bool tutorialActive = false;
+bool dashActive;
+int levelTilt;
+bool challenge_prompt_active;
+int cabinetcardsTaken;
+int TotalStorageCabinets = 2;
+int OpenedStorageCabinets = 0;
+int tutorialqueue;
+int currenttips;
+bool PlayerInSafeRoom;
+
+int playerlife;
+int healthDifference;
+int amountHealed;
+
+global int 2: cabinetKeys; // Total CabinetCards
+global int 4: gameActive;  // Is the gaming running?
+global bool 41: firstTime; 
+global int 40: maxHealth;
+global bool 45: UpgradeKitFound;
+
+global int 57:		_NormalPlayerHeight;
+
+#libdefine LASERFIELD_DELAY 25 // delay in tics for when the laser fields go offline after destroying a junction box
+
+ // When picking up items, where will this be displayed?
+ int InteractionDelay = 14;
+#libdefine SD_TIMEFRAME		19	// Tics during which you must double press
+#libdefine SD_DASHDELAY		20.0		// Tics before being able to dash again
+#libdefine SD_DASHSPEED		11.0	// Dash speed whilst in the air
+#libdefine SD_DASHJUMP		6.0	// Adds a little z-velocity while in the air
+#libdefine SD_DASHSTRONG	20.0	// And dash speed whilst grounded
+#libdefine SD_SOUNDVOLUME	0.9	// How loud the dash sound is played
+bool tossingobject;
+script "TossObject" (void) {
+	tossingobject = true;
+}
+
+function void ShakeActors(int SpotID, int intensity, int duration, int range)
+{
+	scriptcall("EarthquakeHandler", "startEarthquake", SpotID, intensity, duration, range);
+}
+
+
+function void giveSoldierFlashlight(int soldierTID)
+{
+	ScriptCall("LevelEventHandler", "assignSoldierFlashlight", soldierTID);
+}
+
+function void removeSoldierFlashlight(int soldierTID)
+{
+	ScriptCall("LevelEventHandler", "removeSoldierFlashlight", soldierTID);
+}
+
+
+function bool isExplorationMode(void)
+{
+	if(gameSkill() == 6)
+	{
+		return true;
+	}
+	return false;
+}
+
+function void removeGlass(int lineID)
+{
+	ScriptCall("GlassHandler", "RemoveGlass", lineID);
+}
+
+script "LeaveWorkshop" (void)
+{
+	leaveSafeRoom();
+}
+
+function void incomingWave(int TID) {
+	playsound(TID, "script/increment", CHAN_AUTO, 0.6, 0, 0.5);
+	SpawnSpotFacingForced("RedFlareLarge", TID, 0);
+}
+
+function void ChangeSelacoLevel(int areaNumber, int intermission, int playerSpawnArgument, int stayArgument, int ignoreErrors)
+{
+	scriptcall("LevelTransitionHandler", "LevelTransition", areaNumber, intermission, playerSpawnArgument, stayArgument, ignoreErrors);
+}
+
+
+// Give intermission screen
+script "StarlightIntermission" (void)
+{
+	FadeToTrack("INTRSTAR", 0.04);
+	ScriptCall("LevelEventHandler", "EndStarlightMap", "ExitLevel", "ResumeLevel");
+}
+
+script "CheckRooftopFall" (int heightThreshold, int sectorID)
+{
+	int startHeight = GetActorZ(0);
+	while(true)
+	{
+		int  fallHeight = GetSectorFloorZ(sectorID, getActorX(0), getActorX(0)) + getActorZ(0) - startHeight;
+		if(ThingCountNameSector("Dawn", 0, sectorID) && fallHeight <= 1100.0)
+		{
+			ACS_NamedExecute("PlayerRooftopDeathSequence", 0);
+			terminate;
+		}
+		if(!ThingCountNameSector("Dawn", 0, sectorID))
+		{
+			terminate;
+		}
+
+		delay(1);
+	}
+}
+
+function void moveElevatorUp(void)
+{
+	PlaySound(19002, "SE06_ELEVATOR_START", CHAN_5, 0.3);
+	SpawnSpotFacingForced("PlayerShaker5", 800, 800);
+	Scroll_Wall(10004, 0.0, -2.8, 0, 2);
+}
+
+function void moveElevatorDown(void)
+{
+	PlaySound(19002, "SE06_ELEVATOR_START", CHAN_5, 0.3);
+	SpawnSpotFacingForced("PlayerShaker5", 800, 800);
+	Scroll_Wall(10004, 0.0, 2.8, 0, 2);
+}
+
+function void moveElevatorUpSilent(void)
+{
+	PlaySound(19002,"STARLIGHT/CARGOSERVO",CHAN_5,0.3,true);
+	Scroll_Wall(10004, 0.0, -2.8, 0, 2);
+}
+
+function void moveElevatorDownSilent(void)
+{
+	PlaySound(19002,"STARLIGHT/CARGOSERVO",CHAN_5,0.3,true);
+	Scroll_Wall(10004, 0.0, 2.8, 0, 2);
+}
+
+
+function void makeElevatorDoorGreen (void)
+{
+	setLineTexture(16010, SIDE_BACK, TEXTURE_MIDDLE, "DRBLDB1A");
+	setLineTexture(16010, SIDE_FRONT, TEXTURE_MIDDLE, "DRBLDB1A");
+}
+
+function void makeElevatorDoorRed (void)
+{
+	setLineTexture(16010, SIDE_BACK, TEXTURE_MIDDLE, "DRBLDB1B");
+	setLineTexture(16010, SIDE_FRONT, TEXTURE_MIDDLE, "DRBLDB1B");
+}
+
+Script "CheckElevatorDoorWait" (void)
+{
+	delay(60);
+	//setActorState(19001, "EnableButtons"); //we want to tie this specifically to the door buttons, not the door action which can be called by other stuff
+}
+
+function void closeElevatorDoors (void)
+{
+	Polyobj_MoveToSpot(49, 12, 16000);
+	Polyobj_MoveToSpot(50, 12, 16000);
+	Polyobj_MoveToSpot(51, 12, 16005);
+	Polyobj_MoveToSpot(52, 12, 16005);
+	ACS_NamedExecute("CheckElevatorDoorWait", 0); //Because we cant use Tagwait or Delay in Functions..
+}
+
+function void closeElevatorDoorsInstant (void)
+{
+	Polyobj_MoveToSpot(49, 900000, 16000);
+	Polyobj_MoveToSpot(50, 900000, 16000);
+	Polyobj_MoveToSpot(51, 900000, 16005);
+	Polyobj_MoveToSpot(52, 900000, 16005);
+	ACS_NamedExecute("CheckElevatorDoorWait", 0); //Because we cant use Tagwait or Delay in Functions..
+}
+
+
+function void OpenElevatorDoors (void)
+{
+	Polyobj_MoveToSpot(49, 12, 16001);
+	Polyobj_MoveToSpot(50, 12, 16002);
+	Polyobj_MoveToSpot(51, 12, 16003);
+	Polyobj_MoveToSpot(52, 12, 16004);
+	ACS_NamedExecute("CheckElevatorDoorWait", 0); //Because we cant use Tagwait or Delay in Functions..
+}
+
+script "CloseElevatorDoorButton" (void)
+{
+	closeElevatorDoors();
+	delay(40);
+	makeElevatorDoorRed();
+	delay(20);
+	setActorState(19001, "EnableButtons"); 
+}
+
+script "OpenElevatorDoorButton" (void)
+{
+	OpenElevatorDoors();
+	makeElevatorDoorGreen();
+	delay(60);
+	setActorState(19001, "EnableButtons"); 
+
+}
+
+function void SetFloorInventory (int amount)
+{
+	TakeInventory("FBFFloorHelper", 999);
+	GiveInventory("FBFFloorHelper", amount);
+}
+
+
+script "PlayerRooftopDeathSequence" (void)
+{
+	setfont("BLACKER");
+	HUDMESSAGE(s:"A";HUDMSG_FADEINOUT, 0, CR_WHITE, 0.5, 0.5, 10000.0, 0.5);
+	SetPlayerProperty (0, 1, PROP_TOTALLYFROZEN );
+	PlaySound(0, "DAWN/DEATHFALL");
+	delay(15);
+	int timeTillDeath = 15;
+	while(true)
+	{
+		SetActorVelocity(800, 0, 0, 0, 0, 0);
+		timeTillDeath--;
+		if(timeTillDeath <= 0)
+		{
+			Thing_Damage2(800, 90000, "FallDamage");
+		}
+		delay(1);
+	}
+}
+
+script "GetBunnyHopperDrink" (void)
+{
+	if(creditValidator(10))
+	{
+		playsound(800, "ui/buy/big", CHAN_AUTO, 0.8);
+		delay(7);
+		GiveInventory("BunnyHopDuration", 9000);
+		Playsound(800, "DRINK/BUNNYHOP", CHAN_AUTO);
+		scriptcall("stats", "addstat", 91, 1, 0);
+		scriptcall("stats", "addstat", 81, 1, 0);
+		delay(25);
+		terminate;
+	}
+	playsound(800, "ui/buy/error", CHAN_AUTO, 0.8);
+	delay(25);
+}
+
+
+// GLOBAL //
+script "PurchasePanel" (int doorID, int floorID) {
+	if(creditValidator(250)) {
+		Floor_RaiseToNearest(floorID, 10000);
+		SetLineActivation(doorID, SPAC_NONE);
+		SetLineTexture(doorID, SIDE_FRONT, TEXTURE_MIDDLE, "PUR_COMP");
+		SetLineTexture(doorID, SIDE_BACK, TEXTURE_TOP, "CCHEAB1C");
+		playsound(800, "ui/buy/big", CHAN_AUTO, 1.0);
+		delay(25);
+		Playsound(doorID, "purchase/console", CHAN_AUTO, 1.0, 0);
+		delay(10);
+		Thing_activate(floorID);
+		Thing_Activate(doorID);
+		door_open(doorID, 16);
+	} else {
+		Printbold(l:"BuyFail");
+		playsound(800, "ui/buy/error", CHAN_AUTO, 1.0);
+	}
+}
+
+function bool creditValidator(int amount) {
+	if(CheckActorInventory(800, "CreditsCount") >= amount) {
+		TakeActorInventory(800, "CreditsCount", amount);
+		return true;
+	}
+	return false;
+}
+
+function bool checkIfSafe (int distanceToCheck)
+{
+	if(distanceToCheck == 0)
+	{
+		distanceToCheck = 3096;
+	}
+	if(scriptcall("SafetyHandler", "checkIfSafe", distanceToCheck))
+	{
+		return true;
+	}
+	return false;
+}
+
+
+function void freezePlayer(void)
+{
+	SetPlayerProperty(800, ON, PROP_TOTALLYFROZEN);
+}
+
+function void unFreezePlayer(void)
+{
+	SetPlayerProperty(800, off, PROP_TOTALLYFROZEN);
+}
+
+
+function void Selaco_quake (int tid, int intensity, int duration, int damrad, int tremrad, str sound) {
+	if (getCvar("g_screenshake") > 0) {
+		Radius_quake2(tid, intensity, duration, damrad, tremrad, sound);
+	}
+}
+
+script "GivePDA" (int id_level, int id_entry)
+{
+	GiveActorInventory(800, "HasCodex", 1);
+    ScriptCall("PDAManager","AddEntry",id_level,id_entry);
+}
+
+function void DestroyCeilingQuake(str panel, int id) {
+	ChangeCeiling(id, "WIRE1H");
+	SetActorState(id, "dimmed");
+	Ceiling_RaiseByValue(id, 1000, 6);
+	SpawnSpotFacingForced(panel, id, 0);
+	PlaySound(id, "dest/hbreak", CHAN_AUTO, 0.8, 0, 0.7);
+}
+
+bool spawnEmberEffect;
+script "StopEmberEffect" (void)
+{
+	spawnEmberEffect = false;
+}
+
+script "SpawnOrangeEmbers" (int delayer)
+{
+	spawnEmberEffect = true;
+	if(delayer == 0)
+	{
+		delayer = 2;
+	}
+
+	while(spawnEmberEffect)
+	{
+		SpawnSpotFacingForced("OrangeEmberSpawner", 800, 0);
+		delay(delayer);
+	}
+}
+
+script "SpawnGreenEmbers" (int delayer)
+{
+	spawnEmberEffect = true;
+	if(delayer == 0)
+	{
+		delayer = 2;
+	}
+
+	while(spawnEmberEffect)
+	{
+		SpawnSpotFacingForced("GreenEmberSpawner", 800, 0);
+		delay(delayer);
+	}
+}
+
+script "SpawnSmokeEmbers" (int delayer)
+{
+	spawnEmberEffect = true;
+	if(delayer == 0)
+	{
+		delayer = 3;
+	}
+
+	while(spawnEmberEffect)
+	{
+		int randomizer = random(0,35);
+		if(randomizer == 5)
+		{
+			SpawnSpotFacingForced("fireSmokespawner", 800, 0);
+		}
+		SpawnSpotFacingForced("fireemberspawner", 800, 0);
+		delay(delayer);
+	}
+}
+
+
+script "SpawnBlueEmbers" (int delayer)
+{
+	spawnEmberEffect = true;
+	if(delayer == 0)
+	{
+		delayer = 2;
+	}
+	while(spawnEmberEffect)
+	{
+		SpawnSpotFacingForced("BlueEmberSpawner", 800, 0);
+		delay(2);
+	}
+}
+
+script "VACHUGGING" (void) {
+	if(CheckActorInventory(800, "VACBOTPetTutorial") == 0) {
+		GiveActorInventory(800, "VACBOTPetTutorial", 1);
+		ScriptCall("TutorialHandler","TutorialMessage", "VACBOT", 1);
+	}
+}
+
+script "SetPDA" (int id_location, int id_level)
+{
+    ScriptCall("PDAManager","SetEntry",id_location,id_level,2);
+}
+
+// DIRTY SCREEN. **SO REAL!** 
+script "SpawnDirtScreen" (int level) {
+	setActivator(800);
+	ScriptCall("Dawn", "MakeDirty", level);
+}
+
+function void SpawnDirt(int level) {
+	setActivator(800);
+	ScriptCall("Dawn", "MakeDirty", level);
+}
+
+script "SpawnSlimeScreen" (int amount) {
+	delay(10);
+	setActivator(800);
+	ScriptCall("Dawn", "MakeSplat", amount);
+}
+
+// SHAKEY SCREEN. **SO REAL!**
+script "SpawnHudShake" (int xintensity, int yintensity, int length) {
+	setActivator(800);
+	for(int i=0; i <= length;i++) {
+		ScriptCall("Dawn", "HUDShakeAdd", xintensity, yintensity);
+		delay(1);
+	}
+}
+
+script 774 (int shutterID, int isOpen) {
+	checkInteractionDelaySetting();
+	GiveInventory("PushButtonNow", 1);
+	SpawnSpotFacingForced("ShutterSoundEffect", 800, 8001);
+	delay(interactiondelay-2);
+	delay(2);
+	SetActorState(8001, "PlaySound");
+	SetLineActivation(shutterID, SPAC_NONE);
+	playSound(0, "script/metlock", CHAN_AUTO, 0.7);
+	if (isOpen == 0) {
+		Ceiling_LowerToFloor(shutterID, 64, 0);
+		SetLineSpecial(shutterID, 80, 774, 0, shutterID, 1);
+		Thing_Deactivate(shutterID);
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTU2");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTU3");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTU4");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTU5");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTU6");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTU7");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL");
+		TakeInventory("PushButtonNow", 1);
+		tagwait(shutterID);
+		delay(2);
+	}
+	if (isOpen == 1) {
+		Ceiling_RaiseToNearest(ShutterID, 64, 0);
+		SetLineSpecial(shutterID, 80, 774, 0, shutterID, 0);
+		Thing_Activate(shutterID);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL1");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL2");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL3");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL4");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL5");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL6");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTL7");
+		delay(2);
+		SetLineTexture(shutterID, SIDE_FRONT, TEXTURE_MIDDLE, "SHUTU");
+		delay(2);
+		TakeInventory("PushButtonNow", 1);
+		tagwait(shutterID);
+	}
+	SetLineActivation(shutterID, SPAC_USE);
+}
+
+script "BreakWall" (int wallID) {
+	SetLineTexture(wallID, SIDE_FRONT, TEXTURE_MIDDLE, "");
+	SetLineTexture(wallID, SIDE_BACK, TEXTURE_MIDDLE, "");
+	Line_SetBlocking(wallID, 0, 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096);
+	//Explosion(wallID);
+	Thing_Remove(wallID);
+	delay(3);
+}
+
+int objxPos = 0.07;
+int objyPos = 0.7;
+int objtime = 6.0;
+
+int objscreenX = 400;
+int objscreenY = 120;
+// OBJECTIVE SYSTEEM
+int objectiveID = 6;
+int objPosX = -50.1;
+int currentPosY = 0;
+
+
+int MAX_OBJECTIVES = 4;
+
+script "levelUp" (void) {
+	HudMessage(l:"SECURITY_LEVEL_UPDATED"; HUDMSG_PLAIN, 633, CR_GREEN, 0.5, 0.27, 3.7);
+	HudMessage(l:"SECURITY_LEVEL_UPDATE_2", i:checkActorInventory(800, "ClearanceLevel"), l:"SECURITY_LEVEL_UPDATE_3"; HUDMSG_PLAIN, 634, CR_WHITE, 0.5, 0.29, 3.7);
+}
+
+function void disableLaserField(int laserID)
+{
+	ACS_NamedExecute("DisableLaserField", 0, laserID);
+}
+
+script "DisableLaserField" (int laseriD)
+{
+	// Small delay to allow Junction Box explosion to finish
+	delay(LASERFIELD_DELAY);
+
+	// Play sound so it's more obvious in case players aren't looking direct at the laser grid
+	PlaySound(laserID, "Laser/Off", CHAN_AUTO, 0.8, 0, 0.7);
+
+	
+	// Animate
+	SetLineTexture(laserID, SIDE_BACK, TEXTURE_MIDDLE, "LASWAL1B");
+	SetLineTexture(laserID, SIDE_FRONT, TEXTURE_MIDDLE, "LASWAL1B");
+	
+	// Disable blocking
+	Line_SetBlocking(laserID, 0, BLOCKF_PLAYERS | BLOCKF_MONSTERS);
+	
+	// Fade
+	int amount = 100;
+	while(amount > 0)
+	{
+		amount-=3;
+		TranslucentLine(laserID, amount, 1);
+		delay(1);
+	}
+
+	// Kill
+	SetLineTexture(laserID,SIDE_FRONT,TEXTURE_MIDDLE,"-");
+	SetLineTexture(laserID,SIDE_BACK,TEXTURE_MIDDLE,"-");
+}
+
+
+script "TriggerObjectiveWait" (void) {
+	delay(35*5);
+}
+
+Script "GetActorPitch" (void) {
+	SetResultvalue(-1*GetActorPitch(800) >> 8);
+}
+
+script 5 (int LightID, int lightStatus, int lightshafttexture)
+{
+	SetLineActivation(LightID, SPAC_NONE);
+	scriptcall("stats", "addstat", 29, 1, 0.0);
+	if(getCvar("g_interactionanimations") == 1)
+	{
+		GiveInventory("PushButtonNow", 1);
+	}
+	delay(InteractionDelay);
+	if (lightStatus == 0)
+	{
+		ChangeCeiling(LightID, "LITE1");
+		Thing_activate(lightID);
+		SetLineSpecial(lightID, 80,5,0,lightID, 1, lightshafttexture);
+		PlaySound(lightID, "script/lighton", 3, 1.0, 0, 0.5);
+		SpawnSpotFacingForced("LightSwitch", 800, 0);
+		PlaySound(lightID, "script/turnon", CHAN_AUTO, 1.0, 0, 0.5);
+		SetActorState(lightshafttexture, "Lit");
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTL");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU6");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU5");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU4");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU3");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU2");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU1");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU");
+	}
+	if (lightStatus == 1)
+	{
+		ChangeCeiling(LightID, "LITEOFF");
+		Thing_deactivate(lightID);
+		SetLineSpecial(lightID, 80,5,0,lightID, 0, lightshafttexture);
+		PlaySound(lightID, "script/lightoff", 3, 1.0, 0, 0.5);
+		SetActorState(lightshafttexture, "Dimmed");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU1");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU2");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU3");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU4");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU5");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU6");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTL");
+	}
+	TakeInventory("PushButtonNow", 1);
+	delay(2);
+	SetLineActivation(LightID, SPAC_USE);
+}
+
+// Same as script 5, but used for walls. Blame ACS limitations :(
+script 7 (int LightID, int lightStatus, int lightshafttexture)
+{
+	scriptcall("stats", "addstat", 29, 1, 0.0);
+	GiveInventory("PushButtonNow", 1);
+	delay(InteractionDelay);
+	if (lightStatus == 0)
+	{
+		Thing_activate(lightID);
+		SetLineTexture(lightshafttexture, SIDE_FRONT, TEXTURE_MIDDLE, "LITE1");
+		SetLineSpecial(lightID, 80,7,0,lightID, 1, lightshafttexture);
+		PlaySound(lightID, "script/lighton", 3, 1.0, 0, 0.5);
+		SetActorState(lightshafttexture, "Lit");
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTL");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU6");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU5");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU4");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU3");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU2");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU1");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU");
+	} else {
+		Thing_deactivate(lightID);
+		SetLineTexture(lightshafttexture, SIDE_FRONT, TEXTURE_MIDDLE, "LITEOFF");
+		SetLineSpecial(lightID, 80,7,0,lightID, 0, lightshafttexture);
+		PlaySound(lightID, "script/lightoff", 3, 1.0, 0, 0.5);
+		SetActorState(lightshafttexture, "Dimmed");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU1");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU2");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU3");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU4");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU5");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTU6");
+		DELAY(2);
+		SetLineTexture(lightID, SIDE_FRONT, TEXTURE_MIDDLE, "LIGHTL");
+	}
+	TakeInventory("PushButtonNow", 1);
+	delay(2);
+}
+
+script "GetFireExtinquisher" (void) {
+	GiveActorInventory(800, "Fire_Extinguisher", 1);
+	SetActivator(800);
+	SetWeapon("Fire_Extinguisher");
+}
+
+
+
+function void printLevelChange(void) {
+	ACS_NamedTerminate("CheckSlide", 0);
+	TakeActorInventory(800, "SlideScriptActive", 1);
+	TakeActorInventory(800, "CooldownSliding", 999);
+	TakeActorInventory(800, "CooldownDashing", 999);
+	GiveActorInventory(800, "StopSliding", 1);
+	SetHuDsize(0, 0, 0);
+	SetFont("BLUSCR");
+	TakeActorInventory(800, "CooldownSliding", 9999);
+	HudMessageBold(s:"a"; HUDMSG_FADEOUT | HUDMSG_ALPHA, 5, CR_BLACK, 0.5, 0.2, 0.2, 0.5, 0.5);
+	SetFont("SELACOFONT2");
+	HudMessage(s:"\c[RED]REPLACE ME!!!!!!!!!!!!!!!!!!!"; HUDMSG_PLAIN, 0, CR_RED, 0.5, 0.5, 2.0);
+	SetFont("SELACOFONT");
+}
+
+script "PrintLevelChangeACS" (void)
+{
+	printLevelChange();
+}
+
+script "NoNades" (void) {
+	if(CheckActorInventory(800, "InIntro") == 0) {
+		setfont("NONADE");
+		PlaySound(800, "ui/CasRoll");
+		SetHudSize(1440, 1080, 0);
+		HudMessageBold(s:"a";HUDMSG_FADEINOUT | HUDMSG_ALPHA, 449, CR_WHITE, 720.0, 650.0, 1.0, 0.3, 0.3, 0.6);
+	}
+}
+
+
+ 
+// Where to display the credits and CabinetCard count?
+int hudX = 720;
+int hudY = 480; 
+int tics = 70;	
+int VHSInLevel;
+int VHSFound = 0;
+int playerSpeedValue = 	0.95;
+str DisplayLocation;
+bool KeepGameplay = false;
+int pickupmessageX = 750.2;
+int pickupmessageY = 30.0;
+// Where to display Notifications?
+int notificationY = 370.0;
+int notificationY2 = 380.0;
+int notificationX = 0.1;
+bool LogicsEnabled = true;
+bool allowMovement = true;
+int notificationHold = 4.0;
+
+// Where to display the Objectivescreen after pressing the button?
+
+
+// TO-DO: IMPROVE THIS. It doesn't stack properly and I'm far too tired to figure it out.
+bool DawnFrozen;
+
+Script "DawnIsFrozen" (void) {
+		SetHUdSize(1920, 1080, 1);
+		playerSpeedValue = 0.3;
+		PlaySound(800, "Dawn/freeze", CHAN_7);
+		ACS_NamedTerminate("DawnIsFrozen", 0);
+		DawnFrozen = true;
+		delay(105);
+		DawnFrozen = false;
+		playerSpeedValue = 	0.95;
+}
+
+// TODO: REMOVE THIS WHEN SHIPPING
+script "startinggear" (void) 
+{
+	GiveActorInventory(800, "SlideUpgradeActual", 1);
+	GiveActorInventory(800, "DawnArmor", 1);
+	GiveActorInventory(800, "playerHasCodex", 1);
+	GiveActorInventory(800, "IsPlaying", 1);
+	GiveActorInventory(800, "Shot_gun", 1);
+	GiveActorInventory(800, "RoaringCricket", 1);
+	GiveActorInventory(800, "Rifle", 1);
+}
+
+global int 3: menuActive;					//
+/////////////////////////////////////////
+
+function void StaticCameraVignettingMode(void) {
+	SetHudSize(800, 600, 0);
+	//SetFont("INFOBACK");
+	//HudMessageBold(s:"a"; HUDMSG_FADEOUT, 1, CR_BLACK, 400.0, 100.0, 0.1, 0.5, 0.4);
+	SetHuDsize(0, 0, 0);
+	SetFont("BLASCRN");
+	HudMessageBold(s:"a"; HUDMSG_FADEOUT | HUDMSG_ALPHA, 999999, CR_BLACK, 1.2, 0.1, 0.1, 0.5, 0.87);
+}
+
+ function void printLevel3(str number, str name, str description) {
+	StaticCameraVignettingMode();
+	setFont("SLFNT100S");
+	SetHUDClipRect(-100, -100, 800, 600, 490);
+	SetHudSize(800, 600, 0);
+	HUDMESSAGE(s:"\c[OMNIBLUE] - ", s:number, s:" - "; HUDMSG_FADEOUT, 0, CR_WHITE, 400.4, 110.0, 0.1);
+	HUDMESSAGE(s:name; HUDMSG_FADEOUT, 0, CR_WHITE, 400.4, 140.0, 0.1, 0.5);
+	setFont("SMALLFONT"); 
+	HUDMESSAGE(s:description; HUDMSG_FADEOUT, 0, CR_WHITE, 400.4, 180.0, 0.1, 0.5);
+	setFont("SLFNT100S");
+	HUDMESSAGE(s:"Press \c[omniblue][FIRE] \c[white]to start"; HUDMSG_FADEOUT, 0, CR_WHITE, 400.4,480.0, 0.1, 0.5);
+		SetHudSize(1024, 768, 0);
+		SetFont("LOAHUD");
+		SetHUDClipRect(0, 0, 0, 0, 0);
+		HudMessageBold(s:"A"; HUDMSG_PLAIN, 433111, CR_WHITE, 512.0, 190.0, 1.0);
+}
+ 
+
+	bool beginLevel;
+
+
+script "FiredPrimary" (void) {
+
+}
+script "FiredSecondary" (void) {
+
+}
+script 373 (void) {
+
+}
+
+script "CheckAmmoScriptGrenade" (int ammoAmount)
+{
+	int currentAmmo = CheckActorInventory(800, "HandGrenadeAmmo");
+	GiveActorInventory(800, "HandGrenadeAmmo", ammoamount);
+	int newAmmo = CheckActorInventory(800, "HandGrenadeAmmo");
+	if (currentAmmo == newAmmo)
+	{
+		print(s:"Grenades full");
+		SetResultValue(0);
+		delay(25);
+	}
+	else {SetResultValue(1);  }
+}
+
+bool killmarkerActive;
+Function void memoCount (void)
+{
+	ACS_NamedExecuteAlways("IncrementMemoFound", 0);
+}
+
+int FogDensity = 10;
+bool ToneIsChanging;
+int BlueTint = 80;
+int RedTint = 80;
+int GreenTint = 80;
+script "ToneChanger" (int R, int G, int B, int density) {
+	int ToneTics;
+	while (ToneIsChanging ) {
+		delay(2);
+	}
+	ToneIsChanging = true;
+		if (getCvar("gl_lights") == 0) {
+			Density=Density+75;
+		}
+	While (BlueTint != B | RedTint != R | GreenTint !=G | FogDensity != density) {
+		if(ToneTics == 40) {
+	ToneIsChanging = false;
+			terminate;
+		}
+	Sector_SetColor(15000, 120, 120, 120, 0);
+		if (RedTint < R) {RedTint = redtint + 5;}
+		if (GreenTint < G) {GreenTint = greentint + 5;}
+		if (BlueTint < B) {BlueTint= Bluetint + 5;}
+		if (RedTint > R) {RedTint=Redtint-5;}
+		if (GreenTint > G) {GreenTint=Greentint-5;}
+		if (BlueTint > B) {BlueTint=BlueTint-5;}
+		if (FogDensity > Density) {FogDensity=FogDensity-5;}
+		if (FogDensity < Density) {FogDensity=FogDensity+5;}
+		Sector_SetColor(15000, FogDensity, FogDensity, FogDensity, 0);
+		Sector_SetFade(15000, redtint, greentint, bluetint);
+		ToneTics++;
+		delay(1);
+	}
+	ToneIsChanging = false;
+	terminate;
+}
+
+
+script "FogDensityChanger" (int Density) {
+	int tonetics;
+	while(FogDensity != Density ) {
+		if(tonetics == 100) {
+			terminate;
+		}
+		if (Density > FogDensity) {FogDensity=FogDensity+5;}
+		if (Density < FogDensity) {FogDensity=FogDensity-5;}
+		SetFogDensity(15000, FogDensity);
+		tonetics++;
+		delay(1);
+	}
+} 
+
+function void Explosion (int id)  {
+	SpawnSpotFacingForced("PrettyExplosionParticleRainPerformance", id, 0);
+	if (getCvar("g_screenshake") >= 1) {
+		Radius_Quake(2, 54, 0, 6, id);
+	}
+	//PlaySound(id,"Explosion", CHAN_AUTO, 0.80);
+}
+
+function void ExplosionSmaller (int id)
+{
+	SpawnSpotFacingForced("PrettyExplosionSmaller", id, 0);
+	if (getCvar("g_screenshake") >= 1) {
+		Radius_Quake(2, 54, 0, 6, id);
+	}
+}
+
+function void ExplosionLethal (int id)  {
+	SpawnSpotFacingForced("BarrelExplosion", id, 0);
+	SpawnSpotFacingForced("PrettyExplosionParticleRainPerformance", id, 0);
+	if (getCvar("g_screenshake") >= 1) {
+		Radius_Quake(2, 54, 0, 6, id);
+	}
+	//PlaySound(id,"Explosion", CHAN_AUTO, 0.80);
+}
+
+function void ExplosionLethalEnvironment (int id)  {
+	SpawnSpotFacingForced("EnvironmentalExplosion", id, 0);
+	SpawnSpotFacingForced("PrettyExplosionParticleRainPerformance", id, 0);
+	if (getCvar("g_screenshake") >= 1) {
+		Radius_Quake(2, 54, 0, 6, id);
+	}
+	//PlaySound(id,"Explosion", CHAN_AUTO, 0.80);
+}
+
+
+function void ExplosionSide (int id) {
+	SpawnSpotFacingForced("NewRocketExploFX", id, 0);
+	SpawnSpotFacingForced("PrettyExplosionParticleRainPerformance", id, 0);
+	if (getCvar("g_screenshake") >= 1) {
+		Radius_Quake(2, 54, 0, 6, id);
+	}
+	//PlaySound(id,"Explosion", CHAN_AUTO, 0.80);
+}
+
+script 374 (void) { }
+
+script "showmedkits"(void) {}
+script "credits" (void) {}
+
+// MUSIC /////////////////
+script "beginLevel" OPEN {
+	Thing_ChangeTID(0, 800 + PlayerNumber());
+	pickupMessageY = 100.0;
+	GiveActorInventory(800, "Automode", 1);
+	objectives[0] = "";
+    objectives[1] = "";
+    objectives[2] = "";
+    objectives[3] = "";
+	GiveActorInventory(800, "FragGrenadeSelected", 1);
+	GiveInventory("ClusterEquipped", 1);
+	//GiveInventory("isPlaying", 1);
+	//ACS_NamedExecute("checkMenuActive", 0);
+	ACS_NamedExecute("showMedkits", 0);
+	ACS_NamedExecute("Credits", 0);
+	ACS_NamedExecute("gameLogics", 0);
+	gameActive = true;
+	//setactorproperty(0,APROP_Speed,fixedmul(getactorproperty(0,APROP_Speed),playerSpeedValue));
+	delay(1);
+	if (checkActorInventory(800, "FirstLaunch") == 0) {
+		//SetFont("BLASCR");
+		//HudMessageBold(s:"a"; HUDMSG_FADEINOUT, 5, CR_BLACK, 1.2, 0.1, 0.3, 0.5, 2.0, 0.2);
+		SetActivator(800);
+		ACS_NamedExecuteWithResult("SetPDA", 0, 1);
+		ACS_NamedExecuteWithResult("SetPDA", 0, 2);
+		ACS_NamedExecuteWithResult("SetPDA", 0, 3);
+		ACS_NamedExecuteWithResult("SetPDA", 0, 4);
+		ACS_NamedExecuteWithResult("SetPDA", 0, 5);
+		MaxHealth = 100;
+		_NormalPlayerHeight = 60.0;
+		UpgradeKitFound = false;
+		SetWeapon("Rifle");
+	}
+	GiveActorInventory(800, "FirstLaunch", 1);
+	GiveActorInventory(800, "MedkitIdle", 1);
+	GiveActorInventory(800, "AutoMode", 1);
+}
+
+script "FoundUpgradeKit" (int ID) {
+	str WeaponUpgrade;
+	int ammoAmount;
+	switch (ID) {
+		case 1:
+			WeaponUpgrade = "Assault Rifle";
+			ammoAmount = 30;
+			break;
+		case 2:
+			WeaponUpgrade = "Shotgun";
+			ammoAmount = 8;
+			break;
+		case 3:
+			WeaponUpgrade = "Roaring Cricket";
+			ammoAmount = 4;
+			break;
+	}
+	HudMessageBold(s:"Weapon Upgrade Kit Found!";HUDMSG_FADEINOUT, 871, CR_WHITE, 0.5, 0.6, 3.0);
+	HudMessageBold(s:"\c[Omniblue] ", s:WeaponUpgrade, s:" \c[white]ammo capacity increased by \c[omniblue]", i:ammoAmount;HUDMSG_FADEINOUT, 870, CR_WHITE, 0.5, 0.62, 3.0);
+	if (!UpgradeKitFound) {
+		UpgradeKitFound = true;
+		delay(125);
+	}
+}
+
+script "DawnIsDead" (void) {
+	while (true) {
+		StopSound(CHAN_7);
+		tutorialqueue = 0;
+		StopSound(CHAN_6);
+		GiveInventory("playerDead", 1);
+		delay(1);
+	}
+}
+
+script "changeGadget" (void)
+{
+	GiveActorInventory(800, "ToggleEquipment", 1);
+}
+
+script "EquipmentSelection" (int number)
+{	
+	str Equipment;
+	setHudSize(1280, 820, 1);
+	setfont("SLFNT100S");
+	int equipmentXPos = 900.1;
+	int equipmentYPos = 350.0;
+	switch (number)
+	{
+		case 0:
+			equipment = "FragGrenade";
+			break;
+		case 1:
+			equipment = "IceGrenade";
+			break;
+		case 2:
+			equipment = "PulseMine";
+			break;
+	}
+	hudMessage(s: "\c[OMNIBLUE]", l:"Equipment", s:": \c[WHITE]" , l:equipment; HUDMSG_TYPEON, 833, "OMNIBLUE", equipmentXPos, equipmentYPos, 1.0, 0.01, 0.2);
+
+}
+
+
+script "ThrowGadget" (void)
+{
+	if (!menuactive) {
+		GiveActorInventory(800, "UseGadget", 1);
+	}
+}
+ 
+script "IncrementMaxHealth" (void) {
+	maxHealth = GetActorProperty(800,  APROP_SpawnHealth) + 5;
+	setfont("SEL21FONT");
+	print(l:"UPGRADE_HEALTH");
+	if(GetActorProperty(800, APROP_HEALTH) < maxHealth) {
+		SetActorProperty(0, APROP_HEALTH, maxHealth);
+	}
+	SetActorProperty(0, APROP_SpawnHealth, maxHealth);
+}
+
+int secretsFound  = 0;
+
+function void wakeSector(int sectorID)
+{
+	ScriptCall("LevelUtil", "WakeSector", sectorID);
+}
+
+function void wakeSectorWithTID(int sectorID, int thingID)
+{
+	ScriptCall("LevelUtil", "WakeSector", sectorID, thingID);
+}
+
+script "blackout" (int thingID) {
+	int Rand = random(50,160);
+	Thing_Deactivate(thingID);
+	PlaySound(0,"script/blast2", 0, 1.0, 0,1.0);
+	Radius_Quake2(0, 3, rand/2, 0, 500, 0);
+	delay(rand);
+	Thing_Activate(thingID);
+	Thing_Activate(94);
+    delay(random(2, 350) * 4);
+	restart;
+}
+
+script "PowerError" (void) {
+	HudMessage(s:"There is no power."; HUDMSG_PLAIN, 0, 0, 0.5, 0.32, 3.7);
+	PlaySound(0,"switch/accessdenied",0,1.0,0,1.0);
+}
+
+function void doNewLevelThings(int SaveGame) {
+	//if(checkActorInventory(800, "HardcoreMode") == 0 && SaveGame == 1) {
+	//	autosave();
+	//}
+
+	cancelslide();
+	TakeActorInventory(800, "isDashing", 1);
+	TakeActorInventory(800, "CooldownSliding", 999);
+	TakeActorInventory(800, "CooldownDashing", 999);
+	GiveActorInventory(800, "StopSliding", 1);
+	ChangeActorRoll(800, 0, true);
+	dashActive = false;
+	ACS_NamedExecuteWithResult("Addhand",0);
+	//TakeActorInventory(800, "FlashLightMode", 1); Why does this line exist??
+	SetActorProperty(800, APROP_HEIGHT, 54.0);
+}
+
+script "LevelEnter" OPEN {
+	delay(2);
+	doNewLevelThings(1);
+	delay(1);
+	SetPlayerProperty(800, 0, PROP_TOTALLYFROZEN);
+	if(checkActorInventory(800, "MedkitUsing") == 1)
+	{
+		ACS_Execute(665, 0, 1);
+	}
+}
+
+script "LevelEnterRe" REOPEN {
+	delay(2);
+	doNewLevelThings(1);
+	delay(1);
+	SetPlayerProperty(800, 0, PROP_TOTALLYFROZEN);
+	if(checkActorInventory(800, "MedkitUsing") == 1)
+	{
+		ACS_Execute(665, 0, 1);
+	}
+}
+
+function void SetMusicNoLoop(str trackName, int volumeTarget)
+{
+	scriptcall("MusicHandler", "SetMusicNoLooping", trackName, volumeTarget);
+}
+function void fadeTrack(int volumeTarget, int fadeSpeed)
+{
+	scriptcall("MusicHandler", "FadeACS", volumeTarget, fadeSpeed);
+}
+
+function void fadeToTrack(str track, int fadeSpeed)
+{
+	scriptcall("MusicHandler", "fadeToNewTrackACS", track, false, fadeSpeed);
+}
+
+
+// MAKE SURE THE SOUND SEQUENCE IS SET TO ''DEATHSILENT''
+// LineID3D -> The linedef that has the door texture. We need this to adjust the texture
+// SectorID3D -> The 3D floor that we want to move down. Make sure the linedef that has the script also has the same tag
+// The Mapspot should have the same ID as the SectorID3D. This is used for audio
+// hologramID can be left blank if you want too. If you want to use it, put a line in between the door and assign the ID to it. It uses the HOLOBTH1 texture.
+script "BathroomStall" (int LineID3D, int SectorID3D, int travelDistance, int hologramID) {
+	str BathroomTextures[5] = {"HOLOBTH1", "HOLOBTH2", "HOLOBTH3", "HOLOBTH4", "HOLOBTH5"};
+	int waitTime = 5; // How many 'beeps' before the door opens back up?
+	int transparancy = 200;
+	int doorSpeed = 22; // Speed of the door
+
+	// Use 78 as a default when 0 is given.
+	if(travelDistance == 0) {
+		travelDistance = 78;
+	}
+
+	SetLineActivation(SectorID3D, SPAC_NONE);
+
+	// Snap open
+	Playsound(SectorID3D, "mover/stall/switch", CHAN_AUTO, 0.6);
+	FloorAndCeiling_LowerByValue(SectorID3D,32, 1);
+	SetLineTexture(LineID3D, SIDE_FRONT, TEXTURE_MIDDLE, "DRSTAL1C");
+	delay(16);
+
+	// Open all the way down
+	Playsound(SectorID3D, "mover/stall/open", CHAN_AUTO);
+	FloorAndCeiling_LowerByValue(SectorID3D,doorSpeed,travelDistance-1);
+	TagWait(SectorID3D);
+
+	// Door reached destination. Play Sound
+	delay(1);
+	Playsound(SectorID3D, "mover/stall/end", CHAN_AUTO, 0.6);
+	delay(21);
+
+	// Wait for door to close
+	while(waitTime > 0) {
+		TranslucentLine(hologramID, transparancy);
+		if(hologramID > 0) {
+			TranslucentLine(hologramID, transparancy);
+			SetlineTexture(hologramID, SIDE_FRONT, TEXTURE_MIDDLE, BathroomTextures[WaitTime-1]);
+			SetlineTexture(hologramID, SIDE_BACK, TEXTURE_MIDDLE, BathroomTextures[WaitTime-1]);
+		}
+		Playsound(SectorID3D, "mover/stall/beep", CHAN_AUTO);
+		ChangeCeiling(SectorID3D, "LITEG1");
+		delay(10);
+		ChangeCeiling(SectorID3D, "LITEB2");
+		delay(16);
+		transparancy-=30;
+		waitTime--;
+	}
+	// Turn light red and wait
+	if(hologramID > 0) {
+		SetlineTexture(hologramID, SIDE_FRONT, TEXTURE_MIDDLE, "-");
+		SetlineTexture(hologramID, SIDE_BACK, TEXTURE_MIDDLE, "-");
+	}
+	playsound(SectorID3D, "movers/stall/warning", CHAN_AUTO, 0.6);
+	ChangeCeiling(SectorID3D, "LITER1");
+	FloorAndCeiling_RaiseByValue(SectorID3D,doorSpeed,1);
+	delay(35);
+
+	// Move up
+	SetLineTexture(LineID3D, SIDE_FRONT, TEXTURE_MIDDLE, "DRSTAL1B");
+	Playsound(SectorID3D, "mover/stall/up", CHAN_AUTO, 0.6);
+	FloorAndCeiling_RaiseByValue(SectorID3D,doorSpeed,travelDistance-1);
+	TagWait(SectorID3D);
+
+	// Destination reached, reset everything back to how it was.
+	Playsound(SectorID3D, "mover/stall/switch", CHAN_AUTO, 0.6);
+	SetLineTexture(LineID3D, SIDE_FRONT, TEXTURE_MIDDLE, "DRSTAL1A");
+	ChangeCeiling(SectorID3D, "LITEB2");
+	Delay(9);
+	SetLineActivation(SectorID3D, SPAC_USE | SPAC_MPush | SPAC_Push );
+}
+
+
+bool playerNearCrate;
+bool playerNearPipe;
+bool playerNearBox;
+bool playerNearWall;
+
+script "setEAX" (int which) {
+	
+	int isDangerState = CheckACtorInventory(800,"DangerStateActive");
+
+	str EAXPresets[100][4] = {
+		{"Room", 4006, 34, 7},
+		{"Bathroom ", 4008, 3, 0},
+		{"Living Room", 4004, 2, 0},
+		{"Large Room", 4007, 36, 4},
+		{"Sewer Pipe", 4012, 21, 0},
+		{"Concert Hall", 4010, 31, 0},
+		{"Ventilation", 4225, 7,0},
+		{"Plain", 3999, 19, 0},
+		{"Factory", 4005, 36, 0},
+		{"Hallway", 4000, 12, 0},
+		{"Parking Garage", 4035, 40, 0},
+		{"Cave", 4038, 8, 0},
+		{"Alley", 4044, 14, 0},
+		{"Concussed", 4046, 23, 0},
+		{"Danger State", 4047, 9, 0},
+		{"Generic Room", 4048, 30, 3},
+		{"Dead", 4049, 22, 0},
+		{"Streets", 4050, 32, 3},
+		{"Echo Corridor", 4051, 13, 0},
+		{"Ear Damage", 4052, 22, 0},
+	};
+	
+	int xx = 0;
+	// 4999 is used as a bypass, dont check the loop in that case.
+	if(which != 4999 && which != 4047) {
+		for(xx=0;xx<=19;xx++) {
+			if(EAXPresets[xx][1] == which) {
+				currentEAX = xx;
+				break;
+			}
+		}
+	}
+	
+	if(!isDangerState || which == 4999 || which == 4047) {
+		int presetToUse = CurrentEax;
+		if(which == 4047) {
+			presetToUse = 14;
+		}
+		Thing_remove(9200);
+		//delay(1);
+		SpawnSpotFacingForced("SoundEnvironment", 800, 9200);
+		//delay(1);
+		SetThingSpecial(9200, 0, EAXPRESETS[presetToUse][2], EAXPRESETS[presetToUse][3]);
+		delay(1);
+		Thing_Activate(9200);
+	}
+}
+
+script 669 (void)
+{
+		GiveActorInventory(800, "MeleeButton", 1);
+		delay(1);
+		TakeActorInventory(800, "MeleeButton", 1);
+}
+
+global str 31: currentLocation;
+function void EnterLocation (str location)
+{
+	scriptcall("LevelEventHandler", "LocationEntered", location);
+}
+
+str equipedWeapon;
+
+script "CheckCurrentWeapon" (void) {
+	SetActivator(800); // Player ID
+	equipedWeapon = GetWeapon(); // Get equipped weapon, store it in ''Equipweapon''
+	// When Dawn drops the fire extinquisher, ''RetrievePreviousWeapon'' is executed -->
+}
+
+script "ShouldSpawnExtinquisherInstead" (void) {
+	SetActivator(800); // Player ID
+	if(!StrCmp(StrParam(s:GetWeapon()),"Fire_Extinguisher")) {
+		SetResultValue(1);
+	} else {
+		SetResultvalue(0);
+	}
+}
+
+// Door Cycler
+script 321 (int door, int isOpen) {
+	if(!isopen) {
+		door_open(door, 32);
+		SetLineSpecial(door, 80, 321, 0, door, 1, 0);
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS7");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS6");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS5");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS4");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS3");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS2");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS1");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS0");
+		delay(2);
+	} else {
+		door_close(door, 32);
+		SetLineSpecial(door, 80, 321, 0, door, 0, 0);
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS1");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS2");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS3");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS4");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS5");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS6");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS7");
+		delay(2);
+		SetLineTexture(door, SIDE_FRONT, TEXTURE_MIDDLE, "DOORCNS8");
+		delay(2);
+	}
+	delay(15);
+}
+
+script "RetrievePreviousWeapon" (void) {
+	delay(1);
+	SetActivator(800); // Player ID
+	SetWeapon(equipedweapon);
+	TakeActorInventory(800, "Fire_Extinguisher", 10);
+	TakeActorInventory(800, "FireExtinquisherAmmo", 10);
+}
+
+script 303 (void) {
+	GiveActorInventory(800, "Reloading", 1);
+	delay(15);
+	TakeActorInventory(800, "Reloading", 1);
+}
+
+script "giveCredits" (int min, int max) {
+	int creditsadded = (random(min, max));
+	ACS_NamedExecuteAlways("pickupCredits", 0, creditsadded);
+	SetHudSize(960, 720, 1);
+	GiveInventory("CreditsCount", creditsadded);
+}
+script "BreakableGlass3" (int wallID)
+
+{
+	Line_SetBlocking(wallID, 0, 1 | 2 | 4| 8| 16 | 32 | 64| 128 | 256 | 512| 1024);
+	int var0;
+	if(activatorTID() == 800) {
+		noisealert(800, wallid);
+	}
+	PlaySound(WallID, "script/glassbre", CHAN_AUTO, 0.9);
+	scriptcall("stats", "addstat", 44, 1, 0.0);
+	if (CheckProximity(wallID, "Dawn", 30.0, 1, 0)) {
+		GiveActorInventory(800, "ShatteredWindow", 1);
+		if (!checkActorInventory(800,"DangerStateActive") == 1) {
+			playsound(800, "dawn/landinglong", CHAN_AUTO, 1.0);
+		}
+	}
+	int randNum = random(0, 101);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(20, 60), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(20, 60), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(20, 60), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(20, 60), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(20, 60), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+		SpawnProjectile (WallID, "Glasspart", random(5, 255), random(10, 40), random(30, 70), 0.3, 0);
+	SetLineSpecial(wallID, 0,0,0,0,0,0);
+	var0 = 40;
+	while(var0 > 0)
+	{
+		var0--;
+		SpawnProjectile (WallID, "LargeGlassParticleSpawner", random(5, 255), random(10, 40), random(30, 70), 2, 0);
+		SpawnProjectile (WallID, "LargeGlassParticleSpawner", random(5, 255), random(10, 40), random(30, 70), 2, 0);
+	}
+	setlinetexture (wallID, SIDE_FRONT, TEXTURE_MIDDLE, "njsmsh01");
+	setlinetexture (wallID, SIDE_BACK, TEXTURE_MIDDLE, "njsmsh01");
+	delay(5);
+	takeActorInventory(800, "ShatteredWindow", 1);
+	setlinetexture (wallID, SIDE_FRONT, TEXTURE_MIDDLE, "njsmsh02");
+	setlinetexture (wallID, SIDE_BACK, TEXTURE_MIDDLE, "njsmsh02");
+	delay(5);
+	setlinetexture (wallID, SIDE_FRONT, TEXTURE_MIDDLE, "njsmsh03");
+	setlinetexture (wallID, SIDE_BACK, TEXTURE_MIDDLE, "njsmsh03");
+	delay(5);
+	setlinetexture (wallID, SIDE_FRONT, TEXTURE_MIDDLE, "njsmsh04");
+	setlinetexture (wallID, SIDE_BACK, TEXTURE_MIDDLE, "njsmsh04");
+	delay(5);
+	setlinetexture (wallID, SIDE_FRONT, TEXTURE_MIDDLE, "-");
+	setlinetexture (wallID, SIDE_BACK, TEXTURE_MIDDLE, "-");
+	if (randNum == 100)
+	{
+		playSound(WallID, "dest/glass", chan_auto );
+	}
+}
+function int IsButtonPressed (int input, int oldInput, int mask)
+{
+	if(input & mask)
+	{
+		return true;
+	}
+
+	return false;
+
+}
+
+int currentAmmo;
+int currentWeapon;
+
+str CodexActivated;
+
+int slidingViewHeight;
+int currentViewHeight;
+int NormalPlayerHeight;
+
+ #define CURSOR 200
+ #define id_cursor               9970
+#define id_choices              9980
+int ThisScript = 0;
+int menu = OFF;
+int currentchoice = -1;
+int maxchoices = 0;
+str upgradedWeapon = "";
+str upgradeString = "";
+
+script "quicksaveselaco" (void) {
+	if ((checkActorInventory(800, "HardcoreMode") == 0) && !MenuActive) {
+		ACS_NamedExecute("autosave2", 0, 1);
+	}
+	if (checkActorInventory(800, "HardcoreMode") == 1 && !MenuActive) {
+		printbold(s:"\c[red]Quicksave denied! You are playing on Hardcore difficulty.");
+	}
+}
+
+script 201 ( void ) NET
+{
+int buttons = GetPlayerInput(-1, INPUT_BUTTONS);
+  while (menu == on)
+  {
+	if (buttons & BT_FORWARD)
+	{
+		if(currentchoice>0) currentchoice--;
+		//LocalAmbientSound("menu/cursor",127);
+	}
+	delay(1);
+  }
+}
+
+int mostrecentEmail = -1;
+bool WaitForUse = false;
+
+script "backgroundColor" (void) {
+	 while (menuActive == true) {
+		GiveActorInventory(0, "upgradeMenuFilter", 1);
+		delay(1);
+	 }
+	 terminate;
+ }
+
+bool paymentFailed;
+
+function void removeAllBlocking(int lineID) {
+	Line_SetBlocking(lineID, 0, 0 | 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096) ;
+}
+function void addAllBlocking(int lineID) {
+	Line_SetBlocking(lineID, 0 | 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096, 0) ;
+}
+
+script "breakfan" (int lineID, int soundID) {
+	delay(1);
+	Thing_Remove(SoundID);
+	SetLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "CPFANF");
+	SetLineTexture(lineID, SIDE_BACK, TEXTURE_MIDDLE, "CPFANF");
+	SpawnSpotFacingForced("Spark_UpOnce_MOD", lineID, 0);
+	playsound(lineID, "dest/fanbreak", CHAN_AUTO);
+	Line_SetBlocking(lineID, 0, 0 | 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096) ;
+	SpawnSpotFacingForced("FanPiece", lineID, 99999);
+	SpawnSpotFacingForced("FanPiece", lineID, 99999);
+	SpawnSpotFacingForced("FanPiece", lineID, 99999);
+	SpawnSpotFacingForced("FanPiece", lineID, 99999);
+}
+
+function void healIndicators(void) {
+		ACS_NamedExecute("HealIndicator", 0);
+}
+
+function int GetHealth(int tid) {
+	SetActivator(tid);
+	return GetActorProperty(800, APROP_HEALTH);
+}
+
+script "HealIndicator" (void) {
+	TakeInventory("MedkitIdle", 1);
+	GiveInventory("MedkitUsing", 1);
+	SpawnSpotFacingForced("PlayRegenSound", 800, 0);
+
+	delay(10);
+
+	GiveInventory("MedkitIdle", 1);
+	TakeInventory("MedkitUsing", 1);
+}
+
+script "GetCabinetCount" open {
+	delay(35);
+	cabinetCardsInLevel = ThingCountName("CabinetCard", 0);
+}
+
+script "incrementCabinetKey" (void) {
+	cabinetCardsInLevel++;
+}
+
+str DisplayString;
+int progressNumber;
+int requiredNumber;
+int mapProgressY = 0.6;
+script "openCabinet" (int doorID, int switchID, int FloorID, int ItemsAndIcon) {
+		ACS_NamedExecute("cabinetTipdisplay", 0);
+		SetLineActivation(switchID, SPAC_NONE);
+		if (CheckInventory("CabinetCardCount") >= 1)
+		{
+			playSound(switchID, "Switch/connect2", CHAN_AUTO, 0.9, 0, 0.8);
+			OpenedStorageCabinets++;
+			SetActorState(ItemsAndIcon, "CabinetCardOpened");
+			GiveActorInventory(800, "OM01CabinetsUnlocked", 1);
+			TakeInventory("CabinetCardCount", 1);
+			SetHudSize(hudx, hudy, 0);
+			delay(2);
+			SetLineActivation(switchID, 0);
+			SetLineTexture(switchID, SIDE_FRONT, TEXTURE_MIDDLE, "CAB_U_A");
+			delay(30);
+			Thing_Activate(doorID);
+			if(getCvar("g_PlayChristmasEvent") == 1) {
+				SpawnSpotFacingForced("PRESENT_ITEM", 800, 0);
+			}
+			Floor_RaiseByValue(FloorID, 10, 44);
+			Ceiling_RaiseByValue(FloorID, 10, 44);
+			playSound(doorID, "door/storage", CHAN_AUTO, 1.0, 0, 0.7);
+			playSound(doorID, "door/storage", CHAN_AUTO, 1.0, 0, 0.7);
+			Ceiling_RaiseToNearest(doorID, 10);
+			tagwait(FloorID);
+			thing_activate(ItemsAndIcon);
+			thing_activate(doorID);
+			SetThingSpecial(Doorid, 0, 80, 80, 80, 38);
+			for(int xz = 0; xz<10;xz++) {
+				delay(35);
+				PLAYSOUND(switchID, "ui/beepy", CHAN_AUTO, 0.3);
+			}
+		} else {
+			printbold(s:"A cabinet card is needed to unlock a Storage Locker");
+			PlaySound(switchID,"Switch/locked", CHAN_AUTO, 0.8, 0, 0.7);
+			SetHudSize(hudx, hudy, 0);
+			SetLineTexture(switchID, SIDE_FRONT, TEXTURE_MIDDLE, "CAB_L_A");
+			delay(75);
+			SetLineTexture(switchID, SIDE_FRONT, TEXTURE_MIDDLE, "CAB_I_A");
+			SetLineActivation(switchID, SPAC_USE);
+		}
+}
+
+script "takeCabinetKey" (void) {
+	cabinetcardsTaken++;
+	delay(25);
+	GiveActorInventory(800, "OM01CabinetCardsFound", 1);
+}
+
+script "cracktut" (void) {
+	if(CheckActorInventory(800, "hasCrackTutorial") == 0) {
+			ScriptCall("TutorialHandler","TutorialMessage", "TUT_CRACKS", 0);
+			GiveActorInventory(800, "hasCrackTutorial", 1);
+	}
+}
+
+function void setAchievement(str achievement)
+{
+	scriptcall("LevelEventHandler", "SetAchievement", achievement);
+}
+
+script "coverTut" (void) {
+	if(CheckActorInventory(800, "hasCoverTutorial") == 0) {
+			ScriptCall("TutorialHandler","TutorialMessage", "TUT_COVER", 0);
+			GiveActorInventory(800, "hasCrackTutorial", 1);
+	}
+}
+
+script "taserTut" (void) {
+	if(CheckActorInventory(800, "hasSMGTutorial") == 0) {
+			ScriptCall("TutorialHandler","TutorialMessage", "TUT_SMG", 1);
+			GiveActorInventory(800, "hasSMGTutorial", 1);
+	}
+}
+
+
+script "IncrementTotalMemo" (void) {
+	DatapadsInlevel++;
+}
+function void enterAreaOverride(str name, int levelNum) {
+	scriptCall("LevelEventHandler", "AreaEntered", name, 0, levelNum);
+}
+function void enterArea(str name) {
+	scriptCall("LevelEventHandler", "AreaEntered", name);
+}
+function void enterFloor(str name, str floorSuffix) {
+	scriptCall("LevelEventHandler", "FloorAreaEntered", name, floorSuffix);
+}
+function void enterStarlightArea(str color, str name) {
+	scriptCall("LevelEventHandler", "StarlightAreaEntered", color, name);
+}
+ function void enterLevel(str name) {
+	scriptCall("LevelEventHandler", "LevelEntered", name);
+} 
+
+script "ConsumeCardPromptDoorOnly" (int cardID, int doorID, int lineID, int doorlockIDandLED) {
+	bool hadKey = false;
+	str whatKey = "";
+	delay(1);
+	SetLineActivation(doorID, SPAC_NONE);
+	switch (cardID) {
+		case 1:
+			if (CheckActorInventory(800, "OMNI_PURPLECARD")) {
+				TakeActorInventory(800, "OMNI_PURPLECARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[PURPLE]Purple Card";
+			break;
+		case 2:
+			if (CheckActorInventory(800, "OMNI_GREENCARD")) {
+				TakeActorInventory(800, "OMNI_GREENCARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[YELLOW]Yellow Card";
+			break;
+		Case 3:
+			if (CheckActorInventory(800, "OMNI_BLUECARD")) {
+				TakeActorInventory(800, "OMNI_BLUECARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[LIGHTBLUE]Blue Card";
+			break;
+	}
+	if (hadKey) {
+		HUDMESSAGE(s:whatkey, s:"\c[WHITE] used!"; HUDMSG_TYPEON, 5, CR_WHITE, 0.5, 0.35, 3.0, 0.02);
+		SetActorState(doorID, "Unlock");
+		playSound(800, "Switch/connect2", CHAN_AUTO);
+		delay(30);
+		Ceiling_RaiseByValue(doorID, 24, 10);
+		delay(15);
+		Generic_Door(doorID, 80, 1, 0, 0);
+		SetLineSpecial(doorID, 0);
+	} else {
+		Thing_Activate(doorID);
+		SetActorState(doorID, "Locked");
+		HUDMESSAGE(s:"\c[WHITE]You need a ", s:whatKey, s:" \c[WHITE]to access this door."; HUDMSG_TYPEON, 5, CR_RED, 0.5, 0.35, 3.0, 0.02);
+		playSound(800, "Switch/locked", CHAN_AUTO);
+		delay(15);
+		delay(10);
+	}
+	delay(20);
+	Thing_Deactivate(doorID);
+	SetLineActivation(doorID, SPAC_Use);
+}
+
+script "ConsumeCardNoDoor" (int cardID, int doorID, int lineID, int doorlockIDandLED) {
+	bool hadKey = false;
+	str whatKey = "";
+	delay(1);
+	SetLineActivation(lineID, SPAC_NONE);
+	switch (cardID) {
+		case 1:
+			if (CheckActorInventory(800, "OMNI_PURPLECARD")) {
+				TakeActorInventory(800, "OMNI_PURPLECARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[Purple]Purple Card";
+			break;
+		case 2:
+			if (CheckActorInventory(800, "OMNI_YELLOWCARD")) {
+				TakeActorInventory(800, "OMNI_YELLOWCARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[yellow]Yellow Card";
+			break;
+		Case 3:
+			if (CheckActorInventory(800, "OMNI_BLUECARD")) {
+				TakeActorInventory(800, "OMNI_BLUECARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[LIGHTBLUE]Blue Card";
+			break;
+			// this is a comment.
+	}
+	if (hadKey) {
+		HUDMESSAGE(s:whatkey, s:"\c[WHITE] used!"; HUDMSG_TYPEON, 5, CR_WHITE, 0.5, 0.35, 3.0, 0.02);
+		SetActorState(doorlockIDandLED, "Unlock");
+		SetLineTexture(LineID, SIDE_FRONT, TEXTURE_TOP, "DROPC");
+		SetLineTexture(DoorID, SIDE_FRONT, TEXTURE_TOP, "DRLGTDEG");
+		playSound(800, "Switch/connect2", CHAN_AUTO);
+		SetLineSpecial(lineID, 0);
+	} else {
+		Thing_Activate(lineID);
+		SetActorState(doorlockIDandLED, "Locked");
+		HUDMESSAGE(s:"\c[WHITE]You need a ", s:whatKey, s:" \c[WHITE]to access this door."; HUDMSG_TYPEON, 5, CR_RED, 0.5, 0.35, 3.0, 0.02);
+		playSound(800, "Switch/locked", CHAN_AUTO);
+		delay(15);
+		delay(10); 
+	}
+	delay(20);
+	Thing_Deactivate(lineID);
+	SetLineActivation(lineID, SPAC_Use);
+}
+
+script "ConsumeCard" (int cardID, int doorID, int lineID, int doorlockIDandLED) {
+	bool hadKey = false;
+	str whatKey = "";
+	delay(1);
+	SetLineActivation(lineID, SPAC_NONE);
+	switch (cardID) {
+		case 1:
+			if (CheckActorInventory(800, "OMNI_PURPLECARD")) {
+				TakeActorInventory(800, "OMNI_PURPLECARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[Purple]Purple Card";
+			break;
+		case 2:
+			if (CheckActorInventory(800, "OMNI_YELLOWCARD")) {
+				TakeActorInventory(800, "OMNI_YELLOWCARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[yellow]Yellow Card";
+			break;
+		Case 3:
+			if (CheckActorInventory(800, "OMNI_BLUECARD")) {
+				TakeActorInventory(800, "OMNI_BLUECARD", 1);
+				hadKey = true;
+			}
+			whatKey = "\c[LIGHTBLUE]Blue Card";
+			break;
+			// this is a comment.
+	}
+	if (hadKey) {
+		HUDMESSAGE(s:whatkey, s:"\c[WHITE] used!"; HUDMSG_TYPEON, 5, CR_WHITE, 0.5, 0.35, 3.0, 0.02);
+		SetActorState(doorlockIDandLED, "Unlock");
+		SetLineTexture(LineID, SIDE_FRONT, TEXTURE_TOP, "DROPC");
+		SetLineTexture(DoorID, SIDE_FRONT, TEXTURE_TOP, "DRLGTDEG");
+		playSound(800, "Switch/connect2", CHAN_AUTO);
+		delay(30);
+		Ceiling_RaiseByValue(doorID, 24, 10);
+		delay(15);
+		Generic_Door(doorID, 80, 1, 0, 0);
+		SetLineSpecial(lineID, 0);
+	} else {
+		Thing_Activate(lineID);
+		SetActorState(doorlockIDandLED, "Locked");
+		HUDMESSAGE(s:"\c[WHITE]You need a ", s:whatKey, s:" \c[WHITE]to access this door."; HUDMSG_TYPEON, 5, CR_RED, 0.5, 0.35, 3.0, 0.02);
+		playSound(800, "Switch/locked", CHAN_AUTO);
+		delay(15);
+		delay(10); 
+	}
+	delay(20);
+	Thing_Deactivate(lineID);
+	SetLineActivation(lineID, SPAC_Use);
+}
+script "GetPlayerHealth" (void) {
+	SetResultvalue(GetActorProperty(800, APROP_HEALTH));
+}
+
+function int GetPlayerHealth (void)
+{
+	return GetActorProperty(800, APROP_HEALTH);
+}
+
+script "DoesPlayerHaveShotgun" (void) {
+	if (CheckActorInventory(800, "shot_gun") == 1) {
+		SetResultvalue(1);
+	}
+}
+
+function bool IsPlayerAlive(void)
+{
+	return GetActorProperty(0, APROP_Health) > 0;
+}
+
+int AmountOfSodaCans = 6;
+script "FuckedUpVendingMachine" (int sodaMachine,int errormessage) {
+	ACS_NamedExecuteAlways("BreakableGlass3", 0, errormessage, errormessage);
+	SetLineTexture(Sodamachine, SIDE_FRONT, TEXTURE_BOTTOM, "VENMB");
+	PlaySound(sodaMachine, "dest/glass");
+	delay(6);
+	SpawnSpotFacing("vendmachine_error", errormessage, errormessage);
+	PlaySound(sodaMachine, "script/bloop");
+	delay(25);
+	SpawnSpotFacing("SodaShooter", sodamachine, sodamachine);
+}
+
+Function int getAngle (int id) {
+    int angle = GetActorAngle(id) >> 8;
+	if (angle < 128)
+    angle = angle + 128;
+    else angle = angle - 128;
+	return angle;
+}
+
+
+FUNCTION int GetVelocity (int id)
+{
+   int len;
+   int x = getactorvelx(id);
+   int y = getactorvely(id);
+   int z = getactorvelz(id);
+
+   int ang = vectorangle(x,y);
+   if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(y, sin(ang));
+   else len = fixeddiv(x, cos(ang));
+
+   ang = vectorangle(len, z);
+   if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(z, sin(ang));
+   else len = fixeddiv(len, cos(ang));
+
+   return len;
+}
+
+bool isSliding;
+  
+script "Autosave2" (int performSafetyCheck, int lineDef, int skipSafetyCheck) // GLOBAL
+{
+	if((getCvar("g_autosaves") == 1 && !performSafetyCheck) && checkActorInventory(800, "HardcoreMode") == 0) {
+		if(!performSafetyCheck) {
+			ACS_NAMEDEXECUTE("StartSave", 0);
+		} else {
+			ScriptCall("Dawn", "checkSaveValidation");
+		}
+	}
+	setLineActivation(lineDef, SPAC_NONE);
+}
+
+script "StartSave" (void) {
+	ScriptCall("HUD","SaveStarted");
+	PlaySound(0, "ui/savegame", CHAN_AUTO);
+	delay(25);
+	autosave();
+	ScriptCall("HUD","SaveCompleted");	
+}
+
+script "CheckRelief" (int item) {
+	// 1 = Medkit
+	// 2 = Stimpack
+	bool playreliefsound;
+	if (item == 1 && GetActorProperty(800, APROP_HEALTH) >= 15 && GetActorProperty(800, APROP_HEALTH) <= 45 ) {
+		playreliefsound = true;
+	}
+	if (item == 2 && GetActorProperty(800, APROP_HEALTH) >= 15 && GetActorProperty(800, APROP_HEALTH) <= 45) {
+		playreliefsound = true;
+	}
+	// If any of the parameters were correct, a playsound will play 35 ticks later
+		if (playreliefsound) {
+			delay(35);
+			playsound(800, "dawn/relief", CHAN_7);
+		}
+	// prevents it from too many times
+	playreliefsound = false;
+	delay(350);
+}
+
+
+
+///////////////////////////// SECURITY DOORS & CARDS ////////////
+script "locked2" (int LockThingID, int lineID, int level, int DoorID)
+{
+	int securityLevel = checkActorInventory(800, "ClearanceLevel");
+	SetLineActivation(LineID, SPAC_NONE);
+	if (securityLevel < level) {
+		HudMessage(l:"SECURITY_REQUIRED_1", i:level, l:"SECURITY_REQUIRED_2"; HUDMSG_PLAIN, 633, 0, 0.5, 0.27, 3.7);
+		if (securityLevel == 0) {
+			HudMessage(l: "SECURITY_NOCARD"; HUDMSG_PLAIN, 634, 0, 0.5, 0.30, 3.7);
+		} else {
+			HudMessage(l: "SECUTITY_CARDSTATUS" , i:securityLevel; HUDMSG_PLAIN, 634, 0, 0.5, 0.30, 3.7);
+		}
+		SetActorState(LockThingID, "locked");
+		PlaySound(LockThingID,"switch/locked",0,1.0,0,1.0);
+		delay(15);
+		PrintSubtitle("$CHARACTER_AOS", "$AOS_SECURITYCLEARANCE_DENIED", 3.0, 0);
+		PlaySound(LockThingID, "VO/AOS/CLEARANCE/DENIED", CHAN_VOICE, 1.0);
+		delay(5);
+		SetLineActivation(LineID, SPAC_USE);
+	} else if (securityLevel >= level) {
+		SetActorState(LockThingID, "unlock");
+		HudMessage(l:"ACCESS_GRANTED"; HUDMSG_PLAIN, 0, CR_GREEN, 0.5, 0.27, 3.7);
+		PlaySound(LockThingID,"Switch/connect2",CHAN_AUTO,1.0,0,0.6);
+		SetLineActivation(LineID, SPAC_NONE);
+		delay(15);
+		PrintSubtitle("$CHARACTER_AOS", "$AOS_SECURITYCLEARANCE_ACCEPTED", 3.0, 0);
+		PlaySound(LockThingID, "VO/AOS/CLEARANCE/GRANTED", CHAN_VOICE, 1.0);
+		delay(25);
+		Door_Open(DoorID, 64);
+	}
+}
+function bool checkClearanceLevel (int levelToCheck) {
+	int securityLevel = checkActorInventory(800, "ClearanceLevel");
+	if (securityLevel >= levelToCheck) {
+		SpawnSpotFacingForced("AOS_CLEARANCE_GRANTED_SPAWNER", 800, 0);
+		HudMessage(l:""; HUDMSG_PLAIN, 634, CR_GREEN, 0.5, 0.27, 3.7);
+		HudMessage(l:""; HUDMSG_PLAIN, 633, CR_GREEN, 0.5, 0.27, 3.7);
+		PlaySound(800,"Switch/connect2",CHAN_AUTO,0.85,0,0.6);
+		return true;
+	} 
+	hudMessage(l:"SECURITY_REQUIRED_1", i: levelToCheck, l:"SECURITY_REQUIRED_2"; HUDMSG_PLAIN, 633, 0, 0.5, 0.27, 3.7);
+	if (securityLevel == 0) {
+		HudMessage(l:"SECURITY_NOCARD"; HUDMSG_PLAIN, 634, 0, 0.5, 0.30, 3.7);
+	} else {
+		HudMessage(l:"SECUTITY_CARDSTATUS" , i:securityLevel; HUDMSG_PLAIN, 634, 0, 0.5, 0.30, 3.7);
+	}
+	SpawnSpotFacingForced("AOS_CLEARANCE_DENIED_SPAWNER", 800, 0);
+	PlaySound(800,"Switch/locked",CHAN_AUTO,0.7,0,0.6);
+	return false;
+}
+
+script "IncrementUpgradeKit" (void) {
+	upgradekitsinlevel++;
+} 
+
+script "CheckAmmoScriptCricket" (int ammoAmount)
+{
+	int currentPlasma = CheckActorInventory(800, "PistolReserve");
+	GiveActorInventory(800, "PistolReserve", ammoamount);
+	int newPlasma = CheckActorInventory(800, "PistolReserve");
+	if (currentPlasma == newPlasma)
+	{
+		print(s:"Roaring Cricket ammo full");
+		SetResultValue(0);
+		delay(25);
+	}
+	else {
+		ACS_NamedExecuteWithResult("PickupPlasmaSmall", ammoAmount);
+		SetResultValue(1); 
+	}
+}
+
+
+// Actually destroys the camera. This is an awful name.
+script "cameratip" (int cameraID)
+{
+	if(cameraID > 0)
+	{
+		Thing_Destroy(cameraID);
+	}
+	SetLineTexture(cameraID, SIDE_FRONT, TEXTURE_BOTTOM, "NOISA0");
+	SetLineActivation(cameraID, SPAC_NONE);
+	SetLineSpecial(cameraID, 0);
+}
+
+script "CheckReflectionSetting"(void)
+{
+	if (getCvar("r_reflections") == 2) {
+			Sector_SetPlaneReflection(10001, 20, 0);
+			Sector_SetPlaneReflection(10002, 50, 0);
+			Sector_SetPlaneReflection(10003, 70, 0);
+			Sector_SetPlaneReflection(10005, 10, 0);
+		} else {
+			Sector_SetPlaneReflection(10001, 0, 0);
+			Sector_SetPlaneReflection(10002, 0, 0);
+			Sector_SetPlaneReflection(10003, 0, 0);
+			Sector_SetPlaneReflection(10005, 0, 0);
+		}
+		
+	if (GetCVar("r_reflections") >= 1) 
+	{ 
+		SetLineSpecial(8889, 182); 
+	}
+	else 
+	{
+		setlinespecial(8889, 0); 
+	}
+}
+script "gameLogics" (void) {
+	while (true)
+	{
+		SlideLogic();
+		delay(1);
+	}
+	delay(1);
+	restart;
+}
+
+function void setAmbientMode(int mode) {
+	TakeActorInventory(800, "AmbientMode", 999);
+	GiveActorInventory(800, "AmbientMode", mode);
+}
+
+script "SpawnAmbientSoundEffects" open {
+	while (CheckActorInventory(800, "AmbientMode") > 0) 
+	{
+		if(CheckActorInventory(800, "AmbientMode") == 1) {
+			delay(35*random(7,16));
+			SpawnSpotFacingForced("AmbientSoundEffectSpawner", 800, 0);
+		}
+		if(CheckActorInventory(800, "AmbientMode") == 2) {
+			delay(35*random(7,16));
+			SpawnSpotFacingForced("FactoryAmbientSoundEffectSpawner", 800, 0);
+		}
+		if(CheckActorInventory(800, "AmbientMode") == 3) {
+			delay(35*random(3,5));
+			SpawnSpotFacingForced("WarzoneAmbientSoundEffect", 800, 0);
+		}
+		if(CheckActorInventory(800, "AmbientMode") == 4) {
+			delay(35*random(2,4));
+			SpawnSpotFacingForced("AmbientSoundEffectSpawner", 800, 0);
+		}
+		if(CheckActorInventory(800, "AmbientMode") == 5) {
+			delay(35*random(2,4));
+			SpawnSpotFacingForced("WarzoneAmbientSoundEffectWithPassby", 800, 0);
+		}	
+		if(CheckActorInventory(800, "AmbientMode") == 6) 
+		{
+			delay(35*random(2,7));
+			SpawnSpotFacingForced("OminousAmbientSoundEffectSpawner", 800, 0);
+		}	
+		if(CheckActorInventory(800, "AmbientMode") == 7) 
+		{
+			delay(35*random(2,7));
+			SpawnSpotFacingForced("FBFAmbientSoundEffectSpawner", 800, 0);
+		}	
+		if(CheckActorInventory(800, "AmbientMode") == 8) {
+			delay(random(60,105));
+			SpawnSpotFacingForced("WarzoneAmbientSoundEffect", 800, 0);
+		}
+		if(CheckActorInventory(800, "AmbientMode") == 9) {
+			delay(random(15,25));
+			SpawnSpotFacingForced("ExplosionAmbientSoundEffectSpawner", 800, 0);
+		}
+	}
+	delay(10);
+	restart;
+}
+
+function void dawnTalk(str voiceLine, str subtitle, int subtitleTime, int settingRequirement)
+{
+	scriptcall("LevelEventHandler", "dawnTalkACS", voiceLine, subtitle, subtitleTime, settingRequirement);
+}
+
+script "BustCrate" (int crateID, int amount, int crateType) {
+	// Define the mesh actor
+	str crateToSpawn = "CRATELID_GREENGREY";
+	if(crateType == 1) {
+		crateToSpawn = "CRATELID_GREYGREY";
+	}
+	
+	// Lower crate
+	floor_LowerByValue(crateID, 10000, 40);
+	
+	// Play crate breaking sound
+	PlaySound(crateID, "dest/elevsm2", CHAN_AUTO);
+	PlaySound(crateID, "dest/elevsm2", CHAN_AUTO);
+	
+	// Spawn Crate
+	SpawnSpotFacingForced(crateToSpawn, crateID, 0);
+	
+	// Set up the amount to spawn and starts spawning
+	int amountSpawned;
+	while(amountSpawned < amount) {
+		amountSpawned++;
+		SpawnSpotFacingForced("CrawlerMineAmbusher", crateID, 0);
+		delay(6);
+	}
+}
+
+
+function void checkInteractionDelaySetting (void) {
+	SetActivator(800);
+	if (getCvar("g_interactionanimations") == 1) {
+		InteractionDelay = 14;
+	}
+	if (!StrCmp(GetWeapon(),"None")) {
+		InteractionDelay = 0;
+	}
+	if (getCvar("g_interactionanimations") == 0) {
+		InteractionDelay = 0;
+	}
+} 
+
+function int getCeilingHeight(int TID) {
+	int x1, y1, z1;
+	x1 = GetActorX(800) >> 16;
+	y1 = GetActorY(800) >> 16;
+	int actorZ = (GetActorZ(800) >> 16);
+	z1 = GetSectorCeilingZ(0, x1, y1) >> 16;
+	return z1 - actorZ;
+}
+
+int minSlideTime = 18;
+int SlideCooldownCounter;
+function bool isCeilingTooLow (void) {
+	if (getCeilingHeight(800) < 25 || CheckActorInventory(800, "SlidingCeilingCollisionCheck") > 0) {
+		minSlideTime = 2;
+		return true;
+	}
+	return false;
+}
+
+function void SlideLogic (void) {
+	if (CheckACtorInventory(800, "SlideScriptActive") >= 1) 
+	{
+		SlideCooldownCounter++;
+		minSlideTime = 18;
+		// WHILE SLIDING, MOVEMENT SPEED IS SET TO 0, FRICTION IS REDUCED, AND THE ABILITY TO JUMP IS DISABLED.
+		SetActorProperty(800, APROP_MaxStepHeight, 18.0);
+		Radius_Quake2(800, 1, 10, 0, 5, "");
+		SetActorProperty(800, APROP_SPEED, 0); 
+		SetActorProperty(800,APROP_JumpZ,7.8);
+		setActorProperty(800, APROP_Friction, 1.07);
+		//print(i:GetActorProperty(800, APROP_Height), s: "\n", i:GetActorProperty(800, APROP_Height) >> 8 );
+	    SetActorProperty(800, APROP_HEIGHT, 2);
+		
+		// If the player does not touch the floor while sliding, dont spawn sparks
+		if ((GetActorFloorZ (800) / 1000 - GetActorZ(800) / 1000) < -2000) {
+			TakeActorInventory(800, "SlideScriptActive", 1);
+		}
+
+		// IF THE PLAYER RELEASES THE DASH BUTTON, SLOWS DOWN TOO MUCH OR FALLS OFF A GREAT HEIGHT, CANCEL THE SLIDE INSTANTLY
+		if ((GetVelocity(800) >> 16 <= 1 | !DashActive | CheckActorInventory(800, "SlideScriptActive") == 0) &&  !isCeilingTooLow() && SlideCooldownCounter >= minSlideTime ) {
+			GiveActorInventory(800, "StopSliding", 1);
+			minSlideTime = 18;
+			StopSound(800, CHAN_5);
+			SetActorState(800, "StopSliding");
+			TakeActorInventory(800, "SlideScriptActive", 1);
+			Radius_Quake2(800, 1, 1, 0, 5, "");
+			setActorProperty(800, APROP_Friction, 1.07); 
+		}
+		} else {
+			GiveActorInventory(800, "StopSliding", 1);
+			minSlideTime = 18;
+			SetActorProperty(800,APROP_JumpZ,7.8);
+			SetActorProperty(800, APROP_SPEED, playerSpeedValue);
+			SetActorProperty(800, APROP_MaxStepHeight, 19.0);
+			ACS_NamedExecute("CheckPlayerFriction", 0);
+
+		// Return to normal friction
+		if (GetPlayerInput(0, INPUT_FORWARDMOVE)  ||  GetPlayerInput(0, INPUT_SIDEMOVE))
+		 {
+		  SetActorProperty(800, APROP_Friction, 1.0);
+		 }
+	}
+}
+
+function void cancelslide(void) {
+	ACS_NamedExecute("CancelSlide", 0);
+}
+
+script "CancelSlide" (void) {
+	int _minslideTime = minSlideTime;
+	minslidetime = 0;
+	TakeInventory("SlidingCeilingCollisionCheck", 100);
+	TakeInventory("SlidingIsActive", 1);
+	GiveInventory("StopSliding", 1);
+	dashActive = false;
+	delay(2);
+	minslidetime = _minslideTime;
+}
+
+script "CheckPlayerFriction" (void) {
+	delay(25);
+	setActorProperty(800, APROP_Friction, 0.90);
+}
+
+function bool CheckKey (int cardID, int lineID, int doorlockIDandLED, int DoorSectorID) {
+	bool hadKey = false;
+	str itemToCheck;
+	str whatKey = "";
+	SetLineActivation(lineID, SPAC_NONE);
+	switch (cardID) {
+		case 1:
+			itemToCheck = "OMNI_PURPLECARD";
+			whatKey = "\c[Purple]Purple Card";
+			break;
+		case 2:
+			itemToCheck = "OMNI_YELLOWCARD";
+			whatKey = "\c[Yellow]Yellow Card";
+			break;
+		Case 3:
+			itemToCheck = "OMNI_BLUECARD";
+			whatKey = "\c[LIGHTBLUE]OMNI_BLUECARD";
+			break;
+			// this is a comment.
+	}
+	if(CheckActorInventory(800, itemToCheck) == 1) {
+			hadKey = true;
+	}
+	if (hadKey) {
+		HUDMESSAGE(s:whatkey, s:"\c[WHITE] used!"; HUDMSG_TYPEON, 5, CR_WHITE, 0.5, 0.35, 3.0, 0.02);
+		SetActorState(doorlockIDandLED, "Unlock");
+		playSound(800, "Switch/connect2", CHAN_AUTO);
+	} else {
+		SetActorState(doorlockIDandLED, "Locked");
+		HUDMESSAGE(s:"\c[WHITE]You need a ", s:whatKey, s:" \c[WHITE]to access this door."; HUDMSG_TYPEON, 5, CR_RED, 0.5, 0.35, 3.0, 0.02);
+		playSound(800, "Switch/locked", CHAN_AUTO);
+	}
+	ACS_NamedExecute("CheckkeyDelayer", 0, lineID, doorsectorID, hadKey);
+	return hadKey;
+}
+
+script "CheckkeyDelayer" (int LineID, int doorsectorID, int hadKey) {
+	SetLineActivation(lineID, SPAC_NONE);
+	delay(45);
+	if(hadKey) {
+		Door_Open(doorSectorID, 16);
+	}
+	SetLineActivation(lineID, SPAC_Use);
+}
+
+bool IsHoldingObject;
+
+str WeaponBeforePickup;
+
+script "DodgeButtonPressed" (void) {
+	dashActive = true;
+	while(dashActive) {
+		ACS_NamedExecute("SideDash", 0);
+		delay(1);
+	}
+}
+
+script "DodgeButtonNotPressed" (void) {
+	dashActive = false;
+	ACS_NamedTerminate("SideDash", 0);
+}
+
+
+
+// THIS IS SHIT. MAKE THIS ZSCRIPT ASAP
+script "SideDash" (void)
+{
+	int DawnIsSliding;
+	int slideTilt = 0.0035;
+	int input;
+	int oldInput;
+
+	int xInput;
+	int yInput;
+
+	int taps;
+	int ticsD;
+	int last;
+	int angle;
+	int velX;
+	int velY;
+	int velZ;
+	int settings[4][3] = {
+	{ -2800,	0.25, 0.980	},
+	{ 2800,	0.75, 0.020	},
+	{ 3200,	0.5, 0.0	}
+	};
+	if(GetPlayerHealth() > 0 && checkActorInventory(800, "SlideUpgradeActual") == 1 && CheckActorInventory(800, "IsCrouching") == 0)
+	{
+		TakeActorInventory(800, "isDashing", 1);
+		input = GetPlayerInput(-1, INPUT_BUTTONS);
+		oldInput = GetPlayerInput(-1, INPUT_OLDBUTTONS);
+
+		xInput = GetPlayerInput(-1, MODINPUT_FORWARDMOVE);
+		yInput = GetPlayerInput(-1, MODINPUT_SIDEMOVE);
+		// Slide forward if not strafing enough
+		if(xInput > 11900 && (input & BT_MOVELEFT || input & BT_MOVERIGHT) == false) {
+			ACS_NamedExecute("CheckSlide", 0);
+			terminate;
+		}
+			int dashNum; //Please dont use this janky system when we go full Zscript;
+			int direction = -1; //Good lord send help..
+			if(yInput < settings[0][0] && yinput != 0) {
+				dashNum = 0.25;
+				direction = 0;
+			}
+			if(yInput > settings[1][0] && yinput != 0) {
+				dashNum = 0.75;
+				direction = 1;
+			}
+			if(xInput < -6400) {
+				dashNum = 0.5;
+				direction = 2;
+			}
+			//Nothing? Terminate script.
+			if(direction == -1) {
+				terminate;
+			}
+
+			if(GetActorZ(0) - GetActorFloorZ(0) == 0
+			&& menuActive == false
+			&& dashActive == true
+			&& CheckActorInventory(800, "SlideScriptActive") == 0
+			&& DawnFrozen == false
+			&& CheckActorInventory(800, "CooldownDashing") == 0
+			&& checkactorinventory(800, "isDashing") == 0
+			&& CheckActorInventory(800, "CooldownStunned") == 0)
+			{
+				SpawnSpotFacingForced("dashShakes", 800, 0);
+				GiveActorInventory(800, "isDashing", 1);
+				angle = GetActorAngle(0) + settings[direction][1];
+				//ChangeActorRoll(800, levelTilt + settings[i][2], true);
+				velX = FixedMul(cos(angle), SD_DASHDELAY);
+				velY = FixedMul(sin(angle), SD_DASHDELAY);
+				GiveActorInventory(800, "CheckZVelocityDash", 1);
+				switch (dashNum) {
+					case 0.25:
+						ScriptCall("Dawn", "DashEffect", 0);
+						break;
+					case 0.5:
+						ScriptCall("Dawn", "DashEffect", 2);
+						break;
+					case 0.75:
+						ScriptCall("Dawn", "DashEffect", 1);
+						break;
+				}
+				GiveInventory("CooldownDashing", 999);
+				SetActorVelocity(0, velX, velY, velZ, true, false);
+				scriptcall("stats", "addstat", 63, 1, 0.0);
+				if(CheckActorInventory(800, "DangerStateActive") == 0) {
+					PlaySound(0, "DAWN/DODGE", CHAN_7, SD_SOUNDVOLUME);
+				} else {
+					PlaySound(0, "action/climb", CHAN_7, SD_SOUNDVOLUME);
+				}
+				GiveActorInventory(800, "isDashing", 1);
+				while(GetActorVelZ(0) < 0.0) {
+					//ChangeActorRoll(800, levelTilt + settings[i][2], true);
+				}
+
+					ChangeActorRoll(800, 53, true);
+			}
+	}
+}
+
+function void giveInvasionTier(str tierName)
+{
+	scriptcall("InvasionTierSystem", "giveInvasionTier", tierName);
+}
+
+function void setInvasionTier(int tier)
+{
+	TakeActorInventory(800, "InvasionTier", 999);
+	GiveActorInventory(800, "InvasionTier", tier);
+}
+
+script "CheckSlide" (void) {
+	int slideTilt = 0.045;
+	
+	int slidetime = 95; // How long (in tics)should the slide last? NOTE TO SELF: Make it so that this value increases based on initial velocity.
+	SetActorProperty(800, APROP_HEIGHT, NormalPlayerHeight / 2);
+	int buttons = GetPlayerInput(0, INPUT_BUTTONS);
+		// Checks to decide if the player is allowed to crouch:
+		// |	Does the player touch the ground?
+		// |	Does the player hold shift [DASH]?
+		// |	Is the player moving forward?
+		// |	Is there a menu open? (Codex, Workshop, mandatory tutorial message))
+		// |	Does the player have enough Dash Charges?
+		// | 	Is Dawn Frozen?
+		// |    Is the player not crouching?
+
+	if(checkSlideConditions()) {
+		int CrouchRealHeight = GetActorProperty(800, APROP_Height);
+		GiveActorInventory(800, "CancelAnimation", 1);
+		giveActorInventory(800, "CooldownSliding", 35);
+		if (CheckActorInventory(800, "SlideUpgradeActual") == 0) {
+			delay(35);
+		} else {
+			scriptcall("stats", "addstat", 62, 1, 0.0);
+			GiveActorInventory(800, "SlideScriptActive", 1); // Enables ''Sliding Mode''. Other scrips will be aware of this and make adjustments.
+			// The camera tilt when sliding
+			//ChangeActorRoll(800, levelTilt + 0.035, true);
+
+			// Launch the player forward using the GetActorAngle function
+			SetActorVelocity(800, 0, 0, 0, 0 , 0);
+			ThrustThing(GetActorAngle (800) >> 8, 6, 1, 800);
+			GiveActorInventory(800, "SlideTiltActive", 1);
+			// A script that slowly transitions the player to a crouching height (SEE BELOW))
+
+			// Give the player a ''PlayerSlides'' item. Which will tilt the weapon sprite.
+			GiveActorInventory(800, "PlayerSlides", 1);
+			int slidespeed = 0;
+			int threshold = 6;
+			for(int t=0;t<slidetilt; t = t + 0.005) {
+				delay(1);
+				threshold--;
+				if(threshold >= 0) {
+					ThrustThing(GetActorAngle (800) >> 8, slidespeed, 1, 800);
+				}
+				slidespeed++;
+				if(getCvar("g_SlideTilt") == 1) {
+					//ChangeActorRoll(800, levelTilt + t, true);
+				}
+			}
+
+			while(CheckACtorInventory(800, "SlideScriptActive") == 1) {
+				// Get Actor Velocity
+				int currentSlideVelocity = GetVelocity(800);
+				if (CheckActorInventory(800, "CooldownSliding") > 65 && isCeilingTooLow()) {
+					ThrustThing(GetActorAngle (800) >> 8, 1, 0, 800);
+				}
+				giveActorInventory(800, "CooldownSliding", 3);
+				SpawnSpotForced("SlideSmokeTrail", 800, 0, 0);
+				delay(1);
+			}
+				SlideCooldownCounter = minSlideTime;;
+				// Slidetime over? Return to standing up!
+
+				for(int s=slideTilt;s>0; s = s - 0.005) {
+					delay(1);
+					if(getCvar("g_SlideTilt") == 1) {
+						//ChangeActorRoll(800, levelTilt + s, true);
+					}
+				}
+				TakeActorInventory(800, "SlideTiltActive", 1);
+				// And to close it all of, disable Sliding Mode.
+				SlideCooldownCounter = 0;
+				TakeActorInventory(800, "SlideScriptActive", 1);
+				GiveActorInventory(800, "StopSliding", 1);
+				TakeActorInventory(800, "PlayerSlides", 1);
+			}
+		}
+}
+
+function bool PlayerIsInVent(void) {
+	// If both ceiling and floor are vent with barely any space between ceiling and floor, it's safe to assume the player is in a vent.
+	if(CheckActorFloorTexture(800, "VENT1") && CheckActorCeilingTexture(800, "VENT1") && GetActorFloorZ(800) < 50) {
+		return true;
+	}
+	return false;
+}
+function bool checkSlideConditions (void)  {
+	if (GetActorZ (800) <= GetActorFloorZ (800) &&
+			!DawnFrozen &&
+			GetPlayerHealth() > 0 &&
+			GetActorProperty(800, APROP_Waterlevel) == 0 &&
+			checkActorInventory(800, "isDashing") == 0 &&
+			CheckActorInventory(800, "CooldownSliding") == 0 &&
+			CheckActorInventory(800, "IsCrouching") == 0 &&
+			CheckActorInventory(800, "CooldownStunned") == 0 &&
+			!PlayerIsInVent()) {
+			return true;
+	}
+	return false;
+}
+
+function void StatusIcon(str icon, int nerfTime, str iconTime) {
+	if (getCVAR("g_statusindicator") == 1 && !menuactive) {
+			Setfont(icon);
+			SetHudSize(1920, 1080, 0);
+			hudmessage(s:"a";HUDMSG_FADEOUT | HUDMSG_ALPHA, 42199, CR_WHITE, 960.0, 655.0, nerfTime, 0.2, 0.5);
+			Setfont(iconTime);
+			hudmessage(s:"a";HUDMSG_FADEOUT | HUDMSG_ALPHA, 42200, CR_WHITE, 960.0, 650.0, nerfTime, 0.2, 0.5);
+		}
+}
+
+script "SquadLeaderKilled" (void) {
+	delay(15);
+	playsound(800, "script/SQDDED", CHAN_AUTO);
+}
+
+function bool creditsValidatorCache(int amount, int LineID) {
+	if(CheckActorInventory(800, "CreditsCount") >= amount) {
+		SetLineActivation(LineID, SPAC_NONE);
+		SetLineTexture(LineID, SIDE_FRONT, TEXTURE_MIDDLE, "PUR_COMP");
+		TakeActorInventory(800, "CreditsCount", amount);
+		playsound(800, "ui/buy/big", CHAN_AUTO);
+		return true;
+	}
+	Printbold(l:"BuyFail");
+	playsound(800, "ui/buy/error", CHAN_AUTO, 1.0);
+	return false;
+}
+
+script "SquadMemberCheck" (void) {
+	int SquadMemberHealth = GetActorProperty(0, APROP_Health);
+	
+	// If the soldier is near a squadleader...
+	while (CheckProximity(0, "SOLDIER_SQUADLEADER", 750.0)){
+		if (SquadMemberHealth != GetActorProperty(0, APROP_Health)) {
+			ACS_NamedExecuteAlways("Hitmarker", 0, 1);
+			//giveinventory("bluearmor", 100);
+		}
+		takeInventory("ExplosiveResistance", 1);
+		giveinventory("ExplosiveResistance", 1);
+		SquadMemberHealth = GetActorProperty(0, APROP_Health);
+		SpawnSpotFacingForced("Squadmate", 0, 0);
+		delay(1);
+	}
+	delay(3);
+	restart;
+}
+
+// SHARED SCRIPTS
+global bool 34: hasLockdownObjective;
+bool objective1isgiven;
+script "ViewCamera" (int cameraID) {
+	SetFont("BLACKER");
+	SetLineActivation(cameraID, SPAC_NONE);
+	HudMessageBold(s:"a";HUDMSG_FADEINOUT | HUDMSG_LAYER_UNDERHUD, 9429, CR_WHITE, 0.5, 0.5, 0.1, 0.1);
+	PlaySound(cameraID, "script/camon");
+	delay(7);
+	ChangeCamera(cameraID, 800, 1);
+	delay(2);
+	Playsound(cameraID, "CAMERA/static", CHAN_6, 0.5, 1, 0.1);
+	while (CheckPlayercamera(0) == cameraID) {
+		SetFont("BLACKER");
+		HudMessageBold(s:"a";HUDMSG_ALPHA | HUDMSG_LAYER_UNDERHUD, 9430, CR_WHITE, 0.5, 0.5, 0.2, 0.35);
+		SetFont("SEL16FONT");
+		HudMessage(l:"CAMERA_MESSAGE"; HUDMSG_PLAIN, 73, CR_WHITE, 0.5, 0.8, 1.0);
+		delay(1);
+	}
+	HudMessageBold(s:"";HUDMSG_ALPHA, 929, CR_WHITE, 0.5, 0.5, 0.1, 0.30);
+	HudMessage(s:""; HUDMSG_PLAIN, 73, CR_WHITE, 0.5, 0.8, 1.0);
+	PlaySound(800, "script/camoff");
+	SetFont("BLACKER");
+	StopSound(cameraID, CHAN_6);
+	HudMessageBold(s:"a";HUDMSG_FADEOUT | HUDMSG_LAYER_UNDERHUD, 9429, CR_WHITE, 0.5, 0.5, 0.3, 0.2);
+	delay(7);
+	SetLineActivation(cameraID, SPAC_USE);
+}
+
+function void AmbushAlert (int Door) {
+	ACS_NamedExecuteWithResult("AmbushAlertACS", door);
+}
+
+script "AmbushAlertACS" (int door) {
+	SpawnSpotFacingForced("IncomingDanger", door, 0);
+	playsound(door, "script/increment", CHAN_AUTO, 1.0, 0, 0.6);
+	delay(15);
+	SpawnSpotFacingForced("IncomingDanger", door, 0);
+	playsound(door, "script/increment", CHAN_AUTO, 1.0, 0, 0.6);
+	delay(15);
+	SpawnSpotFacingForced("IncomingDanger", door, 0);
+	playsound(door, "script/increment", CHAN_AUTO, 1.0, 0, 0.6);
+	delay(15);
+	SpawnSpotFacingForced("IncomingDanger", door, 0);
+	playsound(door, "script/increment", CHAN_AUTO, 1.0, 0, 0.6);
+	delay(15);
+	delay(25);
+	door_open(door, 64);
+}
+
+script "DisableLockdown" (void)
+{
+	THING_REMOVE(333);
+	SpawnSpotFacingForced("UNLOCKEDEXITMARKER", 191, 334);
+	print(s:"Map updated!");
+	SetLineTexture(189, SIDE_BACK, TEXTURE_BOTTOM, "LCKDOWNU");
+	SetThingSpecial(187, 0, 0, 255, 0, 32);
+	Ceiling_raisebyvalue(192, 64, 100);
+	playsound(186, "Switch/connect2", CHAN_AUTO);
+	SpawnSpotFacingForced("SoldierSpawner", 193, 193);
+	SpawnSpotFacingForced("engineer", 194, 194);
+	SpawnSpotFacingForced("ChainGunGuy3", 195, 195);
+	delay(25);
+	delay(20);
+	ACS_NamedTerminate("EvacFacility", 0);
+	Thing_Destroy(186);
+	Thing_remove(186);
+	//completeObjective("Disable the lockdown");
+	ACS_NamedExecute("Autosave2", 0);
+	PlaySound(66, "vo/lockdownoff");
+	//Dialog("none", "AOS", "LOCKDOWN DISENGAGED. EXIT door now open!", 4.0);
+	SetThingSpecial(25, 0, 160, 160, 160, 90);
+	SetThingSpecial(283, 0, 140, 140, 140, 130);
+	Sector_SetColor(15000,40,40, 40, 40);
+	SetLineSpecial(188, 0);
+}
+
+
+function void printSubtitle(str characterName, str subtitleString, int duration, bool nooverride)
+{
+	ScriptCall("Notification", "Subtitle", characterName, subtitleString,  duration, nooverride);
+}
+
+Function void playdialog(int id, str voiceFile, str voiceName, str voiceSubtitle, int duckingTime, int voicetime, bool duckAudio)
+{
+	Setfont("PDAFONT");
+	PlaySound(id, voicefile, CHAN_5, getCVAR("snd_dialogvolume"), 0, 0.8, 0);
+	if (getCvar("snd_subtitles") >= 1) {
+			ScriptCall("Notification", "Subtitle", voiceName, voiceSubtitle,  voicetime);
+	}
+
+	if (duckAudio == true) {
+		ACS_NamedExecute("VolumeReduction", 0, duckingTime);
+	}
+}
+
+
+script "VolumeReduction" (int dialogTime) {
+	if (getCvar("snd_audioducking") == 1) {
+		int musicVolume = 1.0;						// The current volume of the track
+		int musicVolumeDuringDialog = 0.35;	// The volume of the dialog when music plays
+		int dialogtimer = dialogTime;				// dialogtime: How long is the dialog? When the timer is over, revert back to 100% music volume
+		while (musicVolume > musicVolumeDuringDialog) {
+			// slowly reduce the music volume by 0.010 until 'musicvolumeDuringDialog' is reached
+			SetMusicVolume(musicVolume);
+			musicVolume = musicVolume - 0.030;
+			delay(1);
+		}
+		delay(dialogTime*35); // 35 seconds = 1 tick.
+		while (musicVolume < 1.0) {
+			// same as above, but raise the music instead since the dialog is over.
+			SetMusicVolume(musicVolume);
+			musicVolume = musicVolume + 0.030;
+			delay(1);
+		}
+	}
+	SetMusicVolume(1.0);
+	terminate;
+}
+
+
+function void FadeMusic(void) {
+	ACS_NamedExecute("FadeMusicInAndOut", 0);
+}
+
+script "FadeMusicInAndOut" (void) {
+		int musicVolume = 1.0;						// The current volume of the track
+		int musicVolumeDuringDialog = 0.55;	// The volume of the dialog when music plays
+		while (musicVolume > musicVolumeDuringDialog) {
+			// slowly reduce the music volume by 0.010 until 'musicvolumeDuringDialog' is reached
+			SetMusicVolume(musicVolume);
+			musicVolume = musicVolume - 0.0125;
+			delay(2);
+		}
+		delay(5);
+		SetMusic("");
+		while (musicVolume < 1.0) {
+			// same as above, but raise the music instead since the dialog is over.
+			SetMusicVolume(musicVolume);
+			musicVolume = musicVolume + 0.0125;
+			delay(1);
+		}
+}
+
+
+int alarmCount = 0;
+script "EvacFacility" (void)
+{
+
+	int mnam = GetLevelInfo (LEVELINFO_LEVELNUM);
+	while (CheckActorInventory(800, "LockdownActiveCheck") == 1 && (mnam==1 || mnam==2))
+	{
+		delay(2);
+		alarmcount++;
+		playSound(66, "script/alert4", CHAN_AUTO, 0.67, 0, 0.84);
+		if (alarmCount == 10)
+		{
+			playSound(66, "vo/ariel2", CHAN_5, 0.57, 0, 0.9);
+			if (!hasLockdownObjective)
+			{
+				delay(50);
+				hasLockdownObjective = true;
+						if (!objective1isgiven) {
+							//addObjective("Disable the lockdown");
+							objective1IsGiven = true;
+						}
+			}
+			alarmcount = 0;
+		}
+		delay(5*35);
+	}
+	delay(20);
+	restart;
+}
+
+function int SpawnRadius(str type, int spotid, int radius, int angle, int newtid, bool fog)
+{
+    int x = GetActorX(spotid) + FixedMul(cos(angle), radius);
+    int y = GetActorY(spotid) + FixedMul(sin(angle), radius);
+	int z = GetActorZ(spotID);
+   int test = Spawn(type, x, y, GetActorZ(spotid), newtid, FixedDiv(angle<<16, 360.0));
+
+   if (test && fog)
+     Spawn("LiquidParticleXSimple", x, y, random(-200, 200), 0, 0);
+
+   if (test)
+     return TRUE;
+
+   return FALSE;
+}
+
+script "EatBanana" (void) {
+	ACS_NamedExecuteWithResult("EatingJunkFood", 0);
+	delay(15);
+	SetActivator(800);
+	playsound(0, "player/throw");
+	delay(5);
+	int angle2 = GetActorAngle(0) >> 8;
+	SpawnProjectile(0, "banana_peel", angle2, 83, 50, 100, 0);
+}
+
+int foodItemsSpree;
+
+script"IncrementFoodItems" (void) {
+	foodItemsSpree++;
+	if(foodItemsSpree == 5) {
+		delay(27);
+		Selaco_quake(800, 1, 25, 0, 1000, "");
+		PLAYSOUND(800, "BURB", CHAN_AUTO);
+		noisealert(800, 800);
+		foodItemsSpree = 0;
+	}
+	delay(200);
+	foodItemsSpree = 0;
+}
+
+
+script "EatingJunkFood" (int healAmount) {
+	playerLife = GetActorProperty(800, APROP_HEALTH);
+	if(healAmount == 0)
+	{
+		healAmount = 2;
+	}
+	if (playerLife < maxHealth) {
+		SetActorState(0, "DeathReal");
+		SetActivator(800);
+		ACS_NamedExecuteWithResult("PickupHealthDisplay", healAmount);
+		HealThing(healAmount);
+		AteFood();
+	}
+}
+
+Function void AteFood(void) {
+	if(foodItemsSpree < 5) {
+		ACS_NamedTerminate("IncrementFoodItems", 0);
+	}
+	ACS_NamedExecute("IncrementFoodItems", 0);
+}
+
+script "DrinkingArachno" (int healAmount) {
+	playerLife = GetActorProperty(800, APROP_HEALTH);
+	int AmountToHeal = 0; 
+	if (playerLife < maxHealth) {
+		SetActorState(0, "DeathReal");
+		SetActivator(800);
+		playSound(0, "items/drink");
+		AmountToHeal = healAmount;
+		ACS_NamedExecuteWithResult("PickupHealthDisplay", amounttoheal);
+		HealThing(AmountToHeal);
+		AteFood();
+		delay(15);
+		playsound(0, "player/throw");
+		delay(5);
+		int angle2 = GetActorAngle(0) >> 8;
+		SpawnProjectile(0, "SodaCanEmpty", angle2, 83, 50, 100, 0);
+	}
+}
+
+int AutomapIcons[100][3] = {
+	{ "0", "$AUTOMAP_BLUEDOOR", "ICONM0"},
+	{ "1", "$AUTOMAP_PURPLEDOOR", "ICONL0"},
+	{ "2", "$AUTOMAP_YELLOWDOOR", "ICONN0"},
+	{ "3", "$AUTOMAP_IMPASSABLEDOOR", "ICONW0"},
+	{ "4", "$AUTOMAP_SECRETCHECKMARK", "ICONK0"},
+	{ "5", "$AUTOMAP_GWYNMEDICAL", "ICONX0"},
+	{ "6", "$AUTOMAP_CABINET", "ICONU0"},
+	{ "7", "$AUTOMAP_LEVEL1", "iconC0"},
+	{ "8", "$AUTOMAP_LEVEL2", "iconD0"},
+	{ "9", "$AUTOMAP_LEVEL3", "iconE0"},
+	{ "10", "$AUTOMAP_LEVEL4", "iconF0"},
+	{ "11", "$AUTOMAP_LEVEL5", "iconG0"},
+	{ "12", "$AUTOMAP_LEVEL6", "iconH0"},
+	{ "13", "$AUTOMAP_KEYPAD", "ICONY0"},
+	{ "14", "$AUTOMAP_HEAVYBARREL", "1CONI0"},
+	{ "15", "$AUTOMAP_SPACEBROCABINET", "1CONf0"},
+	{ "16", "$AUTOMAP_SUPPLYCRATE", "1CONK0"},
+	{ "17", "$AUTOMAP_SECURITYCARD", "1CONJ0"}
+};
+
+script "gwynDone" (void) {
+
+}
+
+// AUTOMAP SYSTEM
+script "AutomapAdded" (int id) {
+	if(getCvar("g_automapupdates") == 1) {
+		int idNum = AutomapIcons[id][0];
+		str titleToPrint = AutomapIcons[id][1];
+		str iconToPrint = AutomapIcons[id][2];
+		if(id != 4) {
+			ScriptCall("Notification", "QueueNew", "MapNotification", "Automap Updated", titleToPrint, iconToPrint, 0);	
+		}
+	}
+}
+
+script "swimmingTutorial" (void) {
+	if (CheckActorInventory(800, "swimmingTip") == 0) {
+		delay(7);
+		GiveActorInventory(800, "swimmingTip", 1);
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_SWIMMINg", 1);
+	}
+}
+
+script "cabinetTipdisplay" (void) {
+	if (CheckActorInventory(800, "cabinetTip") == 0) {
+		delay(7);
+		GiveActorInventory(800, "cabinetTip", 1);
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_CABINET", 1);
+	}
+}
+
+script "tip13" (void) {
+	delay(5);
+	ScriptCall("TutorialHandler","TutorialMessage", "TUT_FLASHLIGHT", 1);
+}
+script "KeyTip" (void) {
+	delay(1200);
+	ScriptCall("TutorialHandler","TutorialMessage", "TUT_NAVIGATION", 1);
+}
+
+script "medkitTip" (void)
+{
+	if (CheckActorInventory(800, "medkitTip") == 0) {
+		delay(7);
+		GiveActorInventory(800, "medkitTip", 1);
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_MEDKIT", 1);
+	}
+}
+
+script "IceGrenadeTip" (void) {
+	if (CheckActorInventory(800, "IceGrenadeTip") == 0) {
+		delay(7);
+		GiveActorInventory(800, "IceGrenadeTip", 1);
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_ICEBOMB", 1);
+	}
+}
+
+script "PulseMineTip" (void) {
+	if (CheckActorInventory(800, "PulseMineTip") == 0) {
+		delay(7);
+		GiveActorInventory(800, "PulseMineTip", 1);
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_PULSEMINE", 1);
+	}
+}
+
+script "GrenadeTutorial" (void)
+{
+	if (CheckActorInventory(800, "grenadeTip") == 0) {
+		delay(7);
+		GiveActorInventory(800, "grenadeTip", 1);
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_GRENADE", 1);
+	}
+}
+
+bool SlidingPlayed;
+script "SlidingTutorial" (void) {
+	if (!slidingplayed) {
+		slidingplayed = true;
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_SLIDE", 2);
+	}
+}
+script "GotSlideBoots" (void) {
+	GiveActorInventory(800, "SlideUpgradeActual", 1);
+	//ACS_NamedExecuteWithResult("SlidingTutorial", 0);
+}
+
+
+script "GwynMachine" (int shopID) {
+    ScriptCall("GWYNHandler", "ShowMenu", "gwynDone", shopID, 0, 2, 3, 1);
+}
+
+script "OpenWorkshop" (void) 
+{
+	ScriptCall("LevelEventHandler", "ShowWorkshop");
+	
+	// If the player has no Upgrade Module, give a tutorial.
+	if(CheckActorInventory(800, "techModuleTutorial") == 0 && CheckActorInventory(800, "WorkshopTierItem") == 0)
+	{
+		GiveActorInventory(800, "techModuleTutorial", 1);
+		ACS_NamedExecute("GiveWorkshopObjective", 0);
+		ScriptCall("TutorialHandler","TutorialMessage", "TUT_TECHMODULE", 1);
+	}
+}
+
+script "RemoveHand" (void) {
+	checkInteractionDelaySetting();
+	TakeInventory("ShowHandsFast", 1);
+	GiveInventory("ShowHands", 1);
+	TakeInventory("ShowHands2", 1);
+	delay(105);
+	ACS_NamedExecute("AddHand", 0);
+}
+
+// Same as removehand, but these cannot be animation cancelled
+script "RemoveHandNoCancel" (void) {
+	TakeInventory("RemoveHandNoCancel", 1);
+}
+int strapframeCount = 13;
+str strapFrames[100] = {"STRPSC8", "STRPSC7","STRPSC6", "STRPSC10", "STRPSC11",
+						"STRPSC12", "STRPSC13", "STRPSC14", "STRPSC15", "STRPSC16", "STRPSC17", "STRPSC18", "STRPSC19", "STRPSC20", "STRPSC21" };
+
+bool lightAnimationActive;
+int lightPanelResetTimer;
+script "ScanLightstrapPanel" (int wallTexture, int doorMapSpot) {
+	SetLineActivation(wallTexture, SPAC_NONE);
+	lightAnimationActive = true;
+	ACS_NamedExecute("RemoveHandNoCancel", 0);
+	GiveActorInventory(800, "ScanLightPanelPressed", 1);
+	lightPanelResetTimer = 35*4;
+	int totalLoops = 4;
+	int currentLoop = 0;
+	int upDirection = 1; // 1 for up, 0 for down.
+	int animationSpeed = 1;
+	int currentFrame = 3;
+	delay(32);
+	playsound(800, "script/scanhand/start", CHAN_AUTO, 1.0);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC1");
+	delay(animationSpeed);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC2");
+	delay(animationSpeed);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC3");
+	delay(animationSpeed);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC4");
+	delay(animationSpeed);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC5");
+	delay(animationSpeed);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC6");
+	delay(animationSpeed);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC7");
+	playsound(800, "script/scanhand", CHAN_5, 1.0, 1);
+	while(currentLoop <= totalLoops)
+	{
+		SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, strapFrames[currentFrame]);
+		// Cycle to frames
+		if(upDirection)
+		{
+			// Go up the list
+			currentFrame++;
+		}
+		else
+		{
+			// Go down the list
+			currentFrame--;
+		}
+		if(currentFrame > strapFrameCount || currentFrame <= 0)
+		{
+			currentLoop++;
+			upDirection =! upDirection;
+		}
+		delay(animationSpeed);
+	}
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC22");
+	playsound(800, "script/scanhand/end", CHAN_5, 1.0);
+	TakeActorInventory(800, "RemoveHandNoCancel", 1);
+	ACS_NamedExecute("AddHand", 0);
+	lightAnimationActive = false;
+	delay(35);
+	PlaySound(doorMapSpot, "script/scanhand/doorwait", CHAN_5, 1.0, 1);
+	while(lightPanelResetTimer > 0)
+	{
+		lightPanelResetTimer--;
+		delay(1);
+	}
+	SetLineActivation(wallTexture, SPAC_USE);
+	Stopsound(DoorMapSpot, CHAN_5);
+	SetLineTexture(wallTexture, SIDE_FRONT, TEXTURE_MIDDLE, "STRPSC0");
+}
+
+script "RemoveHandFast" (void) {
+	GiveInventory("ShowHandsFast", 1);
+	GiveInventory("ShowHands", 1);
+	TakeInventory("ShowHands2", 1);
+	delay(105);
+	if (!menuactive) {
+		ACS_NamedExecute("AddHand", 0);
+	}
+}
+script "AddHand" (void) {
+	ACS_NamedTerminate("RemoveHand", 0);
+	TakeInventory("ShowHands", 1);
+	GiveInventory("ShowHands2", 1);
+}
+
+function int regenIsActive (void) {
+	return CheckActorInventory(800, "RegenActive");
+}
+
+
+function void setRegenActive(void) {
+	StopSound(0, CHAN_UI);
+	ACS_NamedExecute("WaitForRegenToEnd", 0);
+	GiveActorInventory(800, "RegenTics", 999);
+	PlaySound(800, "player/regen/active", CHAN_UI, 0.35);
+	GiveActorInventory(800, "RegenActive", 1);
+}
+
+function void setRegenInactive(void) {
+	if(regenIsActive()) {
+		StopSound(800, CHAN_UI);
+		TakeActorInventory(800, "RegenActive", 1);
+	}
+}
+
+function int getHealTics(void) {
+	return CheckActorInventory(800, "RegenTics");
+}
+
+// Used to prevent the green circle from persisting after getting 35HP
+script "WaitForRegenToEnd" (void) {
+	while(GetActorProperty(800, APROP_HEALTH) < 35) {
+		delay(1);
+	}
+	takeActorInventory(800, "RegenActive", 1);
+}
+
+Script 1111 (void)
+{
+	int MaxRegenHealth = 35; // What is the maximum health value you can get from Health Regeneration??
+	int AmountToHeal = 5; // HOW MUCH HEALTH SHOULD BE GIVEN PER HEALTIC?
+	int HealthMemory = 0; // Used to detect if the player took damage during health regen.
+	GiveInventory("RegenTics", 999);
+	SetActivator(800);
+	While(checkActorInventory(800, "HardcoreMode") == 0 && GetActorProperty(800, APROP_HEALTH) < 35 && GetActorProperty(800, APROP_HEALTH) > 0)
+	{
+		Delay(1);
+
+			if (GetActorProperty(800, APROP_Health) >= MaxRegenHealth && !regenIsActive()) {
+				GiveActorInventory(800, "RegenTics", 999);
+				setRegenInactive();
+				TakeInventory("HasLowHealth", 1);
+			}
+
+		int Health = GetActorProperty(800, APROP_Health);
+		if (GetHealth(800) < MaxRegenHealth) {
+			if (!regenIsActive()) {
+				TakeActorInventory(800, "RegenTics", 1);
+			}
+		}
+		if (getHealTics() == 0) {
+			setRegenActive();
+		}
+
+
+		// Dawn took damage. Reset health tics back to zero and Deactive Health Regen
+		if (getHealth(800) < healthMemory) {
+			GiveActorInventory(800, "RegenTics", 999);
+			setRegenInactive();
+		}
+
+		if (healthMemory != getHealth(800)) {
+			healthMemory = getHealth(800);
+		}
+
+		if (Health <= MaxRegenHealth && regenIsActive()) {
+			if (health > MaxRegenHealth - AmountToHeal) {
+				SetActorProperty(800, APROP_HEALTH, MaxRegenHealth);
+			} else {
+				SetActorProperty(800, APROP_HEALTH, Health + 5);
+			}
+
+			healIndicators();
+
+			if (GetActorProperty(800, APROP_Health) >= MaxRegenHealth) {
+				GiveActorInventory(800, "RegenTics", 999);
+				SpawnSpotFacingForced("PlayFinishedRegenSound", 800, 0);
+				setRegenInactive();
+				TakeInventory("RegenActive", 1);
+				TakeInventory("HasLowHealth", 1);
+			} else {
+				GiveInventory("HasLowHealth", 1);
+			}
+			HealthMemory = getHealth(800);
+			delay(25);
+			if (healthMemory > getHealth(800)) {
+				GiveActorInventory(800, "RegenTics", 999);
+				regenIsActive();
+			}
+		}
+	}
+	terminate;
+}
+
+function void activatePlate (int frameID) {
+	ChangeFloor(frameID, "STNDHO");
+	playsound(frameID, "script/STNDHO", CHAN_AUTO, 1.0, 0, 0.5);
+}
+
+function void deactivatePlate (int frameID) {
+	ChangeFloor(frameID, "STNDHL");
+	playsound(frameID, "script/STNDHL", CHAN_AUTO, 1.0, 0, 0.5);
+}
+
+function bool checkPlate (int frameID) {
+	int plateChecker = ThingCountNameSector("Dawn", 0, frameID) + ThingCountNameSector("HeavyBarrel", 0, frameID) + ThingCountNameSector("Jonathan", 0, frameID);
+	if (plateChecker) {
+		return true;
+	}
+	return false;
+}
+
+// This function helps players transfer to the next level.
+function void switchLevel(str levelName, int playerID) {
+	if(GetActorProperty(800, APROP_HEALTH) > 0) {
+		SetPlayerProperty(800, 1, PROP_TOTALLYFROZEN);
+		printLevelChange();
+		ChangeLevel(levelName, playerID, CHANGELEVEL_NOINTERMISSION | CHANGELEVEL_PRERAISEWEAPON | CHANGELEVEL_KEEPFACING, -1);
+	}
+}
+
+function void switchlevelNoKeepFacing(str levelName, int playerID) {
+	if(GetActorProperty(800, APROP_HEALTH) > 0) {
+		SetPlayerProperty(800, 1, PROP_TOTALLYFROZEN);
+		printLevelChange();
+		ChangeLevel(levelName, playerID, CHANGELEVEL_NOINTERMISSION | CHANGELEVEL_PRERAISEWEAPON, -1);
+	}
+}
+
+// Activate Holographic Display
+// Allows to switch holographic displays on and off. One example is the gigantic posters in the Level 1-2 lobby.
+// LightSectorLineID -> The Dynamic Light, Sector that has the LITEB1 texture, Line that has the button. All the same ID. Script takes care of the rest
+// Active -> 1 means on. 0 means off.
+script 217 (int LightSectorLineID, int posterLineID, int active) {
+	int lineTranslucency;
+	str frameTexture;
+	str lightTexture;
+	if(active == 1) { // TURN OFF
+		PlaySound(LightSectorLineID, "script/HOLOTECH_DEACTIVATE", CHAN_AUTO, 0.9);
+		lightTexture = "LITEOFF";
+		Thing_Deactivate(LightSectorLineID);
+		lineTranslucency = 0;
+		frameTexture = "HOLOPN2A";
+		active = 0;
+	} else { 		// TURN ON
+		PlaySound(LightSectorLineID, "script/HOLOTECH_ACTIVATE", CHAN_AUTO, 0.9);
+		lightTexture = "LITEb2";
+		Thing_activate(LightSectorLineID);
+		frameTexture = "HOLOPN1A";
+		active = 1;
+	}
+
+	// Assign / Adjust textures
+	ChangeFloor(LightSectorLineID, lightTexture);
+	ChangeCeiling(LightSectorLineID, lightTexture);
+	TranslucentLine(posterLineID, lineTranslucency);
+	SetLineTexture(LightSectorLineID, SIDE_FRONT, TEXTURE_BOTTOM, frameTexture);
+
+	Playsound(LightSectorLineID, "script/HOLOTECH_BUTTON", CHAN_AUTO, 0.6); // Clicky sound
+	SetLineSpecial(lightSectorLineID, 80, 217, 0, lightSectorLineID, posterLineID, active); // Ensure it can be activated again.
+
+	// Transition to an ON-state
+	while(active && lineTranslucency < 140) {
+		lineTranslucency+=20;
+		TranslucentLine(posterLineID, lineTranslucency);
+		delay(1);
+	}
+}
+
+function bool starlightCompletedGreen(void)
+{
+	if(CheckActorInventory(800, "StarlightGreenCompleted") >= 1)
+	{
+		return true;
+	}
+	return false;
+}
+function bool starlightCompletedRed(void)
+{
+	if(CheckActorInventory(800, "StarlightRedCompleted") >= 1)
+	{
+		return true;
+	}
+	return false;
+}
+function bool starlightCompletedPurple(void)
+{
+	if(CheckActorInventory(800, "StarlightPurpleCompleted") >= 1)
+	{
+		return true;
+	}
+	return false;
+}
+function bool starlightCompletedBlue(void)
+{
+	if(CheckActorInventory(800, "StarlightBlueCompleted") >= 1)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+function void enterSaferoom(void)
+{
+	if(!playerInSafeRoom)
+	{
+		TakeActorInventory(800, "outsideSafeRoomItem", 1);
+		GiveActorInventory(800, "insideSafeRoomItem", 1);
+		GiveActorInventory(800, "isSafeRoom", 1);
+	}
+	playerInSafeRoom = true;
+	SpawnSpotFacingForced("SaferoomMarker", 800, 0);
+}
+
+function void leaveSafeRoom(void)
+{
+	if(playerInSafeRoom)
+	{
+		GiveActorInventory(800, "outsideSafeRoomItem", 1);
+		TakeActorInventory(800, "insideSafeRoomItem", 1);
+		TakeActorInventory(800, "isSafeRoom", 1);
+	}
+	playerInSafeRoom = false;
+}
+
+
+// SAFE ROOM
+script "EnterSafeRoomExtension" (void)
+{
+	scriptcall("SafeRoomExtension", "useExtensionElevator");
+}
+
+script "OpenDoorToSafeRoom" (void)
+{
+	if(checkActorInventory(800, "WorkshopTierItem") >= 2)
+	{
+		setLineTexture(17007, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV1");
+		removeAllBlocking(17000);
+		Thing_Activate(17019);
+		Floor_RaiseToNearest(17018, 100000);
+		SetLineActivation(17019, SPAC_NONE);
+		PlaySound(17015, "SAFEROOM/ELEVATORDOOROPEN", CHAN_7, 0.7, 0, 0.8);
+		delay(2);
+		Door_Open(17001, 20);
+		ACS_NamedExecute("MoveLightWorkshop", 0);
+	}
+	else
+	{
+		PRINTBOLD(l:"TECHMODULE_DOOR_2");
+		PlaySound(800,"Switch/locked",CHAN_AUTO,0.7,0,0.6);
+	}
+}
+
+// GOING TO SAFE ROOM EXTENSION
+script "EnterSaferoomExtensionProcess" (void)
+{
+	checkInteractionDelaySetting();
+	Sector_SetLink(17030, 17008, 0, 1);
+	Sector_SetLink(17030, 17008, 1, 2);
+	// PREPARE TO MOVE
+		ACS_NamedExecuteAlways("SetEax", 0, 4000);
+		ACS_NamedExecute("MoveLightWorkshop", 0);
+		SetLineActivation(17007, SPAC_NONE);
+		SetLineActivation(17019, SPAC_USE);
+		addAllBlocking(17000);
+		addAllBlocking(17004);
+	// Close doors
+		GiveInventory("PushButtonNow", 1);
+		delay(InteractionDelay);
+		TakeInventory("PushButtonNow", 1);
+		activateElevatorPanel(17007);
+		delay(12);
+		PlaySound(17015, "SAFEROOM/ELEVATORDOORCLOSE", CHAN_7, 0.7, 0, 0.8);
+		Door_close(17001, 20);
+		tagwait(17001);
+		//Ceiling_RaiseByValue(17001, 1000, 1);
+		delay(7);
+		SetLineTexture(17004, SIDE_FRONT, TEXTURE_TOP, "DRSAFE1C");
+		delay(35);
+
+	// START MOVING
+		fadeTrack(0, 0.05);
+		PlaySound(17020, "SAFEROOM/ELEVATOR", CHAN_6, 0.7, 0, 0);
+		scroll_wall(17002, 0, 180000, 0, 2);
+		Selaco_quake(800, 1, 10, 0, 1000, "");
+		FloorAndCeiling_LowerByValue(17030, 16, 240);
+		//Ceiling_LowerByValue(17001, 64, 1000);
+
+	// Wait...
+		tagwait(17030);
+
+	// STOP MOVING, SWITCH LEVEL, REVERT TO NORMAL
+		SetLineActivation(17007, SPAC_Use);
+		addAllBlocking(17000);
+		StopSound(17015, CHAN_6);
+		FloorAndCeiling_RaiseByValue(17030, 20000, 240);
+		scroll_wall(17002, 0, 0, 0, 2);
+		Setmusic("");
+
+		//printLevelChange();
+		scriptcall("SafeRoomExtension", "gotoSafeRoomExtension");
+}
+
+function void activateElevatorPanel(int lineID)
+{
+	ACS_NamedExecuteAlways("activateElevatorPanelACS", 0, lineID);
+}
+
+script "activateElevatorPanelACS" (int lineID)
+{
+	playsound(lineID, "ELEVATOR/BUTTON/ACTIVATE", CHAN_5, 0.8);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV2");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV3");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV4");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV5");
+}
+
+function void RevertElevatorPanel(int lineID)
+{
+	ACS_NamedExecuteAlways("RevertElevatorPanelACS", 0, lineID);
+}
+
+script "RevertElevatorPanelACS" (int lineID)
+{
+	playsound(lineID, "ELEVATOR/BUTTON/REVERT", CHAN_5, 0.8);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV4");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV3");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV2");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV1");
+}
+
+
+script "activateElevatorPanelStandbyACS" (int lineID)
+{
+	playsound(lineID, "ELEVATOR/BUTTON/STANDBY", CHAN_5, 0.8);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELES1");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELES2");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELES3");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELES4");
+	delay(2);
+	setLineTexture(lineID, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELES5");
+}
+
+function void StandbyElevatorPanel(int lineID)
+{
+	ACS_NamedExecuteAlways("activateElevatorPanelStandbyACS", 0, lineID);
+}
+
+// Maintain correct positions for all elevator actors.
+Script "MoveLightWorkshop" (void)
+{
+	Int lx1 = GetActorX(17020);
+	int ly1 = GetActorY(17020);
+	Int lx2 = GetActorX(17054);
+	int ly2 = GetActorY(17054);
+	Int lx3 = GetActorX(17055);
+	int ly3 = GetActorY(17055);
+	Int lx4 = GetActorX(17056);
+	int ly4 = GetActorY(17056);
+	Int lx5 = GetActorX(17057);
+	int ly5 = GetActorY(17057);
+	while(true)
+	{
+		SetActorPosition(17019,lx1,ly1,(GetSectorCeilingZ(17008,0,0) - 80.0),false);
+		SetActorPosition(17039,lx2,ly2,(GetSectorFloorZ(17009,0,0) + 2.0),false);
+		SetActorPosition(17040,lx3,ly3,(GetSectorFloorZ(17009,0,0) + 2.0),false);
+		SetActorPosition(17041,lx4,ly4,(GetSectorFloorZ(17009,0,0) + 2.0),false);
+		SetActorPosition(17042,lx5,ly5 ,(GetSectorFloorZ(17009,0,0) + 2.0),false);
+		Delay(1);
+	}
+}
+// RETURNING FROM SAFEROOM EXTENSION
+script "EnterSaferoomExtensionResume" (void)
+{
+	// SETUP
+	setLineTexture(17007, SIDE_FRONT, TEXTURE_MIDDLE, "PNLELEV5");
+	StopSound(17015, CHAN_6);
+	Thing_Activate(17019);
+	SetLineActivation(17019, SPAC_NONE);
+	SetMusicVolume(0);
+	Door_close(17001, 60000);
+	ACS_NamedExecute("MoveLightWorkshop", 0);
+	//Floor_RaiseToNearest(17018, 100000);
+	int traversalTime = 190; // Must be timed with the SFX below
+	StopSound(17020, CHAN_6);
+	PlaySound(17020, "SAFEROOM/ELEVATORRESUME", CHAN_6, 0.7, 0, 0);
+	SetLineActivation(17007, SPAC_NONE);
+	addAllBlocking(17000);
+	SetLineTexture(17004, SIDE_FRONT, TEXTURE_TOP, "DRSAFE1C");
+	scroll_wall(17002, 0, -180000, 0, 2);
+	delay(traversalTime);
+	ACS_NamedExecute("Autosave2", 0);
+	ACS_NamedTerminate("MoveLightWorkshop", 0);
+
+	// We have arrived!
+	scroll_wall(17002, 0, 0, 0, 2);
+	Selaco_quake(800, 1, 10, 0, 1000, "");
+	delay(32);
+
+	// Open things up, revert to normal.
+	PlaySound(17015, "SAFEROOM/ELEVATORDOOROPEN", CHAN_7, 0.7, 0, 0.8);
+	Ceiling_RaiseToNearest(17001, 20);
+	SetLineTexture(17004, SIDE_FRONT, TEXTURE_TOP, "DRSAFE1A");
+	SetMusic("Saferoom");
+	removeAllBlocking(17004);
+	removeAllBlocking(17000);
+	delay(7);
+	setmusicvolume(1.0);
+	playerInSafeRoom = true;
+	enterSaferoom();
+	EnterLocation("GENERAL_LOCATION_SAFEROOM");
+	delay(50);
+	RevertElevatorPanel(17007);
+	tagwait(17007);
+	delay(10);
+	SetLineActivation(17007, SPAC_Use); // Allow button to be used again
+	SetLineActivation(17019, SPAC_USE);
+}
+
+// Github for some reason thinks the file is the same so I'm adding this random comment? :shrug:
+
+script "keycardDoorAnimation" (int aline, int aactivate)
+{
+
+	If(aactivate)
+	{
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKE");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKF");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKG");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKH");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKI");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKJ");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKK");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKL");
+	}
+	else
+	{
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKL");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKK");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKJ");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKI");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKH");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKG");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKF");
+		delay(2);
+		SetLineTexture(aline, SIDE_FRONT, TEXTURE_MIDDLE, "SMLLOCKE");
+	}
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// END SAFE ROOM

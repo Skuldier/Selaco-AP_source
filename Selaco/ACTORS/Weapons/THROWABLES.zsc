@@ -1,0 +1,1039 @@
+mixin class ThrowableActorMixin {
+	default {
+		+MISSILE;
+		-NOGRAVITY;
+		+SPECIAL
+		+Doombounce;
+		+NOBLOCKMAP;
+		-BLOODSPLATTER;
+		-Solid;
+		+FLOORCLIP;
+		+SHOOTABLE;
+		-DONTTHRUST;
+		ThrowableActor.fuseTimer 7;
+		ThrowableActor.grenadeDamage 250;
+		ThrowableActor.grenadeRadius 245;
+		Damage 0;
+		Gravity 0.7;
+		Scale 2.5;
+		Radius 9;
+		Height 9;
+		Speed 30;
+		BounceFactor 0.5;
+		WallBounceFactor 0.25;
+		Health 5;
+		damageType "ExplosiveImpact";
+		SeeSound "GREN/GBOUNCE";
+		DeathSound "none";
+		Obituary "%o ate %k grenade.";
+	}
+}
+
+class ThrowableActor : SelacoActor {
+	private int throwableFlags;	
+
+	actor flareActor;
+	bool flareActorSuccess;
+
+	int grenadeDamage, grenadeRadius, adjustedRadius, reductionPerTick, fuseTimer;
+	int damageToGlass;
+	float glassDamping;
+	float beepPitch;
+	string beepSound; 
+	string explosionIndicator;
+	bool hasStealthBomb;
+	int fuseTimerSpeed;
+
+	bool stickyBomb;
+	bool hasStickyActor;
+	actor stuckActor;
+
+	bool isWaterBomb;
+
+	property grenadeDamage 	: grenadeDamage;
+	property grenadeRadius 	: grenadeRadius;
+	property FuseTimer 		: FuseTimer;
+	property DamageToGlass 	: damageToGlass;		// Damage caused when passing through or colliding with glass
+	property GlassDamping	: glassDamping;			// Amount of velocity to retain after passing through glass
+	
+	flagdef ExplodeOnImpact   	: throwableFlags, 0;   
+	flagdef UseProjectileAssist : throwableFlags, 1;
+	flagdef UseGrenadeAssist 	: ThrowableFlags, 2; 		// Adds a secondary hitbox to aid 
+	flagdef Knockable			: ThrowableFlags, 3; 		// Grenade can be knocked around by explosions and thrust
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		fuseTimerSpeed = 9;
+		beepSound = "combat/grentic";
+		beepPitch = 1;
+
+		if(bKnockable) {
+			// Add back to blockmap
+			A_ChangeLinkFlags(0);
+		}
+	}
+
+	// Detonate on impact
+    override int SpecialMissileHit(Actor victim) {
+		int res = super.SpecialMissileHit(victim);
+		// Explode on Impact
+        if(bExplodeOnImpact && victim.bIsMonster) {
+			triggerImpactGrenade();
+		}
+
+		if(victim is "Dawn" || victim.bMissile)
+		{
+			return 1;
+		}
+
+		// Check Sticky Bomb target
+		if(!stuckActor && stickyBomb && victim)
+		{
+			stuckActor = victim;
+			bThruPlayers = true;
+			bPushable = false;
+			A_PLAYSOUND("GRENADE/STICK/ATTACH", CHAN_AUTO, 1.0, 0, 0.7);
+			primeStickyBomb();
+			hasStickyActor = true;
+			setStateLabel("LoopActual");
+		}
+		return Super.SpecialMissileHit(victim);
+	}
+
+
+	// @Cockatrice - Normally the grenades don't even take damage, but with bKockable enabled, damage is turned into knockback
+	override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+		if(inflictor && (damagetype == "ExplosiveImpact" || damagetype == "MeleeImpact")) {
+			// Add some knockback to this throwable
+			if(bKnockable && damage > 15) {
+				if(FuseTimer > 0) FuseTimer += 1;
+
+				vel += (pos - inflictor.pos).unit() * frandom(2, 7);
+				
+				// Add some extra Z velocity if the throwable is slightly above the inflictor
+				let diff = abs(pos.z - inflictor.pos.z);
+				if(diff < 24) {
+					vel.z += frandom(0.2, 4);
+				}
+
+				// Reset bounce count
+				bounceCount = default.bounceCount > 0 ? min(default.bounceCount, 8) : 8;
+				bBOUNCEONWALLS = default.bBOUNCEONWALLS;
+				bBounceOnFloors = default.bBOUNCEONFLOORS;
+				bBounceOnCeilings = default.bBOUNCEONCEILINGS;
+				if(health <= 0) health = 1;
+				bMissile = true;
+			}
+		}
+
+		return -1;
+    }
+
+
+	void primeStickyBomb()
+	{
+		beepSound = "GRENADE/STICK/BEEPER";
+		fuseTimerSpeed = 7;
+		beepPitch = 0.9;
+		FuseTimer = 12;
+	}
+
+	void triggerImpactGrenade()
+	{
+		A_GiveInventory("GrenadeTime", 100);
+		FuseTimer = 0;
+	}
+
+	override void tick()
+	{
+		super.tick();
+
+		// We have a sticky target. Stick to it!
+		if(stuckActor)
+		{
+			bThruActors = true;
+			bNoGravity = true;
+			target = stuckActor;
+			A_Warp(AAPTR_TARGET, stuckActor.radius/2, 0, stuckActor.height/2, 0, WARPF_INTERPOLATE | WARPF_COPYPITCH | WARPF_NOCHECKPOSITION);
+		}
+
+		if(hasStickyActor && !stuckActor)
+		{
+			bNoGravity = false;
+		}
+
+		if(isWaterBomb)
+		{
+			frame = 0;
+			pitch+=20;
+			A_SETSCALE(0.3);
+		}
+
+	}
+
+	default {
+		+SELACOACTOR.EnemyProjectilePassThru;
+		+SELACOaCTOR.AllProjectilePassThru;
+		-SelacoActor.DecorativeActor;
+		+DROPOFF;
+		+MISSILE;
+		-NOGRAVITY;
+		+Doombounce;
+		+NOBLOCKMAP;
+		-BLOODSPLATTER;
+		+BLOODLESSIMPACT;
+		+NOBLOOD;
+		+EXPLODEONWATER;
+		+SKYEXPLODE;
+		+Solid;
+		+FLOORCLIP;
+		+SHOOTABLE;
+		+DONTGIB;
+		+ACTIVATEPCROSS;
+		-DONTTHRUST;
+		Selacoactor.SleepDistance 0;
+		-SelacoActor.SleepWhenIdle;
+		-SelacoActor.SleepWhenFar;
+		ThrowableActor.fuseTimer 6;
+		ThrowableActor.grenadeDamage 350;
+		ThrowableActor.grenadeRadius 295;
+		ThrowableActor.DamageToGlass 99999;
+		ThrowableActor.GlassDamping 0.65;
+		-ThrowableActor.Knockable;
+		Damage 0;
+		Gravity 0.7;
+		Scale 2.5;
+		Radius 5;
+		Height 5;
+		Speed 30;
+		BounceFactor 0.5;
+		WallBounceFactor 0.25;
+		Health 5;
+		damageType "ExplosiveImpact";
+		SeeSound "GREN/GBOUNCE";
+		DeathSound "none";
+	}
+
+}
+
+class ThrownGrenade1 : ThrowableActor
+{
+
+	
+	mixin DangerIndicatorHandler;
+	actor secondaryHitbox;
+	bool hitboxSuccess;
+	override void beginPlay()
+	{
+		super.beginPlay();
+		
+		// Find grenade upgrade/settings on player stored as a fake weapon
+		if(getClassName() == "ThrownGrenade1") {
+			HandGrenadeWeapon w = HandGrenadeWeapon(players[0].mo.FindInventory("HandGrenadeWeapon"));
+			if(w) {
+				grenadeDamage = w.weaponDamage;
+				grenadeRadius = w.weaponAreaOfEffect;
+			}
+		}
+	}
+
+	override void postbeginPlay() {
+		super.postBeginPlay();
+		if(bUseProjectileAssist)
+		{
+			[hitboxSuccess, secondaryHitbox] = A_SPAWNITEMEX("ProjectileSecondaryHitbox", flags:SXF_SETMASTER);
+			if(secondaryHitbox)
+			{
+				secondaryHitbox.master = self;
+			}
+		}
+	}
+
+
+	override void tick() {
+		Super.tick();
+
+		// If we have had some knockback applied, start spawning trails again
+		if(bKilled && pos.z - floorz > 5) {
+			if(!hasStealthBomb)
+			{
+				SpawnLight(75, 50, 22, 32, divisionSpeed:1.5);
+				A_SpawnItemEx("BrownPlasmaParticleSpawner");
+			} 
+			else
+			{
+				A_SpawnItemEx("BrownPlasmaParticleSpawner2SHORT", 0, 0, 0);
+			}
+		}
+	}
+
+
+	bool underslungGrenade;
+	default
+	{
+		+HITSCANTHRU
+		+SELACOACTOR.thruplayers;
+		ThrowableActor.glassDamping 0.75;
+		+ThrowableActor.Knockable;
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 {
+			reductionPerTick = 30;
+			PlayerPawn pawn=players[0].mo;
+			let weapon = SelacoWeapon(pawn.FindInventory('HandGrenadeWeapon'));
+			// Check all upgrades and make the modifications
+			if(weapon.hasUpgradeClass('UpgradeGrenadeStealth') == 1) {
+				hasStealthBomb = true;
+			}
+
+			if(weapon.hasUpgradeClass('AltfireGrenadeImpact') == 1) {
+				bExplodeOnImpact = true;
+				bUseProjectileAssist = true;
+			}
+
+			if(weapon.hasUpgradeClass('UpgradeGrenadeRadius') == 1) {
+				reductionPerTick = 25;
+			}
+
+			if(weapon.hasUpgradeClass('AltFireGrenadeSticky') == 1) {
+				underslungGrenade = false;
+				stickyBomb = true;
+				bouncefactor = 0.01;
+				bUSEBOUNCESTATE = true;
+				bACTIVATEIMPACT = false;
+				grenadeDamage*=1.15;
+			}
+
+			if(weapon.hasUpgradeClass('AltFireGrenadeBalloon') == 1)
+			{
+				underslungGrenade = false;
+				bACTIVATEIMPACT = false;
+				isWaterBomb = true;
+				grenadeDamage = 15;
+				grenadeRadius+=145;
+				bounceFactor = 0.01;
+				bUSEBOUNCESTATE = true;
+				damageType = "Water";
+			}
+		}
+		TNT1 A 0 
+		{
+			// Change beep speed depending on upgrade
+			if(!hasStealthBomb)
+			{
+				A_PlaySound("combat/grent", CHAN_5,1);
+			} 	
+			if(hasStealthBomb)
+			{
+				A_PlaySound("combat/grent", CHAN_AUTO,1, pitch:1.6);
+			} 					
+		}
+		goto Thrown;
+	Thrown:
+		TNT1 A 0 A_AlertMonsters();
+		VOXE L 1 bright 
+		{
+			if(!hasStealthBomb)
+			{
+				SpawnLight(75, 50, 22, 32, divisionSpeed:1.5);
+				A_SpawnItemEx("BrownPlasmaParticleSpawner");
+			} 
+			else
+			{
+				A_SpawnItemEx("BrownPlasmaParticleSpawner2SHORT", 0, 0, 0);
+			}
+
+			// if Stealth Bomb, make the 'boot up' sound much faster.
+			 A_SetRoll(roll + 30);
+		}
+		loop;
+
+	Xdeath:
+	Death:
+	Bounce:
+		TNT1 A 0 {
+			if(underslungGrenade)
+			{
+				underslungGrenade = false;
+				if(!isWaterBomb || !stickyBomb)
+				{
+					setStateLabel("explode");
+				}
+			}
+		}
+	DeathLooper:
+		TNT1 A 0
+		{
+			BattleOverseer overseer = BattleOverseer.instance();
+			overseer.warnGrenade(self);
+		}
+		
+	Bounce:
+	Bounce.Wall:
+		TNT1 A 0 
+		{
+			if(stickyBomb)
+			{
+				primeStickyBomb();
+				vel = (0,0,0);
+				bNoGravity = true;
+			}
+			if(isWaterBomb)
+			{
+				SetState(Findstate("WaterExplosion"));
+			}
+			actor explosiveIndicator;
+			bool succ;
+		}
+	LoopActual:
+		TNT1 A 0 {
+			if(bNOBLOCKMAP) A_ChangeLinkFlags(0);
+
+			if(bKnockable) {
+				bShootable = true;
+				bKilled = true;
+			}
+
+			blinkDangerIndicator(grenadeRadius);
+			// Dont mark as Dangerous so enemies dont dive out of the way
+			if(!hasStealthBomb)
+			{
+				A_AlertMonsters();
+				A_PlaySound(beepSound, 8,1,0, pitch:beepPitch);
+				SpawnLight(255, 190, 35, 96, divisionSpeed:1.5);
+				[flareActorSuccess, flareActor] = A_SpawnItemEx("AcesGrenadeFlare", flags:SXF_SETMASTER);
+				flareactor.master = self;
+				bDangerousActor = true;
+			}
+
+			if(isWaterBomb)
+			{
+				SetState(Findstate("WaterExplosion"));
+			}
+
+			else
+			{
+				A_SpawnItemEx("BrownPlasmaParticleSpawner2SHORT", 0, 0, 0);
+			}
+			if(FuseTimer <= 0) {	// Can go smaller than zero due to unusual state jumps
+				setStateLabel("Explode");
+			}
+
+			// Beep up if the grenade is a sticky
+			if(stickyBomb)
+			{
+				beepPitch+=0.006;
+			}
+
+			fuseTimer--;
+		}	
+	    VOXE L 1 bright
+		{
+			A_SetTics(fuseTimerSpeed);
+		}
+		Loop;
+	
+	WaterExplosion:
+		TNT1 A 0
+		{
+			A_STOPSOUND(CHAN_5);
+			damageType = "water";
+			RemoveNearbyFlames(500);
+            A_PLAYSOUND("WTREXPL1", CHAN_AUTO);
+            for(int x=0; x<300;x++)
+            {
+                A_SpawnItemEx("waterParticleXBigger", frandom(-100,100), frandom(-100,100), frandom(0,35), frandom(0.5,3.5), frandom(0.3, 1.9), frandom(1,13), random(0,360));
+            }
+			for(int x=0;x<4;x++)
+			{
+                A_SPAWNITEMEX("WaterFoamGigantic", frandom(-60,60), frandom(-60,60), -70);
+                A_SPAWNITEMEX("WaterFoamGigantic", frandom(-60,60), frandom(-60,60), -70);
+				A_SPAWNITEMEX("WaterSplashEffectLarge", frandom(-60,60), frandom(-60,60), -20);
+			}
+			setStateLabel("ExplosionTime");
+		}
+
+	Explode:
+		TNT1 A 0
+		{
+			A_ChangeLinkFlags(1);
+			A_Stop();
+			A_ChangeLinkFlags(1);
+			A_StopSound(6);
+			A_StopSound(5);
+			A_SPAWNITEMEX("ScorchMarkFloor");
+			A_ChangeLinkFlags(1);
+			A_StopSound(6);
+			A_StopSound(5);
+			actor explosiveActor;
+			bool succ;
+			[succ, explosiveActor] = A_SpawnItemEx ("PrettyExplosionParticleRain",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			PlayerPawn pawn=players[0].mo;
+			let weapon = SelacoWeapon(pawn.FindInventory('HandGrenadeWeapon'));
+			if(explosiveActor && weapon.hasUpgradeClass('UpgradeGrenadeRadius') == 1)
+			{
+				ExplosionEffect(explosiveActor).explosionAmountMin+=35;
+				ExplosionEffect(explosiveActor).explosionAmountMax+=35;
+				ExplosionEffect(explosiveActor).explosionSpreadHorizontal+=55;
+				ExplosionEffect(explosiveActor).explosionSpreadVertical+= 55;
+			}
+			A_ALertMonsters();
+			A_PlaySound("FAREXPL", 3);
+			if(bExplodeOnImpact)
+			{
+				triggerImpactGrenade();
+			}
+		}
+		TNT1 A 0 {
+			adjustedRadius = 25;
+		}
+		// This is done per-tick to give a shockwave effect. Eventually, the damage goes below zero, this is intentional. This way
+		// we can still apply force to nearby objects without destroying them!
+	ExplosionTime:
+		TNT1 A 1 {
+			if(adjustedRadius <= grenadeRadius) {
+				
+				// Fire some tracers to destroy nearby glass
+				if(!isWaterBomb)
+				{
+					GlassHandler.GlassExplosion(self, adjustedRadius * 1.5);
+				}
+				
+				S_Explode(grenadeDamage,adjustedRadius, XF_HURTSOURCE);
+				adjustedRadius 	+= 75;
+				grenadeDamage*0.25;
+			} else {
+				self.destroy();
+			}
+		}
+		loop;
+	}
+}
+
+
+class HandGrenade: FlaredPickup
+{
+
+	virtual void addSuffix()
+	{
+		SetTag(string.format("%s \c[orange](%s)", getTag(), stringTable.localize("$TYPE_EXPLOSIVE")));
+	}
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		addSuffix();
+	}
+
+
+
+	default {
+		//$Category Ominous
+		Scale 0.5;
+		+DONTGIB;
+		+FLOORCLIP;
+		Tag "$PICKUP_HANDGRENADE";
+		Inventory.PickupSound "GRNPIN";
+		FlaredPickup.FlareClass "throwable_flare";
+		FlaredPickup.FlareOffset 9;
+		FlaredPickup.IconClass "Grenade_Icon";
+		FlaredPickup.IconOffset 18;
+
+		+SELACOITEM.GrenadePickup;
+		SelacoItem.randomizerSpawnChance 15;
+		SelacoItem.pickupIcon "P_HNPUA0";
+		SelacoItem.StatNumber STAT_GRENADES_FOUND;
+		SelacoItem.pickupCount 1;
+		SelacoItem.pickupType "HandGrenadeAmmo";
+		SelacoItem.pickupTag "$PICKUPTAG_FRAGGRENADE";
+
+	}
+
+	States
+	{
+		Spawn:
+			VOXE L 0;
+		Looper:
+			VOXE L -1;
+			loop;
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		Super.DoPickupSpecial(toucher);
+
+		if(toucher is "Dawn" && toucher.countInv("GrenadeTip") == 0 && getClassName() == 'HandGrenade') {
+			TutorialHandler.TutorialMessage("TUT_GRENADE", 1);
+			PDAManager.AddEntry(toucher, 31, 13);
+			toucher.GiveInventory("GrenadeTip", 1);
+		}
+	}
+}
+
+class SmokeGrenade : ThrowableActor
+{
+	default {
+		+NOBLOCKMAP
+		+THRUACTORS;
+		BounceCount 0;
+		speed 9;
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+
+		goto Thrown;
+	Thrown:
+		VOXE L 1 {
+			//A_SpawnItemEx("Alerter");
+		}
+		Loop;
+	Death:
+		TNT1 A 0;
+		TNT1 A 0;
+		TNT1 A 1 A_AlertMonsters;
+		//TNT1 A 0 A_SpawnItemEx("Alerter");
+	    VOXE L 1;
+		//TNT1 A 0 A_SpawnItemEx("GrenadePin", 10);
+		TNT1 A 0 {
+			//bThruactors = false;
+		}
+		TNT1 A 0 A_GiveInventory("GrenadeTime", 1);
+		TNT1 A 0 A_JumpIfInventory("GrenadeTime", 2, "Explode");
+		Loop;
+			
+	Explode:
+		TNT1 A 0 A_Stop;
+		TNT1 A 0 A_PlaySound("dest/grensmok", CHAN_AUTO, 1.0, 0, 0.6, 0, frandom(0.9,1.1));
+		TNT1 AAAAA 0 A_SpawnProjectile ("plasmaEmber", 48, 0, random (0, 360), 2, random (0, 360));
+		TNT1 AAA 0 A_SpawnProjectile ("BigplasmaEmber", 42, 0, random (0, 360), 2, random (0, 360));
+		TNT1 A 0 A_SpawnItemEx ("BigSmokes",0,0,45,0,0,0,0,SXF_NOCHECKPOSITION,0);
+		TNT1 A 0 A_SpawnItem("WhiteShockwave");
+		TNT1 AAA 0 A_SpawnProjectile ("SmokeGrenadeSmoke", random(1, 24), 0, random (0, 360), 2, random (0, 360));
+		TNT1 AAA 3 A_SpawnProjectile ("SmokeGrenadeSmoke", random(1, 24), 0, random (0, 360), 2, random (0, 360));
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAA 1 A_SpawnItemEx("SmokeGrenadeSmoke",random(-100, 100),random(-175, 175),0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+		Stop;
+	}
+}
+
+class SmokeGrenadeInstaExplode : SmokeGrenade
+{
+	states
+	{
+		spawn:
+			TNT1 A 0;
+			goto explode;
+	}
+}
+
+class SmokeGrenadeFast : SmokeGrenade {
+	default {
+		speed 11;
+	}
+}
+
+class EnemyThrownGrenade : PickupableDecoration
+{
+	mixin DangerIndicatorHandler;
+	
+
+	actor flareActor;
+	bool flareActorSuccess;
+
+	int fuseSpeed;
+	int fuseTick;
+	int fuseBeepsLeft;
+	int loops;
+	float fusePitch;
+	bool fuseSoundPlayed;
+	string flareTrail;
+	string primeSound;
+	property FuseSpeed : fuseSpeed;
+	property fuseBeepsLeft : fuseBeepsLeft;
+	property FlareTrail : flareTrail;
+	property PrimeSound : primeSound;
+	override void PostBeginPlay() 
+	{
+		super.PostBeginPlay();
+		if(getCvar("skill") >= 4 || getCvar("g_hardboiled"))
+		{
+			fuseBeepsLeft-=3;
+		}
+		A_SpawnItemEx("GrenadePin");
+		A_PlaySound(primeSound, 5,1,0);
+		SetTag(string.format("%s \c[purple](%s)", getTag(), stringTable.localize("$TYPE_ALIEN")));
+		fusePitch = 1.4;
+	}
+
+	bool grenadeStationary;
+	override void tick() {
+		super.tick();
+		if(grenadeStationary) 
+		{
+			if(!fuseSoundPlayed)
+			{
+				fuseSoundPlayed = true;
+				A_playsound("ENEMY/GRENADE/Prepare", CHAN_AUTO, 0.4, 0, 0.8,pitch:1.15);
+			}
+
+			if(fuseTick == fuseSpeed) 
+			{
+				fuseBeepsLeft--;
+				beepGrenade();
+			}
+			if(fuseBeepsLeft == 0) 
+			{
+				SetStateLabel("Explode");
+				grenadeStationary = false;
+			}
+			fuseTick++;
+		}
+	}
+
+	virtual void beepGrenade()
+	{
+		if(fuseBeepsLeft < 5)
+		{
+			fuseSpeed = 4;
+			fusePitch = 1.65;
+			SpawnLight(255, 190, 35, 128, divisionSpeed:1.5);
+			[flareActorSuccess, flareActor] = A_SpawnItemEx("AcesGrenadeFlare");
+			flareActor.master = self;
+		}
+		else
+		{
+			SpawnLight(255, 35, 35, 64, divisionSpeed:1.5);
+			[flareActorSuccess, flareActor] = A_SPAWNITEMEX("AlienGrenadeFlare", flags: SXF_SETMASTER);
+			flareActor.master = self;
+		}
+		blinkDangerIndicator(200);
+		A_PlaySound("ENEMY/GRENADE/BEEP", CHAN_5, 0.36, pitch:fusePitch);
+		fuseTick = 0;
+		fusePitch+=0.005;
+	}
+	default {
+		+MISSILE;
+		+SELACOACTOR.DangerousActor;
+		-SelacoActor.SleepWhenIdle;
+		-ALLOWBOUNCEONACTORS;
+		+BOUNCEONACTORS;
+		+NOEXTREMEDEATH;
+		+MTHRUSPECIES;
+		+THRUSPECIES;
+		+solid
+		+Shootable
+		+NOBLOCKMAP
+		+NOBLOOD;
+		+BOUNCEONFLOORS;
+		+BOUNCEONWALLS;
+		+BOUNCEONCEILINGS;
+		-BOUNCEONACTORS;
+		+ACTIVATEPCROSS;
+		SelacoActor.SleepDistance 0;
+		EnemyThrownGrenade.PrimeSound "combat/grent";
+		EnemyThrownGrenade.FuseSpeed 7;
+		EnemyThrownGrenade.fuseBeepsLeft 12;
+		EnemyThrownGrenade.flareTrail "RedPlasmaParticleSpawnerGrenade";
+		PickupableDecoration.throwvel 24;
+		PickupableDecoration.MaxThrowVel 35;
+		-PickupableDecoration.ConvertsBackFromMissile;
+		-ALLOWBOUNCEONACTORS;
+		WallBounceFactor 0.25;
+		BounceFactor 0.200;
+		BounceSound "grenade/bounce";
+		PainChance "ExplosiveImpact", 0;
+		DamageFactor "ExplosiveImpact", 0;
+		Painchance "MeleeImpact", 256;
+		damageType "explosiveImpact";
+		PainChance 255;
+		gravity 0.7;
+		friction 0.7;
+		Damage 0;
+		health 100;
+		radius 2;
+		Gravity 0.7;
+		height 2;
+		scale 2.5;
+		Speed 77;
+		tag "$PICKUP_HANDGRENADE";
+		+PRECACHEALWAYS;
+	}
+   States
+   {
+  	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_ChangeLinkFlags(1);
+		goto Throwing;
+	Pain.MeleeSlide:
+	Pain.MeleeImpact:
+		TNT1 A 0 {
+			if(CountProximity("Dawn",200, CPXF_SETTARGET)) {
+				SetStateLabel("FlyBack");
+			}
+		}
+	FlyBack:
+		VOXE L 1 A_FaceTarget();
+		TNT1 A 0 {
+			bMissile = true;
+		}
+		TNT1 A 0 A_ChangeVelocity(-7, 0, 10, CVF_RELATIVE);
+	Throwing:
+		VOXE L 1 {
+			if (loops > 4) 
+			{
+				A_ChangeLinkFlags(0);
+			}
+			loops++;
+			A_SpawnItemEx(flareTrail);
+		}
+		Loop;
+	Xdeath:
+	Death:
+		TNT1 A 0;
+		TNT1 A 0;
+	Pickup:
+	Primer:
+		TNT1 A 0 {
+			A_ChangeLinkFlags(0);
+			A_SETSIZE(20,20);
+			grenadeStationary = true;
+			bThruActors = true;
+			bMissile = false;
+		}
+	Looper:
+	    VOXE L -1;
+		Loop;
+	Putdown:
+	Throw:
+		TNT1 A 0 {
+			A_SETSIZE(2,2);
+			bThruActors = true;
+			setStateLabel("Looper");
+		}
+   Explode:
+		TNT1 A 0 A_ChangeLinkFlags(1);
+		TNT1 A 0 A_Fall;
+		TNT1 A 0;
+		TNT1 A 0 ;
+		TNT1 A 0 A_SpawnItemEx ("PrettyExplosionParticleRain",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+	    EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+		BEXP B 0 BRIGHT A_Scream;
+        TNT1 A 0 A_ALertMonsters();
+		TNT1 A 1 S_Explode(90,80, XF_HURTSOURCE);
+		TNT1 A 1 { S_Explode(90,100, XF_HURTSOURCE); GlassHandler.GlassExplosion(self, 120); }
+		TNT1 A 1 { S_Explode(80,120, XF_HURTSOURCE); GlassHandler.GlassExplosion(self, 150); }
+		TNT1 A 1 { S_Explode(70,150, XF_HURTSOURCE); GlassHandler.GlassExplosion(self, 200); }
+		TNT1 A 1 { S_Explode(60,200, XF_HURTSOURCE); GlassHandler.GlassExplosion(self, 310); }
+		TNT1 A 0 S_Explode(90, 310, 1);
+		TNT1 A 0 S_Explode(60, 75, 1);
+		stop;
+   }
+}
+
+class CrawlerGrenade : EnemyThrownGrenade
+{
+
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		fusePitch = 1.1;
+	}
+
+	override void beepGrenade()
+	{
+		if(fuseBeepsLeft < 5)
+		{
+			fuseSpeed = 4;
+			fusePitch = 1.65;
+			SpawnLight(125, 125, 555, 128, divisionSpeed:1.5);
+			[flareActorSuccess, flareActor] = A_SpawnItemEx("CrawlerGrenadebeepLarge");
+			flareActor.master = self;
+		}
+		else
+		{
+			SpawnLight(125, 125, 555, 65, divisionSpeed:1.5);
+			[flareActorSuccess, flareActor] = A_SPAWNITEMEX("CrawlerGrenadebeep", flags: SXF_SETMASTER);
+			flareActor.master = self;
+		}
+		A_PlaySound("CRAWLERGRENADE/BEEP", CHAN_5, 0.56, pitch:fusePitch);
+		fuseTick = 0;
+		fusePitch+=0.005;
+	}
+
+	default
+	{
+		tag "$OBJECT_CRAWLERBOMB";
+		-Friendly;
+		radius 25;
+		WallBounceFactor 0.1;
+		scale 4.0;
+		EnemyThrownGrenade.PrimeSound "CRAWLERGRENADE/PRIME";
+		EnemyThrownGrenade.flareTrail "BlueGrenadeTrail";
+	}
+	states
+	{
+		Explode:
+			TNT1 A 0
+			{
+				bIsMonster = true;
+				A_ChangeLinkFlags(1);
+				A_Fall();
+				A_SpawnItemEx ("CrawlerGrenadeExplosion",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+				Radius_Quake (2, 24, 0, 15, 0);
+				A_Scream();
+				A_ALertMonsters();
+				for(int x=-1;x<1;x++)
+				{
+					actor crawler;
+					bool succ;
+					[succ, crawler] = A_SPAWNITEMEX("CrawlerMine", x*-16, 0, 0, frandom(1,3), 0, 4);
+					if(crawler)
+					{
+						crawler.bFriendly = false;
+						crawler.bIsMonster = true;
+						crawler.scale*=0.75;
+						SelacoEnemy(crawler).forcedhealth*=0.5;
+						SelacoEnemy(crawler).bAllowRandomizerTier = false;
+						crawler.A_SETSIZE(radius*0.75);
+					}
+				}
+			}
+			TNT1 A 2;
+			TNT1 A 0 A_ALertMonsters();
+			stop;	
+	}
+}
+
+class EnemyThrownGrenadeHotDrop : EnemyThrownGrenade
+{
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		SetOrigin((pos.x, pos.y, pos.z+15), false);
+		A_CHANGEVELOCITY(0,0,1);
+		fuseBeepsLeft = 7;
+	}
+
+	override void tick()
+	{
+		super.tick();
+		// For SMF, find the player and hunt them down
+		if(skill == SKILL_SMF)
+		{
+			PlayerPawn pawn=players[0].mo;
+			let d = Dawn(pawn);
+			if(d)
+			{
+				speed = 10;
+				A_FACETARGET();
+				target = d;
+				A_CHASE();
+			}		
+		}
+	}
+
+	default {
+		Speed 4;
+		+NOBLOCKMAP
+		+SELACOACTOR.thruEnemies
+		DamageType "ExplosiveImpact";
+	}
+}
+
+// Functions as a secondary hitbox that follows the projectile. It has a bigger hitbox and only cares about SelacoEnemies. Snaps the projectile onto the target is conditions met
+class ProjectileSecondaryHitbox : actor
+{
+
+	array<SelacoEnemy> foundEnemies;
+	bool targetFound;
+	override void postbeginPlay()
+	{
+
+		// Store all enemies in a list
+		ThinkerIterator it = ThinkerIterator.Create("SelacoEnemy");
+		SelacoEnemy currentEnemy = SelacoEnemy(it.Next());
+        for (; currentEnemy; currentEnemy = SelacoEnemy(it.Next())) 
+		{
+			if (!currentEnemy || !currentEnemy.bIsMonster || Distance2DSquared(currentEnemy) > 2500*2500)
+				continue;		
+			foundEnemies.push(currentEnemy);
+		}
+	}
+
+	override void tick()
+	{
+		super.tick();
+		lockOnToMaster();
+	}
+
+	void lockOnToMaster()
+	{
+		if (master && !targetFound)
+		{
+			setOriginToMaster();
+		}
+		else
+		{
+			destroy();
+		}
+
+		if (master && ThrowableActor(master) && level.time %2  == 0 && !targetFound)
+		{
+			for (int x = 0; x < foundEnemies.size(); x++)
+			{
+				if (isEnemyInRange(foundEnemies[x]))
+				{
+					stopMaster();
+					snapToTarget(foundEnemies[x]);
+					targetFound = true;
+					break;
+				}
+			}
+		}
+	}
+
+	bool isEnemyInRange(Actor enemy)
+	{
+		return enemy && distance3DSquared(enemy) < radius * radius && checkSight(enemy);
+	}
+
+	void setOriginToMaster()
+	{
+		SetOrigin(master.pos, false);
+	}
+
+	void stopMaster()
+	{
+		master.vel = (0, 0, 0);
+	}
+
+	void snapToTarget(Actor target)
+	{
+		if (ThrowableActor(master).bUseProjectileAssist)
+		{
+			master.SetOrigin((target.pos.x, target.pos.y, master.pos.z), true);
+			master.setStateLabel("Explode");
+		}
+	}
+
+	default {
+		+NOINTERACTION
+		speed 60;
+		radius 50;
+		height 25;
+		scale 8;
+	}
+	states
+	{
+		spawn:
+			TNT1 A -1 BRIGHT;
+			loop;
+		xdeath:
+			stop;
+	}
+}

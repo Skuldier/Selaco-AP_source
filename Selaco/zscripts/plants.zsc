@@ -1,0 +1,1330 @@
+// This whole class is one big mess made in a time where Zscript was still alien.
+// Rewrite this at some point in time. 
+
+class MasterPlant : SELACOACTOR {
+	int destructionSprite;
+	int plantFrame;
+	int plantJumpThreshold;
+	string plantSprite;
+	float plantsize;
+	//bool rustled;
+	int rustleticks, soundTimeout;
+	int lastThruTime;			// When throwables pass through they set this to prevent repeated damage
+	Actor lastThruObject;		
+	Actor rustler;
+
+	int hitsTaken;
+	int aliveTime;
+    private int plantFlags;
+
+    flagdef UseRandomScale                : plantFlags, 0;      // Randomizes the size of every plant
+	flagdef AllowRustle					  : plantFlags, 1;		// Rustle plant when passing through it
+
+
+	const SCALE_VARIANCE = 0.16;
+	const ANGLE_VARIANCE = 26;
+	const MAX_RUSTLE_TICKS = 13;
+	const MAX_RUSTLE_ANGLE = 24.0;
+	const RUSTLE_INCREMENT = MAX_RUSTLE_ANGLE / float(MAX_RUSTLE_TICKS);
+
+	override void postBeginPlay() {
+		Super.postBeginPlay();
+		rustleticks = 0;
+		soundTimeout = 0;
+	}
+
+    override void tick() {
+        super.tick();
+
+		if(level.time == 1 && bUseRandomScale) {
+			// Randomize the scale a bit for randomization purposes
+			scale = (scale.x + frandom(-1*SCALE_VARIANCE, SCALE_VARIANCE), scale.y + frandom(-1*SCALE_VARIANCE,SCALE_VARIANCE));
+			angle+=frandom(-1*ANGLE_VARIANCE, ANGLE_VARIANCE);
+		}
+
+		if(rustleticks > 0) {
+			A_SETROLL(RUSTLE_INCREMENT * rustleticks, SPF_INTERPOLATE);
+		}
+
+		// Slight delay because plants on a pot dont have gravity. Since plants are spawned through another actor, we have to wait a few ticks >:(
+		if(aliveTime == 3)
+		{
+			if(!master)
+			{
+				bNoGravity = true;
+			}
+		}
+		else
+		{
+			aliveTime++;
+		}
+
+		if(rustler) {
+			// Check rustler distance larger than 30
+			if(distance2DSquared(rustler) > 900) {
+				rustler = null;
+				A_SetRenderStyle(STYLE_Normal, 1.0);
+			} else {
+				if(rustler is 'PlayerPawn') {
+					if(alpha == 1.0) {
+						A_SetTranslucent(0.9, 0);
+					} else {
+						Alpha = CLAMP(Alpha - 0.1, 0.4, 1.0);
+					}
+				}
+				rustleticks = MIN(MAX_RUSTLE_TICKS, rustleticks + 1);
+			}
+		} else {
+			rustleticks = MAX(0, rustleticks - 1);
+			Alpha = CLAMP(Alpha + 0.1, 0.4, 1.0);
+		}
+
+		bPreventSleep = rustleticks > 0;
+		if(rustleticks == 0)
+		{
+			if(!isBurning) sleepIndefinite();
+		}
+		if(soundTimeout > 0) soundTimeout--;
+    }
+
+	override void Touch(Actor toucher) {
+		if(health <= 0 || bGhost) { return; }
+
+		if(toucher && (toucher is 'PlayerPawn' || toucher.bIsMonster) && bAllowRustle) {
+			wake();
+			if(soundTimeout <= 0) {
+				soundTimeout = 2 * TICRATE;
+				a_playsound("step/plant", CHAN_AUTO, toucher.bIsMonster ? 0.15 : 0.3);	// Soldier rustles are quieter
+			}
+
+			if(toucher is 'PlayerPawn') {
+				// Replace existing rustler, always favor Dawn
+				rustler = toucher;
+			} else if(!rustler) {
+				rustler = toucher;
+			}
+		}
+	}
+
+    override void releaseTelek()
+    {
+		bNoGravity = true;
+		die(self,self);
+	}
+
+	override void throwTelek()
+	{
+		bNoGravity = true;
+	}
+
+	// Allows each plant to know what destruction piece to use
+	int destructionPiece;
+
+	void initializeVariables() {
+		rustleticks = 0;
+		plantsize = frandom(0.7, 1.1);
+		plantSprite = "PLT1";
+		destructionSprite = 0;
+		if(bUseRandomScale)
+		{
+			A_SETSCALE(plantsize);
+		}
+	}
+
+	// TODO: Improve this.
+	void launchDestructionPiece() {
+		string PlantPieceToShoot;
+		if (plantSprite == "PLT1") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT1PIECE1";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT1PIECE2";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT1PIECE3";	}
+		}
+		if (plantSprite == "BUSH" || plantSprite == "PLT4") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT1PIECE4";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT1PIECE5";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT1PIECE6";	}
+			A_SPAWNITEMEX(PlantPieceToShoot, 0, 0, 24, frandom(-4, 4), frandom(-4, 4), frandom(4,8));
+		}
+		if (plantSprite == "PLT2") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT1PIECE16";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT1PIECE17";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT1PIECE18";	}
+		}
+		if (plantSprite == "PLT3") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT1PIECE7";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT1PIECE8";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT1PIECE9";	}
+		}
+		if (plantSprite == "PLT5") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT1PIECE10";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT1PIECE11";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT1PIECE12";	}
+		}
+		if (plantSprite == "PLT9") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT1PIECE13";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT1PIECE14";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT1PIECE15";	}
+		}
+		if (plantSprite == "FRSM") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT1PIECE19";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT1PIECE20";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT1PIECE19";	}
+		}
+		if (plantSprite == "PLTW") {
+			if (hitsTaken == 1) {	PlantPieceToShoot = "PLANT11PIECE21";	}
+			if (hitsTaken == 2) {	PlantPieceToShoot = "PLANT11PIECE22";	}
+			if (hitsTaken >= 3) {	PlantPieceToShoot = "PLANT11PIECE23";	}
+		}
+		A_SPAWNITEMEX(PlantPieceToShoot, 0, 0, 24, frandom(-4, 4), frandom(-4, 4), frandom(4,8), flags:SXF_SETMASTER);
+		A_SPAWNITEMEX(PlantPieceToShoot, 0, 0, 24, frandom(-4, 4), frandom(-4, 4), frandom(4,8), flags:SXF_SETMASTER);
+		if(getCvar("r_particleintensity") >= 3) {
+			A_SPAWNITEMEX(PlantPieceToShoot, 0, 0, 24, frandom(-4, 4), frandom(-4, 4), frandom(4,8), flags:SXF_SETMASTER);
+		}
+		EmitDefinition('GrassBladeParticleBigDefinition', chance: 1.0, numTries: 6);
+		EmitDefinition('GrassBladeParticleBigDefinition', chance: 1.0, numTries: 9, speed:1);
+	}
+
+	//Ensures that the hitbox reduces with each shot.
+	void shrinkHitBox() {
+		if (plantSprite == "PLT1") {
+			height = height - 12;
+		}
+		if (plantSprite == "BUSH") {
+			height = height - 3;
+		}
+		if (plantSprite == "PLT3") {
+			height = height - 2;
+		}
+	}
+
+	void gibPlant(int velocityRangeX = 7, int velocityRangeZ = 10) {
+		if (plantSprite == "PLT1") {
+			A_SPAWNITEMEX("PLANT1PIECE1", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+			A_SPAWNITEMEX("PLANT1PIECE2", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+		}
+		if (plantSprite == "BUSH" || plantSprite == "PLT4") {
+			for (int i = 0; i <= 4; i++) {
+				A_SPAWNITEMEX("PLANT1PIECE4", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+				A_SPAWNITEMEX("PLANT1PIECE5", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+			}
+		}
+		if (plantSprite == "PLT3") {
+			for (int i = 0; i <= 4; i++) {
+				A_SPAWNITEMEX("PLANT1PIECE7", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+				A_SPAWNITEMEX("PLANT1PIECE8", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+			}
+		}
+		if (plantSprite == "PLT5") {
+			for (int i = 0; i <= 4; i++) {
+				A_SPAWNITEMEX("PLANT1PIECE10", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+				A_SPAWNITEMEX("PLANT1PIECE11", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+			}
+		}
+		if (plantSprite == "PLT9") {
+			for (int i = 0; i <= 4; i++) {
+				A_SPAWNITEMEX("PLANT1PIECE13", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+				A_SPAWNITEMEX("PLANT1PIECE14", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+			}
+		}
+		if (plantSprite == "FRSM") {
+			for (int i = 0; i <= 7; i++) {
+				A_SPAWNITEMEX("PLANT1PIECE19", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+				A_SPAWNITEMEX("PLANT1PIECE20", 0, 0, 24, frandom(-1*velocityRangeX, velocityRangeX), frandom(-1*velocityRangeX, velocityRangeX), frandom(2,velocityRangeZ), flags:SXF_SETMASTER);
+			}
+		}
+		EmitDefinition('GlassBladeParticleWildBigDefinition', chance: 1.0, numTries: 45, speed:1, offset:(-10,0,0));
+	}
+
+
+	override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        if(damagetype == 'ThrowThru') {
+			if(lastThruObject == inflictor && !(level.totalTime > lastThruTime + 5)) {
+				lastThruTime = level.totalTime;
+				return 0;
+			} else {
+				lastThruObject = inflictor;
+				lastThruTime = level.totalTime;
+			}
+		}
+        return Super.takeSpecialDamage(inflictor, source, damage, damagetype);
+    }
+
+
+	default {
+		painchance 255;
+		mass 100000;
+		DistanceCheck "r_thingLOD";
+		+wallsprite;
+		+NOBLOODDECALS;
+		+ROLLSPRITE;
+		-PUSHABLE;
+		+NOGRAVITY;
+		+MasterPlant.UseRandomScale;
+		+MasterPlant.AllowRustle;
+		+SELACOACTOR.DecorativeActor;
+		+SelacoACtor.AllProjectilePassThru;
+		-SelacoActor.AllowGravitymanipulation;
+		+SelacoActor.DisallowGravityManipulation;
+		+SelacoActor.WakeOnPain;
+		Radius 15;
+		Height 48;
+		Health 1000;
+		alpha 1.0;
+		+shootable;
+		+DONTTHRUST
+		+Special;	// Required for Touch() events
+		+HITSCANTHRU;
+		deathsound "dest/leafbr";
+		Bloodtype "FlowerChunk_UP", "FlowerChunk_UP", "FlowerChunk_UP";
+	}
+}
+
+// KIND OF DEPRICATED. Move everything to ``Plant`` instead so we can stop using this.
+class SmallPlant : MasterPlant
+{
+//$Category SelacoDecorations
+	states	{
+		Spawn:
+			TNT1 A 0;
+			PLT5 ABCD 0;
+			PLT1 ABCDEF 0;
+			PLT3 ABCD 0;
+			FRSM ABCD 0;
+			PLT5 ABC 0;
+			PLT6 A 0;
+			PLT7 A 0;
+			PLT8 A 0;
+			PLT9 ABCD 0;
+			PLWP A 0;
+			BUSH ABCDEF 0;
+			TNT1 A 0 {
+				plantJumpThreshold = 0;
+				plantFrame = 0;
+				destructionSprite = 3;
+				SetStateLabel("VariableGiver");
+			}
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+
+		GotoLooper:
+			TNT1 A 0 A_SETSCALE(invoker.plantsize);
+			TNT1 A 0 {
+				sprite = getSpriteIndex(invoker.plantSprite);
+				
+			}
+		Looper:
+			TNT1 A -1 {
+				frame = invoker.plantFrame;
+				if (invoker.plantFrame == 2) {
+					invoker.plantFrame = 0;
+				}
+				if(isConsideredIdle()) SleepIndefinite();
+			}
+			loop;
+		Pain.SniperBullet:	
+		pain.magnumbullet:
+		pain.explosiveimpact:
+			TNT1 A 0 gibPlant();
+			goto Death;
+		pain.PotMurder:
+			TNT1 A 0 gibPlant(2);
+			TNT1 A 0 A_SpawnItemEx("FlowerChunk_UP", random(-16,16), random(-16,16), random(0,32));
+			TNT1 AAAAAA 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(-2, 2), frandom(-2, 2), frandom(-2,2));
+			stop;
+		pain:
+			TNT1 A 0 {
+				shrinkHitBox();
+				A_PLaySound("grass/hit");
+				if(invoker.destructionSprite  < 4) {
+				   invoker.destructionSprite++;
+				   invoker.hitsTaken++;
+				}
+				launchDestructionPiece();
+			}
+			TNT1 A 0;
+		TierDamage:
+			TNT1 A 5 {
+				frame = invoker.destructionSprite;
+				if (invoker.destructionSprite >= 3) {
+					A_DamageSelf(5000);
+					bShootable = false;
+					SetStateLabel("Death");
+				}
+			}
+			TNT1 A 0 ;
+			loop;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("FlowerChunk_UP", random(-16,16), random(-16,16), random(0,32));
+			TNT1 AAAAAA 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(-2, 2), frandom(-2, 2), frandom(-2,2));
+			TNT1 A -1 {
+				frame = 4; 
+				bShootable = false;
+				bSolid = false;
+				bGhost = true;
+				rustleticks = 0;
+				Alpha = 1.0; 	// Rustling must stop when dead
+				SleepIndefinite();
+			}
+			stop;
+	}	
+}
+
+class Plant : SmallPlant
+{
+
+	int damageFrames;
+	float randomScaleMin, randomScaleMax;
+    property deductScale   : randomScaleMin, randomScaleMax;         
+	property DamageFrames : damageFrames; // The total amount of damage the plant has. (0 means "A"!)
+	property PlantSprite : plantSprite; 	// The sprite index. Since we use meshes, this is only used to detect what gibbing to give.
+
+
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		float randScale = frandom(randomScaleMin, randomScaleMax);
+
+		// Set the correct scale while also taking the Scale UDB argument into account.
+		A_SETSCALE(scale.x - randScale, scale.y - randScale);
+
+		// Adjust hitbox based on the new scale
+		A_SETSIZE(radius*scale.x, height*scale.y);
+	}
+
+	default
+	{
+		height 50;
+		radius 28;
+		-wallsprite;
+	}
+	states	{
+		Spawn:
+			TNT1 A 0 {
+				plantJumpThreshold = 0;
+				plantFrame = 0;
+			}
+		Looper:
+			VOXE A -1 {
+				frame = invoker.plantFrame;
+				if(isConsideredIdle()) SleepIndefinite();
+			}
+			loop;
+
+		Pain.SniperBullet:	
+		pain.magnumbullet:
+		pain.explosiveimpact:
+		Pain.Shotgun:
+			TNT1 A 0 gibPlant();
+			goto Death;
+		pain.PotMurder:
+			TNT1 A 0 gibPlant(2);
+			TNT1 A 0 A_SpawnItemEx("FlowerChunk_UP", random(-16,16), random(-16,16), random(0,32));
+			TNT1 AAAAAA 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(-2, 2), frandom(-2, 2), frandom(-2,2));
+			stop;
+		pain:
+			TNT1 A 0 {
+				A_PLaySound("grass/hit");
+				plantFrame++;
+				invoker.hitsTaken++;
+				launchDestructionPiece();
+				// If we hit the highest frame, die.
+				if (invoker.plantFrame >= damageFrames) {
+					A_DamageSelf(5000);
+					bShootable = false;
+					SetStateLabel("Death");
+				}
+			}
+			TNT1 A 0;
+			TNT1 A 0;
+			goto looper;
+		Death:
+			TNT1 A 0 A_SpawnItemEx("FlowerChunk_UP", random(-16,16), random(-16,16), random(0,32));
+			TNT1 AAAAAA 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(-2, 2), frandom(-2, 2), frandom(-2,2));
+			VOXE A -1 {
+				frame = DamageFrames; 
+				bShootable = false;
+				bSolid = false;
+				bGhost = true;
+				rustleticks = 0;
+				Alpha = 1.0; 	// Rustling must stop when dead
+				SleepIndefinite();
+			}
+			stop;
+	}	
+}
+
+
+class SmallerPlant : Plant
+{
+	default
+	{
+		Plant.deductScale 0.3, 0.4;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLT1";
+	}
+}
+
+class SmallestPlant : SmallerPlant
+{
+	default
+	{
+		Plant.deductScale 0.5, 0.55;
+	}
+}
+
+
+class Bush : Plant
+{
+	default
+	{
+		radius 25;
+		height 35;
+		Plant.deductScale 0.3, 0.4;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLT4";
+	}
+}
+
+class BushSmall : Bush
+{
+	default
+	{
+		radius 20;
+		height 30;
+		Plant.deductScale 0.4, 0.5;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLT4";
+	}
+}
+
+class Plant3 : Plant
+{
+	default
+	{
+		Plant.deductScale 0.2, 0.3;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLT3";
+	}
+}
+
+class Plant4 : Plant
+{
+	default
+	{
+		Plant.deductScale 0.2, 0.3;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLT4";
+	}
+}
+
+
+class Plant10 : Plant
+{
+	default
+	{
+		Plant.deductScale 0.2, 0.4;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLT1";
+	}
+}
+
+// Jerry's Big Seaweed-like
+class Plant11 : Plant
+{
+	default
+	{
+		Plant.deductScale 0.2, 0.4;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLTW";
+	}
+}
+
+// AKA Cactus
+class Plant5 : Plant
+{
+	default
+	{
+		Plant.deductScale 0.3, 0.4;
+		Plant.DamageFrames 3;
+		Plant.PlantSprite "PLT5";
+	}
+}
+
+class BabyPlant : SmallPlant
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.4, 0.5);
+		plantSprite = "PLT1";
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant2 : SmallPlant
+{
+	void initializeVariables() {
+		plantsize = frandom(0.5, 0.9);
+		plantSprite = "PLT2";
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 0;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant2Mirrored : SmallPlant
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.5, 0.9);
+		plantSprite = "PLT2";
+		A_SETSCALE(-1 * plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 0;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class BabyPlantMirrored : SmallPlant
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.4, 0.5);
+		plantSprite = "PLT1";
+		A_SETSCALE(-1 * plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+
+class Bush_mirrored : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.54, 0.6);
+		plantSprite = "BUSH";
+		A_SETSCALE(-1 * plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Bush_small : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.36, 0.42);
+		plantSprite = "BUSH";
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Bush_small_mirrored : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.36, 0.42);
+		plantSprite = "BUSH";
+		A_SETSCALE(-1*plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant6 : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.86, 0.92);
+		plantSprite = "PLT6";
+		destructionSprite = 0;
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant6_MIRRORED : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.86, 0.92);
+		plantSprite = "PLT6";
+		plantJumpThreshold = 0;
+		plantFrame = 0;
+		destructionSprite = 3;;
+		A_SETSCALE(-1 *plantsize);
+	}
+
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant7 : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.82, 0.92);
+		plantSprite = "PLT7";
+		destructionSprite = 3;;
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant7_MIRRORED : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.82, 0.92);
+		plantSprite = "PLT7";
+		plantJumpThreshold = 0;
+		plantFrame = 0;
+		destructionSprite = 3;
+		A_SETSCALE(-1*plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant8 : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.82, 0.92);
+		plantSprite = "PLT8";
+
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant8_MIRRORED : Bush
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.82, 0.92);
+		plantSprite = "PLT8";
+		A_SETSCALE(-1*plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+
+
+class Plant9 : Smallplant
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.82, 0.92);
+		plantSprite = "PLT9";
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 0;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+class Plant9_mirrored : Smallplant
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.82, 0.92);
+		plantSprite = "PLT9";
+		A_SETSCALE(-1 * plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 0;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+
+class PlantHuge9 : Smallplant
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(2.82, 3.92);
+		plantSprite = "PLT9";
+		A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 0;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+class PlantHuge9_MIRRORED : Smallplant
+{
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(2.82, 3.92);
+		plantSprite = "PLT9";
+		A_SETSCALE(-1 * plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 0;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+
+class Plant5_MIRRORED : Plant2
+{
+	default {
+		radius 13;
+		height 23;
+		-MasterPlant.AllowRustle;
+	}
+
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = frandom(0.82, 0.92);
+		plantSprite = "PLT5";
+		A_SETSCALE(-1*plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant5Small : Plant2
+{
+	default {
+		-MasterPlant.AllowRustle;
+	}
+
+	void initializeVariables() {
+		Super.initializeVariables();
+		plantsize = 0.43;
+		plantSprite = "PLT5";
+		//A_SETSCALE(plantsize);
+	}
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+class Plant5Small_MIRRORED : Plant5Small
+{
+	default {
+		-MasterPlant.AllowRustle;
+	}
+	
+	void initializeVariables() {
+		Super.initializeVariables();
+		A_SETSCALE(-1*plantsize);
+	}
+
+	states {
+		VariableGiver:
+			TNT1 A 0 {
+				invoker.destructionSprite = 3;
+				initializeVariables();
+				SetStateLabel("GotoLooper");
+			}
+	}
+}
+
+// PLANT DESTRUCTION PIECES
+class MasterPlantPiece : SELACOACTOR {
+	
+
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+		if(master)
+		{
+			A_SETSCALE(master.scale.x*0.9);
+		}
+	}
+
+	int frameID;
+	String spriteID;
+	default {
+		+missile
+		-SOLID;
+		+THRUACTORS;
+		scale 0.75;
+		radius 3;
+		+DOOMBOUNCE;
+		BounceCount 2;
+		gravity 0.44;
+		BounceFactor 0.3;
+		+ROLLSPRITE;
+		SeeSound "bounce/plant";
+	}
+
+	states {
+		spawn:
+			TNT1 A 0;
+			PLTS ABCDEFGHIJKLMNO 0;
+			SLIP ABC 0;
+			FRSM ABCD 0;
+			PLWP A 0;
+			TNT1 A 0 {
+				A_PlaySound("step/plant",CHAN_AUTO, 0.7, 0, 1.0, false, frandom(0.80, 1.1));
+				a_setroll(frandom(0,360));
+				setStateLabel("SetVariables");
+			}
+		SpinAround:
+			TNT1 A 3 {
+				sprite = GetSpriteIndex(invoker.spriteID);
+				frame = invoker.frameID;
+				a_changevelocity(frandom(-0.3, -0.3), frandom(-0.3,-0.3), frandom(-1, 1.2));
+				a_setroll(roll + 45, SPF_INTERPOLATE);
+			}
+			loop;
+		Death:
+			TNT1 A 0 {
+				sprite = GetSpriteIndex(invoker.spriteID);
+			}
+		    TNT1 A 35 {
+				//a_setroll(frandom(-5, 5));
+				bFlatSprite = true;
+				frame = invoker.frameID;
+			}
+			TNT1 A -1 {
+				frame = invoker.frameID;
+				bNoInteraction = true;
+				
+				// Sleep indefinitely. In theory we should never receive another tick after this unless manually woken
+				SleepIndefinite();
+			}
+	}
+}
+
+class PLANT1PIECE1 : MasterPlantPiece {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 0;
+ 				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE2 : MasterPlantPiece {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 1;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE3 : MasterPlantPiece {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 2;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE4 : MasterPlantPiece {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				A_SETSCALE(frandom(0.2, 0.25));
+				invoker.frameID = 3;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE5 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 4;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE6 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 5;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE7 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "PLTS";
+				invoker.frameID = 6;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE8 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 7;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE9 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 8;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+
+class PLANT1PIECE10 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 9;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE11 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 10;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE12 : PLANT1PIECE4 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.frameID = 11;
+				invoker.spriteID = "PLTS";
+				setStateLabel("SpinAround");
+			}
+	}
+}
+
+class PLANT1PIECE13 : PLANT1PIECE4 {
+	default {
+		scale 1.2;
+	}
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "SLIP";
+				invoker.frameID = 0;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE14 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "SLIP";
+				invoker.frameID = 1;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE15 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "SLIP";
+				invoker.frameID = 2;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE16 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "PLT2";
+				invoker.frameID = 25;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE17 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "PLT2";
+				invoker.frameID = 24;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE18 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "PLT2";
+				invoker.frameID = 23;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE19 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "FRSC";
+				invoker.frameID = 2;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT1PIECE20 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "FRSC";
+				invoker.frameID = 1;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT11PIECE21 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "PLWP";
+				invoker.frameID = 0;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT11PIECE22 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "PLWP";
+				invoker.frameID = 1;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+class PLANT11PIECE23 : PLANT1PIECE13 {
+	states {
+		SetVariables:
+			TNT1 A 0 {
+				invoker.spriteID = "PLWP";
+				invoker.frameID = 2;
+				setStateLabel("SpinAround");
+			}
+	}
+}
+
+class LilyPad_Big : actor {
+	int frameID;
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		if(random(0,1) == 0) {frameID = 0;} 
+		else { frameID = 2;}
+	}
+
+	default {
+		+NOINTERACTION;
+		+FLATSPRITE;
+		scale 0.6;
+	}
+
+	States {
+		Spawn:
+			TNT1 A 0;
+			LILY A -1 {
+				sleepIndefinite();
+				frame = frameID;
+			}
+			stop;
+	}
+
+}
+
+class LilyPad_small : LilyPad_Big {
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		if(random(0,1) == 0) {frameID = 1;} 
+		else { frameID = 3;}
+	}
+
+}
+
+class PlantImpactEffect : actor {
+    static const String SmokeEffects[] = {"HGR1", "HGR2", "HGR3"};
+	int pickedArray;
+	default {
+		scale 0.59;
+		RenderStyle "Translucent";
+		+NOGRAVITY
+		+ROLLSPRITE
+		+NOINTERACTION
+	}
+	states {
+        Indexer:
+            // Index the whole thing. We don't want another instability problem.
+            HGR1 A 0;
+            HGR2 A 0;
+            HGR3 A 0;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+				A_SETROLL(0,360);
+                pickedArray = random(0,SmokeEffects.size() -1);
+                //A_CHANGEVELOCITY(frandom(-0.6,-1.1),0,1);
+            }
+            TNT1 A 0 {
+                Sprite = GetSpriteIndex(SmokeEffects[pickedArray]);
+				setStateLabel("Effect");
+            }
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRS 1;
+			stop;
+	}
+}
+
+class PlantImpactEffectFloor : PlantImpactEffect
+{
+	default
+	{
+		alpha 0.6;
+		scale 0.69;
+	}
+	states
+	{
+		Effect:
+			TNT1 ABCDEFGHIJKLMNOPQRS 1 {
+				//A_SETSCALE(scale.x + 0.1);
+			}
+			stop;
+	}
+}

@@ -1,0 +1,716 @@
+// TODO: Remove the old DECORATE drawings once the transfer is complete
+
+class KidsDoodle : PaperActor {
+
+    private int doodleFlags;
+    flagdef official                : doodleFlags, 0;      // Do not sleep automatically, can be used on and off to prevent sleep during animations
+
+    default {
+        tag "$OBJECT_KIDSDRAWING";
+        -SOLID
+		+SHOOTABLE
+        +NOPAIN
+		+NOGRAVITY
+		+DONTTHRUST
+		+HITSCANTHRU
+		+SelacoActor.EnemyProjectilePassthru
+		+KidsDoodle.Official
+        height 18;
+        mass 100;
+        height 20;
+        selfLighting "";
+        maxStepHeight 1;
+        health 10;
+        alpha 1.0;
+        mass 10;
+        scale 1.0;
+        deathsound "dest/paper";
+        Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP";
+        
+        // Override calendars no-sleep behaviour as we are not animated
+        -SELACOACTOR.WakeNearPlayer
+        +SELACOACTOR.SleepWhenIdle
+    }
+
+states
+{
+	Precache:
+		DRAW B 0;
+		stop;
+	SpawnReal:
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 {
+			A_SETROLL(random(-2,2));
+			if (args[1] == 1) {
+				A_SETROLL(0);
+				bWallSprite = false;
+				bFlatSprite = true;
+			}
+			if(args[0] == 0) {
+				
+				A_SpawnItemEx("PinSpawner", 0, frandom(-1,1), frandom(10.8,11.2));
+			}
+			SetStateLabel("DrawSprite");
+		}
+	DrawSprite:
+		DRAW B 1 SleepIndefinite();
+		stop;
+    Tear:
+        TNT1 A 0
+        {
+            bNoInteraction = true;
+            bPreventSleep = true;
+            Wake();
+            A_PLAYSOUND("PAPER/TEAR", CHAN_AUTO, 0.7);
+            A_PlaySound("dest/paper");
+            A_SPAWNITEMEX("PaperChunk", 5, 0, 16);
+            vel = (0,0,0);
+        }
+        DRAW BBBB 1 A_FADEOUT(0.2);
+        stop;
+	Pain.Shotgun:
+	Pain.Explosiveimpact:
+	Pain:
+	Death.ExplosiveImpact:
+	Death.Shotgun:
+	Death: 
+		TNT1 A 0 {
+			Wake();
+		}
+		TNT1 AAA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(0,50), frandom(-20,20), random(-10,10), frandom(0.3,0.6));
+		TNT1 A 0 A_PlaySound("dest/paper");
+		DRAW BBBBBBBBBBBBBBB 1 {
+			bNoInteraction = true;
+			a_fadeout(0.07);
+			A_SETSCALE(scale.x+0.001, 0);
+		}
+		Stop;
+}    
+}
+
+class OfficialDoodle1 : KidsDoodle {
+
+}
+class OfficialDoodle2 : KidsDoodle {
+	
+}
+class OfficialDoodle4 : KidsDoodle {
+	
+}
+class OfficialDoodle5 : KidsDoodle {
+	
+}
+class OfficialDoodle7 : KidsDoodle {
+	
+}
+class OfficialDoodle8 : KidsDoodle {
+	
+}
+class OfficialDoodle9 : KidsDoodle {
+	
+}
+class OfficialDoodle10 : KidsDoodle {
+	
+}
+class OfficialDoodle11 : KidsDoodle {
+	
+}
+class OfficialDoodle12 : KidsDoodle {
+	
+}
+class OfficialDoodle13 : KidsDoodle {
+	
+}
+class OfficialDoodle14 : KidsDoodle {
+	
+}
+class OfficialDoodle15 : KidsDoodle {
+	
+}
+class OfficialDoodle16 : KidsDoodle {
+	
+}
+class OfficialDoodle17 : KidsDoodle {
+	
+}
+class OfficialDoodle18 : KidsDoodle {
+	
+}
+class OfficialDoodle19 : KidsDoodle {
+	
+}
+class OfficialDoodle20 : KidsDoodle {
+	
+}
+class OfficialDoodle21 : KidsDoodle {
+	
+}
+class OfficialDoodle22 : KidsDoodle {
+	
+}
+class OfficialDoodle23 : KidsDoodle {
+	
+}
+class OfficialDoodle24 : KidsDoodle {
+	
+}
+class OfficialDoodle25 : KidsDoodle {
+	
+}
+class OfficialDoodle26 : KidsDoodle {
+	
+}
+class OfficialDoodle27 : KidsDoodle {
+	
+}
+class OfficialDoodle28 : KidsDoodle {
+	
+}
+class OfficialDoodle29 : KidsDoodle {
+	
+}
+class OfficialDoodle30 : KidsDoodle {
+	
+}
+class OfficialDoodle31 : KidsDoodle {
+	
+}
+class OfficialDoodle32 : KidsDoodle {
+	
+}
+class OfficialDoodle33 : KidsDoodle {
+	
+}
+class OfficialDoodle34 : KidsDoodle {
+	
+}
+class OfficialDoodle35 : KidsDoodle {
+	
+}
+class OfficialDoodle36 : KidsDoodle {
+	
+}
+class OfficialDoodle37 : KidsDoodle {
+	
+}
+class OfficialDoodle38 : KidsDoodle {
+	
+}
+class OfficialDoodle39 : KidsDoodle {
+	
+}
+class OfficialDoodle40 : KidsDoodle {
+	
+}
+class OfficialDoodle41 : KidsDoodle {
+	
+}
+class OfficialDoodle42 : KidsDoodle {
+	
+}
+class OfficialDoodle43 : KidsDoodle {
+	
+}
+class OfficialDoodle44 : KidsDoodle {
+	
+}
+class OfficialDoodle45 : KidsDoodle {
+	
+}
+class OfficialDoodle46 : KidsDoodle {
+	
+}
+class OfficialDoodle47 : KidsDoodle {
+	
+}
+class OfficialDoodle48 : KidsDoodle {
+	
+}
+class OfficialDoodle49 : KidsDoodle {
+	
+}
+class OfficialDoodle50 : KidsDoodle {
+	
+}
+class OfficialDoodle51 : KidsDoodle {
+	
+}
+class OfficialDoodle52 : KidsDoodle {
+	
+}
+class OfficialDoodle53 : KidsDoodle {
+	
+}
+class OfficialDoodle54 : KidsDoodle {
+	
+}
+class OfficialDoodle55 : KidsDoodle {
+	
+}
+class OfficialDoodle56 : KidsDoodle {
+	
+}
+class PatreonDoodleV2 : KidsDoodle {
+	string kidName;
+	property KidName : kidName;
+
+    override void activate(actor activator) {
+
+    }
+
+	override void postbeginPlay() {
+		super.postBeginPlay();
+		SetTag(string.format("%s: \c[omniblue]%s", StringTable.localize("$DRAWNBY"), kidName));
+	}
+
+	default {
+		+USESPECIAL
+		-KidsDoodle.Official
+		-SelacoActor.ShowInteraction;
+		activation THINGSPEC_SWITCH;
+		SelacoActor.UseTag " ";
+		alpha 1.0;
+		PatreonDoodleV2.KidName "Unnamed";
+	}
+	states {
+		Inactive:
+		Active:
+		DrawSprite:
+			DRAW B 1 SleepIndefinite();
+			stop;
+	}
+}
+
+class PatreonDoodle1 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "E. Vermet";
+	}
+}
+
+class PatreonDoodle2 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "N. Connor";
+	}
+}
+
+class PatreonDoodle3 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "C. Atrice";
+	}
+}
+
+class PatreonDoodle4 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "D. Mendez";
+	}
+}
+
+class PatreonDoodle5 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "T. Cube";
+	}
+}
+
+class PatreonDoodle6 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "E. Muessig";
+	}
+}
+
+class PatreonDoodle7 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "K. Fox";
+	}
+}
+
+class PatreonDoodle8 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "A. Soki";
+	}
+}
+
+class PatreonDoodle9 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "M. Greco";
+	}
+}
+
+class PatreonDoodle10 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "D. Xavier Raleigh";
+	}
+}
+
+class PatreonDoodle11 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "J. Nicanor";
+	}
+}
+
+class PatreonDoodle12 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "H. Caspia";
+	}
+}
+
+class PatreonDoodle13 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "M. Schneider";
+	}
+}
+
+class PatreonDoodle14 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "P. Edwards";
+	}
+}
+
+class PatreonDoodle15 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Borbas";
+	}
+}
+
+class PatreonDoodle16 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "E. Bentsen";
+	}
+}
+
+class PatreonDoodle17 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "A. Bair";
+	}
+}
+
+class PatreonDoodle18 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "T. Deisinger";
+	}
+}
+
+class PatreonDoodle19 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "J. Eddie";
+	}
+}
+
+class PatreonDoodle20 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "F. Lopez";
+	}
+}
+class PatreonDoodle21 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "A. Terez";
+	}
+}
+class PatreonDoodle22 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Cast";
+	}
+}
+class PatreonDoodle23 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "J. Dolman";
+	}
+}
+class PatreonDoodle24 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "V. Holo";
+	}
+}
+class PatreonDoodle25 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "H. Amoros ";
+	}
+}
+class PatreonDoodle26 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "G. Morhua";
+	}
+}
+class PatreonDoodle27 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "B. Jones";
+	}
+}
+class PatreonDoodle28 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "M. Besutti";
+	}
+}
+class PatreonDoodle29 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "C. Sherwood";
+	}
+}
+class PatreonDoodle30 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "L. Marcondes";
+	}
+}
+class PatreonDoodle31 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Jamefield";
+	}
+}
+class PatreonDoodle32 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Nemkin";
+	}
+}
+class PatreonDoodle33 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "J. Meyer";
+	}
+}
+class PatreonDoodle34 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "A. Kromm";
+	}
+}
+class PatreonDoodle35 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "Z. Houk";
+	}
+}
+class PatreonDoodle36 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "F. Space";
+	}
+}
+class PatreonDoodle37 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Catcher";
+	}
+}
+class PatreonDoodle38 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "W. Wulf";
+	}
+}
+class PatreonDoodle39 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "D. Coleman";
+	}
+}
+class PatreonDoodle40 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "G. Small";
+	}
+}
+class PatreonDoodle41 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "F. Andrade-Maldonado";
+	}
+}
+class PatreonDoodle42 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "A. Crisafulli";
+	}
+}
+class PatreonDoodle43 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "J. Ercolani";
+	}
+}
+class PatreonDoodle44 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "C. Cousins";
+	}
+}
+class PatreonDoodle45 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "N. Baysingar";
+	}
+}
+class PatreonDoodle46 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "D. Belcher";
+	}
+}
+class PatreonDoodle47 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "D. Girod";
+	}
+}
+class PatreonDoodle48 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "K. Xia";
+	}
+}
+class PatreonDoodle49 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "D. Lincoln";
+	}
+}
+class PatreonDoodle50 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "N. Monahan";
+	}
+}
+class PatreonDoodle51 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "M. Pesavento";
+	}
+}
+
+class PatreonDoodle52 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "C. Berumen";
+	}
+}
+
+class PatreonDoodle53 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Mildner";
+	}
+}
+
+class PatreonDoodle54 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "B. Lattman";
+	}
+}
+
+class PatreonDoodle55 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Kilbride";
+	}
+}
+
+class PatreonDoodle56 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "A. Dumanic";
+	}
+}
+
+class PatreonDoodle57 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "J. Aisu";
+	}
+}
+
+class PatreonDoodle58 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "S. Howard";
+	}
+}
+class PatreonDoodle59 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "M. Dykzeul";
+	}
+}
+class PatreonDoodle60 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "K. Coates";
+	}
+}
+class PatreonDoodle61 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "K. Marketti";
+	}
+}
+class PatreonDoodle62 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "O. Ashes";
+	}
+}
+class PatreonDoodle63 : PatreonDoodleV2 {
+	default {
+		PatreonDoodleV2.KidName "P. Lloyd";
+	}
+}
+class PatreonDoodleSpawner : actor {
+	D00dl3G3n3rat0r generator;
+	
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		generator = D00dl3G3n3rat0r.instance();
+		A_SPAWNITEMEX(generator.getPatreonDoodle());
+		destroy();
+	}
+}
+
+class OfficialDoodleSpawner : PatreonDoodleSpawner {
+	override void PostBeginPlay() {
+		generator = D00dl3G3n3rat0r.instance();
+		A_SPAWNITEMEX(generator.getOfficialDoodle());
+		destroy();
+	}
+}
+
+class D00dl3G3n3rat0r : EventHandler {
+	array<string> allDoodleClasses;
+	array<string> unusedDoodleClasses;
+	array<string> officialDoodleClasses;
+    override void WorldLoaded(WorldEvent e)
+    {
+		// Get available drawings
+		int totalClasses = AllClasses.size();
+		for(int x = 0; x < totalClasses; x++) 
+		{
+			if(AllClasses[x] is 'KidsDoodle')
+			{
+				let def = KidsDoodle(GetDefaultByType((class<KidsDoodle>)(AllClasses[x])));
+
+				// Do not include base class as it has nothing
+				if(def.getClassName() == "KidsDoodle" || def.getClassName() == "PatreonDoodleV2") {
+					continue;
+				}
+
+				// Add doodle to lists
+				if(def.bOfficial) {
+					officialDoodleClasses.push(def.getClassName());
+				} else {
+					unusedDoodleClasses.push(def.getClassName());
+				}
+
+				allDoodleClasses.push(def.getClassName());
+
+			}
+		}	
+	}
+
+	string getPatreonDoodle() {
+		// Do we have an unused one?
+		if(unusedDoodleClasses.size()>0) {
+			// Get the name of the unused one
+			int randClass = random(0,unusedDoodleClasses.size()-1);
+			string doodleName = unusedDoodleClasses[randClass];
+
+			// Remove it from the list
+			unusedDoodleClasses.delete(randClass);
+
+			return doodleName;
+		}
+
+		// All doodles used, just pick a random one
+		return allDoodleClasses[random(0, allDoodleClasses.size()-1)];
+	}
+
+	string getOfficialDoodle() {
+		// Do we have an unused one?
+		if(officialDoodleClasses.size()>0) {
+			// Get the name of the unused one
+			int randClass = random(0,officialDoodleClasses.size()-1);
+			string doodleName = officialDoodleClasses[randClass];
+
+			// Remove it from the list
+			officialDoodleClasses.delete(randClass);
+
+			return doodleName;
+		}
+
+		// All doodles used, just pick a random one
+		return allDoodleClasses[random(0, allDoodleClasses.size()-1)];
+	}
+
+    static clearscope D00dl3G3n3rat0r Instance() {
+        return D00dl3G3n3rat0r(EventHandler.Find("D00dl3G3n3rat0r"));
+    }
+
+
+}

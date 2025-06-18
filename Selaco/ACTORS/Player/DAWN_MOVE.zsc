@@ -1,0 +1,198 @@
+extend class Dawn {
+
+	const BASE_MOVEMENT_SPEED = 1.075;
+
+    override void HandleMovement() {
+		// Prevent player from moving during menus
+		if(menuActive != Menu.Off) {
+			player.cmd.sideMove = 0;
+			player.cmd.forwardmove = 0;
+		}
+
+		Super.HandleMovement();
+	}
+
+
+	override void MovePlayer() {
+		if(curLadder) {
+			MovePlayerOnLadder();
+			
+			// Adjust weapon wheel aim deadening
+			if(weaponWheelUp > 0 && weaponWheelUp <= SelacoWeapon.WEAPON_WHEEL_COOLDOWN) weaponWheelUp--;
+			
+			return;
+		}
+
+		MoveDawn();
+
+		// Adjust weapon wheel aim deadening
+		if(weaponWheelUp > 0 && weaponWheelUp <= SelacoWeapon.WEAPON_WHEEL_COOLDOWN) weaponWheelUp--;
+	}
+
+
+	virtual void MoveDawn()
+	{
+		let player = self.player;
+		UserCmd cmd = player.cmd;
+
+		// [RH] 180-degree turn overrides all other yaws
+		if (player.turnticks)
+		{
+			player.turnticks--;
+			Angle += (180. / TURN180_TICKS);
+		}
+		else if(!(automapactive && !am_followplayer))
+		{
+			Angle += cmd.yaw * (360./65536.);
+		}
+
+		player.onground = (pos.z <= floorz) || bOnMobj || bMBFBouncer || (player.cheats & CF_NOCLIP2);
+
+		// killough 10/98:
+		//
+		// We must apply thrust to the player and bobbing separately, to avoid
+		// anomalies. The thrust applied to bobbing is always the same strength on
+		// ice, because the player still "works just as hard" to move, while the
+		// thrust applied to the movement varies with 'movefactor'.
+
+		if (cmd.forwardmove | cmd.sidemove)
+		{
+			double forwardmove, sidemove;
+			double bobfactor;
+			double friction, movefactor;
+			double fm, sm;
+
+			// Get Speed
+			[friction, movefactor] = GetFriction();
+			movefactor*=BASE_MOVEMENT_SPEED;
+
+			// Adjust 
+			if(hasBunnyHop)
+			{
+				moveFactor *=1.5;
+
+			}
+			if(waterLevel > 1) {
+				moveFactor *= 0.7;
+			}
+
+			bobfactor = friction < ORIG_FRICTION ? movefactor : ORIG_FRICTION_FACTOR;
+			if (!player.onground && !bNoGravity && !waterlevel)
+			{
+				// [RH] allow very limited movement if not on ground.
+				movefactor *= level.aircontrol;
+				bobfactor*= level.aircontrol;
+			}
+
+			fm = cmd.forwardmove;
+			sm = clamp(cmd.sidemove, -10240, 10240);	// @Cockatrice - Joystick + KB could exceed defaults here
+			[fm, sm] = TweakSpeeds (fm, sm);
+			fm *= Speed / 256;
+			sm *= Speed / 256;
+
+			// When crouching, speed and bobbing have to be reduced, but only when not swimming.
+			if (CanCrouch() && player.crouchfactor != 1 && waterLevel < 3)
+			{
+				fm *= player.crouchfactor;
+				sm *= player.crouchfactor;
+				bobfactor *= player.crouchfactor;
+			}
+
+			if(waterLevel == 3) {
+				bobFactor = 0;
+				movefactor*=0.4;
+				friction = 2.0;
+			}
+
+			forwardmove = fm * movefactor * (35 / TICRATE);
+			sidemove = sm * movefactor * (35 / TICRATE);
+
+			if (forwardmove)
+			{
+				Bob(Angle, cmd.forwardmove * bobfactor / 256., true);
+				ForwardThrust(forwardmove, Angle);
+			}
+			if (sidemove)
+			{
+				let a = Angle - 90;
+				Bob(a, cmd.sidemove * bobfactor / 256., false);
+				Thrust(sidemove, a);
+			}
+
+			if (!(player.cheats & CF_PREDICTING) && (forwardmove != 0 || sidemove != 0))
+			{
+				PlayRunning ();
+			}
+
+			if (player.cheats & CF_REVERTPLEASE)
+			{
+				player.cheats &= ~CF_REVERTPLEASE;
+				player.camera = player.mo;
+			}
+		}
+
+		
+	}
+
+	
+
+	// @Cockatrice - Modified forwardthrust to allow walking in water
+	void ForwardThrust (double move, double angle) {
+		if ((waterlevel || bNoGravity) && Pitch != 0 && !player.GetClassicFlight() && (!player.onground || waterlevel > 1))
+		{
+            double zpush = move * sin(Pitch);
+            if (waterlevel && waterlevel < 2 && zpush < 0) zpush = 0;
+			else if(waterlevel) zpush *= clamp(waterdepth, 0, height) / height;
+            Vel.Z -= zpush;
+
+            if(!player.onground || Pitch < 0) move *= cos(Pitch);
+		}
+
+		Thrust(move, angle);
+	}
+
+	
+    override void CheckMoveUpDown() {
+		let player = self.player;
+		UserCmd cmd = player.cmd;
+
+		if (cmd.upmove == -32768)
+		{ // Only land if in the air
+			if (bNoGravity && waterlevel < 2)
+			{
+				bNoGravity = false;
+			}
+		}
+		else if (cmd.upmove != 0)
+		{
+			// Clamp the speed to some reasonable maximum.
+			cmd.upmove = clamp(cmd.upmove, -0x300, 0x300);
+			if (waterlevel >= 2 ||  bFly || (player.cheats & CF_NOCLIP2))
+			{
+                let velz = (SWIM_SPEED * (cmd.upmove / 0x300)) / 5.0;
+				Vel.Z = velz >= 0.0 ? 
+                        MAX(Vel.Z, MIN(Vel.Z + velz, SWIM_SPEED)) :
+                        MIN(Vel.Z, MAX(Vel.Z + velz, -SWIM_SPEED));
+
+				if (waterlevel < 2 && !bNoGravity)
+				{
+					bFly = true;
+					bNoGravity = true;
+					if ((Vel.Z <= -39) && !(player.cheats & CF_PREDICTING))
+					{ // Stop falling scream
+						A_StopSound(CHAN_VOICE);
+					}
+				}
+			}
+		} 
+        
+		// This probably belongs in CheckCrouch but whatever
+        if((cmd.buttons & BT_CROUCH) && waterlevel > 0) {
+            // Instead of crouch we move down
+			Vel.Z = MIN(Vel.Z, MAX(Vel.Z - 1, -SWIM_SPEED));
+        }
+
+		// Apply additional gravity if player is only partially submerged
+		if(waterlevel == 2 && !player.onground) vel.Z -= 0.1;
+	}
+}

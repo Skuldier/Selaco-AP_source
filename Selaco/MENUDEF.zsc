@@ -1,0 +1,2341 @@
+OptionMenu "GameplayMenu"
+{
+	Class "HoveringTooltipMenu"
+	Title "Gameplay Settings"
+	//StaticText "Developer Settings", "OMNIBLUE"
+	//TooltipOption "Console Debugging",			"Displays spawn information into the console. Add '+logfile log.txt' as a start parameter to maximize the usefulness of this mode.\n\n\c[RED]Developer settings are here for testing purposes and will not be in the final product.\n\n", "", "debugmode", "OnOff"	
+	StaticText "$SETTING_CATEGORY_MODERNIZATION", "OMNIBLUE"	
+	TooltipOption "$TITLE_ITEMFLARES",				"$DESCRIPTION_ITEMFLARE", 			"OP_FLARE", "g_itemicons", "ItemIcons"
+	TooltipOption "$TITLE_KILLMARKERS",				"$DESCRIPTION_KILLMARKERS", 		"OP_KILLM", "g_damagemarkers", "DamageMarkers"
+	TooltipOption "$TITLE_BRIGHTER_ENEMIES",		"$DESCRIPTION_BRIGHTER_ENEMIES",	"OP_BRSK1", "gl_selflighting", "OnOff"
+	TooltipOption "$TITLE_OBJECTIVEDISPLAYS",		"$DESCRIPTION_OBJECTIVEDISPLAYS", 	"OP_OBJEC", "g_showobjectives", "OnOff"	
+	TooltipOption "$TITLE_EXPLOSIONINDICATORS",		"$DESCRIPTION_EXPLOSIONINDICATORS", "OP_DANGR", "g_dangerindicators", "OnOff"	
+	TooltipOption "$TITLE_RELOADINDICATORS",		"$DESCRIPTION_RELOADINDICATORS",	"OP_AMMO",	"g_reloadindicator", "OnOff"	
+	TooltipOption "$TITLE_DAMAGEINDICATORS",		"$DESCRIPTION_DAMAGEINDICATORS",	"OP_DMGIN", "g_damageoverlay", "OnOff"
+	TooltipOption "$TITLE_ADS",		"$DESCRIPTION_ADS", "OP_IRON1", "g_ironsights", "OnOff"
+	TooltipOption "$TITLE_BACKPACKRELOADING",		"$DESCRIPTION_BACKPACKRELOADING", "", "g_backpackReloading", "OnOff"
+	TooltipOption "$TITLE_CHECKPOINTSAVES",			"$DESCRIPTION_CHECKPOINTSAVES", 	"OP_SAVE", 	"g_autosaves", "OnOff"	
+	TooltipOption "$TITLE_QUICKSAVEROTATION",		"$DESCRIPTION_QUICKSAVEROTATION", 				"", 		"quicksaverotation", "OnOff"	
+	TooltipOption "$TITLE_CONFIRM_QUICKLOAD",		"$DESCRIPTION_CONFIRM_QUICKLOAD",	"",			"saveloadconfirmation", "OnOff"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_MAP", "OMNIBLUE"
+	TooltipOption "$TITLE_BREADCRUMBS", "$DESCRIPTION_BREADCRUMBS", "OP_BREAD", "g_breadcrumbs", "OnOff"
+	TooltipOption "$TITLE_MAPTEXTURES", "$DESCRIPTION_MAPTEXTURES", "OP_MAP1", "am_textured", "OnOff"
+	//TooltipOption "$AUTOMAP_STYLE",	"$DESCRIPTION_MAPICONS", "", "AutomapPresets", "ItemIcons"	
+	TooltipOption "$TITLE_MAPICONS",	"$DESCRIPTION_MAPICONS", "OP_MPICO", "g_enablemapicons", "OnOff"	
+	TooltipOption "$TITLE_HIDETASKS",	"$DESCRIPTION_HIDETASKS", "", "g_showcompletedicons", "OnOffRev"
+	TooltipOption "$TITLE_MAPNOTIFICATIONS",	"$DESCRIPTION_MAPNOTIFICATIONS", "", "g_automapupdates", "OnOff"	
+	TooltipOption "$TITLE_ICONSIZE",	"$DESCRIPTION_ICONSIZE", "", "g_iconsize", "AUTOMAP_IconSize"		
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_IMMERSION", "OMNIBLUE"
+	//TooltipOption "$TITLE_PROJECTILEORIGIN",		"$DESCRIPTION_PROJECTILEORIGIN", "", 		"g_centerProjectiles", "projectileOrigin", "projectileOriginDesc"
+	//TooltipOption "$TITLE_CHASECAMTRANSPARANCY",	"$DESCRIPTION_CHASECAMTRANSPARANCY", 		"OP_CHTR1", 	"g_chasecamtransparency", 	"OnOff"	
+	//TooltipOption "$TITLE_ENDLEVELTRIGGERS",		"$DESCRIPTION_ENDLEVELTRIGGERS", 			"OP_EXIT", 		"g_showLevelTriggers", 		"OnOff"
+	TooltipOption "$TITLE_INTERACTIONANIMATIONS",	"$DESCRIPTION_INTERACTIONANIMATIONS", 		"G_INTER", 		"g_interactionanimations", 	"OnOff"	
+	//TooltipOption "$TITLE_LEVELTILTING",			"$DESCRIPTION_LEVELTILTING",	"", 		"g_leveltilting", 							"OnOff"
+	//TooltipOption "$TITLE_ATTACKINDICATORS", 		"$DESCRIPTION_ATTACKINDICATORS","OP_ATKIND","g_attackindicators", 						"OnOff"
+	TooltipOption "$TITLE_PICKUPMODE", 				"$DESCRIPTION_PICKUPMODE", 	"", 			"g_pickupmode",		 						"AutoManual", "PickupModesDesc"
+	TooltipOption "$TITLE_AUTOSWITCH", 				"$DESCRIPTION_AUTOSWITCH", 	"", 			"neverswitchonpickup",		 				"OnOffRev"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_SCREENEFFECTS", "OMNIBLUE"
+	TooltipOption "$TITLE_SCREENBLOOD",				"$DESCRIPTION_SCREENBLOOD", 				"OP_SCBL1",		"g_screenbloodeffects", 	"OnOff"	
+	TooltipOption "$TITLE_SCREENDIRT",				"$DESCRIPTION_SCREENDIRT", 					"",		"g_overlay_dirt", 		"OnOff"	
+	TooltipOption "$TITLE_SCREENHEALING",			"$DESCRIPTION_SCREENHEALING", 				"",		"g_overlay_healing", 	"OnOff"	
+	TooltipOption "$TITLE_SCREENARMOR",				"$DESCRIPTION_SCREENARMOR", 				"",		"g_overlay_armor", 		"OnOff"	
+	TooltipOption "$TITLE_SCREENDASH",				"$DESCRIPTION_SCREENDASH", 					"",		"g_overlay_dash", 		"OnOff"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_DEFAULTS", "OMNIBLUE"
+	TooltipCommand 	"$TITLE_RESET_DEFAULT",			"$DESCRIPTION_RESETDEFAULT",				"",		"none", 	"defaults"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_PROGRESS", "OMNIBLUE"
+	TooltipCommand  "$TITLE_RESET_WEAPONPROGRESS",		"$DESCRIPTION_RESETWEAPONPROGRESS", "", "none", "resetaltfires"
+}
+
+OptionMenu "SteamDeckMenu"
+{
+	Class "HoveringTooltipMenu"
+	Title "Steam Deck"
+	
+	TooltipCommand  "$TITLE_RESET_STEAMDECK",		"$DESCRIPTION_RESET_STEAMDECK", "", "none", "setSteamDeck"
+
+	Space 30
+	StaticText 		"$SETTING_CATEGORY_STEAMDECK", 	"OMNIBLUE"	
+	TooltipOption 	"$TITLE_UISCALE",				"$DESCRIPTION_UISCALE", 			"", 	"ui_scaling", 	"uiscales"
+	TooltipSlider 	"$TITLE_HUDSCALING_DECK",		"$DESCRIPTION_HUDSCALING", 			"OP_HUDS1", "hud_scaling", 				0.5, 1.25, 0.01, 2
+	TooltipOption 	"$TITLE_HUDMETERS",				"$DESCRIPTION_HUDMETERS", 			"OP_HUDS2",	"hud_meter_scaling", 	"hudmeterscaling"
+	TooltipOption 	"$TITLE_SUBTITLESIZE", 			"$DESCRIPTION_SUBTITLESIZE", 		"", "snd_subtitlesize", "SubtitleSize"
+	TooltipOption 	"$TITLE_SUBTITLEBACKGROUNDS", 	"$DESCRIPTION_SUBTITLEBACKGROUNDS", "", "snd_subtitlebg", "OnOff"
+
+	Space 30
+	StaticText 		"$TITLE_GAMEPAD", "OMNIBLUE"
+	TooltipOption 	"$SETTING_GAMEPAD_INVERT_Y", 	"$DESCRIPTION_GAMEPAD_INVERT_Y_DECK", 	"", "joy_invert_look", 	"YesNo"
+
+	Space 30
+	StaticText "$TITLE_AIMASSIST", "OMNIBLUE"
+	TooltipOption "$SETTING_GAMEPAD_AIMASSIST", "$DESCRIPTION_GAMEPAD_AIMASSIST", "", "AIMASSIST_ENABLE", "OnOff"
+	TooltipOption "\t$SETTING_GAMEPAD_AIMASSIT_STYLE", "$DESCRIPTION_GAMEPAD_AIMASSIST_STYLE", "", "AIMASSIST_STYLE", "AimAssistStyle"
+	TooltipOption "\t$SETTING_GAMEPAD_AIMASSIST_STRENGTH",	"$DESCRIPTION_GAMEPAD_AIMASSIST_STRENGTH", "", "AIMASSIST_STRENGTH", "AimAssistStrength"
+}
+
+OptionMenu "Accessibility"
+{
+
+	Class "HoveringTooltipMenu"
+	Title "Accessibility Settings"
+
+	StaticText "$SETTING_CATEGORY_PHOTOSENSITIVITY", "OMNIBLUE"
+	TooltipOption "$TITLE_FLICKERING",		"$DESCRIPTION_FLICKERING", 	"",  "g_photosensitivitymode2", "OnOff"		
+	TooltipOption "$TITLE_DIMMUZZLEFLASH",	"$DESCRIPTION_DIMMUZZLEFLASH", 	"OP_MUZL",  "g_dimMuzzleFlashes", "OnOff"		
+	TooltipOption "$TITLE_DAMAGESCREENFLASHES",	"$DESCRIPTION_DAMAGESCREENFLASHES", 	"",  "blood_fade_scalar", "FlashDim"	
+	TooltipOption "$TITLE_PICKUPFLASHES",	"$DESCRIPTION_PICKUPFLASHES", 	"",  "pickup_fade_scalar", "FlashDim"	
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_MOTION", "OMNIBLUE"	
+	// NO LONGER USED TooltipOption "$TITLE_FIELDOFVIEWEFFECTS",		"$DESCRIPTION_FIELDOFVIEWEFFECTS", 	"",  "g_FOVEffects", 	"OffOn"	
+	TooltipOption "$TITLE_CAMERAMOTION",		"$DESCRIPTION_CAMERAMOTION", 		"", "g_cameramotion", 		"YesOrNoRev"
+	TooltipOption "$TITLE_IMPACTSHAKE",			"$DESCRIPTION_IMPACTSHAKE", 		"",  "g_impactshake", 	"intensitysetting"
+	TooltipOption "$TITLE_VIEWBOBBING",			"$DESCRIPTION_VIEWBOBBING", 		"",  "g_viewbob", 		"OnOff"	
+	TooltipOption "$TITLE_WEAPONBOBBING",		"$DESCRIPTION_WEAPONBOBBING", 		"",  "movebob", 		"optionsViewBobbing"
+	TooltipOption "$TITLE_SCRIPTEDSCREENSHAKE",	"$DESCRIPTION_SCRIPTEDSCREENSHAKE", "", "g_screenshake", "intensitysetting"	
+	TooltipOption "$TITLE_SLIDEZOOMING",	"$DESCRIPTION_SLIDEZOOMING", "", "g_slidezooming", "OnOff"	
+	Space 30
+	StaticText "$SETTING_CATEGORY_VISIBILITY", "OMNIBLUE"
+	TooltipOption "$TITLE_NEARDEATHVIGNETTING",	"$DESCRIPTION_NEARDEATHVIGNETTING", "OP_DGRST",  "g_dangervignette", "OnOff"	
+	TooltipOption "$TITLE_HIGHCONTRAST", "$DESCRIPTION_HIGHCONTRAST", "", "g_highcontrast", "OnOff"
+	TooltipOption "$TITLE_SUBTITLESIZE", "$DESCRIPTION_SUBTITLESIZE", "", "snd_subtitlesize", "SubtitleSize"
+	TooltipOption "$TITLE_SUBTITLEBACKGROUNDS", "$DESCRIPTION_SUBTITLEBACKGROUNDS", "", "snd_subtitlebg", "OnOff"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_AUDIO", "OMNIBLUE"
+	TooltipOption "$TITLE_REDUCEDEXPLOSIONVOLUME", "$DESCRIPTION_REDUCEDEXPLOSIONVOLUME", "", "snd_reducedexplosionvolume", "OnOff"
+	TooltipOption "$TITLE_TINNITUSEFFECT", "$DESCRIPTION_TINNITUSEFFECT", "", "snd_tinnituseffect", "OnOff"
+	
+	Space 30
+	StaticText "Other", "OMNIBLUE"
+	TooltipOption "$TITLE_CENSORGORE", "$DESCRIPTION_CENSORGORE", "", "g_censoredMode", "OnOff"
+	TooltipOption "$TITLE_SMALLWEAPONS",	"$DESCRIPTION_SMALLWEAPONS", 		"",  "g_smallweapons", "OnOff"
+	TooltipOption "$TITLE_ASSISTEDMODE",	"$DESCRIPTION_GAMEPAD_AIMASSIST_ASSISTEDMODE", 	"OP_ACCE",  "AIMASSIST_ASSISTEDMODE", "OnOff"
+	TooltipOption "\t$TITLE_RINGER",	"$DESCRIPTION_GAMEPAD_AIMASSIST_RINGER", "", "AIMASSIST_RINGER", "OnOff"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_SCREENEFFECTS", "OMNIBLUE"
+	TooltipOption "$TITLE_SCREENBLOOD",				"$DESCRIPTION_SCREENBLOOD", 				"OP_SCBL1",		"g_screenbloodeffects", 	"OnOff"	
+	TooltipOption "$TITLE_SCREENDIRT",				"$DESCRIPTION_SCREENDIRT", 					"",		"g_overlay_dirt", 		"OnOff"	
+	TooltipOption "$TITLE_SCREENHEALING",			"$DESCRIPTION_SCREENHEALING", 				"",		"g_overlay_healing", 	"OnOff"	
+	TooltipOption "$TITLE_SCREENARMOR",				"$DESCRIPTION_SCREENARMOR", 				"",		"g_overlay_armor", 		"OnOff"	
+	TooltipOption "$TITLE_SCREENDASH",				"$DESCRIPTION_SCREENDASH", 					"",		"g_overlay_dash", 		"OnOff"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_DEFAULTS", "OMNIBLUE"
+	TooltipCommand	"$TITLE_RESET_DEFAULT",			"$DESCRIPTION_RESETDEFAULT",				"",		"none", 	"defaults"
+}
+
+OptionMenu "HUDOptionsSelaco" protected
+{
+	Title "$HUDMNU_TITLE"
+	
+	StaticText 		"$SETTING_CATEGORY_MENU", 		"OMNIBLUE"
+	TooltipOption 	"$TITLE_UISCALE",				"$DESCRIPTION_UISCALE", 			"", 	"ui_scaling", 	"uiscales"
+	TooltipOption 	"$TITLE_SKIPSPLASH",			"$DESCRIPTION_SKIPSPLASH", 			"OP_SPLAS", "g_skipintro", "OnOff"
+
+	Space 40
+	StaticText 		"$SETTING_CATEGORY_HUD", 		"OMNIBLUE"
+	TooltipOption 	"$TITLE_ENABLE_HUD",			"$DESCRIPTION_ENABLEHUD", 			"OP_HUD", 	"hud_enabled", "OnOff"
+	TooltipSlider 	"$TITLE_HUDOPACITY",			"$DESCRIPTION_HUDOPACITY",	 		"OP_OPAV0", "g_hudopacity",				0, 1, 0.1, 2
+	TooltipSlider 	"$TITLE_HUDSCALING",			"$DESCRIPTION_HUDSCALING", 			"OP_HUDS1", "hud_scaling", 				0.5, 1.25, 0.01, 2
+	TooltipPreset 	"$TITLE_HUDINSETS", 			"$DESCRIPTION_HUDINSETS", 			"", 		"HudInsets", 				""
+	TooltipOption 	"$TITLE_HUDMETERS",				"$DESCRIPTION_HUDMETERS", 			"OP_HUDS2",	"hud_meter_scaling", 	"hudmeterscaling"
+	TooltipOption 	"$TITLE_HUDDAMAGE",				"$DESCRIPTION_HUDDAMAGE", 			"", 		"hud_shakefactor", 		"screenshakesetting"	
+	TooltipOption 	"$TITLE_HUDMOMENTUM",			"$DESCRIPTION_HUDMOMENTUM", 		"", 		"hud_momentum", 		"screenshakesetting"
+	TooltipOption 	"$TITLE_HUDCURRENCY",			"$DESCRIPTION_HUD_CURRENCY", 		"OP_CURR1", "g_always_show_currency", 	"OnOff"
+	TooltipOption 	"$TITLE_CHALLENGEUPDATES", 		"$DESCRIPTION_CHALLENGEUPDATES",	"OP_CHICO", "g_showChallenges",		"challenges_updates", "challenges_updates_desc"
+	TooltipOption 	"$TITLE_TUTORIALS",				"$DESCRIPTION_TUTORIALS",		 	"OP_TUTOR", "g_showtooltips", 		"TooltipOps", 			"TooltipOpsDesc"
+	TooltipCommand	"\t$TITLE_RESETTUTORIALS",		"$DESCRIPTION_RESETTUTORIALS",		"",			"none", 				"resetTutorials"
+
+	// DISABLED TO AVOID CLUTTER  	Option "$TITLE_WEAPONNAMES",					"g_displaynametags", "OnOff"
+	
+	Option "$TITLE_GAMETIMER", "hud_showtime", "OnOff"
+	TooltipOption "$TITLE_FPSCOUNTER", 	"$DESCRIPTION_FPSCOUNTER",	"", "vid_fps",		"OnOff"
+
+	// DISABLED TO AVOID CLUTTER TooltipOption "$TITLE_STATUSINDICATOR",	"$DESCRIPTION_STATUSINDICATOR", "OP_ICONS", "g_statusindicator", "OnOff"		
+	
+	Space 40
+	StaticText "Crosshair", "OMNIBLUE"
+	TooltipPreset "$TITLE_CrosshairStyle", "$DESCRIPTION_CrosshairStyle", "", "CrosshairStyle", "StreamerPresetsDesc"
+	Option "$HUDMNU_GROWCROSSHAIR",			"crosshairgrow", "OnOff"
+	ColorPickerDD 	"$HUDMNU_CROSSHAIRCOLOR", 		"$DESCRIPTION_HUDMNU_CROSSHAIRCOLOR",  "", 	"crosshaircolor", 	"CrosshairColors"
+	ColorPicker  	"\t$HUDMNU_CROSSHAIRCOLOR_CUSTOM",	 "crosshaircolor"
+	Slider "$TITLE_CrosshairAlpha",			"crosshairalpha", 0.0, 1.0, 0.05, 2
+	//Option "$HUDMNU_CROSSHAIRHEALTH",		"crosshairhealth", "CrosshairHealthTypes"
+	Slider "$HUDMNU_CROSSHAIRSCALE",		"crosshairscale", 0.0, 1.0, 0.05, 2
+	//Option "$DSPLYMNU_PLAYERSPRITES",		"r_drawplayersprites", "OnOff"
+
+	Space 40
+	StaticText "$SETTING_CATEGORY_DEFAULTS", "OMNIBLUE"
+	TooltipCommand	"$TITLE_RESET_DEFAULT",			"$DESCRIPTION_RESETDEFAULT",				"",		"none", 	"defaults"
+}
+
+OptionMenu SoundOptionsSelaco protected
+{
+	Title "$SNDMNU_TITLE"
+	
+	StaticText "Volume", "OMNIBLUE"
+	Slider "Master Volume",			"snd_mastervolume", 0, 0.5, 0.05, -1
+	Slider "\tSound Effects",		"snd_sfxvolume", 	0, 1, 0.05, 2
+	Slider "\tDialog",				"snd_dialogvolume", 0, 1, 0.05, 2
+	Slider "\tMusic",				"snd_musicvolume", 	0, 1, 0.05, 2
+	Slider "\tInterface",			"snd_menuvolume",	0, 1, 0.05, 2
+	Slider "\tHit Markers",			"snd_hitmarkervolume", 0, 1, 0.05, 2
+	Space 50
+
+	StaticText "Device", "HI"
+	TooltipOptionAudioDevice "$OPENALMNU_PLAYBACKDEVICE",	"$DESCRIPTION_OPENALMNU_PLAYBACKDEVICE", "",	"snd_aldevice",		"ALDevices"
+	Slider "$SNDMNU_CHANNELS",			"snd_channels", 64, 256, 8, 0
+	TooltipOption "$SNDMNU_SAMPLES",	"$DESCRIPTION_SND_SAMPLES", "", "snd_samplerate", "SampleRate"
+	TooltipOption "$SNDMNU_BACKGROUND", "$DESCRIPTION_BACKGROUND", "", "i_soundinbackground", "OnOff"
+	Space 50
+
+
+	StaticText "$SETTING_CATEGORY_AUDIO", "OMNIBLUE"
+	Option "$TITLE_DIALOGSUBTITLES", "snd_subtitles", "StoryorFull"
+	TooltipOption "\t$TITLE_SUBTITLESIZE", "$DESCRIPTION_SUBTITLESIZE", "", "snd_subtitlesize", "SubtitleSize"
+	TooltipOption "\t$TITLE_SUBTITLEBACKGROUNDS", "$DESCRIPTION_SUBTITLEBACKGROUNDS", "", "snd_subtitlebg", "OnOff"
+	TooltipOption "$TITLE_MUTEDDAWN", "$DESCRIPTION_MUTEDAWN", "", "snd_silentdawn", "SilentDawnOp", "SilentDawnDesc"
+	Option "$TITLE_RESETMUSICONDEATH", "g_resetMusic", "OnOff"
+	TooltipOption "$TITLE_KILLNOTIFICATIONSSOUNDS", "$DESCRPTION_KILLNOTIFICATIONSOUNDS", "", "snd_hitmarkersound", "HitSoundEffects" 
+	TooltipOption "$TITLE_HEADSHOTSOUND", "$DESCRPTION_HEADSHOTSOUND", "", "snd_headshotSound", "OnOff" 
+	//TooltipOption "$TITLE_AUDIODUCKING", "$DESCRIPTION_AUDIODUCKING", "",	snd_audioducking,	"OnOff", "DuckingDesc"
+
+	Space 50
+	StaticText "$SETTING_CATEGORY_EXTRAS", "OMNIBLUE"
+	TooltipOption "$TITLE_LEGACYUC36SOUND", "$DESCRIPTION_LEGACYUC36SOUND", "", "g_legacyUC36Sound", "YesNo"
+
+	Space 50
+	StaticText "$SETTING_CATEGORY_DEFAULTS", "OMNIBLUE"
+	TooltipCommand	"$TITLE_RESET_DEFAULT",			"$DESCRIPTION_RESETDEFAULT",				"",		"none", 	"defaults"
+}
+
+OptionValue UI_ScaleOptions
+{
+	-1.0, "$SETTING_SIZE_AUTOMATICSIZE"
+	0.9, "$SETTING_SIZE_SMALL"
+	0.8, "$SETTING_SIZE_SMALLER"
+	0.7, "$SETTING_SIZE_SMALLEST"
+}
+
+OptionValue TooltipOps
+{
+	0, "$SETTING_NONE"
+	1, "$SETTING_IMPORTANT"
+	2, "$SETTING_FULL"
+}
+
+OptionString TooltipOpsDesc
+{
+	"", "$TUTORIAL_OPTION1"
+	"", "$TUTORIAL_OPTION2"
+	"", "$TUTORIAL_OPTION3"
+}
+
+
+OptionValue "SilentDawnOp"
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_MINIMAL"
+	2, "$SETTING_MUTE"
+}
+
+OptionString "SilentDawnDesc"
+{
+	"", "$SILENTDAWN_OPTION1"
+	"", "$SILENTDAWN_OPTION2"
+	"", "$SILENTDAWN_OPTION3"
+}
+
+OptionMenu VisibilitySelector protected 
+{
+	Class "HoveringTooltipMenu"
+	IfOption(Unix) {
+		TooltipPreset "$SETTING_VISIBILITY", "", "", "VisibilityPresetDeck", ""
+	} else {
+		TooltipPreset "$SETTING_VISIBILITY", "", "", "VisibilityPreset", ""
+	}
+}
+
+OptionMenu "GraphicsSelector" protected
+{
+	Class "HoveringTooltipMenu"
+	IfOption(Unix) {
+		TooltipPreset "$SETTING_CATEGORY_QUALITY", "$DESCRIPTION_CATEGORY_QUALITY", "OP_QUAL1", "GFXPresetsQualityMenuLinux", ""
+	} else {
+		TooltipPreset "$SETTING_CATEGORY_QUALITY", "$DESCRIPTION_CATEGORY_QUALITY", "OP_QUAL1", "GFXPresetsQualityMenu", ""
+	}
+}
+
+OptionMenu "FirstRunAccessibility" protected
+{
+	Class "HoveringTooltipMenu"
+
+	StaticText "$SETTING_CATEGORY_READABILITY", "OMNIBLUE"
+	IfOption(Unix) {
+		TooltipOption "$TITLE_UISCALE_FN",		 "$DESCRIPTION_UISCALE", 	  "", "ui_scaling", 	  "uiscales_firstrun_linux"
+		TooltipOption "$TITLE_SUBTITLESIZE_FN",  "$DESCRIPTION_SUBTITLESIZE", "", "snd_subtitlesize", "subtitle_size_firstrun_linux"
+	} else {
+		TooltipOption "$TITLE_UISCALE_FN",		 "$DESCRIPTION_UISCALE", 	  "", "ui_scaling", 	  "uiscales_firstrun"
+		TooltipOption "$TITLE_SUBTITLESIZE_FN",  "$DESCRIPTION_SUBTITLESIZE", "", "snd_subtitlesize", "subtitle_size_firstrun"
+	}
+	
+	TooltipOption "$TITLE_SUBTITLEBACKGROUNDS", "$DESCRIPTION_SUBTITLEBACKGROUNDS", "", "snd_subtitlebg", "OnOff"
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_PHOTOSENSITIVITY", "OMNIBLUE"	
+	TooltipOption "$TITLE_FLICKERING",			"$DESCRIPTION_FLICKERING", 				"",  "g_photosensitivitymode2", 	"OnOff"		
+	TooltipOption "$TITLE_DAMAGESCREENFLASHES",	"$DESCRIPTION_DAMAGESCREENFLASHES", 	"",  "blood_fade_scalar", 			"FlashDim"	
+	TooltipOption "$TITLE_PICKUPFLASHES",		"$DESCRIPTION_PICKUPFLASHES", 			"",  "pickup_fade_scalar", 			"FlashDim"	
+
+	Space 30
+	StaticText "$SETTING_CATEGORY_MOTION", "OMNIBLUE"	
+	TooltipOption "$TITLE_VIEWBOBBING_TOS",						"$DESCRIPTION_VIEWBOBBING", 		"", "g_viewbob", 			"YesOrNoRev"	
+	TooltipOption "$TITLE_CAMERAMOTION",					"$DESCRIPTION_CAMERAMOTION", 		"", "g_cameramotion", 		"YesOrNoRev"
+	TooltipOption "$TITLE_SCRIPTEDSCREENSHAKE_FIRSTRUN",	"$DESCRIPTION_SCRIPTEDSCREENSHAKE", "", "g_screenshake", 		"intensitysetting_firstrun"	
+}
+
+
+OptionMenu "TestForLinux" protected
+{
+	IfOption(Unix) {
+		StaticText "Yes, It is Linux", "OMNIBLUE"
+	}
+}
+
+OptionMenu "TestForWindows" protected
+{
+	IfOption(Windows) {
+		StaticText "Yes, It is Windows", "OMNIBLUE"
+	}
+}
+
+OptionMenu "GraphicsMenu" protected
+{
+	Class "HoveringTooltipMenu"
+	Title "GRAPHICS"
+
+	StaticText "$SETTING_CATEGORY_QUALITY", "OMNIBLUE"
+
+	// Show a specific quality menu including Steam Deck options for Linux
+	ifOption(Unix) {
+		TooltipPreset "$SETTING_CATEGORY_QUALITY", "$DESCRIPTION_CATEGORY_QUALITY", "OP_QUAL1", "GFXPresetsLinux", "GFXPresetDescLinux"
+	} else {
+		TooltipPreset "$SETTING_CATEGORY_QUALITY", "$DESCRIPTION_CATEGORY_QUALITY", "OP_QUAL1", "GFXPresets", "GFXPresetDesc"
+	}
+	
+	TooltipPreset "$TITLE_STREAMERMODE", "$DESCRIPTION_STREAMERMODE", "OP_STRM", "StreamerPresets", "StreamerPresetsDesc", 1
+	Space 50
+	StaticText "$SETTING_CATEGORY_GRAPHICALQUALITY", "OMNIBLUE"
+	TooltipOption 	"$TITLE_TEXTURES",				"$DESCRIPTION_TEXTURES", 		"OP_TEXM1", gl_texture_filter, "FilterModes", "FilterModesDesc"
+	TooltipOption "$TITLE_GAMEDETAIL", 				"$DESCRIPTION_GAMEDETAIL", "",  "g_gamedetail", "GameDetailSetting"
+	TooltipOption "$TITLE_LIGHTINGQUALITY", 		"$DESCRIPTION_LIGHTINGQUALITY", "OP_LIG1", "lightingquality", "lightingqualitysetting"
+	TooltipOption 	"$TITLE_SHADOWS",				"$DESCRIPTION_SHADOWS" , 			"OP_SHAD1",		gl_light_shadowmap,				"YesNo"
+	Require gl_light_shadowmap
+	TooltipOption 	"\t$TITLE_SHADOWQUALITY", 		"$DESCRIPTION_SHADOWQUALITY", 	"",		r_shadowQuality,			"ShadowMapQuality"
+	//TooltipOption 	"$TITLE_SHADOWRESOLUTION", 		"$DESCRIPTION_SHADOWRESOLUTION", 	"",		gl_shadowmap_quality,			"ShadowMapResolution"
+	Require gl_light_shadowmap
+	TooltipOption 	"\t$TITLE_SOFTSHADOWS", 			"$DESCRIPTION_SOFTSHADOWS", "OP_SSH1", 	gl_shadowmap_filter,	"ShadowMapFilter"
+	//TooltipOption "$TITLE_WATERQUALITY", 			"$DESCRIPTION_WATERQUALITY", "", r_waterquality,	"WaterQuality", "WaterQualityDesc"
+	//TooltipOption "\t$TITLE_SSAO_STRENGTH",		"$DESCRIPTION_SSAO_STRENGTH", "OP_SSAOA",  gl_ssao_strength, "ssaostrength"
+	TooltipOption "$TITLE_REFLECTIONS", 			"$DESCRIPTION_REFLECTIONS",	 "OP_REF01", r_reflections, "reflectionSettings"
+	//Slider "$TITLE_BLOODCOUNT", "cl_bloodlifespan", 		64, 15000, 250, 0
+	TooltipOption "$TITLE_OBJECTSLOD", 				"$DESCRIPTION_OBJECTSLOD", "OP_OBJ1",  "r_ThingLOD", "ThingLOD"
+	Space 50
+	StaticText "$SETTING_CATEGORY_POSTPROCESSING", "OMNIBLUE"
+	TooltipOption "$TITLE_SSAO",					"$DESCRIPTION_SSAO", "OP_SSAO1",  gl_ssao, "SSAOModes"
+	TooltipOption "$TITLE_FXAA", 				"$DESCRIPTION_FXAA", 		"OP_FXAA1",		gl_fxaa, 			"FXAAQuality"
+	TooltipOption "$TITLE_BLOOM",				"$DESCRIPTION_BLOOM",		"OP_BLOM1", 	gl_bloom,			"OnOff"
+	TooltipPreset "$TITLE_FILMGRAIN",			"$DESCRIPTION_FILMGRAIN",	"OP_GRAN1", 	FilmGrainOptions,	"StreamerPresetsDesc"
+	Slider "$TITLE_VIGNETTING_INTENSITY", 		"g_vignetting", 			0, 1.0, 0.01, 2
+	TooltipOption "$TITLE_CHROMATIC", 			"$DESCRIPTION_CHROMATIC",	"", 	 gl_lens,			"OnOff"
+	TooltipOption "$TITLE_SCREENRAIN", 			"$DESCRIPTION_SCREENRAIN", 	"",		r_rainshader, 		"OnOff"
+
+	Space 50
+	StaticText 		"$SETTING_CATEGORY_PARTICLES", "OMNIBLUE"
+	TooltipOption "$TITLE_SMOKEQUALITY",  		"$DESCRIPTION_SMOKEQUALITY", "", "r_smokequality", "smokequality"
+	TooltipOption "\t$TITLE_SMOKEDENSITY",  		"$DESCRIPTION_SMOKEDENSITY", "", "r_smokeDensity", "smokedensity"
+	TooltipOption "$TITLE_PARTICLEINTENSITY", 	"$DESCRIPTION_PARTICLEINTENSITY", "OP_PART1", "r_particleIntensity", "ParticleIntensity"
+	TooltipOption "\t$TITLE_PARTICLELIFESPAN", 	"$DESCRIPTION_PARTICLELIFESPAN", "", "r_particleLifespan", "ParticleLifetime"
+	TooltipOption "$TITLE_BLOODQUALITY",		"$DESCRIPTION_BLOODQUALITY",	"", "r_BloodQuality", "BloodQuality"
+	TooltipOption "$TITLE_DECALQUALITY", 			"$DESCRIPTION_DECALQUALITY" , "", cl_maxdecals, "DecalMax"
+	TooltipOption "$TITLE_RAINQUALITY",  		"$DESCRIPTION_RAINQUALITY", "", "r_rainquality", "LowTillUltra"
+	
+	Space 50
+	StaticText "$SETTING_CATEGORY_ADVANCED", "OMNIBLUE"
+	Subtext 	"$SETTING_CATEGORY_SUBTEXT_ADVANCED", "DARKGREY"
+	
+	// Remove texture quality selection from Steam Deck, if you want to change it you need the console
+	MustNotHave g_steamdeck
+	TooltipOption "$TITLE_ADVANCED_TEXTURE_QUALITY", 	"$DESCRIPTION_ADVANCED_TEXTURE_QUALITY", 	"OP_TQUA1", "gl_texture_quality", "TextureQuality"
+	
+	TooltipOption "$TITLE_ADVANCED_PERMABLOOD", 		"$DESCRIPTION_ADVANCED_PERMADESTRUCTION", 	"OP_DESTR", "g_permanentDestruction", "OnOff"
+	TooltipOption "$TITLE_ADVANCED_PERMAGORE", 			"$DESCRIPTION_ADVANCED_PERMAGORE", 			"OP_GORE", 	"g_permanentGore", "OnOff"
+	TooltipOption "$TITLE_ADVANCED_MUZZLEFLASHSHADOW", 	"$DESCRIPTION_MUZZLEFLASHSHADOWS", 			"", "r_muzzleflashShadows", "MuzzleFlashShadows"
+	TooltipOption "$TITLE_ADVANCED_FLASHLIGHTSHADOWS", 	"$DESCRIPTION_ADVANCED_FLASHLIGHTSHADOWS", 	"OP_FLAS1", "r_flashlightshadows", "OnOff"
+	TooltipOption "$TITLE_ADVANCED_EXTENDEDBRASS", 		"$DESCRIPTION_ADVANCED_EXTENDEDBRASS", 	"", 	"g_extendedbrass", "OnOff"
+	Space 30
+}
+
+OptionString "StreamerPresets"
+{
+	"StreamerOn", 		"$SETTING_ENABLED"
+	"StreamerOff", 		"$SETTING_DISABLED"
+}
+
+
+OptionString "ReducedViolenceMode"
+{
+	"CensorOn", 		"$SETTING_ENABLED"
+	"CensorOff", 		"$SETTING_DISABLED"
+}
+
+OptionValue "CensorOn"
+{
+	1, 		"g_censoredMode"
+	1, 		"r_BloodQuality"
+}
+OptionValue "CensorOff"
+{
+	0, 		"g_censoredMode"
+	3,		"r_BloodQuality"
+}
+
+OptionValue "CrosshairColors"
+{
+	0x000000,	"Custom"
+	0xABAEC5, 	"Default"
+	0x768198, 	"Subtle"
+	0xD1D3E0, 	"Bright"
+	0xFFFFFF, 	"White"
+	0x000000, 	"Black"
+	0xD90000, 	"\c[RED]Red"
+	0x2DB200, 	"\c[GREEN]Green"
+	0x006DD9, 	"\c[BLUE]Blue"
+	0xFFFF4D,	"\c[YELLOW]Yellow"
+	0x00FFFF,	"\c[CYAN]Cyan"
+}
+
+OptionString "HudInsets"
+{
+	"HudInsetNone", 	"$SETTING_OFF"
+	"HudInsetMin",		"$SETTING_LOW"
+	"HudInsetMax",		"$SETTING_HIGH"
+}
+
+OptionValue "HudInsetNone"
+{
+	0, 		"hud_inset_x"
+	0,		"hud_inset_y"
+}
+
+OptionValue "HudInsetMin"
+{
+	0.15, 	"hud_inset_x"
+	0,		"hud_inset_y"
+}
+
+OptionValue "HudInsetMax"
+{
+	0.3, 	"hud_inset_x"
+	0,		"hud_inset_y"
+}
+
+OptionString "CrosshairStyle"
+{
+	"CrosshairStyleDynamic", 		"$SETTING_DYNAMIC"
+	"CrosshairStyleStatic", 		"$SETTING_STATIC"
+	"CrosshairStyleNone", 			"$SETTING_NONE"
+}
+
+OptionString "AutomapPresets"
+{
+	"$SETTING_MINIMAL", 		"$SETTING_ENABLED"
+	"$SETTING_FULL", 		"$SETTING_DISABLED"
+}
+
+
+OptionValue "MuzzleFlashShadows"
+{
+	0, "$SETTING_OFF"	
+	1, "$SETTING_ENEMIESONLY"
+	2, "$SETTING_PLAYERANDENEMIES"
+}
+
+//OptionValue "Detailed"
+//{
+//	"1f 25 2f", 	"am_cdwallcolor"
+//	"1f 25 2f", 	"am_efwallcolor"
+//	"1f 25 2f", 	"am_fdwallcolor"
+//}
+
+//OptionValue "Minimalist"
+//{
+//	"1f 25 2f", 		"am_cdwallcolor"
+//	"1f 25 2f", 	"am_efwallcolor"
+//	"1f 25 2f", 	"am_fdwallcolor"
+//}
+
+OptionValue "CrosshairStyleStatic"
+{
+	16, 	"crosshair"
+	1, 		"crosshairForce"
+	1,		"crosshairon"
+}
+OptionValue "CrosshairStyleDynamic"
+{
+	0, 		"crosshairForce"
+	0, 		"crosshair"
+	1,		"crosshairon"
+}
+OptionValue "CrosshairStyleNone"
+{
+	1, 		"crosshairForce"
+	0, 		"crosshair"
+	0,		"crosshairon"
+}
+
+OptionValue "StreamerOn"
+{
+	0, 		"r_filmgrain"
+	0.94, 	"vid_contrast"
+	1.3, 	"gl_exposure_scale"
+	2,		"g_screenshake"
+	6, 		"gl_texture_filter"
+}
+
+OptionValue "StreamerOff"
+{
+	1, 		"r_filmgrain"
+	0.98, 	"vid_contrast"
+	1.0, 	"gl_exposure_scale"
+	1,		"g_screenshake"
+}
+
+OptionString "ReflectionOptions"
+{
+	"ReflectionNone", 		"$SETTING_NONE"
+	"ReflectionMirrors",	"$REFLECTIONS_MIRRORS"
+	"ReflectionsFull", 		"$REFLECTIONS_FULL"
+}
+
+OptionString "FilmGrainOptions"
+{
+	"GrainNone", 		"$SETTING_OFF"
+	"GrainMinimal",		"$SETTING_FG_SMALL"
+	"GrainFull", 		"$SETTING_STRONG"
+}
+
+OptionValue "GrainNone"
+{
+	0.025,  "r_filmgrain_intensity"
+	0,		"r_filmgrain"
+}
+OptionValue "GrainMinimal"
+{
+	0.025, 	"r_filmgrain_intensity"
+	1,		"r_filmgrain"
+}
+OptionValue "GrainFull"
+{
+	0.035, 	"r_filmgrain_intensity"
+	1,		"r_filmgrain"
+}
+
+OptionString "VisibilityPreset"
+{
+	"VisibilityPresetClarity", 		"$VIS_CLARITY"
+	"VisibilityPresetSpectacle",	"$VIS_SPECTACLE"
+}
+
+OptionString "VisibilityPresetDeck"
+{
+	"VisibilityPresetClarity", 			"$VIS_CLARITY"
+	"VisibilityPresetSpectacle",		"$VIS_SPECTACLE"
+	"VisibilityPresetSpectacleDeck",	"$VIS_SPECTACLE_DECK"
+}
+
+OptionString "GFXPresets"
+{
+	"GFXPresetLow", 		"$SETTING_LOW"
+	"GFXPresetMedium",		"$SETTING_MEDIUM"
+	"GFXPresetHigh", 		"$SETTING_HIGH"
+	"GFXPresetUltra", 		"$SETTING_ULTRA"
+}
+
+OptionString "GFXPresetsLinux"
+{
+	"GFXPresetDeckLow", 	"$SETTING_DECK_LOW"
+	"GFXPresetDeckHigh", 	"$SETTING_DECK_HIGH"
+	"GFXPresetLow", 		"$SETTING_LOW"
+	"GFXPresetMedium",		"$SETTING_MEDIUM"
+	"GFXPresetHigh", 		"$SETTING_HIGH"
+	"GFXPresetUltra", 		"$SETTING_ULTRA"
+}
+
+OptionString "GFXPresetsQualityMenu"
+{
+	"GFXPresetLow", 		"$QUALITY_FIVE"
+	"GFXPresetMedium",		"$QUALITY_FOUR"
+	"GFXPresetHigh", 		"$QUALITY_THREE"
+	"GFXPresetUltra", 		"$QUALITY_TWO"
+	//"GFXPresetRidic",		"$QUALITY_ONE"
+}
+
+OptionString "GFXPresetsQualityMenuLinux"
+{
+	"GFXPresetLow", 		"$QUALITY_FIVE"
+	"GFXPresetMedium",		"$QUALITY_FOUR"
+	"GFXPresetHigh", 		"$QUALITY_THREE"
+	"GFXPresetUltra", 		"$QUALITY_TWO"
+	//"GFXPresetRidic",		"$QUALITY_ONE"
+	// This represents a  2
+	"GFXPresetNotPossible",	""
+	"GFXPresetDeckLow", 	"$QUALITY_DECK_TWO"
+	"GFXPresetDeckHigh",	"$QUALITY_DECK_ONE"
+}
+
+
+OptionString "GFXPresetDesc"
+{
+	"", "Low settings for potato PCs"
+	"", "Medium settings for older PCs"
+	"", "High settings for PCs with modern graphics cards"
+	"", "Ultra settings for gamer rigs!"
+}
+
+
+OptionString "GFXPresetDescLinux"
+{
+	"", "Performance setting for Steam Deck"
+	"", "Quality setting for Steam Deck"
+	"", "Low settings for potato PCs"
+	"", "Medium settings for older PCs"
+	"", "High settings for PCs with modern graphics cards"
+}
+
+
+
+// Graphics Presets ===================================================
+
+OptionValue "GFXPresetNotPossible"
+{
+	999999, "cl_maxdecals"
+	999999, "r_particleIntensity"
+}
+
+OptionValue "GFXPresetLow"
+{
+	1, 		"r_shadowQuality"
+	
+	6, 		"gl_texture_filter"
+	0, 		"gl_light_shadowmap"
+	128, 	"gl_shadowmap_quality"
+	0,		"gl_shadowmap_filter"
+	0,		"gl_fxaa"
+	1,		"r_waterquality"
+	0,		"gl_ssao"
+	0,		"r_reflections"
+	250,	"cl_maxdecals"
+	700,	"r_ThingLOD"
+	0, 		"smokeeffects"
+	1, 		"r_smokequality"
+	0,		"r_rainquality"
+	1, 		"r_particleIntensity"
+	1,		"r_particleLifespan"
+	0,		"r_BloodQuality"
+	1,		"lightingquality"
+	0,		"r_fogeffects"
+	0,		"gl_bloom"
+	0,		"r_filmgrain"
+	0.025, 	"r_filmgrain_intensity"
+	0,		"gl_lens"
+	2,		"g_gamedetail"
+	1,		"r_drawplayersprites"
+	1,		"r_mirror_recursions"
+	0,		"g_permanentDestruction"
+	0,		"g_permanentGore"
+	0,		"r_muzzleflashShadows"
+	0,		"r_flashlightshadows"
+	1,		"r_smokedensity"
+}
+
+OptionValue "GFXPresetMedium"
+{
+	
+	6, 		"gl_texture_filter"
+	1, 		"gl_light_shadowmap"
+	2, 		"r_shadowQuality"
+	256, 	"gl_shadowmap_quality"
+	0,		"gl_shadowmap_filter"
+	1,		"r_rainquality"
+	0,		"gl_fxaa"
+	2,		"r_waterquality"
+	0,		"gl_ssao"
+	1,		"r_reflections"
+	500,	"cl_maxdecals"
+	1400,	"r_ThingLOD"
+	1, 		"smokeeffects"
+	2, 		"r_smokequality"
+	2, 		"r_particleIntensity"
+	2,		"r_particleLifespan"
+	1,		"r_BloodQuality"
+	2,		"lightingquality"
+	0,		"r_fogeffects"
+	0,		"gl_bloom"
+	0,		"r_filmgrain"
+	0.025, 	"r_filmgrain_intensity"
+	0,		"gl_lens"
+	3,		"g_gamedetail"
+	1,		"r_drawplayersprites"
+	1,		"r_mirror_recursions"
+	0,		"g_permanentDestruction"
+	0,		"g_permanentGore"
+	0,		"r_muzzleflashShadows"
+	0,		"r_flashlightshadows"
+	1,		"r_smokedensity"
+}
+
+
+OptionValue "GFXPresetHigh"
+{
+	3, 		"r_shadowQuality"
+	
+	6, 		"gl_texture_filter"
+	1, 		"gl_light_shadowmap"
+	512, 	"gl_shadowmap_quality"
+	3,		"gl_shadowmap_filter"
+	0,		"gl_fxaa"
+	3,		"r_waterquality"
+	2,		"gl_ssao"
+	2,		"r_rainquality"
+	1,		"r_reflections"
+	1000,	"cl_maxdecals"
+	1800,	"r_ThingLOD"
+	1, 		"smokeeffects"
+	3, 		"r_smokequality"
+	3, 		"r_particleIntensity"
+	2,		"r_particleLifespan"
+	2,		"r_BloodQuality"
+	3,		"lightingquality"
+	1,		"r_fogeffects"
+	1,		"gl_bloom"
+	1,		"r_filmgrain"
+	0.025, 	"r_filmgrain_intensity"
+	1,		"gl_lens"
+	3,		"g_gamedetail"
+	1,		"r_drawplayersprites"
+	2,		"r_mirror_recursions"
+	0,		"g_permanentDestruction"
+	0,		"g_permanentGore"
+	0,		"r_muzzleflashShadows"
+	0,		"r_flashlightshadows"
+	1,		"r_smokedensity"
+}
+
+OptionValue "GFXPresetUltra"
+{
+	
+	6, 		"gl_texture_filter"
+	3, 		"r_shadowQuality"
+	1, 		"gl_light_shadowmap"
+	1024, 	"gl_shadowmap_quality"
+	3,		"gl_shadowmap_filter"
+	4,		"gl_fxaa"
+	4,		"r_waterquality"
+	3,		"gl_ssao"
+	2500,	"cl_maxdecals"
+	3,		"r_rainquality"
+	1800,	"r_ThingLOD"
+	1, 		"smokeeffects"
+	4, 		"r_smokequality"
+	4, 		"r_particleIntensity"
+	3,		"r_particleLifespan"
+	3,		"r_BloodQuality"
+	4,		"lightingquality"
+	1,		"r_fogeffects"
+	1,		"gl_bloom"
+	1,		"r_filmgrain"
+	0.025, 	"r_filmgrain_intensity"
+	1,		"gl_lens"
+	3,		"g_gamedetail"
+	1,		"r_drawplayersprites"
+	4,		"r_mirror_recursions"
+	2, 		"r_reflections"
+	1,		"g_permanentDestruction"
+	1,		"g_permanentGore"
+	0,		"r_muzzleflashShadows"
+	0,		"r_flashlightshadows"
+	1,		"r_smokedensity"
+}
+
+// This preset is only going to be used in the quality menu, and goes beyond ULTRA with insane settings
+OptionValue "GFXPresetRidic"
+{
+	
+	6, 		"gl_texture_filter"
+	1, 		"gl_light_shadowmap"
+	3, 		"r_shadowQuality"
+	1024, 	"gl_shadowmap_quality"
+	3,		"gl_shadowmap_filter"
+	4,		"gl_fxaa"
+	4,		"r_waterquality"
+	3,		"gl_ssao"
+	2, 		"r_reflections"
+	15000,	"cl_maxdecals"
+	3000,	"r_ThingLOD"
+	1, 		"smokeeffects"
+	5, 		"r_smokequality"
+	3,		"r_rainquality"
+	5, 		"r_particleIntensity"
+	4,		"r_particleLifespan"
+	4,		"r_BloodQuality"
+	4,		"lightingquality"
+	1,		"r_fogeffects"
+	1,		"gl_bloom"
+	1,		"r_filmgrain"
+	0.025, 	"r_filmgrain_intensity"
+	1,		"gl_lens"
+	3,		"g_gamedetail"
+	1,		"r_drawplayersprites"
+	4,		"r_mirror_recursions"
+	1,		"g_permanentDestruction"
+	1,		"g_permanentGore"
+	0,		"r_muzzleflashShadows"
+	0,		"r_flashlightshadows"
+	1,		"r_smokedensity"
+}
+
+OptionValue "GFXPresetDeckHigh"
+{
+	2,		"r_rainquality"
+	1, 		"r_shadowQuality"
+	
+	6, 		"gl_texture_filter"
+	1, 		"gl_light_shadowmap"
+	512, 	"gl_shadowmap_quality"
+	3,		"gl_shadowmap_filter"
+	0,		"gl_fxaa"
+	1,		"r_waterquality"
+	2,		"gl_ssao"
+	1,		"r_reflections"
+	1000,	"cl_maxdecals"
+	1400,	"r_thingLOD"
+	1, 		"smokeeffects"
+	3, 		"r_smokequality"
+	3, 		"r_particleIntensity"
+	1,		"r_particleLifespan"
+	1,		"r_BloodQuality"
+	2,		"lightingquality"
+	1,		"r_fogeffects"
+	1,		"gl_bloom"
+	0,		"r_filmgrain"
+	0.025, 	"r_filmgrain_intensity"
+	0,		"gl_lens"
+	3,		"g_gamedetail"
+	1,		"r_drawplayersprites"
+	2,		"r_mirror_recursions"
+	0,		"g_permanentDestruction"
+	0,		"g_permanentGore"
+	0,		"r_muzzleflashShadows"
+	0,		"r_flashlightshadows"
+	1,		"r_smokedensity"
+}
+
+OptionValue "GFXPresetDeckLow"
+{
+	1, 		"r_shadowQuality"
+	
+	6, 		"gl_texture_filter"
+	1, 		"gl_light_shadowmap"
+	1,		"r_rainquality"
+	512, 	"gl_shadowmap_quality"
+	0,		"gl_shadowmap_filter"
+	0,		"gl_fxaa"
+	1,		"r_waterquality"
+	2,		"gl_ssao"
+	0,		"r_reflections"
+	500,	"cl_maxdecals"
+	700,	"r_thingLOD"
+	0, 		"smokeeffects"
+	2, 		"r_smokequality"
+	2, 		"r_particleIntensity"
+	1,		"r_particleLifespan"
+	1,		"r_BloodQuality"
+	2,		"lightingquality"
+	1,		"r_fogeffects"
+	1,		"gl_bloom"
+	0,		"r_filmgrain"
+	0.025, 	"r_filmgrain_intensity"
+	0,		"gl_lens"
+	3,		"g_gamedetail"
+	1,		"r_drawplayersprites"
+	2,		"r_mirror_recursions"
+	0,		"g_permanentDestruction"
+	0,		"g_permanentGore"
+	0,		"r_muzzleflashShadows"
+	0,		"r_flashlightshadows"
+	1,		"r_smokedensity"
+}
+
+
+OptionValue "VisibilityPresetClarity"
+{
+	0,		"r_smokedensity"
+	1,		"r_particleLifespan"
+}
+
+OptionValue "VisibilityPresetSpectacle"
+{
+	1,		"r_smokedensity"
+	2,		"r_particleLifespan"
+}
+
+OptionValue "VisibilityPresetSpectacleDeck"
+{
+	1,		"r_smokedensity"
+	1,		"r_particleLifespan"
+}
+
+
+// End Graphics Presets ================================================
+
+OptionValue "MirrorRecursions"
+{
+	0, "$SETTING_NONE"
+	1, "One"
+	2, "Two"
+	3, "Three"
+	4, "Four"
+}
+
+OptionValue "DecalMax"
+{
+	0, 		"$SETTING_OFF"
+	250, 	"$SETTING_LOW"
+	500,	"$SETTING_MEDIUM"
+	1000,	"$SETTING_HIGH"
+	2500,	"$SETTING_ULTRA"
+	15000,	"$SETTING_RIDICULOUS"
+}
+
+OptionValue "AUTOMAP_IconSize"
+{
+	1, 		"$SETTING_SIZE_SMALL"
+	2, 		"$SETTING_SIZE_MEDIUM"
+	3,		"$SETTING_SIZE_LARGE"
+}
+
+OptionValue "subtitle_size_firstrun" {
+	2, 		"$SETTING_SIZE_MEDIUM"
+	3,		"$SETTING_SIZE_LARGE"
+	4,		"$SETTING_SIZE_HUGE"
+}
+
+OptionValue "subtitle_size_firstrun_linux" {
+	2, 		"$SETTING_SIZE_MEDIUM"
+	4,		"$SETTING_SIZE_HUGE"
+}
+
+OptionValue "SubtitleSize" {
+	1,		"$SETTING_SIZE_SMALL"
+	2, 		"$SETTING_SIZE_MEDIUM"
+	3,		"$SETTING_SIZE_LARGE"
+	4,		"$SETTING_SIZE_HUGE"
+}
+
+
+OptionValue "colorblindlessOptions"
+{
+	0, 		"$SETTING_OFF"
+	1, 		"Protanopia"
+	2, 		"Deuteranopia"
+	3,		"Tritanopia"
+}
+
+OptionValue "GLMultisample"
+{
+	1, "$SETTING_OFF"
+	2, "2X"
+	4, "4X"
+}
+
+OptionValue "LowTillUltra"
+{
+	0, "$SETTING_LOW"
+	1, "$SETTING_MEDIUM"
+    2, "$SETTING_HIGH"
+    3, "$SETTING_ULTRA"
+}
+
+OptionValue "WaterQuality"
+{
+	1, "$SETTING_LOW"
+	2, "$SETTING_MEDIUM"
+    3, "$SETTING_HIGH"
+    4, "$SETTING_ULTRA"
+}
+
+OptionString "WaterQualityDesc"
+{
+	"", "$DESCRIPTION_WATERQUALITY_1"
+	"", "$DESCRIPTION_WATERQUALITY_2"
+	"", "$DESCRIPTION_WATERQUALITY_3"
+	"", "$DESCRIPTION_WATERQUALITY_4"
+}
+
+
+OptionValue "FilterModes"
+{
+	0, "$OPTVAL_CRUNCHY"
+	//1, "$OPTVAL_NONENEARESTMIPMAP"
+	//5, "$OPTVAL_NONELINEARMIPMAP"
+	6, "$OPTVAL_NONETRILINEAR"
+	//2, "$OPTVAL_LINEAR_2"
+	//3, "$OPTVAL_BILINEAR"
+	4, "$OPTVAL_TRILINEAR"
+}
+
+OptionString "FilterModesDesc"
+{
+	"", "$DESCRIPTION_FILTERING_1"
+	"", "$DESCRIPTION_FILTERING_2"
+	"", "$DESCRIPTION_FILTERING_3"
+}
+
+OptionString "RandomizerModesDesc"
+{
+	"", "$RANDOMIZER_PRESET_MINIMAL_DESC"
+	"", "$RANDOMIZER_PRESET_MODERATE_DESC"
+	"", "$RANDOMIZER_PRESET_VANILLA_DESC"
+	"", "$RANDOMIZER_PRESET_VANILLAPLUS_DESC"
+	"", "$RANDOMIZER_PRESET_CONTROLLEDCHAOS_DESC"
+	"", "$RANDOMIZER_PRESET_OVERKILL_DESC"
+}
+
+
+//OptionValue "FXAAQuality"
+//{
+//	0, "$SETTING_OFF"
+//	1, "$SETTING_LOW"
+//	2, "$SETTING_MEDIUM"
+//	3, "$SETTING_HIGH"
+//	4, "$SETTING_ULTRA"
+//}
+
+OptionValue optionsViewBobbing
+{
+	0, "$SETTING_OFF"
+	0.004, "$SETTING_REDUCED"
+	0.0126, "$SETTING_ON"
+}
+
+OptionValue "FXAAQuality"
+{
+	0, "$SETTING_OFF"
+	4, "$SETTING_ON"
+}
+
+OptionValue "TextureQuality"
+{
+	0, "$SETTING_DEFAULT"
+	1, "$SETTING_LOW"
+	2, "$SETTING_LOWEST"
+}
+
+OptionValue ShadowMapQuality
+{
+	1,  "$SETTING_LOW"
+	2,  "$SETTING_MEDIUM"
+	3,  "$SETTING_HIGH"
+}
+
+OptionValue GameDetailSetting {
+	0,  "$SETTING_LOW"
+	1,  "$SETTING_MEDIUM"
+	2,  "$SETTING_HIGH"
+}
+
+OptionValue ShadowMapResolution
+{
+	128,  "$SETTING_LOW"
+	256,  "$SETTING_MEDIUM"
+	512,  "$SETTING_HIGH"
+	1024, "$SETTING_ULTRA"
+}
+
+OptionValue AimAssistStrength 
+{
+	0.1, "$SETTING_WEAK"
+	0.15, "$SETTING_MEDIUM"
+	0.3, "$SETTING_STRONG"
+}
+OptionValue AimAssistStyle 
+{
+	1, "$SETTING_GAMEPAD_AIMASSIST_MOVING"
+	2, "$SETTING_GAMEPAD_AIMASSIST_ALWAYS"
+}
+
+OptionValue gamepadkeys {
+	0,  "$SETTING_NEVER"
+	1,	"$SETTING_AUTOMATIC"
+	2,	"$SETTING_ALWAYS"
+}
+
+OptionValue screenshakesetting {
+	0, "$SETTING_OFF"
+	0.5, "$SETTING_REDUCED"
+	1.0, "$SETTING_FULL"
+}
+
+OptionValue hudmeterscaling {
+	0.75, 	"$SETTING_SMALL"
+	0.85, 	"$SETTING_MEDIUM"
+	1.0, 	"$SETTING_LARGE"
+}
+
+OptionValue uiscales_firstrun {
+	1.0,	"$SETTING_DEFAULT"
+	1.1,	"$SETTING_LARGE"
+	1.2,	"$SETTING_SIZE_HUGE"
+}
+
+OptionValue uiscales_firstrun_linux {
+	1.0,	"$SETTING_DEFAULT"
+	1.2,	"$SETTING_SIZE_HUGE"
+}
+
+OptionValue uiscales {
+	0.9,	"$SETTING_SMALL"
+	1.0,	"$SETTING_DEFAULT"
+	1.1,	"$SETTING_LARGE"
+	1.2,	"$SETTING_SIZE_HUGE"
+}
+
+OptionValue ShadowMapFilter
+{
+	0, "$SETTING_OFF"
+	3, "$SETTING_ON"
+}
+
+OptionValue challenges
+{
+	0, "$SETTING_ALWAYS"
+	1, "$SETTING_COMPLETION"
+	2, "$SETTING_ALWAYS"
+}
+
+OptionValue challenges_updates
+{
+	0, "$SETTING_NONE"
+	1, "$SETTING_REDUCED"
+	2, "$SETTING_FULL"
+}
+
+OptionString challenges_updates_desc {
+	"$SETTING_NONE", 		"$DESCRIPTION_CHALLENGE_1"
+	"$SETTING_REDUCED", 	"$DESCRIPTION_CHALLENGE_2"
+	"$SETTING_FULL", 		"$DESCRIPTION_CHALLENGE_3"
+}
+
+
+OptionValue FogEffectsEnabled
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_ON"
+}
+
+OptionValue vignettingoption
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_ON"
+}
+
+OptionValue StoryorFull
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_STORYONLY"
+	2, "$SETTING_STORYANDENEMY"
+}
+
+OptionValue HitSoundEffects
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_MARKER_DAMAGE"
+	2, "$SETTING_MARKER_DAMAGEANDKILL"
+}
+
+OptionValue SampleRate
+{
+	0,	   "$SETTING_SYSTEM_DEFAULT"
+	44100, "44100hz"
+	48000, "48000hz"
+//	96000, "96000hz"	// Not available yet, requires engine update
+}
+
+OptionValue WEAPONSHAKE {
+	0, "$SETTING_OFF"
+	2, "$SETTING_REDUCED"
+	1, "$SETTING_FULL"
+}
+
+OptionValue intensitysetting
+{
+	0, "$SETTING_DISABLED"
+	1, "$SETTING_REDUCED"
+	2, "$SETTING_FULL"
+}
+
+OptionValue intensitysetting_firstrun
+{
+	2, "$SETTING_FULL"
+	1, "$SETTING_REDUCED"
+}
+
+
+OptionValue fireeffects
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_ON"
+}
+
+OptionValue filmgrainscales
+{
+	0.5, 	"$SETTING_FG_MED"
+	0.25, 	"$SETTING_FG_BIG"
+}
+
+OptionValue "YesOrNo"
+{
+	0, "$SETTING_NO"
+	1, "$SETTING_YES"
+}
+
+
+OptionValue "dummy" {
+	0, "Unavailable"
+}
+
+
+OptionValue "YesOrNoRev"
+{
+	1, "$SETTING_NO"
+	0, "$SETTING_YES"
+}
+
+OptionValue "OnOffRev"
+{
+	1, "$SETTING_OFF"
+	0, "$SETTING_ON"
+}
+
+OptionValue "GameDetail"
+{
+	1, "$SETTING_MINIMAL"
+	2, "$SETTING_REDUCED"
+	3, "$SETTING_RECOMMENDED"
+}
+
+OptionValue "FlashDim" {
+	0.7, "$SETTING_OFF"
+	0.3, "$SETTING_ON"
+}
+
+OptionValue "ParticleIntensity"
+{
+	1, "$SETTING_LOW"
+	2, "$SETTING_MEDIUM"
+	3, "$SETTING_HIGH"
+	4, "$SETTING_ULTRA"
+	5, "$SETTING_RIDICULOUS"
+}
+
+OptionValue "ParticleLifetime"
+{
+	1, "$SETTING_SHORT"
+	2, "$SETTING_AVERAGE"
+	3, "$SETTING_LONG"
+	4, "$SETTING_VERYLONG"
+}
+
+OptionValue "SpriteShadowModes"
+{
+	0, "$SETTING_OFF"
+	2, "$SETTING_ON"
+}
+
+
+OptionValue "projectileOrigin"
+{
+	1, "$SETTING_CENTER"
+	0, "$SETTING_WEAPON"
+}
+
+OptionString "projectileOriginDesc"
+{
+	"", "$DESCRIPTION_PROJECTILEORIGIN_ON"
+	"", "$DESCRIPTION_PROJECTILEORIGIN_OFF"
+}
+
+OptionValue "AutoManual"
+{
+	0, "$SETTING_AUTOMATIC"
+	1, "$SETTING_MANUAL"
+}
+
+OptionString "PickupModesDesc"
+{
+	"$SETTING_AUTOMATIC",	"$DESCRIPTION_PICKUPMODE_MANUAL"
+	"$SETTING_MANUAL", 		"$DESCRIPTION_PICKUPMODE_AUTO"
+}
+
+OptionValue "DamageMarkers"
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_KILL_MARKERS"
+	2, "$SETTING_DAMAGE_MARKERS"
+}
+
+OptionValue "ItemIcons"
+{
+	0, "$SETTING_OFF"
+	1, "$SETTING_ICONSONLY"
+	2, "$SETTING_ICONSANDFLARES"
+}
+
+
+OptionValue "ssaostrength"
+{
+	0.5, "$SETTING_REDUCED"
+	0.85, "$SETTING_RECOMMENDED"
+	1.4, "$SETTING_MAXIMUM"
+}
+
+OptionValue "reflectionSettings"
+{
+	0, "$REFLECTIONS_NONE"
+	1, "$REFLECTIONS_MIRRORS"
+	2, "$REFLECTIONS_FULL"
+}
+OptionValue "trapSpawnFrequency"
+{
+	0, "$SETTING_NONE"
+	0.5, "$SETTING_LESS"
+	1.0, "$SETTING_DEFAULT"
+	2, "$SETTING_MORE"
+	15, "$SETTING_ALOT"
+	35, "$SETTING_RIDICULOUS"
+}
+OptionValue "WeaponPickupStyle"
+{
+	0, "$Vanilla"
+	1, "$Swapped"
+	2, "$FullRandom"
+}
+OptionValue "EarthquakeChance"
+{
+	0, "$SETTING_DISABLED"
+	2, "$SETTING_LESS"
+	4, "$SETTING_NORMAL"
+	6, "$SETTING_MORE"
+	10, "$SETTING_ALOT"	
+}
+OptionValue "coverChance"
+{
+	0, "$SETTING_NONE"
+	2, "$SETTING_LESS"
+	6, "$SETTING_DEFAULT"
+	10, "$SETTING_MORE"
+	25, "$SETTING_ALOT"
+	50, "$SETTING_RIDICULOUS"	
+}
+
+OptionValue "clutterChance"
+{
+	0, "$SETTING_NONE"
+	15, "$SETTING_LESS"
+	35, "$SETTING_NORMAL"
+	50, "$SETTING_MORE"
+	75, "$SETTING_ALOT"
+	100, "$SETTING_RIDICULOUS"	
+}
+
+OptionValue "HealthSpawnChance"
+{
+	0, "$SETTING_NONE"
+	0.5, "$SETTING_LESS"
+	1, "$SETTING_DEFAULT"
+	3, "$SETTING_MORE"
+	9, "$SETTING_ALOT"	
+	16, "$SETTING_RIDICULOUS"
+}
+OptionValue "AmmoSpawnChance"
+{
+	0, "$SETTING_NONE"
+	1.5, "$SETTING_LESS"
+	3, "$SETTING_DEFAULT"
+	5, "$SETTING_MORE"
+	8, "$SETTING_ALOT"	
+	25, "$SETTING_RIDICULOUS"
+}
+OptionValue "HazardSpawnChance"
+{
+	0, "$SETTING_NONE"
+	0.25, "$SETTING_LESS"
+	0.5, "$SETTING_DEFAULT"
+	1.0, "$SETTING_MORE"
+	2.5, "$SETTING_ALOT"	
+	10, "$SETTING_RIDICULOUS"
+}
+OptionValue "EnemySpawnFrequency"
+{
+	0, "$SETTING_NONE"
+	0.5, "$SETTING_LESS"
+	1.5, "$SETTING_DEFAULT"
+	3, "$SETTING_MORE"
+	6, "$SETTING_ALOT"	
+	10, "$SETTING_RIDICULOUS"
+}
+OptionValue "ItemCrateFrequency"
+{
+	0, "$SETTING_NONE"
+	1, "$SETTING_LESS"
+	2, "$SETTING_DEFAULT"
+	3, "$SETTING_MORE"
+	4, "$SETTING_ALOT"	
+	10, "$SETTING_RIDICULOUS"
+}
+OptionValue "VacbotFrequency"
+{
+	0, "$SETTING_NONE"
+	0.1, "$SETTING_LESS"
+	0.25, "$SETTING_DEFAULT"
+	0.5, "$SETTING_MORE"
+	1, "$SETTING_ALOT"	
+	4, "$SETTING_RIDICULOUS"
+}
+OptionValue "RandomEncounterSettings"
+{
+	0, "$SETTING_NONE"
+	240, "$SETTING_LESS"
+	180, "$SETTING_DEFAULT"
+	140, "$SETTING_MORE"
+	80, "$SETTING_ALOT"	
+	35, "$SETTING_DEATHWISH"
+}
+OptionValue "BloodQuality"
+{
+	0, "$SETTING_WAYLESS"
+	1, "$SETTING_LESS"
+	2, "$SETTING_DEFAULT"
+	3, "$SETTING_MORE"
+	4, "$SETTING_RIDICULOUS"	
+}
+
+OptionValue "lightingqualitysetting"
+{
+	1, "$SETTING_LOW"
+	2, "$SETTING_MEDIUM"
+	3, "$SETTING_HIGH"
+	4, "$SETTING_ULTRA"
+}
+
+OptionValue "ThingLOD"
+{
+	700, "$SETTING_SHORT"
+	1400, "$SETTING_MEDIUM"
+	1800, "$SETTING_HIGH"
+	3000, "$SETTING_ULTRA"
+}
+
+OptionValue "effectLOD"
+{
+	1100, "$SETTING_SHORT"
+	1400, "$SETTING_MEDIUM"
+	1800, "$SETTING_HIGH"
+	3500, "$SETTING_ULTRA"
+}
+
+OptionValue "smokequality"
+{
+	1, "$SETTING_LOW"
+	2, "$SETTING_MEDIUM"
+	3, "$SETTING_HIGH"
+	4, "$SETTING_ULTRA"
+	5, "$SETTING_RIDICULOUS"
+}
+
+OptionValue "smokedensity"
+{
+	0,	"$SETTING_LIGHT"
+	1,	"$SETTING_DEFAULT"
+	2, 	"$SETTING_HEAVY"
+}
+
+//ListMenu "MainMenu"
+//{
+//	AnimatedTransition 
+//	IfGame(Doom, Chex)
+//	{
+//		Selector "OM_SELEC", -19, 0
+//		Font "SMALLFONT", WHITE
+//		//Linespacing 27
+//		//Position -60, 135
+//		LineSpacing 10
+//		Position -20, 120
+//	}
+//	IfGame(Doom, Strife, Chex)
+//	{
+//		AnimatedTransition 
+//		StaticPatch -20, 115, "SELSCRN"
+//		Font "SMALLFONT", BLACK, LIGHTBLUE
+//		ifOption(ReadThis)
+//		{
+//			TextItem "Read This!","r", "ReadThisMenu"
+//		}
+//		Font "SMALLFONT", WHITE, LIGHTBLUE
+//		TextItem "$MENU_NEWCAMPAIGN", "n", "SkillMenu"
+//		TextItem "$MENU_NEWINCURSION", "S", "LevelSelect"
+//		TextItem "$MENU_CONTINUE", "l", "LoadGameMenu"
+//		TextItem "$MENU_OPTIONS", "o", "SelacoOptionMenu"
+//		TextItem "$MENU_CREDITS", "c", "CreditsMenu"
+//		TextItem "$MENU_QUITGAME", "q", "QuitMenu"
+//	}
+//}
+
+
+ListMenu "OptionsMenu2"
+{
+	AnimatedTransition 
+		Selector "OM_SELEC", -19, 0
+	Font "SMALLFONT", WHITE, LIGHTBLUE
+	Linespacing 10
+	Position -20, 115
+	IfOption(Unix) {
+		TextItemImage "$MENU_STEAMDECK", "graphics/options_menu/icons/menu_steamdeck.png", "0",	"SteamDeckMenu"
+	}
+	TextItemImage "$MENU_GAMEPLAY", 		"graphics/options_menu/icons/menu_gameplay1.png", 		"1", "GameplayMenu"
+	TextItemImage "$MENU_INTERFACE", 		"graphics/options_menu/icons/menu_interface.png", 		"l", "HUDOptionsSelaco"
+	TextItemImage "$MENU_CONTROLS", 		"graphics/options_menu/icons/menu_controls.png", 		"l", "CustomizeControlsSelaco"
+	TextItemImage "$MENU_MOUSESETTINGS", 	"graphics/options_menu/icons/menu_mouse.png", 			"l", "MouseOptionsSelaco"
+	TextItemImage "$MENU_GAMEPADSETTINGS", 	"graphics/options_menu/icons/menu_gamepad.png", 		"l", "GamepadOptions"
+	TextItemImage "$MENU_SOUNDS", 			"graphics/options_menu/icons/menu_sounds.png", 			"l", "SoundOptionsSelaco"
+	TextItemImage "$MENU_ACCESSBILITY", 	"graphics/options_menu/icons/menu_accessibility2.png", 	"1",	"Accessibility"
+	TextItemImage "$MENU_GRAPHICS", 		"graphics/options_menu/icons/menu_graphics1.png", 		"l", "GraphicsMenu"
+	TextItemImage "$MENU_VIDEO", 			"graphics/options_menu/icons/menu_video.png", 			"l", "SelacoVideoModeMenu"
+	Spacer 20
+	Separator 2
+	Spacer 20
+	TextItemImage "Mod Settings", "graphics/options_menu/icons/menu_mods2.png", "l", "ModOptionsMenu"
+}
+
+OptionMenu "ModOptionsMenu" protected
+{
+	Title "Mod Options"
+}
+
+
+OptionMenu "DeveloperMenu" protected
+{
+	Title "Developer Options"
+	Class "HoveringTooltipMenu"
+	StaticText "Developer Options", "OMNIBLUE"
+	space 30
+	StaticText "THERE IS NOTHING HERE RIGHT NOW", "OMNIBLUE"
+}
+
+OptionMenu "MouseOptionsSelaco" protected
+{
+	Title "$MOUSEMNU_TITLE"
+
+	StaticText "Mouse Options", "OMNIBLUE"
+	Option "$MOUSEMNU_ENABLEMOUSE",		"use_mouse", "YesNo"
+	IfOption(Windows)
+	{
+		Option "$MOUSEMNU_SWAPBUTTONS", "m_swapbuttons", "YesNo"
+	}
+	MenuLink "$MENU_CONTROLS_BIND", "CustomizeControlsSelaco"
+	
+	Space 50
+	StaticText "$SETTING_SENSITIVITY", "OMNIBLUE"
+	Slider "$MOUSEMNU_SENSITIVITY_X",	"m_sensitivity_x", 0.01, 8, 0.02, 2
+	Slider "\t$MOUSEMNU_SENSITIVITY_Y",	"m_sensitivity_y", 0.01, 8, 0.02, 2
+	Slider "$TITLE_ZOOMSENSITIVITY",	"g_zoomsensitivity", 0.01, 2, 0.01, 2
+
+	Space 40
+	Option "$MOUSEMNU_INVERTMOUSEX",	"invertmousex", "OnOff"
+	Option "$MOUSEMNU_INVERTMOUSE",		"invertmouse", "OnOff"
+
+	Space 50
+	StaticText "$SETTING_CATEGORY_DEFAULTS", "OMNIBLUE"
+	TooltipCommand	"$TITLE_RESET_DEFAULT",			"$DESCRIPTION_RESETDEFAULT",				"",		"none", 	"defaults"
+}
+
+OptionMenu "GamepadOptions" protected
+{
+	Title "$MENU_GAMEPAD"
+
+	StaticText "$MENU_GAMEPAD", "OMNIBLUE"
+	TooltipOption 		"$SETTING_ENABLE_GAMEPAD", 	"$DESCRIPTION_ENABLE_GAMEPAD", 	"", "use_joystick", 			"OnOff"
+	TooltipOption 		"$SETTING_GAMEPAD_BLOCKUI", "$DESCRIPTION_GAMEPAD_BLOCKUI", "", "m_blockcontrollers", 		"YesNo"
+	TooltipOption 		"$SETTING_GAMEPAD_INVERT_Y", 	"$DESCRIPTION_GAMEPAD_INVERT_Y", 	"", "joy_invert_look", 	"YesNo"
+	TooltipOption 		"$SETTING_GAMEPAD_LASTWEAPON", 	"$DESCRIPTION_GAMEPAD_LASTWEAPON", 	"", "g_wheel_action", 	"YesNo"
+	TooltipOptionBar 	"$SETTING_GAMEPAD_USEPSX", 	"$DESCRIPTION_GAMEPAD_USEPSX", 	"", "g_gamepad_use_psx", 		"GamepadButtonPrompts"
+	TooltipOption		"$TITLE_GAMEPAD_BUTTS", 	"$DESCRIPTION_GAMEPAD_BUTTS",	"",	"g_show_gamepad_keys", 		"gamepadkeys"	
+	Slider "$TITLE_ZOOMSENSITIVITY",	"g_zoomsensitivity", 0.01, 2, 0.01, 2
+	MenuLink "$MENU_CONTROLS_BIND", "CustomizeControlsSelaco"
+	Space 10
+	Subtext "$MENU_GAMEPAD_USE_STEAM", "DARKGREY"
+
+	Space 40
+	StaticText "$TITLE_VIBRATION", "OMNIBLUE"
+	TooltipOption "$SETTING_GAMEPAD_FEEDBACK", "$DESCRIPTION_GAMEPAD_FEEDBACK", "", "joy_feedback", "YesNo"
+	TooltipSlider "\t$SETTING_GAMEPAD_FEEDBACKSCALE",	"$DESCRIPTION_GAMEPAD_FEEDBACKSCALE",	 "",  "joy_feedback_scale", 0, 1, 0.05, 2
+	Space 40
+	StaticText "$TITLE_AIMASSIST", "OMNIBLUE"
+	TooltipOption "$SETTING_GAMEPAD_AIMASSIST", "$DESCRIPTION_GAMEPAD_AIMASSIST", "", "AIMASSIST_ENABLE", "OnOff"
+	TooltipOption "\t$SETTING_GAMEPAD_AIMASSIT_STYLE", "$DESCRIPTION_GAMEPAD_AIMASSIST_STYLE", "", "AIMASSIST_STYLE", "AimAssistStyle"
+	TooltipOption "\t$SETTING_GAMEPAD_AIMASSIST_STRENGTH",	"$DESCRIPTION_GAMEPAD_AIMASSIST_STRENGTH", "", "AIMASSIST_STRENGTH", "AimAssistStrength"
+	TooltipOption "\t$SETTING_GAMEPAD_AIMASSIST_ASSISTEDMODE",	"$DESCRIPTION_GAMEPAD_AIMASSIST_ASSISTEDMODE", "", "AIMASSIST_ASSISTEDMODE", "OnOff"
+	TooltipOption "\t$SETTING_GAMEPAD_AIMASSIST_RINGER",	"$DESCRIPTION_GAMEPAD_AIMASSIST_RINGER", "", "AIMASSIST_RINGER", "OnOff"
+	
+	Space 40
+	StaticText "$MENU_GAMEPAD_HARDWARE", "OMNIBLUE"
+	IfOption(Windows)
+	{
+		TooltipOption "$SETTING_GAMEPAD_USEXINPUT",  "$DESCRIPTION_GAMEPAD_USEXINPUT", "", "joy_xinput", "YesNo"
+		TooltipOption "$SETTING_GAMEPAD_USEDX", "$DESCRIPTION_GAMEPAD_USEDX", "", "joy_dinput", "YesNo"
+		//TooltipOption "$SETTING_GAMEPAD_USEPS2",  "$DESCRIPTION_GAMEPAD_USEPS2", "","joy_ps2raw", "YesNo"
+	}
+	TooltipOption "$SETTING_GAMEPAD_ADVANCED", "$DESCRIPTION_GAMEPAD_ADVANCED", "", "g_gamepad_advanced", "OnOff"
+
+	Space 40
+}
+
+
+OptionMenu SelacoVideoModeMenu protected
+{
+	Title "$VIDMNU_TITLE"
+	StaticText "IMAGE", "OMNIBLUE"
+
+	MustNotHave g_steamdeck
+	Slider "$Field of View",					"fov",	   						80, 130, 5, 0
+	MustHave g_steamdeck	// Lower minimum FOV option for steam deck
+	Slider "$Field of View",					"fov",	   						60, 130, 5, 0
+	
+	Space 30
+	Slider "$DSPLYMNU_BRIGHTNESS",				"vid_brightness",				-0.8, 	0.8, 0.05, 2
+	Slider "$DSPLYMNU_GAMMA",					"vid_gamma",					0.75, 	3.0, 0.05, 2
+	//Slider "$DSPLYMNU_CONTRAST",				"vid_contrast",	   				0.1, 	3.0, 0.02, 2
+	TooltipSlider "$DSPLYMNU_SATURATION", 	"$DESCRIPTION_DESATURATION", 	"OP_SATU0",		"vid_saturation",  				0.7, 1.0, 0.05, 2
+	Space 40
+	StaticText "Video Settings", "OMNIBLUE"
+	TooltipOption "$TITLE_GRAPHICSAPI", "$DESCRIPTION_GRAPHICSAPI",	"", "vid_preferbackend", "SelacoBackend", "SelacoBackendDesc"
+	MustHave vid_preferbackend
+	TooltipOptionVideoDevice    "$TITLE_DISPLAYDEVICE", "$DESCRIPTION_DISPLAYDEVICE", "", "vk_device", "DeviceList"
+	TooltipOptionScreen "$TITLE_DISPLAYMONITOR",	"$DESCRIPTION_DISPLAYMONITOR", "", "vid_adapter", "AdapterList"
+
+	Space 40
+	ResolutionOption "$TITLE_RESOLUTION", 		"$DESCRIPTION_RESOLUTION", "", "resmenu"
+	Option "$DSPLYMNU_VSYNC",			"vid_vsync", "OnOff"
+	
+	MustNotHave g_steamdeck
+	Option "$VIDMNU_FULLSCREEN",		"vid_fullscreen", "YesNo"
+	
+	MustNotHave g_steamdeck
+	TooltipOption	 "$TITLE_DISPLAY_IN_BG",	"$DESCRIPTION_DISPLAY_IN_BG", "", "vid_activeinbackground", "YesNo"
+	
+	
+	TooltipOption "$VIDMNU_SCALEFACTOR", "$DESCRIPTION_SCALEFACTOR", "", "vid_scalefactor", "VidScales"
+
+	//Space 40
+	//TooltipOption "$VIDMNU_CROPASPECT", "$DESCRIPTION_CROPASPECT", "", "vid_cropaspect", "CropAspect", "CropAspectDesc"
+	//Option "$VIDMNU_FORCEASPECT",		"vid_aspect", "ForceRatios"
+	
+	Space 40
+	MustNotHave g_steamdeck
+	Option "$VIDMNU_USELINEAR", 		"vid_scale_linear", "YesNo"
+	Option "$VIDMNU_MAXFPS",			"vid_maxfps", 	"MaxFps"
+	IfOption(Mac)
+	{
+		Option "$VIDMNU_HIDPI",			"vid_hidpi", "YesNo"
+	}
+
+	Space 50
+	StaticText "$SETTING_CATEGORY_DEFAULTS", "OMNIBLUE"
+	TooltipCommand	"$TITLE_RESET_DEFAULT",			"$DESCRIPTION_RESETDEFAULT",				"",		"none", 	"defaults"
+}
+
+
+OptionMenu "NewGameSettings"
+{
+	Title "Playstyle Options"
+	Class "HoveringTooltipMenu"
+
+	SeparatorTitle "Game Mode", 35
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_HARDCORE",		"$GAMEPLAY_MODIFIER_HARDCORE_DESCRIPTION", 			"g_hardcoremode",	"OnOff",	"", 0, "HardcoremodeSettings"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_HARDBOILED",		"$GAMEPLAY_MODIFIER_HARDBOILED_DESCRIPTION",		"g_hardboiled", 	"OnOff", 	"g_hardboiled", 0,	"HardboiledSettings"
+	//TooltipOptionMode "$GAMEPLAY_MODIFIER_RANDOMIZER",	"$GAMEPLAY_MODIFIER_RANDOMIZER_DESCRIPTION",		"g_randomizer",		"OnOff",	"g_randomizerMode", 0,	"RandomizerSettings"
+
+	SeparatorTitle "Booster", 60			
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_EXTRAAMMO",		"$GAMEPLAY_MODIFIER_EXTRAAMMO_DESCRIPTION",			"g_extraammo", 		"OnOff"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_ARMORUP",			"$GAMEPLAY_MODIFIER_ARMORUP_DESCRIPTION",			"g_armorup", 		"OnOff"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_BOTTOMLESSMAGS",	"$GAMEPLAY_MODIFIER_BOTTOMLESSMAGS_DESCRIPTION",	"g_bottomlessMags", "OnOff",  	"g_bottomlessMags"
+
+
+	SeparatorTitle "Difficulty", 60
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_DEFENSIVEENEMIES","$GAMEPLAY_MODIFIER_DEFENSIVEENEMIES_DESCRIPTION",	"g_defensiveEnemies", 	"OnOff", ""
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_NOHEALTHREGEN",	"$GAMEPLAY_MODIFIER_NOHEALTHREGEN_DESCRIPTION",		"g_nohealthregeneration", 	"OnOff", ""
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_RIFLESTART",		"$GAMEPLAY_MODIFIER_RIFLESTART_DESCRIPTION",		"g_riflestart", 	"OnOff"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_ITEMSCARCITY",	"$GAMEPLAY_MODIFIER_SCARCITY_DESCRIPTION",			"g_scarcityMode", 	"OnOff"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_FRESHSTART",		"$GAMEPLAY_MODIFIER_FRESHSTART_DESCRIPTION",		"g_freshStart", 	"OnOff"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_MAXINVASION",		"$GAMEPLAY_MODIFIER_MAXINVASION_DESCRIPTION",		"g_harshInvasion", 	"OnOff"
+
+	SeparatorTitle "Misc", 60
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_BURGERFLIPPERSTART","$GAMEPLAY_MODIFIER_BURGERFLIPPERSTART_DESCRIPTION",	"g_burgerflipperStart", 	"OnOff", "g_burgerflipperStart"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_HALFLIKE",		"$GAMEPLAY_MODIFIER_HALFLIKE_DESCRIPTION",			"g_halflikemode", 	"OnOff"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_LEGACYPICKUPS",	"$GAMEPLAY_MODIFIER_LEGACYPICKUPS_DESCRIPTION",		"g_legacypickups", 	"OnOff"
+	TooltipOptionMode "$GAMEPLAY_MODIFIER_SAVESCUMMER",		"$GAMEPLAY_MODIFIER_SAVESCUMMER_DESCRIPTION",		"g_allowsavescumming", "OnOff", "", 1
+
+}
+OptionMenu "HardcoremodeSettings"
+{
+	Title "$HARDCORE_MENU"
+	Space 10
+	Subtext "$HARDCORE_MENU_MAG_INFO", "White"
+	TooltipOptionMode "$HARDCORE_MENU_MAG",	"",	"g_hardcoremode_reloading", 	"OnOff"
+	Space 20
+	Subtext "$HARDCORE_MENU_WEAPON_INFO", "White"
+	TooltipOptionMode "$HARDCORE_MENU_WEAPON",	"",	"g_hardcoremode_ignoreWeaponLimits", 	"OnOff"
+}
+
+OptionMenu "HardboiledSettings"
+{
+	Title "$HARDBOILED_MENU"
+	Space 10
+	Subtext "$HARDBOILED_MENU_PAIN_INFO", "White"
+	TooltipOptionMode "$HARDBOILED_MENU_PAIN",		"$HARDCORE_MENU_MAG_INFO",	"g_hardboiled_painchances", 	"OnOff"
+}
+
+
+OptionString "RandomizerPreset"
+{
+	"RandomizerPreset_Minimal",			"$RANDOMIZER_PRESET_MINIMAL"
+	"RandomizerPreset_Moderate",		"$RANDOMIZER_PRESET_MODERATE"
+	"RandomizerPreset_Vanilla",			"$RANDOMIZER_PRESET_VANILLA"
+	"RandomizerPreset_VanillaEnhanced",	"$RANDOMIZER_PRESET_VANILLAPLUS"
+	"RandomizerPreset_ControlledChaos", "$RANDOMIZER_PRESET_CONTROLLEDCHAOS"
+	"RandomizerPreset_Overkill",		"$RANDOMIZER_PRESET_OVERKILL"
+}
+
+OptionValue "RandomizerPreset_Minimal"
+{
+	240, "randomizer_randomEncounterFrequency"
+	1, "randomizer_WeakenRandomEncounters"
+	0.5, "randomizer_extraEnemyChance"
+	0.5, "randomizer_trapChance"
+	0.1,  "randomizer_vacbotChance"
+	1,  "randomzier_itemCrateChance" 
+	0.25, "randomizer_hazardChance" 
+	1.5, "randomizer_ammoFrequency" 
+	0.5, "randomizer_healthChance" 	
+	2, "randomizer_coverChance" 
+	1, "randomizer_allowShardTrails"
+	0, "randomizer_clutterChance" 
+	0, "randomizer_allowCombatChests"
+	0, "randomizer_allowGifts"
+	1, "randomizer_allowSquadLeaders"
+	1, "randomizer_allowZombies"
+	1, "randomizer_allowRobots"
+	1, "randomizer_allowNailgunSoldiers"
+	1, "randomizer_allowStingerSoldiers"
+	0, "randomizer_allowBurstrifleSoldiers"
+	0, "randomizer_allowCrawlermineQueen"
+	0, "randomizer_allowEngineerGrenadier"
+	0, "randomizer_weaponSpawnStyle" 
+	0, "randomizer_allowZombieInvasions"
+	1, "randomizer_allowCrawlerWaves"
+	1, "randomizer_allowSawdroneWaves"
+	0, "randomizer_TieredWeapons"
+	0, "randomizer_TieredEnemies"
+	0, "randomizer_allowTieredProgression"
+	0, "randomizer_compensatePickups"
+	0, "randomizer_immersiveMode"
+	1, "randomizer_randomizeFood"
+	0, "randomizer_shuffleEnemyTypes"
+	0, "randomizer_relocateEnemySpawns"
+	0, "randomizer_randomPickupAmounts"
+	0, "randomizer_shufflePickups"
+	0, "randomizer_maxOutTechModules"
+	0, "randomizer_earthquakeFrequency" 
+	1, "randomizer_quickstart"
+	1, "randomizer_allowHeavyGunners"
+}
+
+OptionValue "RandomizerPreset_Moderate"
+{
+	180, "randomizer_randomEncounterFrequency"
+	1, "randomizer_WeakenRandomEncounters"
+	1.5, "randomizer_extraEnemyChance"
+	1.0, "randomizer_trapChance"
+	1, "randomizer_allowShardTrails"
+	0.25, "randomizer_vacbotChance"
+	2, "randomzier_itemCrateChance" 
+	0.5,  "randomizer_hazardChance" 
+	3,  "randomizer_ammoFrequency" 
+	1,  "randomizer_healthChance" 	
+	0, "randomizer_coverChance" 
+	0, "randomizer_clutterChance" 
+	1, "randomizer_allowCombatChests"
+	1, "randomizer_allowGifts"
+	1, "randomizer_allowSquadLeaders"
+	1, "randomizer_allowZombies"
+	1, "randomizer_allowRobots"
+	1, "randomizer_allowNailgunSoldiers"
+	1, "randomizer_allowStingerSoldiers"
+	1, "randomizer_allowBurstrifleSoldiers"
+	1, "randomizer_allowCrawlermineQueen"
+	1, "randomizer_allowEngineerGrenadier"
+	1, "randomizer_allowHeavyGunners"
+	2, "randomizer_weaponSpawnStyle" 
+	1, "randomizer_allowZombieInvasions"
+	1, "randomizer_allowCrawlerWaves"
+	1, "randomizer_allowSawdroneWaves"
+	1, "randomizer_TieredWeapons"
+	1, "randomizer_TieredEnemies"
+	1, "randomizer_allowTieredProgression"
+	1, "randomizer_compensatePickups"
+	0, "randomizer_immersiveMode"
+	1, "randomizer_randomizeFood"
+	1, "randomizer_shuffleEnemyTypes"
+	1, "randomizer_relocateEnemySpawns"
+	1, "randomizer_randomPickupAmounts"
+	1, "randomizer_shufflePickups"
+	0, "randomizer_maxOutTechModules"
+	0, "randomizer_earthquakeFrequency" 
+	1, "randomizer_quickstart"
+}
+
+
+OptionValue "RandomizerPreset_Vanilla"
+{
+	0, "randomizer_randomEncounterFrequency"
+	0, "randomizer_WeakenRandomEncounters"
+	0, "randomizer_extraEnemyChance"
+	0, "randomizer_trapChance"
+	0, "randomizer_vacbotChance"
+	0, "randomzier_itemCrateChance" 
+	0, "randomizer_hazardChance" 
+	0.25, "randomizer_ammoFrequency" 
+	0, "randomizer_allowShardTrails"
+	0.25, "randomizer_healthChance" 	
+	0, "randomizer_coverChance" 
+	0, "randomizer_clutterChance" 
+	0, "randomizer_allowCombatChests"
+	0, "randomizer_allowGifts"
+	0, "randomizer_allowSquadLeaders"
+	0, "randomizer_allowZombies"
+	0, "randomizer_allowRobots"
+	0, "randomizer_allowNailgunSoldiers"
+	0, "randomizer_allowStingerSoldiers"
+	0, "randomizer_allowBurstrifleSoldiers"
+	0, "randomizer_allowHeavyGunners"
+	0, "randomizer_allowCrawlermineQueen"
+	0, "randomizer_allowEngineerGrenadier"
+	0, "randomizer_weaponSpawnStyle" 
+	0, "randomizer_allowZombieInvasions"
+	0, "randomizer_allowCrawlerWaves"
+	0, "randomizer_allowSawdroneWaves"
+	0, "randomizer_TieredWeapons"
+	0, "randomizer_TieredEnemies"
+	0, "randomizer_allowTieredProgression"
+	0, "randomizer_compensatePickups"
+	0, "randomizer_immersiveMode"
+	0, "randomizer_randomizeFood"
+	1, "randomizer_shuffleEnemyTypes"
+	1, "randomizer_relocateEnemySpawns"
+	0, "randomizer_randomPickupAmounts"
+	0, "randomizer_shufflePickups"
+	0, "randomizer_maxOutTechModules"
+	0, "randomizer_earthquakeFrequency" 
+	1, "randomizer_quickstart"
+}
+OptionValue "RandomizerPreset_VanillaEnhanced"
+{
+	0, "randomizer_randomEncounterFrequency"
+	0, "randomizer_WeakenRandomEncounters"
+	1.25, "randomizer_extraEnemyChance"
+	0, "randomizer_trapChance"
+	0, "randomizer_vacbotChance"
+	0, "randomizer_allowShardTrails"
+	0, "randomzier_itemCrateChance" 
+	0, "randomizer_hazardChance" 
+	0.25, "randomizer_ammoFrequency" 
+	0.25, "randomizer_healthChance" 	
+	0, "randomizer_coverChance" 
+	0, "randomizer_clutterChance" 
+	0, "randomizer_allowCombatChests"
+	0, "randomizer_allowGifts"
+	1, "randomizer_allowSquadLeaders"
+	0, "randomizer_allowZombies"
+	1, "randomizer_allowRobots"
+	1, "randomizer_allowNailgunSoldiers"
+	1, "randomizer_allowStingerSoldiers"
+	1, "randomizer_allowBurstrifleSoldiers"
+	1, "randomizer_allowCrawlermineQueen"
+	1, "randomizer_allowEngineerGrenadier"
+	1, "randomizer_allowHeavyGunners"
+	0, "randomizer_weaponSpawnStyle" 
+	0, "randomizer_allowZombieInvasions"
+	0, "randomizer_allowCrawlerWaves"
+	0, "randomizer_allowSawdroneWaves"
+	0, "randomizer_TieredWeapons"
+	0, "randomizer_TieredEnemies"
+	0, "randomizer_allowTieredProgression"
+	0, "randomizer_compensatePickups"
+	0, "randomizer_immersiveMode"
+	0, "randomizer_randomizeFood"
+	1, "randomizer_shuffleEnemyTypes"
+	1, "randomizer_relocateEnemySpawns"
+	0, "randomizer_randomPickupAmounts"
+	0, "randomizer_shufflePickups"
+	0, "randomizer_maxOutTechModules"
+	0, "randomizer_earthquakeFrequency" 
+	1, "randomizer_quickstart"
+}
+
+OptionValue "highTierFrequency"
+{
+	0.5, "$SETTING_LESS"
+	1.0, "$SETTING_DEFAULT"
+	1.5, "$SETTING_MORE"
+	2.5, "$SETTING_ALOT"
+	100, "$SETTING_RIDICULOUS"
+}
+
+OptionValue "RandomizerPreset_ControlledChaos"
+{
+	120, "randomizer_randomEncounterFrequency"
+	1, "randomizer_WeakenRandomEncounters"
+	2.5, "randomizer_extraEnemyChance"
+	2.0, "randomizer_trapChance"
+	0, "randomizer_allowShardTrails"
+	0.25, "randomizer_vacbotChance"
+	2.5, "randomzier_itemCrateChance" 
+	1,  "randomizer_hazardChance" 
+	5,  "randomizer_ammoFrequency" 
+	3,  "randomizer_healthChance" 	
+	6, "randomizer_coverChance" 
+	3, "randomizer_clutterChance" 
+	1, "randomizer_allowCombatChests"
+	1, "randomizer_allowGifts"
+	1, "randomizer_allowSquadLeaders"
+	1, "randomizer_allowZombies"
+	1, "randomizer_allowRobots"
+	1, "randomizer_allowNailgunSoldiers"
+	1, "randomizer_allowStingerSoldiers"
+	1, "randomizer_allowBurstrifleSoldiers"
+	1, "randomizer_allowCrawlermineQueen"
+	1, "randomizer_allowEngineerGrenadier"
+	2, "randomizer_weaponSpawnStyle" 
+	1, "randomizer_allowZombieInvasions"
+	1, "randomizer_allowCrawlerWaves"
+	1, "randomizer_allowSawdroneWaves"
+	1, "randomizer_TieredWeapons"
+	1, "randomizer_TieredEnemies"
+	1, "randomizer_allowTieredProgression"
+	1, "randomizer_compensatePickups"
+	0, "randomizer_immersiveMode"
+	1, "randomizer_randomizeFood"
+	1, "randomizer_shuffleEnemyTypes"
+	1, "randomizer_allowHeavyGunners"
+	1, "randomizer_relocateEnemySpawns"
+	1, "randomizer_randomPickupAmounts"
+	1, "randomizer_shufflePickups"
+	0, "randomizer_maxOutTechModules"
+	0, "randomizer_earthquakeFrequency" 
+	1, "randomizer_quickstart"
+}
+
+
+OptionValue "RandomizerPreset_Overkill"
+{
+	80, "randomizer_randomEncounterFrequency"
+	1, "randomizer_WeakenRandomEncounters"
+	6, "randomizer_extraEnemyChance"
+	15, "randomizer_trapChance"
+	0, "randomizer_allowShardTrails"
+	1, "randomizer_vacbotChance"
+	4, "randomzier_itemCrateChance" 
+	2.5, "randomizer_hazardChance" 
+	8, "randomizer_ammoFrequency" 
+	9, "randomizer_healthChance" 	
+	15, "randomizer_coverChance" 
+	15, "randomizer_clutterChance" 
+	1, "randomizer_allowCombatChests"
+	1, "randomizer_allowGifts"
+	1, "randomizer_allowSquadLeaders"
+	1, "randomizer_allowZombies"
+	1, "randomizer_allowRobots"
+	1, "randomizer_allowNailgunSoldiers"
+	1, "randomizer_allowStingerSoldiers"
+	1, "randomizer_allowBurstrifleSoldiers"
+	1, "randomizer_allowHeavyGunners"
+	1, "randomizer_allowCrawlermineQueen"
+	1, "randomizer_allowEngineerGrenadier"
+	2, "randomizer_weaponSpawnStyle" 
+	1, "randomizer_allowZombieInvasions"
+	1, "randomizer_allowCrawlerWaves"
+	1, "randomizer_allowSawdroneWaves"
+	1, "randomizer_TieredWeapons"
+	1, "randomizer_TieredEnemies"
+	1, "randomizer_allowTieredProgression"
+	1, "randomizer_compensatePickups"
+	0, "randomizer_immersiveMode"
+	1, "randomizer_randomizeFood"
+	1, "randomizer_shuffleEnemyTypes"
+	1, "randomizer_relocateEnemySpawns"
+	1, "randomizer_randomPickupAmounts"
+	1, "randomizer_shufflePickups"
+	1, "randomizer_maxOutTechModules"
+	6, "randomizer_earthquakeFrequency" 
+	1, "randomizer_quickstart"
+}
+
+
+
+OptionMenu "RandomizerSettings"
+{
+	Title "Randomizer Settings"
+	Space 5
+	
+	TooltipPreset "$RANDOMIZER_PRESET_TITLE",  "Determines how much content is randomized",	"", "RandomizerPreset", "RandomizerModesDesc"
+	Space 20
+	
+	Disable
+	TooltipOptionMode "\c[darkgrey]Include Chapter 2 Content",		"",            "dummy",                             "dummy", "staylocked"
+	Disable
+	TooltipOptionMode "\c[darkgrey]Include Chapter 3 Content",		"",            "dummy",                             "dummy", "staylocked"
+	Space 20
+	
+	SubMenu "Custom Settings", "RandomizerSettingsCustom", 1
+
+	Space 5
+	OnlyInGame
+	Subtext "PLEASE NOTE:", "Orange"
+	OnlyInGame
+	Subtext "Some settings will not take effect until reaching a new map.", "White"
+	OnlyInGame
+	Space 20
+	
+	Subtext "$RANDOMIZER_SUBTEXT_WARNING_HEADER", "Orange"
+	Subtext "$RANDOMIZER_SUBTEXT_DIFFICULTY_RECOMMENDATION", "White"
+	Subtext "$RANDOMIZER_SUBTEXT_BALANCE_NOTE", "White"
+}
+
+OptionMenu "RandomizerSettingsCustom"
+{
+	Space 5
+	StaticText "$RANDOMIZER_RANDOMENCOUNTERS", "White"
+	TooltipOptionMode "$RANDOMIZER_TITLE_RANDOMENCOUNTERFREQUENCY", "$RANDOMIZER_DESCRIPTION_RANDOMENCOUNTERFREQUENCY", "randomizer_randomEncounterFrequency", "RandomEncounterSettings"
+	TooltipOptionMode "$RANDOMIZER_TITLE_WEAKENRANDOMENEMIES", 		"$RANDOMIZER_DESCRIPTION_WEAKENRANDOMENEMIES", 		"randomizer_WeakenRandomEncounters",   "OnOff"
+	Space 20
+	StaticText "$RANDOMIZER_RANDOMSPAWNS", "White"
+	Subtext "$RANDOMIZER_SPAWN_WARNING", "White"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALENEMIES",	"$RANDOMIZER_DESCRIPTION_ADDITIONALENEMIES",	"randomizer_extraEnemyChance", 		"EnemySpawnFrequency"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALTRAPS",		"$RANDOMIZER_DESCRIPTION_ADDITIONALTRAPS",		"randomizer_trapChance", 			"trapSpawnFrequency"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALVACBOTS",	"$RANDOMIZER_DESCRIPTION_ADDITIONALVACBOTS",	"randomizer_vacbotChance", 			"VacbotFrequency"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALITEMCRATES",	"$RANDOMIZER_DESCRIPTION_ADDITIONALITEMCRATES",	"randomzier_itemCrateChance", 		"ItemCrateFrequency"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALHAZARDS",	"$RANDOMIZER_DESCRIPTION_ADDITIONALHAZARDS",	"randomizer_hazardChance", 			"HazardSpawnChance"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALAMMO",		"$RANDOMIZER_DESCRIPTION_ADDITIONALAMMO",		"randomizer_ammoFrequency", 		"AmmoSpawnChance"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALHEALTH",		"$RANDOMIZER_DESCRIPTION_ADDITIONALHEALTH",		"randomizer_healthChance", 			"HealthSpawnChance"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALCOVER",		"$RANDOMIZER_DESCRIPTION_ADDITIONALCOVER",		"randomizer_coverChance", 			"coverChance"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ADDITIONALCLUTTER",	"$RANDOMIZER_DESCRIPTION_ADDITIONALCLUTTER",	"randomizer_clutterChance", 		"clutterChance"
+	Space 20
+	TooltipOptionMode "$RANDOMIZER_TITLE_COMBATCHESSTS",		"$RANDOMIZER_DESCRIPTION_COMBATCHESSTS",		"randomizer_allowCombatChests", 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_SPAWNMYSTERYBOXES",	"$RANDOMIZER_DESCRIPTION_SPAWNMYSTERYBOXES",	"randomizer_allowGifts", 			"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ITEMSHARDS",			"$RANDOMIZER_DESCRIPTION_ITEMSHARDS",			"randomizer_allowShardTrails", 		"OnOff" 
+	TooltipOptionMode "$RANDOMIZER_TITLE_AMMOBEARERS",			"$RANDOMIZER_DESCRIPTION_AMMOBEARERS", 			"randomizer_allowAmmoBearers", 		"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ARMORBEARERS",			"$RANDOMIZER_DESCRIPTION_ARMORBEARERS", 		"randomizer_allowArmorBearers", 	"OnOff"
+	Disable
+	TooltipOptionMode "$RANDOMIZER_TITLE_SPAWNALLIES",			"$RANDOMIZER_DESCRIPTION_SPAWNALLIES",          "dummy",                            "dummy", 	"staylocked"
+	Space 20
+	StaticText "$RANDOMIZER_ADDITIONALSPAWNS", "White"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWSQUADLEADERS",		"$RANDOMIZER_DESCRIPTION_ALLOWSQUADLEADERS",		"randomizer_allowSquadLeaders", 		"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWZOMBIES",				"$RANDOMIZER_DESCRIPTION_ALLOWZOMBIES",				"randomizer_allowZombies", 				"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWROBOTS",				"$RANDOMIZER_DESCRIPTION_ALLOWROBOTS",				"randomizer_allowRobots", 				"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWNAILGUNNERS",			"$RANDOMIZER_DESCRIPTION_ALLOWNAILGUNNERS",			"randomizer_allowNailgunSoldiers", 		"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWSTINGERS",			"$RANDOMIZER_DESCRIPTION_ALLOWSTINGERS",			"randomizer_allowStingerSoldiers", 		"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWBURSTRIFLES",			"$RANDOMIZER_DESCRIPTION_ALLOWBURSTRIFLES",			"randomizer_allowBurstrifleSoldiers", 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_HEAVYGUNNER",				"$RANDOMIZER_DESCRIPTION_HEAVYGUNNER",				"randomizer_allowBurstrifleSoldiers", 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWCRAWLERQUEEN",		"$RANDOMIZER_DESCRIPTION_ALLOWCRAWLERQUEEN",		"randomizer_allowCrawlermineQueen", 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWENGINEERGRENADIERS",	"$RANDOMIZER_DESCRIPTION_ALLOWENGINEERGRENADIERS",	"randomizer_allowEngineerGrenadier", 	"OnOff"
+	Space 20
+	StaticText "$RANDOMIZER_WEAPONS", "White"
+	TooltipOptionMode "$RANDOMIZER_WEAPON_PRESET",		"$RANDOMIZER_WEAPON_PRESET_DESC",	"randomizer_weaponSpawnStyle", 	"WeaponPickupStyle"
+	Disable
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWHEAVYWEAPONS", "$RANDOMIZER_DESCRIPTION_ALLOWHEAVYWEAPONS",            "dummy",                       "dummy", "staylocked"
+	Space 20
+
+	StaticText "$RANDOMIZER_EVENTS", "White"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWZOMBIEINVASIONS", "$RANDOMIZER_DESCRIPTION_ALLOWZOMBIEINVASIONS", "randomizer_allowZombieInvasions", "OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWCRAWLERAMBUSHES", "$RANDOMIZER_DESCRIPTION_ALLOWCRAWLERAMBUSHES", "randomizer_allowCrawlerWaves", "OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_ALLOWSAWDRONEAMBUSHES", "$RANDOMIZER_DESCRIPTION_ALLOWSAWDRONEAMBUSHES", "randomizer_allowSawdroneWaves", "OnOff"
+
+	Space 20
+
+	StaticText "$RANDOMIZER_TIEREDSPAWNS", "White"
+	Subtext "$RANDOMIZER_SUBTEXT_TIEREXPLANATION", "White"
+
+	TooltipOptionMode "$RANDOMIZER_TITLE_TIEREDWEAPONS", "$RANDOMIZER_DESCRIPTION_TIEREDWEAPONS", "randomizer_TieredWeapons", "OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_TIREDENEMIES", "$RANDOMIZER_DESCRIPTION_TIREDENEMIES", "randomizer_TieredEnemies", "OnOff"
+
+	Space 10
+	DisableInGame
+	TooltipOptionMode "$RANDOMIZER_TIEREDPROGRESSION",		"", "randomizer_allowTieredProgression", 	"OnOff"
+	
+	Space 20
+	StaticText "$RANDOMIZER_ITEMCOMPENSATION", "White"
+	TooltipOptionMode "$RANDOMIZER_TITLE_COMPENSATEPICKUPS", "$RANDOMIZER_DESCRIPTION_COMPENSATEPICKUPS", "randomizer_compensatePickups", "OnOff"
+
+	Space 20
+	StaticText "$RANDOMIZER_IMMERSION", "White"
+	TooltipOptionMode "$RANDOMIZER_TITLE_IMMERSIVEMODE", "$RANDOMIZER_DESCRIPTION_IMMERSIVEMODE", "randomizer_immersiveMode", "OnOff"
+
+	Space 20
+	StaticText "$RANDOMIZER_ADDITIONALSPAWNS", "White"
+	TooltipOptionMode "$RANDOMIZER_TITLE_HIGHTIERENEMY", 			"$RANDOMIZER_DESCRIPTION_HIGHTIERENEMY", 			"randomizer_hightierFrequency",			"highTierFrequency"
+	TooltipOptionMode "$RANDOMIZER_TITLE_RANDOMIZEFOOD", 			"$RANDOMIZER_DESCRIPTION_RANDOMIZEFOOD", 			"randomizer_randomizeFood",			"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_RANDOMIZEENEMYTYPES", 		"$RANDOMIZER_DESCRIPTION_RANDOMIZEENEMYTYPES", 		"randomizer_shuffleEnemyTypes",	 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_RANDOMIZEENEMYLOCATIONS", 	"$RANDOMIZER_DESCRIPTION_RANDOMIZEENEMYLOCATIONS", 	"randomizer_relocateEnemySpawns", 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_RANDOMIZEPICKUPAMOUNTS", 	"$RANDOMIZER_DESCRIPTION_RANDOMIZEPICKUPAMOUNTS", 	"randomizer_randomPickupAmounts", 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_SHUFFLEPICKUPLOCATIONS", 	"$RANDOMIZER_DESCRIPTION_SHUFFLEPICKUPLOCATIONS", 	"randomizer_shufflePickups", 		"OnOff"
+	DisableInGame
+	TooltipOptionMode "$RANDOMIZER_TITLE_STARTWITHTECHMODULES", 	"$RANDOMIZER_DESCRIPTION_STARTWITHTECHMODULES", 	"randomizer_maxOutTechModules", 	"OnOff"
+	TooltipOptionMode "$RANDOMIZER_TITLE_EARTHQUAKES", 				"$RANDOMIZER_DESCRIPTION_EARTHQUAKES", 				"randomizer_earthquakeFrequency", 	"EarthquakeChance"
+	DisableInGame
+	TooltipOptionMode "$RANDOMIZER_TITLE_SKIPOPENING", "$RANDOMIZER_DESCRIPTION_SKIPOPENING", "randomizer_quickstart", "OnOff"
+	DisableInGame
+}
+
+
+OptionValue DeviceList
+{
+	0, "<Unavailable>"
+	1, "<Unavailable>"
+	2, "<Unavailable>"
+	3, "<Unavailable>"
+	4, "<Unavailable>"
+	5, "<Unavailable>"
+	6, "<Unavailable>"
+	7, "<Unavailable>"
+	8, "<Unavailable>"
+}
+
+
+OptionValue AdapterList
+{
+	0, "Automatic"
+	1, "1"
+	2, "2"
+	3, "3"
+	4, "4"
+	5, "5"
+	6, "6"
+}
+
+OptionString AdapterListDesc
+{
+	"", "Display 1"
+	"", "Display 2"
+	"", "Display 3"
+	"", "Display 4"
+}
+
+OptionString Unavailable
+{
+	0, "$UNAVAILABLE_SETTING"
+}
+
+
+OptionString GamepadButtonPrompts
+{
+	0, "Xbox"
+	1, "Playstation"
+}
+
+OptionValue CropAspect
+{
+	0, "$OPTVAL_STRETCH"
+	1, "$OPTVAL_LETTERBOX"
+}
+
+OptionString CropAspectDesc
+{
+	"", "$DESCRIPTION_STRETCH"
+	"", "$DESCRIPTION_LETTERBOX"
+}
+
+OptionValue VidScales
+{
+	1, "x1.0"
+	1.25, "x1.25"
+	1.50, "x1.50"
+	1.75, "x1.75"
+	2, "x2"
+}
+
+OptionValue SelacoBackend
+{
+	0, "$OPTVAL_OPENGL"
+	1, "$OPTVAL_VULKAN"
+}
+
+OptionString SelacoBackendDesc
+{
+	"OGL_LOG", "$DESCRIPTION_OPENGL"
+	"VUL_LOG", "$DESCRIPTION_VULKAN"
+}
+
+OptionString "resmenu" 
+{
+	"CUSTOM", "Custom"
+	"800x600", "800x600 (4:3)"
+	"1024x768", "1024x768 (4:3)"
+	"1280x960", "1280x960 (4:3)"
+	"1600x1200", "1600x1200 (4:3)"
+	"1280x1024", "1280x1024 (5:4)"
+	"960x540", "960x540 (16:9)"
+	"1280x720", "\c[CREAM]1280x720 (16:9) (720p HD)"
+	"1366x768", "1366x768 (16:9)"
+	"1920x1080", "\c[CREAM]1920x1080 (16:9) (1080p HD)"
+	"2560x1440", "2560x1440 (16:9) (1440p HD)"
+	"3840x2160", "\c[CREAM]3840x2160 (16:9) (4K UHD)"
+	"960x600", "960x600 (16:10)"
+	"1280x800", "1280x800 (16:10)"
+	"1440x900", "1440x900 (16:10)"
+	"1680x1050", "1680x1050 (16:10)"
+	"1920x1200", "1920x1200 (16:10)"
+	"1920x810", "1920x810 (21:9)"
+	"2560x1080", "2560x1080 (21:9)"
+}
+
+ListMenu "SkillMenu"
+{
+	IfGame(Doom, Chex)
+	{
+		AnimatedTransition 
+		Font "SMALLFONT", OMNIBLUE
+		LineSpacing 10
+		Position 150, 150
+		
+	}
+}
+
+OptionValue "DisabledOption"
+{
+	0, "$SETTING_ENABLED"
+	1, "$SETTING_DISABLED"
+}
+
+Optionvalue "LessMore" {
+	250, "$SETTING_LESS"
+	85, "$SETTING_DEFAULT"
+	10, "$SETTING_MORE"
+}
+
+OptionString "LessMoreDesc" {
+	"$SETTING_LESS", "$DESCRIPTION_CHATTERFREQUENCY_1"
+	"$SETTING_DEFAULT", "$DESCRIPTION_CHATTERFREQUENCY_2"
+	"$SETTING_MORE", "$DESCRIPTION_CHATTERFREQUENCY_3"
+}
+
+OptionString "DuckingDesc" {
+	"$SETTING_OFF", "$DESCRIPTION_AUDIODUCKING_OFF"
+	"$SETTING_ON", "$DESCRIPTION_AUDIODUCKING_ON"
+}
+
+OptionValue "maxgibs"
+{
+	1, "0"
+	64, "64"
+	100, "100"
+	500, "500"
+	1000, "1000"
+	2000, "2000"
+	5000, "5000"
+	10000, "10000"
+	25000, "25000"
+	50000, "50000"
+}
+
+OptionString "VSyncValDesc"
+{
+	"SLIDTU3", "DESCRIPTION_VSYNC_OFF"
+	"SLIDTU17", "DESCRIPTION_VSYNC_ON"
+}
+
+OptionValue "ShootingRangeModes"
+{
+	0, "$SHOOTINGRANGE_MODE_TIMEATTACK"
+	1, "$SHOOTINGRANGE_MODE_ENDLESS"
+	2, "$SHOOTINGRANGE_MODE_PUNCHINGBAG"
+}
+
+OptionValue "ShootingRangeTimes"
+{
+	30, "30s"
+	60, "60s"
+	90, "90s"
+	120, "120s"
+	240, "240s"
+}
+
+OptionValue "ShootingRangeDistances"
+{
+	0, "$SETTING_RANDOM"
+	1, "$SHOOTINGRANGE_DISTANCE_CLOSE"
+	2, "$SHOOTINGRANGE_DISTANCE_MEDIUM"
+	3, "$SHOOTINGRANGE_DISTANCE_LONG"
+	4, "$SHOOTINGRANGE_DISTANCE_FAVORCLOSE"
+	5, "$SHOOTINGRANGE_DISTANCE_FAVORMEDIUM"
+	6, "$SHOOTINGRANGE_DISTANCE_FAVORLONG"
+}
+
+OptionValue "ShootingRangeMovement"
+{
+	0, "$SETTING_NEVER"
+	1, "$SETTING_RANDOM"
+	2, "$SETTING_ALWAYS"
+}
+
+OptionValue "ShootingRangeSpawnRates"
+{
+	0, "$SETTING_SLOW"
+	1, "$SETTING_MEDIUM"
+	2, "$SETTING_FAST"
+}
+
+OptionValue MaxFps
+{
+	-1, "$SETTING_CUSTOM"
+	35, "$FPS_35"
+	45, "$FPS_45"
+	60, "$FPS_60"
+	75, "$FPS_75"
+	90, "$FPS_90"
+	120, "$FPS_120"
+	144, "$FPS_144"
+	200, "$FPS_200"
+	0, "$OPTVAL_UNLIMITED"
+}

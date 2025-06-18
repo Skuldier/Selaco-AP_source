@@ -1,0 +1,10 @@
+Model CEILING_COLLAPSE_TILE_1    
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling1.md3"    
+   Skin 0 "Ceiling1.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}

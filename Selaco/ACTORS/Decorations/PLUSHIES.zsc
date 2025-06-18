@@ -1,0 +1,699 @@
+
+class Teddybear : PickupableDecoration {
+    mixin teddyProps;
+    default
+    {
+        height 17;
+        +PickupableDecoration.dumpsterCompatible;
+        PickupableDecoration.landingSound "LNDTEDD";
+        PickupableDecoration.grabSound "script/squak";
+        PickupableDecoration.dumpsterSound "TEDTRAS";
+        +PickupableDecoration.HoldFromAnyAngle;
+        +PickupableDecoration.NoThrowDamage;
+    }
+	states {
+		Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                bthruactors = false;
+            }
+			VOXE L -1;
+			loop;
+        Pain:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+            TNT1 A 0 A_PLAYSOUND("TEDDYBEAR/BREAK", CHAN_AUTO, 1.0, 0, 0.8, false, frandom(0.86, 1.0));
+            TNT1 A 0 {
+                Stats.AddStat(STAT_PLUSHIES_KILLED, 1, 0);
+            }
+			TNT1 AA 0 {
+				A_SPAWNITEMEX("Cardboard_Chunk", frandom(-6,6), frandom(-6,6), frandom(0,8));
+			}
+            TNT1 A 0 A_SPAWNITEMEX("TeddybearDamaged");
+            stop;
+        Pain.DawnFist:
+		Pain.MeleeImpact:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+            TNT1 A 0 {
+                if(ACS_NamedExecuteWithResult("hasTeddyMutator") == 0) {
+                   SetStateLabel("Spawn");
+                }
+            }
+            TNT1 A 0 {
+                invoker.teddyMelees++;
+                if (invoker.teddyMelees == 1) {
+                    A_PLAYSOUND("teddy/happy", CHAN_7);
+                }
+                if (invoker.teddyMelees == 2) {
+                    A_PLAYSOUND("teddy/anger", CHAN_7);
+                }
+                if (invoker.teddyMelees == 3) {
+                    A_PLAYSOUND("teddy/mad", CHAN_7);
+                }
+                if (invoker.teddyMelees == 4) {
+                    A_PLAYSOUND("teddy/end", CHAN_7);
+                    SetStateLabel("ExplodeTimer");
+                }
+            }
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+            VOXE L 4 A_SETANGLE(angle+2);
+            VOXE L 4 A_SETANGLE(angle-2);
+			//TNT1 A 0 A_PLAYSOUND("teddy/happy");
+			goto Spawn;
+        ActiveLoop:
+            TNT1 A 0 {
+                if(!invoker.pickedUp) {
+                   // A_PlaySound("teddy/pickup",CHAN_7);
+                    invoker.pickedUp = true;
+                }
+            }
+			TNT1 A 0 A_SetRenderStyle(0.5, STYLE_Translucent);
+			VOXE L 1 A_Warp(AAPTR_TARGET, 40, 0, 21 + ACS_NamedExecuteWithResult("GetActorPitch"), 0, WARPF_INTERPOLATE | WARPF_COPYPITCH);
+			loop;
+		Inactive:
+            TNT1 A 0 {           
+                 if(invoker.pickedUp) {
+                    invoker.pickedUp = false;
+                }
+            }
+			TNT1 A 0 A_SetRenderStyle(1.0, STYLE_Normal);
+			TNT1 A 0 ThrustThing(ACS_NamedExecuteWithResult("GetPlayerAngle"), 12, 0, 0);
+			goto Spawn;
+		Death:
+			TNT1 AAAAAA 0 A_SpawnItemEx("BrownCloud", 10);
+			TNT1 AAAAAAAAAAAAA 0 {
+				A_SPAWNITEMEX("Cardboard_Chunk", frandom(-6,6), frandom(-6,6), frandom(0,8));
+			}
+			stop;
+        ExplodeTimer:
+        ExplodeTimerLoop:
+            VOXE L 3 {
+                loopTillBoom++;
+            }
+            VOXE L 3 BRIGHT {
+                loopTillBoom++;
+                if (loopTillBoom == 25) {
+                    setStateLabel("ExplodeTime");
+                }
+            }
+            loop;
+        ExplodeTime:
+            TNT1 A 0 A_SPAWNITEMEX("PrettyExplosionParticleRain");
+            TNT1 AAAAAAAAAAAAA 0 A_SPawnItemEx("Cardboard_Chunk", random(-25, 25), random(-25, 25), random(-25, 25));
+            stop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class TeddybearDamaged : Teddybear {
+    states {
+        Pain:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.66, 0.7));
+            TNT1 A 0 {
+                SetStateLabel("Spawn");
+            }
+    }
+}
+
+class Koala : Teddybear {
+    default {
+        height 22;
+        tag "$OBJECT_KOALA";
+    }
+    states {
+        Pain:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+            TNT1 A 0 A_PLAYSOUND("TEDDYBEAR/BREAK", CHAN_AUTO, 1.0, 0, 0.8, false, frandom(0.86, 1.0));
+            TNT1 A 0 {
+                Stats.AddStat(STAT_PLUSHIES_KILLED, 1, 0);
+            }
+            TNT1 A 0 A_SPAWNITEMEX("Koala_dead");
+            stop;
+    }
+}
+
+// Regular plush, but gives an Achievement when you return him safely from the Hospital to Dawn's apartment room.
+class Wilson : TeddyBear
+{
+    bool wilsonIsDamaged;
+ 
+    override void tick()
+    {
+        super.tick();
+        if(skill == SKILL_SMF && players[consolePlayer].mo)
+        {
+            bPreventSleep = true;
+            A_FACE(players[consolePlayer].mo);
+        }
+    }
+
+    default
+    {
+        +SelacoActor.PreventSleep
+        tag "$OBJECT_WILSON";
+        radius 15;
+        height 15;
+    }
+    states
+    {
+        Pain:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+            TNT1 A 0 A_PLAYSOUND("TEDDYBEAR/BREAK", CHAN_AUTO, 1.0, 0, 0.8, false, frandom(0.86, 1.0));
+            TNT1 A 0 {
+                Stats.AddStat(STAT_PLUSHIES_KILLED, 1, 0);
+            }
+			TNT1 AA 0 {
+				A_SPAWNITEMEX("Cardboard_Chunk", frandom(-6,6), frandom(-6,6), frandom(0,8));
+			}
+            TNT1 A 0 A_SPAWNITEMEX("WilsonDamaged");
+            stop;
+    }
+}
+
+class WilsonDamaged : Wilson
+{
+
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        wilsonIsDamaged = true;
+    }
+
+    default
+    {
+        tag "$OBJECT_WILSON";
+    }
+    states {
+        Pain:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.66, 0.7));
+            TNT1 A 0 {
+                SetStateLabel("Spawn");
+            }
+    }
+}
+
+mixin class Teddy11sSpeechChip 
+{
+    static const string HAPPY_SOUND_REFERENCE[] = {
+        "teddy/happy1", "teddy/happy2", "teddy/happy3", 
+        "teddy/happy4", "teddy/happy5", "teddy/happy6"
+    };
+
+    static const string HAPPY_SOUND_SUBTITLE[] = {
+        "$TEDDY11_HAPPY_01", "$TEDDY11_HAPPY_02", "$TEDDY11_HAPPY_03", 
+        "$TEDDY11_HAPPY_04", "$TEDDY11_HAPPY_05", "$TEDDY11_HAPPY_06"
+    };
+
+    static const string PICKUP_SOUND_REFERENCE[] = {
+        "teddy/pickup1", "teddy/pickup2", "teddy/pickup3", 
+        "teddy/pickup4", "teddy/pickup5", "teddy/pickup6",
+        "teddy/pickup7"
+    };
+
+    static const string PICKUP_SOUND_SUBTITLE[] = {
+        "$TEDDY11_PICKUP_01", "$TEDDY11_PICKUP_02", "$TEDDY11_PICKUP_03", 
+        "$TEDDY11_PICKUP_04", "$TEDDY11_PICKUP_05", "$TEDDY11_PICKUP_06",
+        "$TEDDY11_PICKUP_07"
+    };
+
+
+    static const string ANGRY_SOUND_REFERENCE[] = {
+        "teddy/angry1", "teddy/angry2", "teddy/angry3", 
+        "teddy/angry4", "teddy/angry5", "teddy/angry6",
+        "teddy/angry7", "teddy/angry8", "teddy/angry9"
+    };
+
+    static const string ANGRY_SOUND_SUBTITLE[] = {
+        "$TEDDY11_ANGRY_01", "$TEDDY11_ANGRY_02", "$TEDDY11_ANGRY_03", 
+        "$TEDDY11_ANGRY_04", "$TEDDY11_ANGRY_05", "$TEDDY11_ANGRY_06",
+        "$TEDDY11_ANGRY_07", "$TEDDY11_ANGRY_08", "$TEDDY11_ANGRY_09" 
+    };
+
+    static const string END_SOUND_REFERENCE[] = {
+        "teddy/end1", "teddy/end2", "teddy/end3", 
+        "teddy/end4"
+    };
+
+    static const string END_SOUND_SUBTITLE[] = {
+        "$TEDDY11_END_01", "$TEDDY11_END_02", "$TEDDY11_END_03", 
+        "$TEDDY11_END_04"
+    };
+
+    static const string MAD_SOUND_REFERENCE[] = {
+        "teddy/mad1", "teddy/mad2", "teddy/mad3", 
+        "teddy/mad4", "teddy/mad5", "teddy/mad6",
+        "teddy/mad7", "teddy/mad8", "teddy/mad9",
+        "teddy/mad10"
+    };
+
+    static const string MAD_SOUND_SUBTITLE[] = {
+        "$TEDDY11_MAD_01", "$TEDDY11_MAD_02", "$TEDDY11_MAD_03", 
+        "$TEDDY11_MAD_04", "$TEDDY11_MAD_05", "$TEDDY11_MAD_06",
+        "$TEDDY11_MAD_07", "$TEDDY11_MAD_08", "$TEDDY11_MAD_09",
+        "$TEDDY11_MAD_10"
+    };
+
+    static const string ALERT_SOUND_REFERENCE[] =
+    {
+        "teddy/mad6", "teddy/mad4", "teddy/mad3", 
+        "teddy/happy6", "teddy/happy1", "teddy/happy3",
+        "teddy/happy4", "teddy/happy5", "teddy/angry2",
+        "teddy/angry3", "teddy/angry6", "teddy/angry9"
+    };
+
+    static const string ALERT_SOUND_SUBTITLE[] =
+    {
+        "$TEDDY11_MAD_06", "$TEDDY11_MAD_04", "$TEDDY11_MAD_03", 
+        "$TEDDY11_HAPPY_06", "$TEDDY11_HAPPY_01", "$TEDDY11_HAPPY_03",
+        "$TEDDY11_HAPPY_04", "$TEDDY11_HAPPY_05", "$TEDDY11_ANGRY_02",
+        "$TEDDY11_ANGRY_03", "$TEDDY11_ANGRY_06", "$TEDDY11_ANGRY_09"
+    };
+
+    void voiceAngry()
+    {
+        int randomPointer = random(0, ANGRY_SOUND_REFERENCE.size()-1);
+        string voiceID = ANGRY_SOUND_REFERENCE[randomPointer]; 
+        string subtitleID = ANGRY_SOUND_SUBTITLE[randomPointer]; 
+        playVoice(voiceID, subtitleID);
+    }
+
+    void voiceMad()
+    {
+        int randomPointer = random(0, MAD_SOUND_REFERENCE.size()-1);
+        string voiceID = MAD_SOUND_REFERENCE[randomPointer]; 
+        string subtitleID = MAD_SOUND_SUBTITLE[randomPointer]; 
+        playVoice(voiceID, subtitleID);
+    }
+
+    void voiceEnd()
+    {
+        int randomPointer = random(0, END_SOUND_REFERENCE.size()-1);
+        string voiceID = END_SOUND_REFERENCE[randomPointer]; 
+        string subtitleID = END_SOUND_SUBTITLE[randomPointer]; 
+        playVoice(voiceID, subtitleID);
+    }
+
+
+    void voicePickup()
+    {
+        int randomPointer = random(0, PICKUP_SOUND_REFERENCE.size()-1);
+        string voiceID = PICKUP_SOUND_REFERENCE[randomPointer]; 
+        string subtitleID = PICKUP_SOUND_SUBTITLE[randomPointer]; 
+        playVoice(voiceID, subtitleID);
+    }
+
+
+    void voiceAlert()
+    {
+        int randomPointer = random(0, ALERT_SOUND_REFERENCE.size()-1);
+        string voiceID = ALERT_SOUND_REFERENCE[randomPointer]; 
+        string subtitleID = ALERT_SOUND_SUBTITLE[randomPointer]; 
+        playVoice(voiceID, subtitleID);
+    }
+
+    void playVoice(string soundReference, string subtitleID)
+    {
+        A_PLAYSOUND(soundReference, CHAN_5, 1.0);
+        Notification.Subtitle("$CHARACTER_TEDDY11", subtitleID, 3.0);
+    }
+
+}
+
+mixin class teddyProps 
+{
+	//category OminousDecoration
+    int teddyMelees;
+    int loopTillBoom;
+    bool pickedUp;
+    default {
+        tag "$OBJECT_TEDDYBEAR";
+        BloodType "Cardboard_Chunk", "Cardboard_Chunk", "Cardboard_Chunk";
+        damagefactor "MeleeImpact", 0.1;
+        PainChance "MeleeImpact", 256;
+        PainChance 256;
+        -NOBLOOD;
+        -BLOODSPLATTER;
+        +NoBloodDecals;
+        +SHOOTABLE;
+        +USESPECIAL
+        +SelacoActor.thruplayers;
+        +SelacoActor.thruDecorations;
+        Activation THINGSPEC_Switch;
+        +USESPECIAL
+        +SOLID;
+        radius 8;
+        height 23;
+        Health 200;
+        PushFactor 0.3;
+        mass 150;
+        scale 1.0;
+    }    
+}
+
+
+class Koala_dead : TeddybearDamaged {
+    default {
+        Health 300;
+        tag "$OBJECT_KOALA";
+    }
+}
+
+class Teddy11 : Teddybear { 
+    mixin Teddy11sSpeechChip;
+    bool primed;
+    int primeTicks;
+    int totalMeleeHits;
+
+    bool hasTeddy11Upgrade()
+    {
+ 		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+        return d.countinv("AltfireGrenadeLauncherTeddy11");       
+    }
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+        //bool hasTeddy11Upgrade = countinv("AltfireGrenadeLauncherTeddy11");
+        if(damageType == "meleeImpact" && hasTeddy11Upgrade())
+        {
+            switch(totalMeleeHits)
+            {
+                case 0:
+                    voiceAngry();
+                    break;
+                case 1:
+                    voiceMad();
+                    break;
+                case 2:
+                    voiceEnd();
+                    primed = true;
+                    break;
+            }
+            totalMeleeHits++;
+        }
+        return res;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(primed)
+        {
+            A_SetScale(scale.x + 0.006);
+            primeTicks++;
+            A_SETANGLE(angle +random(-1,1));
+            bPreventSleep = true;
+            if(primeTicks >= 115)
+            {
+                actor bombActor;
+                bool nerd;
+                bthruactors = true;
+                [nerd, bombActor] = A_SPAWNITEMEX("Teddy11Bomb");
+                if(bombActor)
+                {
+                    bombActor.setStateLabel("actuallyExplode");
+                }
+                destroy();
+            }
+        }
+    }
+
+    default
+    {
+        health 110;
+        scale 1.0;
+    }
+    states
+    {
+        pickup:
+            TNT1 A 0
+            {
+                if(hasTeddy11Upgrade()){
+                    voicePickup();
+                }
+            }
+            goto spawn;
+        Pain:
+            goto spawn;
+        xdeath:
+        death:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+            TNT1 A 0 A_PLAYSOUND("TEDDYBEAR/BREAK", CHAN_AUTO, 1.0, 0, 0.8, false, frandom(0.86, 1.0));
+            TNT1 AAAAAAAA 0 A_SPawnItemEx("Cardboard_Chunk", random(-25, 25), random(-25, 25), random(-25, 25));
+            stop;
+    }
+}
+
+class Teddy11Larger : interactable {
+
+    mixin teddyProps;
+    bool hasSeen;
+    default {
+        tag "$CHARACTER_TEDDY11";
+        SelacoActor.UseTag "$INTERACT_SQUEEZE";
+        height 40;
+        radius 15;
+        scale 1.1;
+        health 9800;
+    }
+    states {   
+        Spawn:
+            TNT1 A 0 {
+                bNoPain = false;
+                if(hasSeen)
+                {
+                    setStateLabel("Idle");
+                }
+            }
+            TEDD Y 5 A_LOOK();
+            loop;
+        See:
+            TNT1 A 0
+            {
+                if(!hasSeen)
+                {
+                    hasSeen = true;
+                    Notification.Subtitle("$CHARACTER_TEDDY11", "$TEDDY11_HAPPY_04", 3.0);
+                    A_PLAYSOUND("teddy/happy4", CHAN_5, 1.0, 0, 0.4);
+                }
+            }
+        Idle:
+            TEDD Y -1;
+        Pain:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+            goto spawn;
+		Death:
+			TNT1 AAA 0 A_SpawnItemEx("BrownCloud", 10);
+			stop;
+        Active:
+        inActive:
+        Pain:
+        Pain.DawnFist:
+    	Pain.MeleeImpact:
+            TNT1 A 0 A_PlaySound("script/squak",CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+            TNT1 A 0 {
+                bUseSpecial = false;
+                activationType = THINGSPEC_DEFAULT;
+                invoker.teddyMelees++;
+                bNoPain = true;
+                if (invoker.teddyMelees == 1) {
+                    A_PLAYSOUND("teddy/happy6", CHAN_5);
+                    Notification.Subtitle("$CHARACTER_TEDDY11", "$TEDDY11_HAPPY_06", 3.0);
+                }
+                if (invoker.teddyMelees == 2) {
+                    A_PLAYSOUND("teddy/angry5", CHAN_5);
+                    Notification.Subtitle("$CHARACTER_TEDDY11", "$TEDDY11_ANGRY_05", 3.0);
+                }
+                if (invoker.teddyMelees == 3) {
+                    A_PLAYSOUND("teddy/mad5", CHAN_5);
+                    Notification.Subtitle("$CHARACTER_TEDDY11", "$TEDDY11_MAD_05", 3.0);
+                }
+                if (invoker.teddyMelees == 4) {
+                    A_PLAYSOUND("teddy/end3", CHAN_5);
+                    Notification.Subtitle("$CHARACTER_TEDDY11", "$TEDDY11_END_03", 3.0);
+                    SetStateLabel("ExplodeTimer");
+                }
+            }
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TNT1 A 0 
+            {
+                bUseSpecial = true;
+                activationType = THINGSPEC_Switch;
+                bNoPain = false;
+            }
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            TEDD Y 4  A_SETANGLE(angle+2);
+            TEDD Y 4  A_SETANGLE(angle-2);
+            goto Spawn;
+        ExplodeTimer:
+        ExplodeTimerLoop:
+            TEDD Y 2 {
+                selflighting = "000000";
+                A_SetScale(scale.x+0.02);
+            }
+            TEDD Y 1  {
+                selflighting = "050505";
+                bPreventSleep = true;
+                loopTillBoom++;
+                if (loopTillBoom == 45) {
+                    setStateLabel("ExplodeTime");
+                }
+            }
+            loop;
+        ExplodeTime:
+            TNT1 A 0 A_SPAWNITEMEX("PrettyExplosionParticleRain");
+            TNT1 AAAAAAAAAAAAA 0 A_SPawnItemEx("Cardboard_Chunk", random(-25, 25), random(-25, 25), random(-25, 25));
+        Death:
+        XDeath:
+            TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPawnItemEx("Cardboard_Chunk", random(-25, 25), random(-25, 25), random(-25, 25));
+            TNT1 A 0 A_StopSound(CHAN_VOICE);
+            TNT1 A 0 {
+                actor weaponPartActor;
+                bool weaponPartSuccess;
+                [weaponPartSuccess, weaponPartActor] = A_SPAWNITEMEX("WeaponKit");
+                if(weaponPartActor)
+                {
+                    weaponPartActor.args[0] = 23;
+                }
+                ACS_NamedExecute("OpenMutatorDoor", 0);
+            }
+            stop;
+    }
+}
+
+class teddy11bomb : GrenadeLauncherFragBomb
+{   
+    mixin Teddy11sSpeechChip;
+    int primeTime; // Freddy Krueger
+    bool primed;
+    bool playedAlertedSound;
+    override void tick()
+    {
+        super.tick();
+        if(primed && !target)
+        {
+            primeTIme++;
+            if(primeTime >= 75)
+            {
+                setStateLabel("ActuallyExplode");
+            }
+        }
+        if(target is "Dawn")
+        {
+            target = null;
+        }
+        if(target is "SelacoEnemy")
+        {
+            speed = 5;
+        }
+        if(target && distance2D(target) < 50 && checkSight(target))
+        {
+            setStateLabel("ActuallyExplode");
+        }
+        if(!target && primed)
+        {
+            speed = 1;
+            setStateLabel("Idle");
+            vel = (0,0,0);
+        }
+    }
+
+
+    default
+    {
+        +friendly;
+        +INTERPOLATEANGLES
+        speed 15;
+    }
+
+    states
+    {
+        Spawn:
+            VOXE L 1;
+            TNT1 A 0 {
+                speed = 5;
+            }
+            TNT1 A 0 A_PLAYSOUND("script/squak", CHAN_AUTO);
+        Looper:
+            VOXE L 1 A_SetAngle(angle+3);
+            loop;
+        Bounce:
+            TNT1 A 0 A_PLAYSOUND("script/squak");
+            goto looper;
+        Idle:
+            VOXE L 1 A_LOOK();
+            loop;
+        Death:
+            TNT1 A 0 
+            {
+                primed = true;
+            }
+            VOXE L 5 A_LOOK();
+            loop;
+
+        See:
+            TNT1 A 0
+            {
+                if(!playedAlertedSound)
+                {
+                    voiceAlert();
+                    playedAlertedSound = true;
+                }
+            }
+        SeeContinue:
+            VOXE L 1 
+            {
+                A_CHASE();
+                if(target)
+                {
+                    A_SETANGLE(angle+random(-5,5));
+                }
+            }
+            loop;
+    }
+}

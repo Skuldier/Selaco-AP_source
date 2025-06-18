@@ -1,0 +1,125 @@
+
+class TechModule : SelacoItem {
+    bool hasSeenPlayer;
+
+    Actor actor_hologram_datapad, actor_hologram_stripes;
+
+    default {
+        -NOGRAVITY
+        +SelacoItem.UpgradeItem;
+        tag "$PICKUP_WORKSHOPFIRMWARE";
+		+INVENTORY.ALWAYSPICKUP
+        +SELACOITEM.Essential;
+        Inventory.PickupSound "item/datapad";
+        Scale 0.65;
+    }
+
+    override void postbeginPlay()
+    {
+        // Dont need TechModules when playing Hard-boiled mode, player already has those.
+        if(getCvar("g_hardboiled") == 1 || getCvar("randomizer_maxOutTechModules") == 1)
+        {
+            destroy();
+            return;
+        }
+
+        super.postBeginPlay();
+        stats.AddStat(STAT_SAFEROOM_TIER, 0, 1);
+    }
+
+    void pickupWorkshoptier()
+    {
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+
+        // Give stuff
+        d.A_Giveinventory("WorkshopTierItem", 1);
+        d.A_PLAYSOUND("item/levelup", CHAN_AUTO, 0.9, pitch:0.9);
+
+        stats.AddStat(STAT_SAFEROOM_TIER, 1, 0);
+
+        // Little ugly right now, just not sure how we should even present this.
+        string saferoomString = StringTable.Localize("$SAFEROOM_UPGRADE");
+        string upgradeBonus1, upgradeBonus2;
+        //safeRoomString = string.format("+ %s", StringTable.Localize("$SAFEROOM_UPGRADE_A"));
+        switch(d.countInv("WorkshopTierItem"))
+        {
+            case 1:
+                upgradeBonus1 = string.format("+ %s", StringTable.Localize("$SAFEROOM_UPGRADE_1"));
+                break;
+            case 2:
+                upgradeBonus1 = string.format("+ %s\n", StringTable.Localize("$SAFEROOM_UPGRADE_2A"));
+                upgradeBonus2 = string.format("+ %s\n", StringTable.Localize("$SAFEROOM_UPGRADE_2B"));
+                break;
+            case 3:
+                upgradeBonus1 = string.format("+ %s", StringTable.Localize("$SAFEROOM_UPGRADE_3"));
+                break;
+            case 4:
+                upgradeBonus1 = string.format("+ %s", StringTable.Localize("$SAFEROOM_UPGRADE_4"));
+                break;
+        }
+
+        A_PRINTBOLD(string.format("\c[omniblue]%s! %d\n\c[green]%s\c[green]%s", saferoomString, d.countInv("WorkshopTierItem"), upgradeBonus1, upgradeBonus2), 7.0);
+    }
+
+    States
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                bool success;
+                [success, invoker.actor_hologram_datapad] = A_SPAWNITEMEX("WorkshopUpgrade_Hologram", -1, 0, 25, flags:SXF_SETMASTER);
+                [success, invoker.actor_hologram_stripes] = A_SPAWNITEMEX("tierupgrade_hologram_stripes", -1, 0, 0, flags:SXF_SETMASTER);                
+            }
+            VOXE L -1 BRIGHT;
+            loop;
+
+        Pickup:
+            TNT1 A 0
+            {
+                invoker.pickupWorkshoptier();
+                if(invoker.actor_hologram_datapad) invoker.actor_hologram_datapad.destroy();
+                if(invoker.actor_hologram_stripes) invoker.actor_hologram_stripes.destroy();
+                return 1;
+            }
+            stop;
+    }
+}
+
+class tierupgrade_hologram_stripes : datapad_hologram {
+    states {
+        Spawn:
+            TNT1 A 0;
+            WHOL ABCDEFGHIJ 2 BRIGHT {
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            WHOL ABCDEFGHIJ 2 BRIGHT {
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            loop;
+    }    
+}
+
+class WorkshopUpgrade_Hologram : datapad_hologram {
+    default
+    {
+        scale 2.3;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            PHON AAAAAAAAAA 2 BRIGHT {
+                A_FADEOUT(0.05);
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            PHON AAAAAAAAAA 2 BRIGHT {
+                A_FADEIN(0.05);
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            loop;
+        Death:
+            TNT1 A 0;
+            stop;
+    }
+}

@@ -1,0 +1,1126 @@
+Model PatreonDoodle {
+   noperpixellighting
+   Path "MD/PIZZA"  
+   Model 0 "PIZZA_5.md3"    
+   Skin 0 "PIZZA_5.png"
+   ZOffset 0
+   Scale 0.4 0.4 0.4           
+   FrameIndex VOXE L 0 0
+}
+
+// E. Vermet
+Model PatreonDoodle1 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING1.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Nix Connor
+Model PatreonDoodle2 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING2.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Cock Atrice
+Model PatreonDoodle3 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING3.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+//DJ Mendez
+Model PatreonDoodle4 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING4.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Time Cube
+Model PatreonDoodle5 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING5.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Eric Muessig
+Model PatreonDoodle6 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING6.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Kate Fox
+Model PatreonDoodle7 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING7.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Soki
+Model PatreonDoodle8 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING8.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Greco
+Model PatreonDoodle9 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING9.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+// Arthos
+Model PatreonDoodle10 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING10.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle11 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING11.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle12 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING12.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle13 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING13.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle14 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING14.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle15 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING15.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle16 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING16.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle17 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING17.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle18 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING18.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle19 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING19.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle20 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING20.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle21 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING21.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle22 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING22.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle23 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING23.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle24 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING24.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle25 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING25.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle26 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING26.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle27 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING27.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle28 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING28.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle29 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING29.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle30 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING30.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle31 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING31.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle32 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING32.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle33 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING33.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle34 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING34.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle35 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING35.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle36 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING36.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle37 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING37.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle38 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING38.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle39 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING39.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle40 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING40.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle41 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING41.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle42 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING42.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle43 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING43.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle44 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING44.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle45 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING45.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle46 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING46.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle47 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING47.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle48 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING48.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle49 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING49.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle50 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING50.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle51 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING51.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle52 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING52.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle53 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING53.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle54 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING54.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle55 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING55.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model PatreonDoodle56 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING56.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle57 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING57.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle58 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING58.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle59 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING59.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle60 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING60.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle61 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING61.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle62 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING62.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodle63 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWING63.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE1 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING1.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE2 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING2.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE2 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING2.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model OFFICIALDOODLE4 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING4.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE5 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING5.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+
+Model OFFICIALDOODLE7 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING7.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE8 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING8.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE9 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING9.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE10 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING10.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE11 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING11.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE12 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING12.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE13 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING13.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE14 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING14.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE15 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING15.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE16 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING16.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE17 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING17.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE18 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING18.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE19 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING19.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE20 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING20.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE21 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING21.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE22 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING22.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE23 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING23.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE24 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING24.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE25 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING25.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE26 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING26.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE27 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING27.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE28 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING28.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE29 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING29.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE30 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING30.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE31 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING31.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE32 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING32.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE33 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING33.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE34 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING34.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE35 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING35.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE36 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING36.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE37 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING37.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE38 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING38.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE39 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING39.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE40 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING40.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE41 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING41.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE42 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING42.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE43 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING43.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE44 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING44.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE45 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING45.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE46 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING46.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE47 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING47.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE48 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING48.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE49 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING49.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE50 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING50.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE51 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING51.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE52 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING52.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE53 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING53.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE54 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING54.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE55 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING55.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model OFFICIALDOODLE56 {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/OFFICIALDOODLES"   
+   Skin 0 "DRAWING56.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0
+}
+Model PatreonDoodleSpawner {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWINGTEMP.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0  
+}
+
+Model OfficialDoodleSpawner {
+   Path "MD/Decals"   
+   Model 0 "PLAINWALL90flat.md3"   
+   Path "SPRITES/DECORATIONS/PatreonDoodlesv2"   
+   Skin 0 "DRAWINGTEMP.png"
+   Scale 7.5 11.5 7.5
+   USEACTORROLL   
+   FrameIndex DRAW B 0 0  
+}

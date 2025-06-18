@@ -1,0 +1,161 @@
+class IceGrenade  : HandGrenade
+{
+
+	override void addSuffix()
+	{
+		SetTag(string.format("%s \c[LIGHTBLUE](%s)", getTag(), stringTable.localize("$TYPE_FROST")));
+	}
+
+	default {
+		Scale 0.5;
+		Inventory.pickupSound "ITEM/IceGrenade";
+		FlaredPickup.IconClass "ICEGRENADE_ICON";
+		+SELACOITEM.GrenadePickup;
+		SelacoItem.pickupIcon "P_ICE";
+		SelacoItem.pickupTag "$PICKUPTAG_ICEGRENADE";
+		SelacoItem.pickupType "IceGrenadeAmmo";
+		SelacoItem.pickupCount 1;
+		SelacoItem.StatNumber STAT_ICEGRENADES_FOUND;
+	}
+
+	States
+	{
+		Spawn:
+			VOXE L 0;
+		Looper:
+			VOXE L -1 BRIGHT;
+			loop;
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		Super.DoPickupSpecial(toucher);
+
+		if(toucher is "Dawn" && getClassName() == 'IceGrenade') {
+			TutorialHandler.TutorialMessage("TUT_ICEBOMB", 1);
+			toucher.GiveInventory("IceGrenadeTip", 1);	// @Cockatrice - I want to remove this but we rely on it for Item Chests
+		}
+	}
+}
+
+class ThrownIceGrenade : ThrowableActor
+{
+	
+	default
+	{
+		-DOOMBOUNCE
+		+ThrowableActor.UseProjectileAssist
+	}
+
+	actor secondaryHitbox;
+	bool hitboxSuccess;
+	override void postbeginPlay()
+	{
+		super.postbeginPlay();
+
+		[hitboxSuccess, secondaryHitbox] = A_SPAWNITEMEX("ProjectileSecondaryHitbox", flags:SXF_SETMASTER);
+		if(secondaryHitbox)
+		{
+			secondaryHitbox.master = self;
+		}
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_PlaySound("combat/grent", 5,1,0);
+		goto Thrown;
+	Thrown:
+		TNT1 A 0 A_AlertMonsters;
+		VOXE L 1 
+		{
+			//A_SpawnItemEx("Alerter");
+			A_SetRoll(roll + 30);
+			A_SpawnItemEx("BlueFlareTrail");
+		}
+		loop;
+	Pain:
+		TNT1 A 0;
+		goto Explode;
+	Death:
+		TNT1 A 0;
+		TNT1 A 0;
+	Explode:
+		TNT1 A 0 A_Stop;
+		TNT1 A 0 A_StopSound(6);
+		TNT1 A 0 A_StopSound(5);
+		TNT1 A 0 RemoveNearbyFlames(250);
+		TNT1 A 0 SpawnLight(70, 221, 255, 256, divisionSpeed:1.05);
+		TNT1 AAAA 0 A_SpawnItem("WhiteShockwave");
+		TNT1 A 0 S_Explode(1, 80, 0 , 0, 0, 0, 0, "Ice", "Ice");
+	    EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+		BEXP B 0 BRIGHT A_Scream;
+        TNT1 A 0 A_ALertMonsters;
+		TNT1 A 0 A_PlaySound("GRENADE/ICEEXPLOSION", 3);
+		TNT1 A 0 A_SPAWNITEMEX("IceBombParticles");
+		TNT1 AAAA 2 {
+			A_SpawnProjectile ("SpawnImpactSmoke", random(0,30), 0, random (0, 360), 2, random (0, 30));
+			A_SpawnProjectile ("SpawnImpactSmoke", random(0,30), 0, random (0, 360), 2, random (0, 30));
+			A_SpawnProjectile ("FrostSmoke", random(0,30), 0, random (0, 360), 2, random (0, 30));
+		}
+		Stop;
+	}
+}
+
+class MineAmmoPickupBase : FlaredPickup
+{
+	default {
+		Radius 20;
+		Inventory.Amount 3;
+		Inventory.MaxAmount 6;
+		Inventory.PickupSound "GRNPIN";
+		tag "$PICKUP_LANDMINE";
+		FlaredPickup.FlareClass "throwable_flare";
+		FlaredPickup.FlareOffset 9;
+		FlaredPickup.IconClass "PULSEMINE_ICON";
+		FlaredPickup.IconOffset 17;
+		SelacoItem.StatNumber STAT_MINES_FOUND;
+		SelacoItem.pickupIcon "P_MINE";
+		SelacoItem.pickupTag "$PICKUPTAG_LANDMINE";
+		SelacoItem.pickupCount 1;
+		SelacoItem.pickupType "MineAmmo";
+
+		+SELACOITEM.GrenadePickup;
+
+	}
+
+	States
+	{
+		Spawn:
+		Looper:
+			VOXE L -1;
+			loop;	
+		GiveItem:
+			TNT1 A 0 ACS_NamedExecute("PulseMineTip", 0);
+			goto PickupSuccess;
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		Super.DoPickupSpecial(toucher);
+
+		if(toucher is "Dawn") {
+			TutorialHandler.TutorialMessage("TUT_PULSEMINE", 1);
+			toucher.GiveInventory("PulseMineTip", 1); // @Cockatrice - I want to remove this but we rely on it for Item Chests
+		}
+	}
+}
+
+class MineAmmoPickupLarge : MineAmmoPickupBase
+{
+	default {
+		SelacoItem.randomizerSpawnChance 6;
+		SelacoItem.pickupCount 2;
+	}
+}
+
+class MineAmmoPickupSmall : MineAmmoPickupBase {
+	default {
+		SelacoItem.randomizerSpawnChance 3;
+		SelacoItem.pickupCount 1;
+	}
+}

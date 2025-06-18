@@ -1,0 +1,424 @@
+
+class DatapadEntry : SelacoItem
+{
+    int area, entryNum, group;
+
+    // Userdata, settable in Custom Fields in UDB
+    string user_pickup_list, user_pickup_msg;
+    string user_username;                       // Username to show  in notification
+    string user_portrait;                       // Portrait to show in notification
+
+    bool hasSeenPlayer;
+    bool trackStats;
+    bool datapadMapIconSuccess;
+    Actor actor_hologram_datapad, actor_hologram_stripes, datapadMapIcon;
+    
+    LookExParams SearchParams;
+
+    override void PostBeginPlay() {
+        // Add variable for ACS to read
+        //ACS_NamedExecuteWithResult("IncrementTotalMemo");
+        trackStats = true;
+        if(level.mapName ~== "SE_06B")
+        {
+            trackStats = false;
+        }
+
+        if(trackStats)
+        {
+            stats.AddStat(STAT_DATAPADS_FOUND, 0, 1);
+        }
+        area = args[0];
+        entryNum = args[1];
+        group = args[2];
+
+        SearchParams.fov = 360;
+        SearchParams.minDist = 0;
+        SearchParams.maxDist = 700;
+        SearchParams.maxHearDist = 1024;
+
+        if(user_username != "") {
+            user_username = StringTable.Localize(user_username);
+        }
+
+        super.PostBeginPlay();
+    }
+
+
+    override void tick() {
+        super.tick();
+        if(Owner == null) {
+            // Only check for the player if not seen before
+            if(!hasSeenPlayer && lookForPlayers(true, SearchParams)) {
+                // TO-DO: Write a class that handles all of this so we can reuse it for other actors that spawn icons.
+                hasSeenPlayer = true;
+            }
+
+            if (hasSeenPlayer) 
+            {   
+                if(!datapadMapIconSuccess)
+                {
+                    [datapadMapIconSuccess, datapadMapIcon] = A_SpawnItemEx("MAILMARKER");
+                }
+            }
+        }
+    }
+
+
+    override bool TryPickup (in out Actor other) {
+        if(other is 'PlayerPawn' && Super.TryPickup(other)) {
+            return true;
+        }
+        return false;
+    }
+
+
+    override void DoPickupSpecial(Actor toucher) {
+        Super.DoPickupSpecial(toucher);
+        
+        //string notifText;
+        //string notifImage;
+        int notifyArea, notifyEntry, notifyNum = 1;
+        
+        let player = PlayerPawn(toucher);
+        
+        if(player) {
+            if(trackStats)
+            {
+                stats.AddStat(STAT_DATAPADS_FOUND, 1, 0);
+            }
+            else
+            {
+                stats.AddStat(STAT_DATAPADS_FOUND, 1, 1);
+            }
+            // Replace with a turned off datapad
+            if(!(self is "BLUEPRINTS_MECH"))
+            {
+                A_SPAWNITEMEX("Datapad_Decoration");
+            }
+
+            // Remove Holograms above the voxel
+            if(actor_hologram_datapad)
+            {
+                actor_hologram_datapad.die(self,self);
+            }
+            if(actor_hologram_stripes)
+            {
+                actor_hologram_stripes.die(self,self);
+            }
+            // Remove icon from the map
+            if(datapadMapIcon)
+            {
+                datapadMapIcon.destroy();
+            }
+
+            // Give main player the PDA entry
+            if(entryNum > 0) {  // 0 is invalid for entrynum
+                // 'Welcome to Selaco' entry
+                if(args[4] == 1)
+                {
+                    toucher.GiveInventory("WelcomeToSelacoSeries", 1);
+                    switch(toucher.countinv("WelcomeToSelacoSeries"))
+                    {
+                        case 1:
+                            area = 30;
+                            entryNum = 1;
+                            PDAManager.AddEntry(player, 30, 1);
+                            PDAManager.AddEntry(player, 30, 2);
+                            PDAManager.AddEntry(player, 30, 3);
+                            break;
+                        case 2:
+                            area = 30;
+                            entryNum = 4;
+                            PDAManager.AddEntry(player, 30, 4);
+                            PDAManager.AddEntry(player, 30, 5);
+                            PDAManager.AddEntry(player, 30, 6);
+                            break;
+                        case 3:
+                            area = 30;
+                            entryNum = 7;
+                            PDAManager.AddEntry(player, 30, 7);
+                            break;
+                        case 4:
+                            area = 30;
+                            entryNum = 8;
+                            PDAManager.AddEntry(player, 30, 8);
+                            PDAManager.AddEntry(player, 30, 9);
+                            break;
+                    }
+                } 
+                // Regular Pickup
+                else
+                {
+                    PDAManager.AddEntry(player, area, entrynum);
+                }
+
+                // Notification
+                notifyArea = area;
+                notifyEntry = entrynum;
+            } else if(group > 0) {
+                int numAdded;
+                int firstAdded;
+                [numAdded, firstAdded] = PDAManager.AddEntriesFromGroup(player, area, group);
+
+                if(numAdded > 0) {
+                    notifyArea = area;
+                    notifyEntry = firstAdded;
+                    notifyNum = numAdded;
+                } else {
+                    return;
+                }
+            } else if(user_pickup_list != "") {
+                // Parse pickup list and add all of those entries
+                Array<string> r;
+                user_pickup_list.split(r, ",");
+
+                for(int x = 0; x < r.size(); x++) {
+                    int id = r[x].toInt(10);
+
+                    if(x == 0) {
+                        notifyArea = area;
+                        notifyEntry = id;
+                        notifyNum = r.size();
+                    }
+
+                    PDAManager.AddEntry(player, area, id);
+                }
+            } else {
+                Console.Printf("\c[YELLOW]Warning: Datapad did not contain a valid entry...");
+                return;
+            }
+
+            // Make sure the player has access to the codex if they have received a Datapad
+            player.GiveInventory("HasCodex", 1);
+
+            // Add one to the Datapad counter
+            ACS_NamedExecuteWithResult("IncrementMemoFound", 0);
+
+            // Create a notification about this new PDA entry
+            PDAManager.ShowNotification(notifyArea, notifyEntry, notifyNum, user_username, user_portrait, user_pickup_msg);
+        }
+    }
+
+
+    default {
+        -SELACOITEM.FlyAnimation;
+		+INVENTORY.ALWAYSPICKUP;
+        +SELACOITEM.Essential;
+        Inventory.PickupSound "item/datapad";
+        Tag "$OBJECT_DATAPADCONTENTS";
+        SelacoItem.pickupType "DatapadItem";
+        SelacoItem.pickupIcon "P_MAIL";
+        SelacoItem.pickupTag "$OBJECT_DATAPADCONTENTS";
+        Scale 0.65;
+    }
+}
+
+class Datapad : DatapadEntry {
+
+    override void postBeginPlay()
+    {
+        super.postbeginPlay();
+        // Add Holograms above the voxel
+        bool success;
+        [success, actor_hologram_datapad] = A_SPAWNITEMEX("datapad_hologram", -1, 0, 16, flags:SXF_SETMASTER);
+        [success, actor_hologram_stripes] = A_SPAWNITEMEX("datapad_hologram_stripes", -1, 0, -2, flags:SXF_SETMASTER);
+
+        useIcon = TexMan.CheckForTexture("XH_DOWN");
+    }
+
+    default
+    {
+        SelacoItem.SleepDistance 512;
+    }
+
+    States
+    {
+        Spawn:
+            TNT1 A 0;
+            VOXE L 50 BRIGHT {
+                A_SpawnItemEx("PhoneBeep", 0, 0, 5);
+            }
+            loop;
+
+        Pickup:
+            TNT1 A 0 { return 1; }
+            stop;
+    }
+}
+
+class datapad_hologram : SelacoActor {
+    default {
+        RenderStyle "add";
+        SelacoActor.SleepDistance 1024;
+        alpha 0.9;
+        scale 0.65;
+        height 2;
+        radius 1;
+        +NOGRAVITY
+        +NOINTERACTION
+        +INTERPOLATEANGLES
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            PHON AAAAAAAAAA 2 BRIGHT {
+                A_FADEOUT(0.05);
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            PHON AAAAAAAAAA 2 BRIGHT {
+                A_FADEIN(0.05);
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            loop;
+        Death:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class datapad_hologram_stripes : datapad_hologram {
+    default {
+        SelacoActor.SleepDistance 1024;
+        scale 0.5;
+        alpha 0.8;
+        +INTERPOLATEANGLES
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            DHOL ABCDEFGHIJ 2 BRIGHT {
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            DHOL ABCDEFGHIJ 2 BRIGHT {
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            loop;
+    }    
+}
+
+// Beep beep.... Beep beep
+class PhoneBeep : actor {
+
+    default {
+        +NOINTERACTION
+    }
+
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_PLAYSOUND("Script/phone", CHAN_AUTO, 0.8, 0, 1.6);
+                A_SPAWNITEM("BlueFlareSmall2");
+            }
+            TNT1 A 5 ;
+            PHON A 0 A_SPAWNITEM("BlueFlareSmall2");
+            stop;
+    }
+}
+
+
+class NothingInteresting : Datapad {
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        area = 0;
+        entryNum = 6;
+        group = 0;
+    }
+}
+
+class DatapadItem : inventory
+{
+    default
+    {
+        inventory.maxamount 9999;
+    }
+}
+
+class GamePad_BurgerFlipper : SelacoItem {
+    bool hasSeenPlayer;
+
+    Actor actor_hologram_datapad, actor_hologram_stripes;
+
+    default {
+        -NOGRAVITY
+        +SelacoItem.UpgradeItem;
+        tag "$OBJECT_BURGERFLIPPER";
+		+INVENTORY.ALWAYSPICKUP
+        +SELACOITEM.Essential;
+        Inventory.PickupSound "item/levelup";
+        SelacoItem.pickupIcon "P_MAIL";
+        SelacoItem.pickupTag "$PICKUP_BURGERFLIPPER";
+        Scale 0.65;
+    }
+
+    void pickupBurgerFlipper()
+    {
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+        d.A_GiveInventory("bbitem", 1);
+        Globals.SetInt("g_burgerflipperStart", 1);
+        d.A_PRINTBOLD(string.format("\c[green]%s", StringTable.Localize("$MESSAGE_BURGERFLIPPER")), 3.0, "SEL16FONT");
+    }
+
+    States
+    {
+        Spawn:
+            TNT1 A 0; // WHY WAS THIS 35!?!?!?!
+            TNT1 A 0
+            {
+                bool success;
+                [success, invoker.actor_hologram_datapad] = A_SPAWNITEMEX("GamepadHologram", -1, 0, 25, flags:SXF_SETMASTER);
+                [success, invoker.actor_hologram_stripes] = A_SPAWNITEMEX("gamepad_hologram_stripes", -1, 0, 0, flags:SXF_SETMASTER);                
+            }
+            VOXE L -1 BRIGHT;
+            loop;
+
+        Pickup:
+            TNT1 A 0
+            {
+                invoker.pickupBurgerFlipper();
+                if(invoker.actor_hologram_datapad) invoker.actor_hologram_datapad.destroy();
+                if(invoker.actor_hologram_stripes) invoker.actor_hologram_stripes.destroy();
+                return 1;
+            }
+            stop;
+    }
+}
+
+class gamepad_hologram_stripes : datapad_hologram {
+    states {
+        Spawn:
+            TNT1 A 0;
+            RHOL ABCDEFGHIJ 2 BRIGHT {
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            RHOL ABCDEFGHIJ 2 BRIGHT {
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            loop;
+    }    
+}
+
+class GamepadHologram : datapad_hologram {
+    default
+    {
+        scale 1.3;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            PHON AAAAAAAAAA 2 BRIGHT {
+                A_FADEOUT(0.05);
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            PHON AAAAAAAAAA 2 BRIGHT {
+                A_FADEIN(0.05);
+                A_SETANGLE(angle + 10, SPF_INTERPOLATE);
+            }
+            loop;
+        Death:
+            TNT1 A 0;
+            stop;
+    }
+}

@@ -1,0 +1,152 @@
+// Used for the scripted sequence where a crate smashes through the door
+class GREYCRATE : SelacoActor {
+    default {
+        scale 2.5;
+        radius 35;
+        height 35;
+        +NOINTERACTION
+        +INTERPOLATEANGLES;
+        +SelacoActor.PREVENTSLEEP
+    }
+    states {
+        Spawn:
+            VOXE L -1;
+            stop;
+        MovingSequence:
+            VOXE L 0 {
+                A_PLAYSOUND("elevator/big/start", CHAN_AUTO, 1.0, 0, 0.6, pitch:1.5);
+            }
+            TNT1 A 0 {
+                A_PLAYSOUND("elevator/big/loop", CHAN_5, 1.0, 1, 0.6, pitch:0.7);
+            }
+            VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 {
+                A_CHANGEVELOCITY(3.0, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+            }
+            VOXE L 10 {
+                A_PLAYSOUND("elevator/big/End", CHAN_AUTO, 1.0, 0, 0.6, pitch:0.7);
+                A_CHANGEVELOCITY(0,0,0, CVF_REPLACE);
+            }
+            TNT1 A 0 {
+                 A_PLAYSOUND("door/hatch/open", CHAN_5, 1.0, 0, 0.6, pitch:0.7);
+            }
+            VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL  1 {
+                A_SETANGLE(angle-2.0);
+            }
+            VOXE L 10 {
+                A_CHANGEVELOCITY(0,0,0, CVF_REPLACE);
+            }
+            TNT1 A 0 {
+                A_PLAYSOUND("elevator/big/start", CHAN_AUTO, 1.0, 0, 0.6, pitch:1.5);
+                A_PLAYSOUND("elevator/big/loop", CHAN_5, 1.0, 1, 0.6, pitch:0.7);
+            }
+            VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 {
+                A_CHANGEVELOCITY(3.0, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+            }
+            VOXE L 10 {
+                ACS_execute(3,0);
+                A_ChangeLinkFlags(1);
+                bSolid = true;
+                bDontThrust = true;
+                bNoGravity = true;
+                A_CHANGEVELOCITY(0,0,0, CVF_REPLACE);
+            }
+            VOXE L 15;
+            VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1 {
+                A_CHANGEVELOCITY(3.0, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+            }
+            VOXE L -1 {
+                A_STOPSOUND(CHAN_5);
+                A_CHANGEVELOCITY(0,0,0, CVF_REPLACE);
+            }
+    }
+}
+
+// Crate for Warehouse
+// TO-DO: 
+// - Fade out light based on distance. Then kill
+// - Add loud crane sound as it zooms by
+// - Other optimizations
+class CRATECRANE : SelacoActor {
+
+    
+    override void PostBeginPlay() 
+    {
+        super.PostBeginPlay();
+        A_PLAYSOUND("STARLIGHT/CARGOSERVO", CHAN_5, 1.0, 1, 0.6);
+        A_PLAYSOUND("STARLIGHT/CARGOSERVO", CHAN_6, 1.0, 1, 0.6);
+        spawnlight(rColor:355, gColor:25, bcolor:25, lightRadius:350, fadeoutSpeed:0, shadowRequirement:2, followMaster: 1, alwaysShow: 1);
+    }
+
+    default
+    {
+        SelacoActor.SleepDistance 0;
+        +NOINTERACTION
+    }
+    states 
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0;
+        Looper:
+            VOXE L 300 A_CHANGEVELOCITY(22, 0, 0, CVF_RELATIVE | CVF_REPLACE);
+            stop;
+    }
+}
+
+class StarlightHubCeiling : SelacoActorStatic {
+    default {
+        +NOINTERACTION
+        scale 1.0;
+        radius 400;
+    }
+    states {
+        spawn:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class StarlightHubCeiling_ON : SelacoActorStatic {
+    default {
+        +NOINTERACTION
+        scale 1.0;
+        radius 400;
+    }
+    states {
+        spawn:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class STARLIGHT_COLORKEY : FlaredPickup
+{
+    default
+    {
+        +NOGRAVITY
+        +DONTTHRUST
+        +INVENTORY.ALWAYSPICKUP
+        Inventory.amount 1;
+        Inventory.maxAmount 1;
+        tag "$OBJECT_STARLIGHTKEY";
+        radius 20;
+        height 20;
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+        Pickup:
+            TNT1 A 0;
+            TNT1 A 0;
+            goto pickupSuccess;
+    }
+}
+
+
+class STARLIGHT_COLORKEY_RED : STARLIGHT_COLORKEY { }
+class STARLIGHT_COLORKEY_BLUE : STARLIGHT_COLORKEY { }
+class STARLIGHT_COLORKEY_PURPLE : STARLIGHT_COLORKEY { }
+class STARLIGHT_COLORKEY_GREEN : STARLIGHT_COLORKEY { }
+class STARLIGHT_EMPLOYEE_PASS : STARLIGHT_COLORKEY { }

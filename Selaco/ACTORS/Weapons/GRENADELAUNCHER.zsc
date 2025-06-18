@@ -1,0 +1,1904 @@
+Class AltfireGrenadeLauncherTraditional : WeaponAltFire { 	
+	default {
+      WeaponAltFire.WorkshopOrder			-1;		// Zoom should always be first
+		WeaponUpgrade.Weapon 'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADELAUNCHER_TRADITIONAL", "$ALTFIRE_GRENADELAUNCHER_TRADITIONAL";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADELAUNCHER_TRADITIONAL_DESC";
+	}
+}
+
+Class AltfireGrenadeLauncherRocket : WeaponAltFire { 	
+	default {
+		WeaponUpgrade.Weapon 'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADELAUNCHER_ROCKETS", "$ALTFIRE_GRENADELAUNCHER_ROCKETS";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADELAUNCHER_ROCKETS_DESC";
+	}
+}
+
+Class AltfireGrenadeLauncherProximity : WeaponAltFire { 	
+	default {
+		WeaponUpgrade.Weapon 'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADELAUNCHER_PROXIMITY", "$ALTFIRE_GRENADELAUNCHER_PROXIMITY";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADELAUNCHER_PROXIMITY_DESC";
+	}
+}
+
+Class AltfireGrenadeLauncherTeddy11 : WeaponAltFire { 	
+	default {
+		WeaponUpgrade.Weapon 'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADELAUNCHER_TEDDY", "$ALTFIRE_GRENADELAUNCHER_TEDDY";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADELAUNCHER_TEDDY_DESC";
+      WeaponAltFire.WorkshopOrder			999;		// Secrets always last!
+	}
+}
+
+Class UpgradeGrenadeLauncherIncreasedRadius : WeaponUpgrade { 	
+	default {
+      WeaponUpgrade.TechModuleRequirement 	3;
+      WeaponUpgrade.UpgradeImage 			'UPGRD15';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon             'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_GRENADELAUNCHER_RADIUS", "$UPGRADE_GRENADELAUNCHER_RADIUS";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_GRENADELAUNCHER_RADIUS_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	625, 345;
+		WeaponUpgrade.UpgradePosition			755, 500;
+      WeaponUpgrade.UpgradeCost           350;
+	} 
+}
+
+Class UpgradeGrenadeLauncherReducedFuse : WeaponUpgrade { 	
+	default {
+      WeaponUpgrade.TechModuleRequirement 	3;
+      WeaponUpgrade.UpgradeImage 			'UPGRD16';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon             'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_GRENADELAUNCHER_FUSE", "$UPGRADE_GRENADELAUNCHER_FUSE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_GRENADELAUNCHER_FUSE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	535, 355;
+		WeaponUpgrade.UpgradePosition			405, 500;
+      WeaponUpgrade.UpgradeCost           150;
+	} 
+}
+
+
+Class UpgradeGrenadeLauncherSpeedloader : WeaponUpgrade { 	
+	default {
+      WeaponUpgrade.TechModuleRequirement 	4;
+      WeaponUpgrade.UpgradeImage 			'UPGRD8';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon             'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_GRENADELAUNCHER_SPEEDLOADER", "$UPGRADE_GRENADELAUNCHER_SPEEDLOADER";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_GRENADELAUNCHER_SPEEDLOADER_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	575, 375;
+		WeaponUpgrade.UpgradePosition			575, 505;
+	} 
+}
+
+Class UpgradeGrenadeLauncherSelfDamage : WeaponUpgrade { 	
+	default {
+      WeaponUpgrade.TechModuleRequirement 	3;
+		Inventory.Amount 1;
+      WeaponUpgrade.UpgradeImage 			'UPGRD34';
+		WeaponUpgrade.Weapon             'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_GRENADELAUNCHER_SELFDAMAGE", "$UPGRADE_GRENADELAUNCHER_SELFDAMAGE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_GRENADELAUNCHER_SELFDAMAGE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	110, 130;
+		WeaponUpgrade.UpgradePosition			225, -110;
+      WeaponUpgrade.UpgradeCost           150;
+	} 
+}
+
+Class UpgradeGrenadeLauncherScavenger : WeaponUpgrade { 	
+	default {
+      WeaponUpgrade.TechModuleRequirement 	4;
+      WeaponUpgrade.UpgradeImage 			'UPGRD1';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon             'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_GRENADELAUNCHER_SCAVENGER", "$UPGRADE_GRENADELAUNCHER_SCAVENGER_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_GRENADELAUNCHER_SCAVENGER_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	725, 95;
+		WeaponUpgrade.UpgradePosition			885, -45;
+      WeaponUpgrade.UpgradeCost           350;
+	} 
+}
+
+Class UpgradeGrenadeLauncherPanicButton : WeaponUpgrade { 	
+	default {
+      WeaponUpgrade.TechModuleRequirement 	5;
+		Inventory.Amount 1;
+      WeaponUpgrade.UpgradeImage 			'UPGRD14';
+		WeaponUpgrade.Weapon             'grenadelauncher';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_GRENADELAUNCHER_PANICMODE", "$UPGRADE_GRENADELAUNCHER_PANICMODE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_GRENADELAUNCHER_PANICMODE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	480, 85;
+		WeaponUpgrade.UpgradePosition			585, -105;
+	} 
+}
+
+
+class GrenadeLauncher : SelacoWeapon
+{
+	static const class<Ammo> loadedGrenadeAmmo[] = { 
+		'GLFragAmmo',
+		'GLIceAmmo',
+		'GLAcidAmmo'
+	};
+
+	static const class<Ammo> reserveGrenadeAmmo[] = { 
+		'GLFragReserve',
+		'GLIceReserve',
+		'GLAcidReserve'
+	};
+
+	static const String grenadeName[] = { 
+		'$AMMOTYPE_FRAGSHELLS',
+		'$AMMOTYPE_ICESHELLS',
+		'$AMMOTYPE_ACIDSHELLS'
+	};
+
+ 	static const class<Ammo> dummyAmmo[] = { 
+		'NothingAmmo',
+		'NothingReserve'
+	};  
+
+   bool pressed;
+
+   string grenadeProjectile;
+   string displaySprite;
+   bool hasPanicButtonUpgrade; // Players has Panic Button upgrade installed
+   bool panicModeEngaged; // Active, fire remaining grenades!
+   int panicButtonThreshold;
+   int zOffset;
+   int xOffset;
+   int grenadeID;
+   float displayNumber;
+   int displayTicks;
+   int swappingID;
+   int wpnOffset;
+   int animFrame; // No idea what to call this. Changes frame of the grenade launcher when it's an uneven number.
+   // TODO: Show Different Radiuses depending on Grenade Type
+
+   default {
+      tag "$WEAPON_GRENADELAUNCHER";
+      Inventory.Icon "WPNGRNL";
+		WeaponBase.SlotNumber 5;
+      SelacoWeapon.SlidingSprite "GLPS";
+      SelacoWeapon.InteractionSprite "GLPU";
+      SelacoWeapon.MeleeSpritev2 "GLPM";
+      SelacoWeapon.readySound "GRENADELAUNCHER/EQUIP";
+      SelacoWeapon.deselectSound "GRENADELAUNCHER/UNEQUIP";
+      SelacoWeapon.lowAmmoThreshold 2;
+      SelacoWeapon.ImagePrefix "launcher";
+      SelacoWeapon.VoxelDecorationModel "GrenadeLauncherModel";
+      SelacoWeapon.weaponDamage 310;
+      SelacoWeapon.WeaponAreaOfEffect 150;
+      SelacoWeapon.weaponStatistic	STAT_GRENADELAUNCHER;
+      SelacoWeapon.AmmoColor "92 FF AF";
+		WeaponBase.AmmoUse1 0;
+		WeaponBase.AmmoUse2 0;
+		WeaponBase.AmmoGive1 4;
+		WeaponBase.AmmoGive2 0;
+		WeaponBase.AmmoType1 "GLFragReserve";
+		WeaponBase.AmmoType2 "GLFragAmmo";
+      SelacoWeapon.AltFireLabel "$ALT_FIRES_B";
+   }
+   
+
+   override void PostBeginPlay() {
+      Super.PostBeginPlay();
+      setCrosshair('GrenadeCrosshair');
+   }
+
+   // Prints the display. Only 2 symbols are needed is needed, the rest happens automagically.
+   // NAMING CONVENTION:
+   // GL<GRENADETYPE><STATELETTER> 
+   // example1: ''GLIM'' -> GrenadeLauncher, Ice, Melee
+   // example2: ''GLAF'' -> Grenade Launcher, Acid, Fire''  
+   // displayFrame_ is the animation frame which is very similar to standard states.
+   action void displayScreen(string displayTag, float displayFrame_, int tickTime = 1)
+   {
+      string spriteIndex = "GL";
+      string colorTag; // Used to identify the current grenade time and adjust the screen accordingly.
+      invoker.displayTicks = tickTime;
+      invoker.displayNumber = displayFrame_;
+      // Find which grenade is currently equiped
+      switch(invoker.grenadeID)
+      {
+         case 0:
+            colorTag = "F"; // Frag
+            break;
+         case 1:
+            colorTag = "I"; // Ice
+            break;
+         case 2:
+            colorTag = "A"; // Acid
+            break;
+      }
+      spriteIndex.AppendFormat(colorTag);
+      spriteIndex.AppendFormat(displayTag);
+      invoker.displaySprite = spriteIndex;
+      A_OVERLAY(55, "ShowGrenadeScreen");
+   }
+
+   // Check to see if the Right Mouse Button is clicked
+   action bool checkAltFireSwap()
+   {
+      if(player.cmd.buttons & BT_ALTATTACK && !invoker.pressed)
+      {
+         invoker.pressed = true;
+         invoker.swappingID++;
+         if(invoker.swappingID >= invoker.loadedGrenadeAmmo.size()) 
+         {
+            invoker.swappingID = 0;  
+         }
+         invoker.readTempGrenadeType();
+         return true;
+      }
+      if(!(player.cmd.buttons & BT_ALTATTACK)) 
+      {
+         invoker.pressed = false;
+      }
+      return false;     
+   }
+
+
+    override int getBaseStats(out SelacoWeaponBaseStats stats) {
+        int b = Super.getBaseStats(stats);
+
+        if(b == 1) {
+            stats.magazineSize = GetDefaultByType('GLFragAmmo').maxAmount;
+        } else {
+            // re-calculate magazinesize
+            for(int x = 0; x < activeUpgrades.size(); x++) {
+                if(activeUpgrades[x] is 'WeaponStats') {
+                    WeaponStats ws = WeaponStats(activeUpgrades[x]);
+                    stats.magazineSize = ws.magazineSizeAbs;
+                    return 2;
+                }
+            }
+        }
+
+        return b;
+    }
+
+
+    override void calculateStats() {
+        Super.calculateStats();
+
+        // Modify all magazines, refunding if necessary
+        if(owner) {
+            // Update current ammo if set, probably redundant
+            if(ammo1 && ammo2) {
+                if(ammo2.amount > magazineSize) {
+                    ammo1.amount += ammo2.amount - magazineSize;
+                    ammo2.amount = magazineSize;
+                }
+            }
+            if(ammo2) ammo2.maxAmount = magazineSize;
+
+            updateMagSizeForAmmoType('GLFragAmmo', 'GLFragReserve', magazineSize);
+            updateMagSizeForAmmoType('GLIceAmmo', 'GLIceReserve', magazineSize);
+            updateMagSizeForAmmoType('GLAcidAmmo', 'GLAcidReserve', magazineSize);
+        }
+    }
+
+    void updateMagSizeForAmmoType(class<Ammo> clip, class<Ammo> reserve, int newMagSize) {
+        if(owner) {
+            let clipAmmo = owner.FindInventory(clip);
+            let reserveAmmo = owner.FindInventory(reserve);
+
+            if(clipAmmo && reserveAmmo) {
+                if(clipAmmo.amount > newMagSize) {
+                    reserveAmmo.amount += clipAmmo.amount - newMagSize;
+                    clipAmmo.amount = newMagSize;
+                }
+            }
+
+            if(clipAmmo) {
+                clipAmmo.maxAmount = newMagSize;
+            }
+        }
+    }
+    
+
+    //TODO: Add different ammo types
+    bool swapGrenadeTypes(int currentGrenadeID) {
+        bool passed;
+        int currentGrenadeID;
+        // Cycle to the next point in the list when Alt Fire is pressed
+    /*       grenadeID++;
+        if(grenadeID >= loadedGrenadeAmmo.size())
+            grenadeID = 0;      
+    */
+        A_PLAYSOUND("GLSWAP");
+        A_PRINTBOLD(grenadeName[grenadeID]);
+        return true;
+    }
+
+    void loadGrenadeType() {
+        ammoType1 = reserveGrenadeAmmo[grenadeID];
+        ammoType2 = loadedGrenadeAmmo[grenadeID];
+
+        // @Cockatrice - We must update the ammo1 and ammo2 vars to properly track ammo usage
+        Ammo1 = loadAmmoType(owner, ammoType1, 0);
+        Ammo2 = loadAmmoType(owner, ammoType2, 0);
+    }
+
+   // Load the ammo. This should run when the reload animation is finished.
+   ammo loadAmmoType(actor other, class<ammo> ammoType, int amount)
+	{
+		Ammo ammoitem;
+
+		if (ammotype == NULL)
+		{
+			return NULL;
+		}
+
+		ammoitem = Ammo(other.FindInventory (ammotype));
+		if (ammoitem == NULL)
+		{
+			ammoitem = Ammo(Spawn (ammotype));
+			ammoitem.Amount = MIN (amount, ammoitem.MaxAmount);
+			ammoitem.AttachToOwner (other);
+		}
+		else if (ammoitem.Amount < ammoitem.MaxAmount || sv_unlimited_pickup)
+		{
+         //int newAmmo = ammoitem.Amount;
+			//ammoitem.Amount = newAmmo;
+			if (ammoitem.Amount > ammoitem.MaxAmount && !sv_unlimited_pickup)
+			{
+				ammoitem.Amount = ammoitem.MaxAmount;
+			}
+		}
+		return ammoitem;
+	}
+
+   string readGrenadeType(int overrider = 0)
+   {
+      string grenadeType;
+      switch(grenadeID) {
+         case 0:
+            grenadeType = "GrenadeLauncherFragBomb";
+            break;
+         case 1:
+            grenadeType = "GrenadeLauncherIceBomb";
+            break;
+         case 2:
+            grenadeType = "GrenadeLauncherAcidBomb";
+            break;
+      }
+      return grenadeType;
+   }
+
+   void readTempGrenadeType()
+   {
+      A_PLAYSOUND("GLSWAP");
+      //A_PRINTBOLD(grenadeName[swappingID]);
+   }
+
+
+   states {
+      // Since overlay frames have to always be synced with the main frame, we are going to precache everything
+      Precache:
+         GLPI ABCDEFGHIJKLMNOPQRSTUV 0;
+         GLII ABCDEFGHIJKLMNOPQRSTUV 0; // ICE IDLE
+         GLFI ABCDEFGHIJKLMNOPQRSTUV 0; // FRAG IDLE
+         GLAI ABCDEFGHIJKLMNOPQRSTUV 0; // ACID IDLE
+
+         GLIF ABCDEFGHIJKLMNOPQRSTUV 0; // ICE ATTACK
+         GLFF ABCDEFGHIJKLMNOPQRSTUV 0; // FRAG ATTACK
+         GLAF ABCDEFGHIJKLMNOPQRSTUV 0; // ACID ATTACK
+
+         GLI1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0; // ICE RELOAD
+         GLF1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0; // FRAG RELOAD
+         GLA1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0; // ACID RELOAD
+
+         GLI2 ABCDEFGHIJK 0; // ICE RELOAD
+         GLF2 ABCDEFGHIJK 0; // FRAG RELOAD
+         GLA2 ABCDEFGHIJK 0; // ACID RELOAD
+
+         GLA3 ABCDEFGHIJKLMNOPQRST 0; // ACID RELOAD
+         GLI3 ABCDEFGHIJKLMNOPQRST 0; // ICE RELOAD
+         GLF3 ABCDEFGHIJKLMNOPQRST 0; // FRAG RELOAD
+
+         GLA4 ABCDEFGHIJKLMNOPQRS 0; // ACID RELOAD
+         GLI4 ABCDEFGHIJKLMNOPQRS 0; // ICE RELOAD
+         GLF4 ABCDEFGHIJKLMNOPQRS 0; // FRAG RELOAD
+
+         GLAE ABCDEFGHIJKLMNOPQR 0; // ACID EQUIP
+         GLIE ABCDEFGHIJKLMNOPQR 0; // ICE EQUIP
+         GLFE ABCDEFGHIJKLMNOPQR 0; // FRAG EQUIP
+
+         GLIU ABCDEF 0; // ICE REMOVE HAND
+         GLFU ABCDEF 0; // FRAG REMOVE HAND
+         GLAU ABCDEF 0; // ACID REMOVE HAND
+         
+         GLFS ABCDEFGHIJKLMNOPQRSTUVWXZ 0; // ICE SWAP
+         GLIS ABCDEFGHIJKLMNOPQRSTUVWXZ 0; // FRAG SWAP
+         GLAS ABCDEFGHIJKLMNOPQRSTUVWXZ 0; // ACID SWAP   
+
+         GLFW ABCDEFGHIJKLMNOPQRSTUVWXZ 0; // ICE SWAP END
+         GLIW ABCDEFGHIJKLMNOPQRSTUVWXZ 0; // FRAG SWAP END
+         GLAW ABCDEFGHIJKLMNOPQRSTUVWXZ 0; // ACID SWAP  END
+
+         GLIM ABCDEFGHIJKL 0; // ICE MELEE
+         GLFM ABCDEFGHIJKL 0; // FRAG MELEE
+         GLAM ABCDEFGHIJKL 0; // ACID MELEE
+
+         GLIK ABCDE 0; // ICE SLIDE 
+         GLAK ABCDE 0; // ACID SLIDE 
+         GLFK ABCDE 0; // FRAG SLIDE 
+
+         GLPM ABCDEFGHIJKL 0;
+         GLPS ABCDEF 0;
+         GLPU ABCDEF 0; // Interaction
+
+         GLR1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+         GLR2 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+         GLR3 ABCDEFGHIJKLMNOPQRST 0;
+         GLR4 ABCDEFGHIJKLMNOPQRST 0;
+         GLR5 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+         GLR6 ABCDEFGHIJK 0;
+         stop;
+      Spawn:
+         GLPM ABCDEFGHIJKL 0;
+			TNT1 A 0;
+			TNT1 A 0 A_SPAWNITEMEX("GRENADELAUNCHER_PICKUP");
+			Stop;
+
+      equip:
+         TNT1 A 0
+         {
+            checkWeaponReady();
+         }
+         TNT1 A 0 A_Settics(invoker.WEAPON_SWAP_SPEED);
+         TNT1 A 0 A_SetCrosshair(23);
+         TNT1 A 0 
+         {
+            A_EquipNewWeapon();
+            invoker.displayNumber = 0;
+         }
+         GLPE ABCDEFGHIJKLMNO 1 {
+            displayScreen("E", invoker.displayNumber);
+            invoker.displayNumber++;
+            S_WeaponOffset();
+         }
+      Ready3:
+        	TNT1 A 1 {
+            
+            displayScreen("I", invoker.breathingFrame);
+            breathWobble("GLPI", 20);
+				S_WeaponOffset();
+         }         
+         TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+      ReallyReady:
+        	TNT1 A 1 {
+            A_EnableWeaponShift();
+            displayScreen("I", invoker.breathingFrame);
+            breathWobble("GLPI", 20);
+            CheckPlayerStates();
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			}
+         loop;
+      Select:
+         TNT1 A 0;
+         TNT1 A 0 A_SetSpeed(1);
+         TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+         TNT1 A 0 A_Takeinventory("Unloading",1);
+         TNT1 AAAAAAAAAAAAAAAAAA 0 A_Raise();
+         TNT1 AAAAAAAA 1 A_Raise();
+         TNT1 A 0
+         {
+            invoker.displayNumber = 0;
+         }
+         GLPE ABCDEFGHIJKLMNO 1
+         {
+            displayScreen("E", invoker.displayNumber);
+            invoker.displayNumber++;
+         }
+   		TNT1 A 1 A_Raise;
+         TNT1 A 0 A_SetCrosshair(23);
+         TNT1 A 0 {
+            // TODO: Temp.
+            A_EnableWeaponShift();
+            invoker.grenadeProjectile = "GrenadeLauncherFragBomb";
+         }
+         goto Ready;
+      Unequip:
+         TNT1 A 0
+         {
+            A_UNEQUIPWEAPON();
+            A_OVERLAY(217, "ClearScreen");
+         }
+         TNT1 A 0 {
+            invoker.displayNumber = 14;
+         }
+         GLPE ONMLKJIHGFEDCBA 1 {
+            displayScreen("E", invoker.displayNumber);
+            invoker.displayNumber--;
+            S_WeaponOffset();
+         }
+         TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+         Wait;
+
+      MeleeAttackv2:
+         TNT1 A 0 {
+            meleeAndLunge();
+            invoker.weaponFrame = 0;
+            S_ZOOMFACTOR(1.0);
+            A_ZOOMFACTOR(1.0, ZOOM_INSTANT);
+            setZoomStatus(false);
+            invoker.isZooming = false;
+            if (!invoker.TargetInRange && random(0,3) == 0) {
+               A_Playsound("dawn/melee", CHAN_AUTO, 0.8);
+            }
+            invoker.currentZoomFactor = 1.00;
+			   A_PlaySound("impact/meleeS1", CHAN_AUTO, 0.7);
+			   A_PlaySound("impact/firstpersonMelee",CHAN_AUTO, 0.4, 0, 1.0, false, frandom(0.85, 1.0));
+         }
+         goto beginMeleev2;
+      beginMeleev2:
+         TNT1 A 0 {
+            invoker.stopAttackingSound();
+            meleeAndLunge();
+            getClosestMeleeTarget();
+            invoker.isMeleeAttack = true;
+            invoker.isFiring = 0;
+            invoker.displayNumber = 0;
+            S_ZOOMFACTOR(1.0);
+            invoker.isZooming = false;
+            A_QuakeEx( 1, 1, 0, 5, 0, 20, 0, 0, 10, 10, 10, 6);
+         }
+         GLPM ABCDEFG 1 {
+            displayScreen("M", invoker.displayNumber);
+            invoker.displayNumber++;
+            if(invoker.TargetInRange) { // Target in range? Lunge to the target!
+               A_ZoomFactor(invoker.currentZoomFactor);
+               A_Recoil(-15);
+               invoker.currentZoomFactor = invoker.currentZoomFactor - 0.02;		
+            }
+            A_SpawnProjectile ("ShakeYourAssMinor", 1, 0, random (0, 360), 2, random (0, 160));
+            if(getCvar("g_cameraMotion")) {
+               A_SetAngle(angle + 1.5, SPF_INTERPOLATE);
+            }
+         }
+         TNT1 A 0 {
+            executeMeleeHits();
+         }
+         GLPM HHHHH 1 {
+            displayScreen("M", invoker.displayNumber);
+         }
+         GLPM IJKL 1 {
+            invoker.displayNumber++;
+            displayScreen("M", invoker.displayNumber);
+            if(invoker.TargetInRange) { // Target in range? Lunge to the target!
+               A_ZoomFactor(invoker.currentZoomFactor);
+               invoker.currentZoomFactor = invoker.currentZoomFactor + 0.02;		
+            }
+            if(getCvar("g_cameraMotion")) {
+               A_SetAngle(angle - 0.75, SPF_INTERPOLATE);
+            }
+         }
+         TNT1 A 0 A_SetRoll(0);
+         TNT1 A 0 {
+            invoker.isMeleeAttack = false;
+            invoker.TargetInRange = false;
+         }
+         goto GoingToReady;
+
+	SLIDE_Transition:
+		TNT1 A 1 {
+         if(invoker.slideFrame == 0)
+         {
+            invoker.displayNumber = 0;
+         }
+			A_TakeInventory("ShieldEyes", 1);
+			X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.slideFrame);
+			//if(invoker.cameraMotion == 1) {
+				//A_SETROLL(roll+0.5, SPF_INTERPOLATE); This was causing some issues with interpolation, disabled for now!
+			//}
+			S_ZOOMFACTOR(invoker.slideZoom);
+			invoker.slideTransition++;
+			if(getCvar("g_slidezooming") == 1 && getCvar("fov") < 120) {
+				invoker.slideZoom = invoker.slidezoom - 0.02;
+			}
+         displayScreen("K", invoker.displayNumber);
+			if(invoker.slideTransition % 2 == 0) {
+            invoker.displayNumber++;
+				invoker.slideFrame++;
+			}
+			if(invoker.slideFrame == 4) {
+				SetWeaponState("SLIDE_ShowDawnLegs");
+			}
+			A_SlideRumble();
+         if(invoker.slideShake) 
+         {
+             A_QuakeEx(frandom(0,0.6), frandom(0,0.6), frandom(0,0.1), 2, 0, 700, 0, 0, 0, 0, 0, 0, frandom(0, 0.6), frandom(0, 0.6), frandom(0, 0.6));
+         }
+		}
+		loop;
+
+	SLIDE_ShowDawnLegs:
+		TNT1 A 1 {
+         displayScreen("K", invoker.displayNumber);
+			invoker.activeSlideState = true;
+			A_SlideRumble();
+			X_SetOverlaySprite(1, invoker.SlidingSprite, 3);
+			A_ZOOMFACTOR(invoker.slideZoom);
+			invoker.legSprite = 100;
+			A_OVERLAY(-400, "FirstPersonLegsStand");
+		}
+		
+	SlideLooper:
+		TNT1 A 1 {
+            displayScreen("K", invoker.displayNumber);
+				A_SlideRumble();
+				if(invoker.slideShake) {
+					A_QuakeEx(frandom(0,0.5), frandom(0,0.5), frandom(0,0.1), 2, 0, 700, 0, 0, 0, 0, 0, 0, frandom(0, 0.45), frandom(0, 0.45), frandom(0, 0.45));
+				}
+				X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.slideFrame);
+				CheckPlayerStates();
+				A_ZOOMFACTOR(invoker.slidezoom);
+				S_WeaponReady();
+				S_WeaponOffset(frandom(-1,1), frandom(-1,1));
+				// If slidekick failed, try punt
+				if(player.mo is "Dawn") {
+					Dawn(player.mo).puntObject();
+				}
+			}
+      TNT1 A 0 A_JumpIfInventory("StopSliding", 1, "SLIDE_ExitTransition");
+		loop;
+
+	StoppedSliding:
+		TNT1 A 0 {
+         //invoker.displayNumber--;
+			A_Playsound("impact/slideend", CHAN_6, 0.6);
+			A_TakeInventory("StopSliding", 1);
+			A_TakeInventory("SlidingIsActive", 1);
+			A_TakeInventory("PlayerSlides", 1);
+			SetWeaponState("SLIDE_ExitTransition");
+		}
+
+	SLIDE_ExitTransition:
+		TNT1 A 1 {
+			A_StopSound(CHAN_5);
+			X_SetOverlaySprite(1, invoker.SlidingSprite, invoker.slideFrame);
+			S_ZOOMFACTOR(invoker.slideZoom);
+			invoker.slideTransition--;
+			if(getCvar("fov") < 120) {
+				invoker.slideZoom = invoker.slidezoom + 0.015;
+			}
+         displayScreen("K", invoker.displayNumber);
+			if(invoker.slideTransition % 2 == 0) {
+            invoker.displayNumber--;
+				invoker.slideFrame--;
+			}
+			if(invoker.slideFrame == 0) {
+				invoker.slideTransition = 0;
+				invoker.SlideFrame = 0;
+				invoker.SlideZoom = 1.00;
+				SetWeaponState("ReallyReady");
+			}
+		}
+		loop;
+
+   HandRemovedGrenadeToss:
+	HandRemoved:
+		TNT1 A 0 {
+         //A_PRINTBOLD("HI.");
+         invoker.displayNumber = 0;
+			invoker.breathingFrame = 0;
+			A_STOPSOUND(CHAN_WEAPON);
+			A_TakeInventory("ShowHands", 1);
+		}
+		GLPU ABCDEFFFF 2 {
+         int screentick = 2;
+			if(countInv("ShowHandsFast") == 1) {
+            A_SETTICS(1);
+				screentick = 1;
+			}
+         displayScreen("U", invoker.displayNumber, screentick);
+         if(invoker.displayNumber < 5)
+         {
+            invoker.displayNumber++;
+         }
+			S_WeaponReady();
+		}
+		TNT1 A 0 {
+			TakeInventory("ShowHandsFast", 1);
+		}
+		goto HandRemovedLooperGrenade;
+
+	HandRemovedLooperGrenade:
+		GLPU F 1
+			{
+            invoker.offhandAnimationTime--;
+				invoker.iszooming = false;
+				A_ZOOMFACTOR(1.0);
+            invoker.displayNumber = 5;
+            displayScreen("U", invoker.displayNumber, 1);
+				if(invoker.offhandAnimationTime <= 0)
+				{
+					setWeaponState("ReturnHands");
+				}
+				if(countinv("ShowHands2") == 1 && !invoker.noAnimationCancel)
+				{
+					setWeaponState("ReturnHands");
+				}
+				if(!invoker.noAnimationCancel)
+				{
+					S_WeaponReady();
+				}
+				S_WeaponOffset();
+			}
+		Loop;
+
+	ReturnHands: 
+		GLPU EDCBA 2 {
+         invoker.displayNumber--;
+         displayScreen("U", invoker.displayNumber, 2);
+			S_WeaponReady();
+		}
+		goto ReallyReady;
+
+      ShatterWindow:
+         TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+         GLPW ABCD 2  {
+               A_SetPitch(pitch + 1);
+               S_WeaponReady(WRF_ALLOWRELOAD);
+               S_WeaponOffset();
+            
+         }
+         GLPW E 6  {
+               S_WeaponReady(WRF_ALLOWRELOAD);
+               S_WeaponOffset();
+         }
+         GLPW DCBA 2  {
+               A_SetPitch(pitch - 1);
+               S_WeaponReady(WRF_ALLOWRELOAD);
+               S_WeaponOffset();
+         }
+         goto Ready3;
+      Fire:
+         TNT1 A 0 A_TakeInventory("Reloading", 1);
+         // Check if currently equiped ammo type has enough ammo
+         TNT1 A 0 {
+               invoker.panicButtonThreshold = 0;
+               invoker.panicModeEngaged = false;
+               invoker.hasPanicButtonUpgrade = false;
+               // Check if player has the Panic Button upgrade
+               if(invoker.hasUpgradeClass("UpgradeGrenadeLauncherPanicButton") == 1)
+               {  
+                  invoker.hasPanicButtonUpgrade = true;
+               }
+               if(invoker.ammo1 is "NothingAmmo")
+               {
+                  setWeaponState("altfire");
+               }
+               if(FindInventory(invoker.ammoType2).amount == 0)
+               {
+                  dryFire();
+                  setWeaponState("reloadWeapon");
+               }
+         }
+      FireActual: // This state will loop when Panic Button is active
+
+         // Player has enough ammo, Deduct and fire.
+         TNT1 A 0 {
+            A_FireProjectile("muzzleFlashSpawnerGrenadeLauncher",0,0,0,5);
+            invoker.displayNumber = 0;
+            invoker.TakeWeaponAmmo();
+            invoker.breathingFrame = 0;
+            if (getCVAR("g_screenshake") > 0) {
+               ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 8);
+               A_QuakeEx(6, 6, 6, 12, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 1, 0, 5);
+            }
+
+            actor grenadeProjectile;
+            string projectileActor = invoker.readGrenadeType();
+            if(projectileActor == "GrenadeLauncherFragBomb" && invoker.hasUpgradeClass("AltfireGrenadeLauncherTeddy11") == 1)
+            {
+               projectileActor = "Teddy11Bomb";
+            }
+            grenadeProjectile = FireProjectile(projectileActor, 0, 0, 5);
+            if(grenadeProjectile)
+            {
+
+               let grenadeProjectileActor = GrenadeLauncherBombBase(grenadeProjectile);
+
+               // Convert to Rocket
+               if(invoker.hasUpgradeClass("AltFireGrenadeLauncherRocket"))
+               {
+                  grenadeProjectileActor.A_PLAYSOUND("ROCKET", CHAN_AUTO, 1.0, 0, 0.7);
+                  grenadeProjectileActor.isRocket = true;
+                  grenadeProjectileActor.master = grenadeProjectileActor;
+                  grenadeProjectileActor.convertToRocket();                  
+               }
+
+               // Player has Increased Range
+               if(invoker.hasUpgradeClass("UpgradeGrenadeLauncherIncreasedRadius") == 1)
+               {  
+                  grenadeProjectileActor.isIncreasedRadius = true;
+               }
+
+               // Player has Reduced Fuse
+               if(invoker.hasUpgradeClass("UpgradeGrenadeLauncherReducedFuse") == 1)
+               {  
+                  grenadeProjectileActor.isReducedFuse = true;
+               }
+
+               if(invoker.hasUpgradeClass("AltFireGrenadeLauncherProximity") == 1)
+               {  
+                  grenadeProjectileActor.isProximity = true;
+               }
+
+               // @Cockatrice - Notify crosshair that a shot was just taken, since we don't use PlayerIsFiring() in this case
+               if(invoker.activeCrosshair) {
+                  invoker.activeCrosshair.weaponFire();
+               }
+               invoker.PlayerIsFiring();
+            }
+
+            A_SetPitch(pitch-1.5);
+         }
+        TNT1 A 0 A_PlaySound("weapons/GLFIRE", CHAN_AUTO, pitch:frandom(0.95,1.02));
+        GLPF A 1 {
+         if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+         {
+            invoker.panicButtonThreshold++;
+         }
+         if(invoker.panicModeEngaged)
+         {
+            A_SetPitch(pitch-0.1);
+         } else {
+            A_SetPitch(pitch-1.2);
+         }
+         invoker.displayNumber = 0;
+         displayScreen("F", invoker.displayNumber);
+         S_WeaponOffset(4.5);
+         A_overlay(-219, "flash1");
+        }
+        GLPF A 1 {
+         if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+         {
+            invoker.panicButtonThreshold++;
+         }
+         if(invoker.panicModeEngaged)
+         {
+            A_SetPitch(pitch-0.1);
+         } else {
+            A_SetPitch(pitch-1.1);
+         }
+         displayScreen("F", invoker.displayNumber);
+         S_WeaponOffset(4.5);
+         A_overlay(-219, "flash2");
+        }
+        GLPF B 1 {
+         if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+         {
+            invoker.panicButtonThreshold++;
+         }
+         if(invoker.panicModeEngaged)
+         {
+            A_SetPitch(pitch-0.1);
+         } else {
+            A_SetPitch(pitch-0.5);
+         }
+         invoker.displayNumber++;
+         displayScreen("F", invoker.displayNumber);
+         S_WeaponOffset(3);
+         A_overlay(-219, "flash3");
+        }
+        GLPF B 1 {
+         if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+         {
+            invoker.panicButtonThreshold++;
+         }
+         if(invoker.panicModeEngaged)
+         {
+            A_SetPitch(pitch-0.05);
+         } else {
+            A_SetPitch(pitch-0.3);
+         }
+         displayScreen("F", invoker.displayNumber);
+         S_WeaponOffset(3);
+         A_overlay(-219, "flash4");
+        }
+        GLPF C 1 {
+         if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+         {
+            invoker.panicButtonThreshold++;
+         }
+         if(invoker.panicModeEngaged)
+         {
+            A_SetPitch(pitch-0.1);
+         } else {
+            A_SetPitch(pitch-0.05);
+         }
+         invoker.displayNumber++;
+         displayScreen("F", invoker.displayNumber);
+         S_WeaponOffset(2);
+         A_overlay(-219, "flash5");
+        }
+        GLPF C 1 {
+            if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+            {
+               invoker.panicButtonThreshold++;
+            }
+            if(invoker.panicModeEngaged)
+            {
+               A_SetPitch(pitch-0.05);
+            } else {
+               A_SetPitch(pitch-0.1);
+            }
+
+            // Panic Mode active, loop from here
+            if(invoker.panicModeEngaged && FindInventory(invoker.ammoType2).amount > 0)
+            {
+               SetWeaponState("FireActual");
+            }
+
+            displayScreen("F", invoker.displayNumber);
+        }
+        GLPF DE 2
+        {
+            if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+            {
+               invoker.panicButtonThreshold++;
+            }
+            invoker.displayNumber++;
+            displayScreen("F", invoker.displayNumber, 2);
+        }
+      
+        GLPF F 2 
+        {
+            if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+            {
+               invoker.panicButtonThreshold++;
+            }
+            S_WeaponOffset(1.5);
+            invoker.displayNumber++;
+            displayScreen("F", invoker.displayNumber, 2);
+        }
+        GLPF G 2 
+        {
+            invoker.displayNumber++;
+            displayScreen("F", invoker.displayNumber, 2);
+            if(invoker.hasPanicButtonUpgrade && player.cmd.buttons & BT_ATTACK)
+            {
+               invoker.panicButtonThreshold++;
+            }
+            if(invoker.panicButtonThreshold >= 10)
+            {
+               invoker.panicModeEngaged = true;
+            }
+            if(invoker.panicModeEngaged && FindInventory(invoker.ammoType2).amount > 0)
+            {
+               a_playsound("GRENADELAUNCHER/PANICBUTTON", chan_auto, 0.5, PITCH:1.2);
+               SetWeaponState("FireActual");
+            }
+            S_WeaponOffset(0.5);
+        }
+        TNT1 A 0 A_PlaySound("weapons/GLPUMP", CHAN_AUTO, 0.6);
+        GLPF HIJ 2
+        {
+            invoker.displayNumber++;
+            displayScreen("F", invoker.displayNumber, 2);
+        }
+        GLPF KLMNO 2
+        {
+            invoker.displayNumber++;
+            displayScreen("F", invoker.displayNumber, 2);
+        }
+        TNT1 A 0;
+        goto ReallyReady;
+      AltFire:
+         TNT1 A 0 {
+            invoker.wpnOffset = 0;
+            invoker.animFrame = 0;
+            // Only allow if the player once had one of the grenade types
+				if(countinv("UnlockedIceGrenades") == 0 && countinv("UnlockedAcidGrenades") == 0)
+				{
+
+               // TO-DO: COCK UI!
+               A_PRINTBOLD("\c[omniblue]Different Grenade Types not yet unlocked.");
+					SetWeaponState("ReallyReady");
+				}
+            else
+            {
+               checkAltFireSwap();
+               X_SetOverlaySprite(55, "TNT1", 0);
+               invoker.breathingFrame = 0;
+               invoker.displayNumber = 0;
+            }
+/*             if(!invoker.swapGrenadeTypes(invoker.grenadeID))
+            {
+               // No available grenades to cycle through.
+               setWeaponState("ReallyReady");
+            } */
+         }
+         GLR5 ABCDEFGHI 1 {
+            displayScreen("S", invoker.displayNumber, 2); 
+            if(invoker.animFrame % 1 == 0)
+            {
+               invoker.displayNumber++;             
+            }
+            invoker.animFrame++;
+            invoker.wpnOffset+=4;
+            checkAltFireSwap();
+         }
+         TNT1 A 0
+         {
+            A_PLAYSOUND("nailgun/reload1", CHAN_WEAPON, 0.5, pitch:0.8);
+         }
+         TNT1 A 0 {
+            invoker.displayNumber++;
+         }
+         GLR5 K 2 {
+            checkAltFireSwap();
+            displayScreen("S", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         GLR5 LMNO 2 {
+            displayScreen("S", 99, 2);
+            checkAltFireSwap();
+         }
+         TNT1 A 0
+         {
+            A_PlaySound("GL/error", chan_auto);
+         }
+         GLR5 PQRSUWX 2 {
+            checkAltFireSwap();
+         }
+         TNT1 A 0
+         {
+            // Load temp ammo type so the ammo counters give ``0``
+            invoker.Ammo1 = invoker.loadAmmoType(invoker.owner, invoker.dummyAmmo[0], 0);
+            invoker.Ammo2 = invoker.loadAmmoType(invoker.owner, invoker.dummyAmmo[1], 0);
+         }
+         GLR6 ACEGHIJKLMOQ 2 {
+            checkAltFireSwap();
+         }
+
+         TNT1 A 0
+         {
+            A_PlaySound("GRENADELAUNCHER/RELOAD/START", 2, 0.6);
+         }
+         GLR6 RSTU 2;
+         TNT1 A 0 {
+            A_PLAYSOUND("nailgun/reload2", CHAN_AUTO, 0.5, pitch:0.8);
+            //console.printf("\n\n");
+            // Swap finished. Reload all drum mags outside of the drum mag currently selected.
+            for(int x=0;x<invoker.loadedGrenadeAmmo.size();x++)
+            {  
+               // Get the ammo type and store it
+               inventory altReserve = FindInventory(invoker.reserveGrenadeAmmo[x]);
+               inventory altLoadedRounds = FindInventory(invoker.loadedGrenadeAmmo[x]);
+
+               // Exclude currently equiped ammo type since we only want to load the other ones.
+               if(invoker.ammo1 == altReserve)
+               {
+                  continue;
+               }
+
+               // Add ammo to stored ammo type
+               if(altReserve && altLoadedRounds)
+               {
+                  while((altReserve.amount > 0 && altLoadedRounds.amount < altLoadedRounds.maxAmount)) 
+                  {
+                     altReserve.amount-=1;
+                     altLoadedRounds.amount+=1;   
+                  }
+               }
+            }
+            invoker.displayNumber = 0;
+
+            // Swap to the real ammo type
+            invoker.grenadeID = invoker.swappingID;
+            invoker.loadGrenadeType();
+         }
+         GLR6 VWXYZ 2 {
+            displayScreen("W", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0
+         {
+             A_PlaySound("GL/SUCCESS", chan_auto, 0.7, pitch:1.1);
+         }
+         GLR7 ABCDEFGH 2 {
+            displayScreen("W`", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         goto ReallyReady;
+
+      reloadWeapon:
+         TNT1 A 0 {
+            if((Dawn(invoker.owner) && Dawn(invoker.owner).curLadder))
+            {
+               A_TakeInventory("Reloading", 1);
+               SetWeaponState("ReallyReady");
+               return;
+            }
+            invoker.zoffset = 0;
+            invoker.xoffset = 0;
+            invoker.displayNumber = 1;
+            // Check if we need to reload
+            if(FindInventory(invoker.ammoType2).amount == FindInventory(invoker.ammoType2).maxAmount ||  FindInventory(invoker.ammoType1).amount == 0) {
+               A_TakeInventory("Reloading", 1);
+               SetWeaponState("ReallyReady");
+               return;
+            }
+            
+            if(invoker.hasUpgradeClass("UpgradeGrenadeLauncherSpeedloader") == 1)
+            {  
+               SetWeaponState("Reload_SpeedLoader");
+               return;
+            }
+         }
+         // start reload   
+         TNT1 A 0 {
+            invoker.breathingFrame = 0;
+            invoker.displayNumber = 1;
+            A_PlaySound("GRENADELAUNCHER/RELOAD/START", 2, 0.45, pitch:0.8);
+         }
+         GLR1 BC 2 
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0
+         {
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;           
+         }
+         GLR1 EF 2 
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0
+         {
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;          
+         }
+         GLR1 HI 2 
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0
+         {
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;           
+         }
+         GLR1 K 2 
+         {
+            CheckReloadCancelling();
+            S_WeaponReady(WRF_NOFIRE);
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0 {
+            A_PLAYSOUND("GRENADELAUNCHER/RELOAD/OPEN", CHAN_WEAPON, 0.55, pitch:0.8);
+         }
+         GLR1 LM 2
+         {
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0
+         {
+
+            invoker.displayNumber++;           
+         }
+         GLR1 P 2
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;    
+         }
+         TNT1 A 0
+         {
+
+            invoker.displayNumber+=2;           
+         }
+         GLR1 RS 2
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;    
+         }
+         TNT1 A 0
+         {
+
+            invoker.displayNumber++;           
+         }
+         GLR1 UV 2
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;    
+         }
+         TNT1 A 0 {
+            A_PLAYSOUND("GLEJECT", CHAN_WEAPON, 0.7, pitch:1.05);
+         }
+         GLR1 WXYZ 2
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("1", invoker.displayNumber, 2);
+            invoker.displayNumber++;    
+         }
+         
+         TNT1 A 0
+         {
+            int shellsToEject = (5 - FindInventory(invoker.ammoType2).amount);
+            for(shellsToEject;shellsToEject>0;shellsToEject--)
+            {
+               A_FireProjectile("EMPTY_GRENADESHELL",angle:frandom(0,360), 0, frandom(5,8),frandom(-15,-20),5, pitch:frandom(-10,-20));
+            }
+            invoker.displayNumber = 0; 
+         }
+         GLR2 ABCDEFGHIJK 2
+         {
+            S_WeaponReady(WRF_NOFIRE);
+            CheckReloadCancelling();
+            displayScreen("2", invoker.displayNumber, 2);
+            invoker.displayNumber++;               
+         }
+
+      CheckAmmoRemaining:
+         GLPI A 0 {
+            S_WeaponOffset(invoker.zOffset);
+            let reserve = FindInventory(invoker.ammoType1);
+            let loadedRounds = FindInventory(invoker.ammoType2);
+            if(reserve.amount > 0 && loadedRounds.amount < loadedRounds.maxAmount) {
+               SetWeaponState("InsertShell"); // Player has ammo, start Insert Shell animation
+            }
+         }
+         goto InsertShellFinish;
+      
+
+      insertShell:
+         TNT1 A 0
+         {
+            invoker.displayNumber = 2;
+         }
+         GLR3 CCDDEEFFGG 1
+         {
+            if(FindInventory(invoker.ammoType2).amount > 0)
+            {
+               S_WeaponReady();
+            }
+            CheckReloadCancelling();
+            S_WeaponOffset();
+            displayScreen("3", invoker.displayNumber, 2);
+            invoker.displayNumber+=0.5;
+         }
+         GLR3 H 1 
+         {
+            if(FindInventory(invoker.ammoType2).amount > 0)
+            {
+               S_WeaponReady();
+            }
+            CheckReloadCancelling();
+            S_WeaponOffset();
+            A_PLAYSOUND("weapons/GLLOAD", CHAN_AUTO, 0.4, PITCH:frandom(1.13,1.23));
+            displayScreen("3", invoker.displayNumber, 2);
+            invoker.displayNumber+=0.5;
+         }
+         GLR3 H 1 
+         {
+            if(FindInventory(invoker.ammoType2).amount > 0)
+            {
+               S_WeaponReady();
+            }
+            CheckReloadCancelling();
+            displayScreen("3", invoker.displayNumber, 2);
+            invoker.displayNumber+=0.5;
+         }
+         GLR3 IIJJKK 1
+         {
+            if(FindInventory(invoker.ammoType2).amount > 0)
+            {
+               S_WeaponReady();
+            }
+            CheckReloadCancelling();
+            S_WeaponOffset();
+            displayScreen("3", invoker.displayNumber, 2);
+            invoker.displayNumber+=0.5;
+         }
+			GLR3 L 2 
+         {
+            if(FindInventory(invoker.ammoType2).amount > 0)
+            {
+               S_WeaponReady();
+            }
+            displayScreen("3", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+				S_WeaponReady(WRF_NOFIRE);
+				S_WeaponOffset();
+            //A_QuakeEx(0.4, 0.4, 0.4, 8, 0, 40, 0, 0, 0, 0, 0, 0, 0.8, 0.3, 0.3);
+            ACS_NamedExecuteAlways("SpawnHudShake", 0, 1, 1, 5);
+            let reserve = FindInventory(invoker.ammoType1);
+            let loadedRounds = FindInventory(invoker.ammoType2);
+            loadedRounds.amount+=1;
+            if(level.levelnum != MAP_SAFEROOMEXTENSION)
+            {
+               reserve.amount-=1;
+            }
+            if((reserve.amount > 0 && loadedRounds.amount >= loadedRounds.maxAmount) || reserve.amount == 0) {
+               SetWeaponState("FinishReload"); // The reload is done, finish up.
+            }
+            // Weapon is finished. Play 'finish' sound and go back to ready
+			}
+      InsertShellFinish:  
+         TNT1 A 0
+         {
+            invoker.displayNumber = 12;
+         }
+         GLR3 MNOPQRS 2
+         {
+            S_WeaponOffset();
+            if(FindInventory(invoker.ammoType2).amount > 0)
+            {
+               S_WeaponReady();
+            }
+            CheckReloadCancelling();
+            displayScreen("3", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0 {
+            let reserve = FindInventory(invoker.ammoType1);
+            let loadedRounds = FindInventory(invoker.ammoType2);
+            if(loadedRounds.amount == loadedRounds.maxAmount || reserve.amount == 0) {
+               SetWeaponState("FinishReload");
+            }
+         }
+         goto checkAmmoRemaining;
+
+      FinishReload:
+         TNT1 A 0
+         {
+            invoker.displayNumber = 0;
+         }
+         GLR4 ABCD 2
+         {
+            CheckReloadCancelling();
+            displayScreen("4", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         GLR4 E 2
+         {
+            CheckReloadCancelling();
+            displayScreen("4", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0
+         {
+            A_PLAYSOUND("GRENADELAUNCHER/RELOAD/CLOSE", CHAN_WEAPON, 0.47, pitch:0.95);
+         }
+         GLR4 FGHIJKLMNOPQRS 2
+         {
+            CheckReloadCancelling();
+            displayScreen("4", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         goto ReallyReady;
+
+
+      Reload_SpeedLoader:
+         TNT1 A 0 {
+               checkAltFireSwap();
+               X_SetOverlaySprite(55, "TNT1", 0);
+               invoker.breathingFrame = 0;
+               invoker.displayNumber = 1;
+         }
+         TNT1 A 0
+         {
+            A_PlaySound("GRENADELAUNCHER/RELOAD/START", 2, 0.6);
+         }
+         GLR5 BCDEFGHI 2 {
+            CheckReloadCancelling();
+            checkAltFireSwap();
+            displayScreen("S", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         TNT1 A 0
+         {
+            A_PLAYSOUND("nailgun/reload1", CHAN_WEAPON, 0.5, pitch:0.8);
+         }
+         TNT1 A 0 {
+            invoker.displayNumber++;
+         }
+         GLR5 K 2 {
+            CheckReloadCancelling();
+            checkAltFireSwap();
+            displayScreen("S", invoker.displayNumber, 2);
+            invoker.displayNumber++;
+         }
+         GLR5 LMNO 2 {
+            CheckReloadCancelling();
+            displayScreen("S", 99, 2);
+            checkAltFireSwap();
+         }
+         TNT1 A 0
+         {
+            A_PlaySound("GL/error", chan_auto);
+         }
+         GLR5 PQRSUWXY 2 CheckReloadCancelling();
+         GLR6 ABCDEFGH 2 CheckReloadCancelling();
+         GLR6 IJKLMNOPQ 2 CheckReloadCancelling();
+         TNT1 A 0
+         {
+            A_PlaySound("RIFCL_IN", 2, 0.6);
+         }
+         GLR6 RSTU 2 CheckReloadCancelling();
+         TNT1 A 0
+         {
+            A_PLAYSOUND("nailgun/reload2", CHAN_WEAPON, 0.6, pitch:0.7);
+         }
+         Speedloader_AddAmmo:
+         TNT1 A 0
+         {
+            let reserve = FindInventory(invoker.ammoType1);
+            let loadedRounds = FindInventory(invoker.ammoType2);
+            loadedRounds.amount+=1;
+            if(level.levelnum != MAP_SAFEROOMEXTENSION)
+            {
+               reserve.amount-=1;
+            }
+            if((reserve.amount > 0 && loadedRounds.amount >= loadedRounds.maxAmount) || reserve.amount == 0) {
+               SetWeaponState("Speedloader_Finish"); // The reload is done, finish up.
+            }
+         }
+         loop;
+         Speedloader_Finish:
+            TNT1 A 0
+            {
+               invoker.displayNumber = 0;
+            }
+            GLR6 VWXYZ 2 {
+               CheckReloadCancelling();
+               displayScreen("W", invoker.displayNumber, 2);
+               invoker.displayNumber++;
+            }
+            TNT1 A 0
+            {
+               A_PlaySound("GL/SUCCESS", chan_auto, 0.7, pitch:1.1);
+            }
+            GLR7 ABCDEFGHIJ 2 {
+               CheckReloadCancelling();
+               displayScreen("W`", invoker.displayNumber, 2);
+               invoker.displayNumber++;
+            }
+            goto ReallyReady;
+
+         // MUZZLEFLASH
+         Flash1:
+            MUZB A 1 BRIGHT;
+            stop;
+
+         Flash2:
+            MUZB B 1 BRIGHT;
+            stop;
+
+         Flash3:
+            MUZB C 1 BRIGHT;
+            stop;
+
+         Flash4:
+            MUZB D 1 BRIGHT;
+            stop;
+
+         Flash5:
+            MUZB E 1 BRIGHT;
+            stop;
+
+
+      ShowGrenadeScreen:
+         TNT1 A 1
+         {
+            A_SETTICS(invoker.displayTicks);
+            X_SetOverlaySprite(55, invoker.displaySprite, invoker.displayNumber);
+         }
+         stop;
+
+      // Oh god I am going to regret this.
+      ClearScreen:
+         TNT1 A 1;
+         stop;
+   }
+}
+
+class GrenadeLauncherBombBase : ThrownGrenade1
+{
+   bool isRocket, isIncreasedRadius, isReducedFuse, isProximity;
+
+   actor explosionEffectActor;
+   bool successExplosionEffect;
+   int fuseTicks, fuseTickAmount;
+
+   virtual void doSpecificEffects()
+   {
+
+   }
+
+   override void postbeginPlay()
+   {
+      super.postbeginPlay();
+      int totalClasses = AllClasses.size();
+		for(int x = 0; x < totalClasses; x++) 
+		{
+			if(AllClasses[x] is 'SelacoWeapon')
+			{
+				Inventory i = players[0].mo.FindInventory((class<SelacoWeapon>)(AllClasses[x]));
+				if(i)
+				{
+					if(i is "GrenadeLauncher")
+					{
+						SelacoWeapon w = SelacoWeapon(i);
+						explosionDamage = w.weaponDamage;
+						explosionRange += w.weaponAreaOfEffect;
+					}
+				}
+			}
+		}
+
+   }
+
+
+   override void tick()
+   {
+      super.tick();
+      if(isRocket)
+      {
+         for(int x=0;x<3;x++)
+         {
+            EmitDefinition('MetalShrapnelParticleShortDefinition', chance: 1.0, numTries: 2, angle:random(0,360), pitch:frandom(-150, -220), speed:frandom(-4,-5), offset:(0,0,1), velocity:(0, 0, frandom(0.2,7)), flags:PE_ABSOLUTE_OFFSET);
+         }
+         A_SPAWNITEMEX("SmokeTrailPieceSmallTight", 0, 0, 1);
+      }
+   }
+
+   void convertToRocket()
+   {
+      // Set rocket flags
+      bNOGRAVITY = true;
+      BounceFactor = 0;
+      bounceCount = 0;
+      WallBounceFactor = 0;
+      bDROPOFF = true;
+      bMISSILE = true;
+      bACTIVATEIMPACT = true;
+      bACTIVATEPCROSS = true;
+      bNOTELEPORT = true;
+      bBounceOnActors = false;
+      bBounceOnCeilings = false;
+      bBounceOnFloors = false;
+      bUseBounceState = true;
+      trailtype = "";
+      spawnLight(255, 180, 32, 110, 0, shadowRequirement:1,divisionSpeed:0, followActor:self);
+
+      // Make it fast!
+      speed = 115;    
+
+      // Make it bigger!  
+      A_SetScale(4.5, 4.5);
+   }
+
+   string explosionType, trailType;
+   int explosionDamage, explosionRange;
+   int explosionEffectSizeModifier;
+   property ExplosionDamage : explosionDamage;
+   property ExplosionType : explosionType;
+   property ExplosionRange : explosionRange;
+   property TrailType : trailType;
+
+	default {
+      radius 6;
+      height 6;
+      health 5;
+      speed 37;
+      +ThrowableActor.UseProjectileAssist
+		SeeSound "GREN/GBOUNCE";
+		DeathSound "none";
+      Bouncefactor 0.4;
+      WallBounceFactor 0.2;
+      GrenadeLauncherBombBase.ExplosionType "PrettyExplosionGrenadeLauncher";
+      GrenadeLauncherBombBase.TrailType "BrownPlasmaParticleSpawnerDimmed";
+	}
+
+    override int SpecialMissileHit(Actor victim) {
+        if(master && !(master is "SelacoEnemy") && victim.bIsMonster) {
+            SetStateLabel("Explode");
+        }
+        return super.SpecialMissileHit(victim);
+    }
+
+	States
+	{
+      Spawn:
+         TNT1 A 0;
+         TNT1 A 0
+         {
+            invoker.fuseTickAmount = 6;
+            if(invoker.isReducedFuse)
+            {
+               invoker.fuseTickAmount = 3;
+            }
+
+            if(invoker.isProximity)
+            {
+               bACTIVATEIMPACT = false;
+               bounceFactor = 0.1;
+               WallBounceFactor = 0.2;
+            }
+
+         }
+      Thrown:
+         TNT1 A 0 A_AlertMonsters();
+         VOXE L 1 bright {
+            if(isRocket)
+            {
+               frame = 0;
+            }
+            A_SetRoll(roll + 30);
+            A_SpawnItemEx(invoker.trailType);
+         }
+         loop;
+
+      Death:
+         TNT1 A 0 {
+            if(invoker.isRocket)
+            {
+               SetStateLabel("Explode");
+            }
+            if(invoker.isProximity)
+            {
+               SetStateLabel("ProximityCheckPrime");
+            }
+         }
+         goto LoopActual;
+      Bounce:
+         TNT1 A 0;
+      DeathLooper:
+         TNT1 A 0
+         {
+            BattleOverseer overseer = BattleOverseer.instance();
+            overseer.warnGrenade(self);
+         }
+
+   // Loop and check for target
+   ProximityCheckPrime: 
+      TNT1 A 0 
+      {
+         if(!invoker.isProximity)
+            {
+               SetStateLabel("explode");
+            }
+      }
+      VOXE B 35;
+      TNT1 A 0
+      {
+         A_PLAYSOUND("BOOBYTRAP/RIG", CHAN_AUTO);
+      }
+   ProximityCheck:
+      VOXE B 20 {
+         A_SETSIZE(5,5);
+         //bthruplayers = true;
+         bDecorativeActor = true;
+         bDontThrust = true;
+         bPushable = false;
+         SpawnLight(255, 25, 25, 45, divisionSpeed:1.1, alwaysShow:1, ignoreLightLimit: 1);
+         bFriendly = true;
+         A_PLAYSOUND("GRENADELAUNCHER/PROXIMITY", CHAN_AUTO);
+         A_LOOKEX(LOF_NOSOUNDCHECK , 0, 100, 0, 360, "ActuallyExplode");
+      }
+      loop;
+	LoopActual:
+      TNT1 A 0 {
+         if(!bNOBLOCKMAP && !bKnockable) A_ChangeLinkFlags(1);
+         blinkDangerIndicator(explosionRange);
+         bDangerousActor = true;
+         A_AlertMonsters();
+         A_SpawnItemEx("AcesGrenadeFlare");
+         A_PlaySound("combat/grentic", 8,1,0);
+         invoker.fuseTicks++;
+         if(invoker.fuseTicks >= invoker.fuseTickAmount)
+         {
+            SetStateLabel("ActuallyExplode");
+         }
+      }
+	   VOXE L 5 bright;
+		TNT1 A 0;
+		Loop;
+	
+   Bounce.Floor:
+   Bounce.wall:
+   Xdeath:
+      TNT1 A 0
+      {
+         SetStateLabel("ProximityCheckPrime");
+      }
+	Explode:
+      TNT1 A 0
+      {
+         if(invoker.isProximity)
+         {
+            SetStateLabel("ProximityCheckPrime");
+         }         
+      }
+   ActuallyExplode:
+		TNT1 A 0 A_Stop;
+		TNT1 A 0 A_ChangeLinkFlags(1);
+		TNT1 A 0 A_StopSound(6);
+		TNT1 A 0 A_StopSound(5);
+		TNT1 A 0;
+		TNT1 A 0 {
+         A_SPAWNITEMEX("ScorchMarkFloor", 0, 0, -20);
+         doSpecificEffects();
+         [successExplosionEffect, explosionEffectActor] =  A_SpawnItemEx (explosionType,0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+         if(explosionEffectActor is "ExplosionEffect")
+         {
+            ExplosionEffect(explosionEffectActor).explosionAmountMin+=16;
+            ExplosionEffect(explosionEffectActor).explosionAmountMax+=16;
+            ExplosionEffect(explosionEffectActor).explosionSpreadHorizontal+=7;
+            ExplosionEffect(explosionEffectActor).explosionSpreadVertical+= 7;
+         }
+         if(isRocket)
+         {
+            // Visual effects
+            if(explosionEffectActor is "ExplosionEffect")
+            {
+               ExplosionEffect(explosionEffectActor).explosionAmountMin+=20;
+               ExplosionEffect(explosionEffectActor).explosionAmountMax+=20;
+               ExplosionEffect(explosionEffectActor).explosionSpreadHorizontal+=6;
+               ExplosionEffect(explosionEffectActor).explosionSpreadVertical+= 4;
+            }
+   
+            // Adjust damage and radius
+            explosionRange*=1.25;
+            explosionDamage*=0.9;
+         }
+
+         if(getClassName() == "Teddy11Bomb")
+         {
+            ExplosionEffect(explosionEffectActor).explosionAmountMin+=15;
+            ExplosionEffect(explosionEffectActor).explosionAmountMax+=15;
+            ExplosionEffect(explosionEffectActor).explosionSpreadHorizontal+=4;
+            ExplosionEffect(explosionEffectActor).explosionSpreadVertical+= 8;
+         }
+
+         if(isIncreasedRadius)
+         {
+            // Visual effects
+            if(explosionEffectActor is "ExplosionEffect")
+            {
+               ExplosionEffect(explosionEffectActor).explosionAmountMin+=15;
+               ExplosionEffect(explosionEffectActor).explosionAmountMax+=15;
+               ExplosionEffect(explosionEffectActor).explosionSpreadHorizontal+=4;
+               ExplosionEffect(explosionEffectActor).explosionSpreadVertical+= 8;
+            }
+
+            // Adjust radius
+            explosionRange*=1.25;
+         }
+
+      }
+		TNT1 A 0 { S_EXPLODE(explosionDamage,explosionRange, XF_HURTSOURCE);  GlassHandler.GlassExplosion(self, explosionRange * 1.25, 25); }
+      TNT1 A 0 A_AlertMonsters();
+		TNT1 A 0 A_PlaySound("FAREXPL", 3);
+		Stop;
+	}
+}
+
+class GrenadeLauncherFragBomb : GrenadeLauncherBombBase {
+   default {
+      damageType "ExplosiveImpact";
+      GrenadeLauncherBombBase.ExplosionType "PrettyExplosionGrenadeLauncher";
+      GrenadeLauncherBombBase.TrailType "BrownPlasmaParticleSpawnerDimmed";
+   }
+}
+
+class GrenadeLauncherIceBomb : GrenadeLauncherBombBase {
+
+   override void doSpecificEffects()
+   {
+      super.doSpecificEffects();
+      SpawnLight(70, 221, 255, 150, shadowRequirement:-1,overbright:2,divisionSpeed:1.05);
+      RemoveNearbyFlames(250);
+      explosionDamage = 15;
+   }
+
+   default {
+      damageType "ice";
+      GrenadeLauncherBombBase.ExplosionDamage 5;
+      GrenadeLauncherBombBase.ExplosionRange 150;
+      GrenadeLauncherBombBase.ExplosionType "IceBombParticles";
+      GrenadeLauncherBombBase.TrailType "BluePlasmaParticleSpawnerSmall";
+   }
+}
+
+class GrenadeLauncherAcidBomb : GrenadeLauncherBombBase {
+
+   override void postbeginPlay()
+   {
+      super.postbeginPlay();
+      explosionDamage*=2;
+      explosionRange*=1.5;
+   }
+
+
+   default {
+      damageType "Acid";
+      GrenadeLauncherBombBase.ExplosionType "AcidBombParticles";
+      GrenadeLauncherBombBase.TrailType "GreenPlasmaParticleSpawner";
+   }
+}
+
+class EMPTY_GRENADESHELL : SelacoActorDecorationMissile
+{
+
+   default
+   {
+      +SelacoActor.isTrash
+   }
+
+   override void postbeginPlay()
+   {
+      super.postbeginPlay();
+      A_CHANGEVELOCITY(frandom(-1,1), frandom(-1,1));
+   }
+
+    override void bounceEffects()
+    {
+        for(int x=0;x<=3;x++) {
+            A_SPAWNITEMEX("BodyImpactSmokeUltraTiny", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+        }
+        A_PlaySound("impact/spikebounce",CHAN_AUTO, 0.2, 0, 1.0, false, pitch:frandom(1,1.6));
+    }
+
+   default
+   {
+      speed 1;
+      seesound "impact/spikebounce";
+   }
+}
+
+class muzzleFlashSpawnerGrenadeLauncher : Actor {
+	
+	int overbrightValue;
+	mixin LightEmitter;
+	override void PostBeginPlay() 
+	{
+		super.PostBeginPlay();
+		overbrightValue = 1;
+		if(getCvar("lightingQuality") == 4)
+		{
+			overbrightValue = 3;
+		}
+		spawnLight(rColor:500, gColor:217, bColor:67, frandom(120,130), 0, shadowRequirement:2, xOffset:random(-10,10), overbright: overbrightValue, divisionSpeed:1.65, alwaysShow:1,weaponFlash:1);
+	}
+
+	default {
+		+NOINTERACTION;
+	}
+
+	states {
+		Spawn:
+			TNT1 A 1;
+			stop;
+	}
+}

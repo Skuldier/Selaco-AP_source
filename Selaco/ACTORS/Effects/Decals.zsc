@@ -1,0 +1,1568 @@
+class DecalLeader : SelacoActor {
+
+
+	string spriteIndex;
+	actor nearDecal;
+	int decalFrame;
+	int surfaceDistance;
+	int bloodLifeSpan;
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		setOrigin((pos.x, pos.y, floorz), false);
+		WorldOffset.z+=frandom(0.001,0.25);
+		checkWaterSurface();
+	}
+	
+	void checkWaterSurface()
+	{
+		FLineTraceData trace;
+		uint soundType = MaterialIndexer.Instance().getFloorMaterialType(floorpic);
+	
+		// Determine particle type based on floor material
+		string slideParticle;
+		switch (soundType)
+		{
+			case FM_VOID:
+			case FM_WATER:
+				if(!bDestroyed) destroy();
+				break;
+		}
+		if(waterLevel > 0)
+		{
+			if(!bDestroyed) destroy();
+		}
+	}
+
+	void setBloodLifespan()
+	{
+		GoreHandler gh = GoreHandler.instance();
+		if(gh) {
+			bloodLifeSpan = gh.currentDecalSetting*0.5;	
+			if(gh.currentGoreSetting == 1) {
+				bloodLifeSpan = 70;
+			}
+		}
+	}
+
+	void handleGoreSleep() {
+		bMOVEWITHSECTOR = true;		// Ground gore should move with lifts
+		GoreHandler gh = GoreHandler.instance();
+		if(gh && gh.permaMode) {
+			sleepIndefinite();
+		}
+		else {
+			sleep(bloodLifeSpan);
+		}
+	}
+
+	void destroyGoreIfLowSetting() {
+		GoreHandler gh = GoreHandler.instance();
+		if(gh.currentGoreSetting == 1) {
+			destroy();
+		}
+	}
+		
+	void setDecalFrame(int frame) {
+		decalFrame = frame;
+	}	
+
+	void setSpriteIndex(string index) {
+		spriteIndex = index;
+	}
+
+	int getDecalFrame() {
+		return decalFrame;
+	}
+
+	string frameString() {
+		return spriteIndex;
+	}
+
+    // Ensures that decals dont stack, looks ugly
+    virtual bool hasNearbyDecal(int range = 10) {
+		// There is lots and lots of potential to improve this, but I just cant be fucked. Eventually we should just store them in a list so we dont have to iterate so often.
+		BlockThingsIterator it = BlockThingsIterator.Create(self, 0);
+		actor currentActor;
+		while (it.Next()) {
+			currentActor = it.thing; // Get the Actor it's currently on
+			if(currentActor && currentActor != self && currentActor.getClassName() == self.getClassName() && Distance2DSquared(currentActor)<= range*range) {
+				nearDecal = currentActor;
+				return true;
+			}
+		}
+		return false;
+    }
+
+	const MAX_DISTANCE_OFFSET = 4;
+	const MAX_TRACES_PER_CALL = 16; // Safety limit
+	void checkEvenSurface(int pitchDirection = 90, int forwardOffset = 45, bool edgeOnly = false)
+	{
+		int forwardOffsetIncrement = edgeOnly ? forwardOffset : 20;
+		int offsetValue = pitchDirection < 0 ? -3 : 3; 
+	
+		int traceCount = 0;
+		int angleIncrement = 90;
+	
+		for (int x = 0; x < 360; x += angleIncrement)
+		{
+			for (int j = 0; j <= forwardOffset; j += forwardOffsetIncrement)
+			{
+				if (traceCount++ > MAX_TRACES_PER_CALL)
+					return;
+	
+				FLineTraceData remoteRay;
+				LineTrace(x, 100, pitchDirection, offsetz: offsetValue, offsetforward: j, data: remoteRay);
+	
+				if (remoteRay.HitType == TRACE_HitFloor || remoteRay.HitType == TRACE_HitCeiling)
+				{
+					if (!surfaceDistance) 
+					{
+						surfaceDistance = remoteRay.Distance;
+					}
+					else if (abs(surfaceDistance - remoteRay.Distance) > MAX_DISTANCE_OFFSET)
+					{
+						if(!bDestroyed) destroy();
+					 return;
+					}
+				}
+			}
+		}
+	}
+
+
+	DEFAULT {
+		-SelacoActor.AllowWaterSplashing
+		+INVISIBLEINMIRRORS;
+		+FLATSPRITE;
+		SelacoActor.SleepDistance 1024;
+		+PRECACHEALWAYS;
+	}
+}
+
+class WoodFloorDecal : DecalLeader{
+	default
+	{
+		scale 0.65;
+	}
+	states{
+		Spawn:
+			TNT1 A 0;
+            TNT1 A 0 {
+                decalFrame = random(0,6);
+				checkEvenSurface(-90, 7);
+            }
+		Idle:
+            BWOD A 550 {
+				if(hasNearbyDecal(10)) {
+                    SetStateLabel("death");
+                }
+                frame = decalFrame;
+            }
+            BWOD AAAAAAAAAAAAA 1 {
+                frame = decalFrame;
+                A_FADEOUT(0.1);
+            }
+        stop;		
+	}
+}
+
+class oilDecal : DecalLeader {
+    default {
+		-SELACOACTOR.allowWaterSplashing
+        +FLATSPRITE
+		RenderStyle "Translucent";
+        scale 0.5;
+		alpha 0.9;
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+            TNT1 A 0 {
+				Scale*=frandom(0.95,3.45);
+				angle = random(0,360);
+				setOrigin((pos.x, pos.y, floorz), false);
+            }
+            OILB A 1 {
+				decalFrame = random(0,3);
+				frame = decalframe;
+				if(hasNearbyDecal(10)) {
+                    SetStateLabel("death");
+                }
+				if(getCvar("g_permanentGore") == 1)
+				{
+					sleepIndefinite();
+				} else {
+					sleep(1200);
+				}
+            }
+            OILB AAAAAAAAAAAAA 1 {
+				frame = decalframe;
+                A_FADEOUT(0.1);
+            }
+        stop;
+	}
+}
+
+
+class acidSpawner : DecalLeader {
+    default {
+		-SELACOACTOR.allowWaterSplashing
+        +FLATSPRITE
+        scale 0.2;
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+            TNT1 A 0 {
+				setOrigin((pos.x, pos.y, floorz), false);
+                decalFrame = random(0,7);
+            }
+		Acid:
+            ACDF A 350 {
+				if(hasNearbyDecal()) {
+                    SetStateLabel("death");
+                }
+                frame = decalFrame;
+            }
+            ACDF AAAAAAAAAAAAA 1 {
+                frame = decalFrame;
+                A_FADEOUT(0.1);
+            }
+        stop;
+	}
+}
+
+class ScorchMarkFloor : DecalLeader {
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		setOrigin((pos.x, pos.y, floorz), false);
+	}
+
+    default {
+        +FLATSPRITE
+        scale 1.4;
+		alpha 0.95;
+		renderstyle "translucent";
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+            TNT1 A 0 {
+				A_SETANGLE(random(0,360));
+				checkEvenSurface(-90, 65);
+                decalFrame = random(0,4);
+            }
+			goto waitToDie;
+		waitToDie:
+            SCOR A 1 {
+				if(hasNearbyDecal()) {
+                    SetStateLabel("death");
+                }
+				if(getCvar("g_permanentDestruction") == 1)
+				{
+					sleepIndefinite();
+				}
+				else
+				{
+					sleep(5000);
+				}
+                frame = decalFrame;
+            }
+			TNT1 A 0;
+			goto die;
+		Die:
+            SCOR AAAAAAAAAAAAA 1 {
+                frame = decalFrame;
+                A_FADEOUT(0.1);
+            }
+        stop;
+	}
+}
+
+class ScorchMarkFloorSmall : ScorchMarkFloor
+{
+	default
+	{
+		alpha 0.9;
+		scale 0.25;
+	}
+	states
+	{
+		waitToDie:
+            SCOR A 1 {
+				if(hasNearbyDecal(5)) {
+                    SetStateLabel("death");
+                }
+				if(getCvar("g_permanentDestruction") == 1)
+				{
+					sleepIndefinite();
+				}
+				else
+				{
+					sleep(500);
+				}
+                frame = decalFrame;
+            }
+			TNT1 A 0;
+			goto die;
+	}
+}
+
+class ScorchMarkFloorShort : ScorchMarkFloor
+{
+	default
+	{
+        scale 0.18;
+		alpha 0.4;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+            TNT1 A 0 {
+                decalFrame = random(0,4);
+            }
+			goto waitToDie;
+		waitToDie:
+            SCOR A 1 {
+				sleep(600);
+                frame = decalFrame;
+            }
+			TNT1 A 0;
+			goto die;
+	}
+}
+
+class ScorchMarkFloorPermanent : ScorchMarkFloor {
+
+	int spawnSmokeTrail;
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		spawnSmokeTrail = args[0];
+
+	}
+
+	override void tick()
+	{
+		super.tick();
+		if(spawnSmokeTrail && level.time % 10 == 0)
+		{
+			A_SpawnItemEX("ScorchMarkSmoke", 0, 0, -15, 0, 0, 1);
+		}
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+            TNT1 A 0 {
+                decalFrame = random(0,4);
+            }
+		Death:
+            SCOR A -1 {
+				if(hasNearbyDecal()) {
+                    SetStateLabel("death");
+                }
+                frame = decalFrame;
+            }
+			stop;
+		TrailMode:
+			TNT1 A 0
+			{
+				spawnSmokeTrail = true;
+				setStateLabel("Death");
+			}
+			goto death;
+	}
+}
+
+class bigScorchMarkPermanent : ScorchMarkFloorPermanent
+{
+	default
+	{
+		scale 3;
+	}
+}
+
+class snowDecalSpawner : DecalLeader {
+	override void postbeginPlay()
+	{
+		// Is there a reason we don't call super?
+		if(floorz < pos.z)
+		{
+			destroy();
+		}
+	}
+    default {
+        +FLATSPRITE
+		radius 2;
+        scale 0.8;
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+		Acid:
+            ICDC A 800 {
+				SetOrigin((pos.x, pos.y, floorz), false);
+				A_SETANGLE(random(0,360));
+				frame = random(0,8);
+				if(hasNearbyDecal(30)) {
+                    SetStateLabel("death");
+                }
+                frame = decalFrame;
+            }
+            ICDC AAAAAAAAAAAAA 1 {
+                frame = decalFrame;
+                A_FADEOUT(0.1);
+            }
+        stop;
+	}
+}
+
+class snowDecalPermaSpawner : snowDecalSpawner {
+    default {
+        +FLATSPRITE
+        scale 0.8;
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+		Acid:
+            ICDC A -1 
+			{
+				decalFrame = random(0,7);
+			}
+        stop;
+	}
+}
+
+class bloodSpawner : SelacoActor
+{
+	states
+	{
+		spawn:
+			TNT1 A 0;
+			TNT1 AAAA 0 A_SPAWNITEMEX("OMINOUS_PurpleSpot", frandom(-20,20), frandom(-20,20), 5);
+			stop;
+	}
+}
+
+class OMINOUS_PurpleSpot : DecalLeader
+{
+	mixin Steppable;
+
+	override bool shouldWake() {
+		return true;
+	}
+
+	override void beginPlay() {
+		if(hasNearbyDecal(12)) {
+            destroy();
+        }
+		super.beginPlay();
+	}
+
+
+	override void postBeginPlay() {
+		super.postBeginPlay();
+		setBloodLifespan();
+	}
+
+
+	int loopCycles;
+	
+	default {
+		height 3;
+		radius 3;
+		scale 0.25;
+		alpha 0.7;
+		renderstyle "translucent";
+		+NOBLOODDECALS;
+		+Rollsprite;
+		+FLATSPRITE;
+		+SOLID
+		Health 300;
+		+PRECACHEALWAYS;
+	}
+	states {
+		Precache:
+			PPDL ABCDEFGHIJKLM 0;
+			stop;
+		Spawn:
+			TNT1 A 0;
+			PPDL ABCDEFGHIJKLM 0;
+			TNT1 A 0 BRIGHT {
+				checkEvenSurface(90, 35, true);
+				GoreHandler gh = GoreHandler.instance();
+				if(gh && gh.currentGoreSetting == 1) {
+					die(self,self);
+				}
+				passiveStepSound = "step/wblood";
+				bSteppableIsSlimey = true;
+				SetDecalFrame(random(0,11));
+				A_SetScale(scale.x + frandom(0, 0.2));
+				setSpriteIndex("PPDL");
+				setStateLabel("Looper");
+			}
+		Looper:
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Splash");
+			TNT1 A 0 A_CheckFloor("SpawnDecal");
+			TNT1 A 1
+			{
+				loopCycles++;
+				if(loopCycles > 35)
+				{
+					destroy();
+				}
+			}
+			loop;
+	
+		// Wait for despawning.
+		SpawnDecal:
+				TNT1 A 1 {
+					sprite = getSpriteIndex(frameString());
+					frame = getDecalFrame();
+					LightsHandler lh = LightsHandler.instance();
+					if(lh && random(0,50) == 0 && lh.lightQualitySetting >= 3) {
+						spawnLight(140, 25, 150, 64, shadowRequirement:-1, divisionSpeed: 1.0001, alwaysShow: 1);
+					}
+					becomeSteppable(20, 2);
+					handleGoreSleep();
+				}
+				goto fadeDecal;
+
+		FadeDecal:
+				TNT1 AAAAAAAAAAAAAAAAAAAA 1 {
+					bPreventSleep = true;
+					frame = getDecalFrame();
+					A_FADEOUT(0.05);
+				}
+				goto Death;
+
+			Splash:
+				BLOK A 0;
+				stop;
+				
+			Death:
+				TNT1 A 0;
+				//TNT1 A 0 A_NoBlocking;
+				Stop;
+ }
+}
+
+// Same, but very short. used by ceiling drip
+class OMINOUS_PurpleSpotShort : OMINOUS_PurpleSpot {
+	default
+	{
+		scale 0.2;
+	}
+	states
+	{
+		SpawnDecal:
+				TNT1 A 35 {
+					sprite = getSpriteIndex(frameString());
+					frame = getDecalFrame();
+					bNointeraction = true;
+				}
+				TNT1 A 0{
+					setStateLabel("FadeDecal");
+				}
+				goto FadeDecal;
+				
+	}
+}
+
+class OMINOUS_PurpleSpotCeiling : OMINOUS_PurpleSpot
+{
+
+	// We dont want these to spawn on ceilings!		
+	void checkCeilingTexture()
+	{
+		string hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(0,10, -90,offsetz: -5,offsetforward:0, data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitCeiling)
+		{
+			hittex = texman.GetName(RemoteRay.HitTexture);
+			if(hittex == "F_SKY1" || hittex == "ALLBLACK") 
+			{
+				destroy();
+			}
+		}
+	}
+
+	default
+	{
+		+SPAWNCEILING
+		+NOGRAVITY;
+		Renderstyle "Translucent";
+		scale 0.45;
+		alpha 0;
+	}
+	states
+	{
+		Spawn:
+		Looper:
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Splash");
+			TNT1 A 5
+			{
+				SetOrigin((pos.x, pos.y, ceilingz), false);
+				checkEvenSurface(-90, 35);
+				checkCeilingTexture();
+				decalFrame = random(0,8);
+				A_SETSCALE(scale.x + frandom(-0.2,0.3));
+				sprite = getSpriteIndex("PPGL");
+				frame = decalFrame;
+				if(hasNearbyDecal(20)) {
+                    SetStateLabel("death");
+                }
+				setStateLabel("SpawnDecalDripping");
+			}
+		SpawnDecalDripping:
+				TNT1 A 0
+				{
+					sprite = getSpriteIndex("PPGL");
+				}
+				TNT1 AAAAAAAAAAAAAAAAAAAA 1
+				{
+					frame = decalFrame;
+					A_FADEIN(0.05);
+				}
+				TNT1 AAAAAAAAAAAAAAAAAAAAAA random(10,90) {
+					A_PLAYSOUND("IMPACT/BLOODSPLIT", volume:0.13, pitch:frandom(1.0,1.5));
+					frame = decalFrame;
+					bNointeraction = true;
+					A_SPAWNITEMEX("CeilingDrip", frandom(-10,10), frandom(-10,10), -2);
+				}
+				TNT1 A 0;
+		SpawnDecalWaitForDeath:
+				TNT1 A 1 {
+					if(hasNearbyDecal(20)) {
+                        SetStateLabel("death");
+                    }
+					sprite = getSpriteIndex("PPGL");
+					frame = decalFrame;
+					bNointeraction = true;
+					handleGoreSleep();
+				}
+				TNT1 A 0;
+				stop;
+	}
+}
+
+class ThickGoreSplatter : OMINOUS_PurpleSpot
+{
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if(random(0,8) != 1){
+					SetStateLabel("Death");
+				}
+			}
+			PPGL ABCDEFGHIJKLM 0;
+			TNT1 A 0 BRIGHT {
+				destroyGoreIfLowSetting();
+				SetDecalFrame(random(0,9));
+				A_SetScale(frandom(0.15, 0.6));
+				setSpriteIndex("PPGL");
+				invoker.bloodLifeSpan = getcvar("cl_maxdecals");
+				setBloodLifespan();
+			}
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Splash");
+			TNT1 A 0 A_CheckFloor("SpawnDecal");
+			Goto Splash;
+ }
+}
+
+class OMINOUS_PurpleSpot_NoChanceRoll : OMINOUS_PurpleSpot {
+	states{
+		Spawn:
+			TNT1 A 0;
+			PPDL ABCDEFGHIJKLM 0;
+			TNT1 A 0 BRIGHT {
+				destroyGoreIfLowSetting();
+				SetDecalFrame(random(0,11));
+				A_SetScale(frandom(0.25, 0.5));
+				setSpriteIndex("PPDL");
+				invoker.bloodLifeSpan = getcvar("cl_maxdecals");
+				setBloodLifespan();
+			}
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Splash");
+			TNT1 A 0 A_CheckFloor("SpawnDecal");
+			Goto Splash;
+	}
+}
+
+// Class that checks for nearby paper of paper and kicks them up.
+/*class paperKicker : actor {
+
+	string actorToSearch, kickActor;
+	property ActorToSearch : actorToSearch;
+	property KickActor : kickActor;
+
+	default
+	{
+		paperKicker.ActorToSearch "paperDecalSingle";
+		paperKicker.kickActor "PaperPieceLow";
+	}
+
+	override void PostBeginPlay() {
+		double searchDistance = 50.0;
+		BlockThingsIterator it = BlockThingsIterator.Create(self, searchDistance);
+		Actor currentActor;
+		Array<Actor> actorList;
+
+		// Search for all paper decals in the nearby blocks and add them to the list
+		while (it.Next())	{
+			currentActor = it.thing;
+			if (currentActor.getClassName() == actorToSearch) {
+				actorList.push(currentActor);
+			}
+		}
+
+		// Kill every paperstack actor in this list and replace it with a flying piece of paper.
+		if(actorList.size() > 0) {
+			for(int x=0;x<actorList.size();x++) {
+				Actor selectedActor = actorList[x];
+				double distance = Distance3D(selectedActor);
+				// A more precise search within the block to ensure only pieces of paper near the actor are being thrown
+		        if(distance < searchDistance) {
+					selectedActor.A_SpawnItemEx(kickActor);
+					selectedActor.die(self, self);
+				}
+			}
+		}
+	}
+
+	states 
+	{
+		Spawn:
+			TNT1 A 1;
+			stop;
+	}
+}
+
+class paperKickerBook : paperKicker
+{
+	default
+	{
+		paperKicker.ActorToSearch "BookPaperSinglePiece";
+		paperKicker.kickActor "BookPieceLow";
+	}
+}*/
+
+class DirtDecal: DecalLeader {
+
+	override void BeginPlay() {
+		super.BeginPlay();
+		decalFrame = random(0,3);
+	}
+
+
+	default {
+        +NOBLOCKMAP
+		+NOINTERACTION
+        scale 0.7;
+    }
+	states {
+	Spawn:
+			TNT1 A 0;
+            DIRD A 600 {
+				setOrigin((pos.x, pos.y, floorz), false);
+				hasNearbyDecal(80);
+                frame = decalFrame;
+            }
+        	stop;
+	}
+}
+
+class DustCloudFloor : DecalLeader
+{
+	int frameID;
+	default
+	{
+		renderStyle "Translucent";
+		scale 0.25;
+		alpha 0;
+	}
+	states
+	{
+        Spawn:
+          	TNT1 A 0;
+          	TNT1 A 0 A_SetAngle(random(0,360));
+			DUCL A 30
+			{
+				int frameID = random(0,7);
+				frame = frameID;
+				bxflip = random(0,1) ? 1 : 0;
+				byflip = random(0,1) ? 1 : 0;
+				SetOrigin((pos.x, pos.y, floorz), false);
+				checkEvenSurface(90, 55, true);
+				if(hasNearbyDecal(35))
+				{
+					destroy();
+				}
+			}
+          	DUCL AAAAAAAAAAAAAAAAAAAAAAAAAAA 1
+			{
+				frame = frameID;
+				A_FADEIN(0.03);
+			}
+			DUCL A -1
+			{
+				frame = frameID;
+				sleepIndefinite();
+			}
+			stop;
+	}
+}
+
+class DustCloudFloorPrespawn : DustCloudFloor
+{
+	default
+	{
+		scale 0.5;
+		alpha 0.95;
+	}
+	states
+	{
+        Spawn:
+          	TNT1 A 0;
+          	TNT1 A 0 A_SetAngle(random(0,360));
+			DUCL A 0
+			{
+				bxflip = random(0,1) ? 1 : 0;
+				byflip = random(0,1) ? 1 : 0;
+				SetOrigin((pos.x, pos.y, floorz), false);
+			}
+			DUCL A -1
+			{
+				frame = random(0,7);
+				sleepIndefinite();
+			}
+			stop;
+	}	
+}
+
+
+class DustCloudWall : Actor
+{
+	default
+	{
+		+NOINTERACTION
+		renderStyle "Translucent";
+		alpha 0.8;
+		scale 0.6;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SETROLL(random(0,360));
+			DUCL A -1
+			{
+				frame = random(0,7);
+				Sleepindefinite();
+			}
+			stop;
+	}	
+}
+
+
+class WaterSplatter : DecalLeader {
+
+	override void tick()
+	{
+		super.tick();
+		checkWaterSurface();
+	}
+
+	override void beginPlay() {
+		super.beginPlay();
+		if(hasNearbyDecal(25)) {
+			nearDecal.setStateLabel("fadeaway");
+			return;
+		}
+	}
+
+	default
+	{
+		+FLATSPRITE
+		+FLOORCLIP
+		renderstyle "translucent";
+		scale 0.2;
+		alpha 0.19;
+
+		+SelacoActor.EffectActor;
+	}
+      states 
+	  {
+        Spawn:
+          	TNT1 A 0;
+          	TNT1 A 0 A_SetAngle(random(0,360));
+			WATS A 30
+			{
+				bxflip = random(0,1) ? 1 : 0;
+				byflip = random(0,1) ? 1 : 0;
+				scale*=frandom(0.96,1.05);
+				SetOrigin((pos.x, pos.y, floorz), false);
+			}
+          	WATS A 1
+			{
+				sleep(300);
+			}
+		Fadeaway:
+          	WATS AAAAAAAAAA 2 
+			{
+            	A_FADEOUT(0.01);
+          	} 
+          	stop;
+        death:
+            TNT1 A 0;
+            stop;
+  }
+}
+
+class DirtDecalTiny : DirtDecal
+{
+	default
+	{
+		scale 0.4;
+	}
+}
+
+class MaggotDecal : DecalLeader {
+
+	override void PostBeginPlay() {
+		decalFrame = random(0,4);
+	}
+
+	default {
+		+FLATSPRITE
+		+NOINTERACTION
+		radius 5;
+		scale 0.21;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+            MAGR A -1
+			{
+				SetOrigin((pos.x, pos.y, floorz), false);
+				checkEvenSurface(90, 15);
+				if(hasNearbyDecal(10)) {
+                    SetStateLabel("death");
+                }
+                frame = decalFrame;
+                if(getCvar("g_permanentDestruction")) {
+                    sleepIndefinite();
+                }
+                else {
+                    sleep(getCvar("cl_maxdecals"));
+                }
+            }				
+        stop;
+	}
+}
+
+class FloorDecalConcrete : DecalLeader {
+
+	override void PostBeginPlay() {
+		super.postBeginPlay();
+		decalFrame = random(0,2);
+	}
+
+	default {
+		+FLATSPRITE
+		+NOINTERACTION
+		radius 5;
+		scale 0.21;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+            BULD A -1
+			{
+				checkEvenSurface(90, 15);
+				if(hasNearbyDecal(10)) {
+                    SetStateLabel("death");
+                }
+                frame = decalFrame;
+                if(getCvar("g_permanentDestruction"))
+                {
+                    sleepIndefinite();
+                }
+                else
+                {
+                    sleep(getCvar("cl_maxdecals"));
+                }
+            }				
+        stop;
+	}
+}
+class FloorDecalMetal : FloorDecalConcrete {
+	default
+	{
+		scale 0.26;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+            META A -1
+			{
+				SetOrigin((pos.x, pos.y, floorz), false);
+				if(hasNearbyDecal(3)) {
+                    SetStateLabel("death");
+                }
+                frame = decalFrame;
+                if(getCvar("g_permanentDestruction"))
+                {
+                    sleepIndefinite();
+                }
+                else
+                {
+                    sleep(getCvar("cl_maxdecals"));
+                }
+            }				
+        stop;
+	}
+}
+
+class CeilingDecalConcrete : DecalLeader {
+
+	override void PostBeginPlay() {
+		decalFrame = random(0,2);
+	}
+
+	default {
+		+FLATSPRITE
+		+SPAWNCEILING
+		+NOINTERACTION
+		radius 5;
+		scale 0.21;
+	}
+	states {
+		Spawn:
+            BULD A -1 {
+                frame = decalFrame;
+            }
+        stop;
+	}
+}
+
+class BloodyFootprint : SelacoActor {
+	int frameID;
+	default {
+		+PRECACHEALWAYS;
+		+MOVEWITHSECTOR;
+		//-SELACOACTOR.allowWaterSplashing
+		//+NOBLOCKMAP;
+		renderstyle "translucent";
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			VOXE L 1 {
+				// Remove the footprint if it was created too far above the actual ground
+				if(pos.z > floorz + 10) {
+					Destroy();
+					return;
+				}
+				setOrigin((pos.x, pos.y, floorz), false);
+				frameID = random(0,7);
+			}
+			VOXE L 1 {
+				frame = frameID;
+				Sleepindefinite();
+			}
+			stop;
+	}
+}
+
+// Same as above, but depletes after a while!
+class BloodyFootprintLeft : BloodyFootprint {
+	default {
+		Renderstyle "translucent";
+		+SelacoActor.preventSleep
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			VOXE L 0 {
+				// Remove the footprint if it was created too far above the actual ground
+				if(pos.z > floorz + 10) {
+					Destroy();
+					return;
+				}
+				setOrigin((pos.x, pos.y, floorz), false);
+				frameID = random(0,7);
+			}
+			VOXE L 35
+			{
+				frame = frameID;
+				setStateLabel("Death");
+			}
+		Death:
+			VOXE L 35
+			{
+				frame = frameID;
+			}
+			VOXE L 1 {
+				frame = frameID;
+				if(getCvar("g_permanentGore") == 1)
+				{
+					sleepIndefinite();
+				} else {
+					sleep(1200);
+				}
+			}
+		FadeOut:
+			VOXE LLLLLLLLLLLLLLLLLLLLL 1 {
+				//bPreventSleep = true;
+				frame = frameID;
+				A_FADEOUT(0.05, FTF_REMOVE);
+			}
+			stop;
+	}
+}
+class BloodyFootprintRight : BloodyFootprintLeft {
+	default {
+		+XFLIP;
+	}
+}
+
+class BloodyFootprintZombieLeft : BloodyFootprintLeft
+{
+	states
+	{
+		Death:
+			VOXE L 80
+			{
+				bPreventSleep = true;
+				frame = frameID;
+			}
+			VOXE L 1 {
+				frame = frameID;
+			}
+			VOXE L 5
+			{
+				frame = frameID;
+			}
+			goto FadeOut;
+	}
+}
+class BloodyFootprintZombieRight : BloodyFootprintZombieLeft
+{
+	default {
+		+XFLIP;
+	}
+}
+
+
+
+class SlimeyPrintRight : GoreMaster {
+	int frameID;
+	default {
+		+MOVEWITHSECTOR;
+		+NOINTERACTION;
+		SelfLighting "471344";
+		scale 0.21;
+		alpha 0;
+		+flatsprite;
+	}
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				// Remove the footprint if it was created too far above the actual ground
+				if(pos.z > floorz + 10) {
+					Destroy();
+					return;
+				}
+
+				setOrigin((pos.x, pos.y, floorz), false);
+				frameID = random(0,6);
+			}
+		SpawnFootprint:
+			SFOT AAAAAAAAAA 1 {
+				A_FADEIN(0.1);
+				frame = frameID;
+			}
+			goto death;
+		Death:
+			SFOT A 1 {
+				frame = frameID;
+				if(getCvar("g_permanentGore") == 1)
+				{
+					sleepIndefinite();
+				} else {
+					sleep(1200);
+				}
+			}
+		Die:
+			SFOT AAAAAAAAAAA 1 {
+				bPreventSleep = true;
+				A_FADEOUT(0.05);
+				frame = frameID;
+			}
+			stop;
+	}
+}
+
+class SlimeyPrintLeft : SlimeyPrintRight {
+	default {
+		+xflip
+	}
+}
+
+class WateryPrintRight : Actor {
+	int frameID;
+	default {
+		//-SELACOACTOR.allowWaterSplashing;
+		+flatsprite;
+		+MOVEWITHSECTOR;
+		+NOINTERACTION;
+		Renderstyle "Shaded";
+		scale 0.21;
+	}
+
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				// Remove the footprint if it was created too far above the actual ground
+				if(pos.z > floorz + 10) {
+					Destroy();
+					return;
+				}
+				
+				setOrigin((pos.x, pos.y, floorz), false);
+				frameID = random(0,6);
+			}
+		SpawnFootprint:
+			SFOT AAAAAAAAAA 1 BRIGHT {
+				A_FADEIN(0.1);
+				frame = frameID;
+			}
+			SFOT A 1 BRIGHT {
+				sleep(900);
+				frame = frameID;
+			}
+			SFOT AAAAAAAAAAA 1 BRIGHT {
+				A_FADEOUT(0.05);
+				frame = frameID;
+			}
+			stop;
+	}
+}
+
+class WateryPrintLeft : WateryPrintRight {
+	default { +xflip; }
+}
+
+class GlassCrack : DecalLeader
+{
+	const ENLARGE_CHANCE = 3;
+	bool allowEnlarge;
+	int frameID;
+	int ceilingDecal;
+	actor glassCrackActor;	
+	bool glassCrackSuccess;
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		frameID = random(0,4);
+	}
+
+	override void tick()
+	{
+		super.tick();
+		if(ceilingDecal) {
+			setOrigin((pos.x, pos.y, ceilingz), false);
+		}
+	}
+
+	default
+	{
+		scale 0.21;
+	}
+	states 
+	{
+		spawn:
+			TNT1 A 0;
+			GLZZ A 1 {
+				if(hasNearbyDecal(10))
+				{
+					destroy();
+					return;
+				}
+				frame = frameID;
+				sleep(75);
+			}
+		CheckEnlarge:
+			TNT1 A 0
+			{
+				// Small chance for the crack to go slightly larger with time.
+				if(allowEnlarge && random(0,100) <= ENLARGE_CHANCE)
+				{
+					// Enlarge
+					A_SETSCALE(scale.x*1.9);
+
+					// Puffs
+					A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, 0.3,0.3,0.3);
+					A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, 0,0.3,0.3);
+					A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, 0.3,0,0.3);
+
+					// Spawn a neighbour crack
+					[glassCrackSuccess, glassCrackActor] = A_SPAWNITEMEX("GlassCrack",frandom(11,15), angle:random(0,360));
+					if(glassCrackActor)
+					{
+						glassCrack(glassCrackActor).allowEnlarge = false;
+					}
+
+					// Krkkk
+					A_Playsound("dest/icecrack", CHAN_AUTO, 1.0);
+
+					// Change frame
+					frameID = random(0,4);
+				}
+			}
+		WaitForFadeout:
+			GLZZ A 1 {
+				frame = frameID;
+				if(getCvar("g_permanentDestruction") == 1)
+				{
+					sleepIndefinite();
+				} else {
+					sleep(350);
+				}
+			}
+		Fadeout:
+			GLZZ A 1 {
+				frame = frameID;
+				A_FADEOUT(0.05, FTF_REMOVE);
+			}		
+			loop;	
+	}
+}
+
+class GlassShardsDecal: DecalLeader {
+	states {
+		spawn:
+			TNT1 A 0;
+			VOXE A 1 A_SpawnItemEx("GlassShardsDecalSprite");
+			stop;
+	}
+}
+
+class GlassShardsDecalSprite: DecalLeader {
+	mixin Steppable;
+
+	int frameID;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		if(bDestroyed) return;	// Do not continue, we could destroy the blockmap!
+		
+		frameID = random(0,4);
+
+		passiveStepSound = "step/wglas";
+		bSteppableAlerts = true;
+		becomeSteppable(50, 2);
+	}
+
+	default {
+		renderstyle "add";
+		alpha 0.75;
+		scale 1;
+	}
+
+	states {
+		spawn:
+			TNT1 A 0;
+			GLDE A -1 {
+				frame = frameID;
+				sleepIndefinite();
+			}
+			stop;
+	}
+}
+
+class SnowDecal: DecalLeader {
+	mixin Steppable;
+
+	int frameID;
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		frameID = random(0,3);
+		passiveStepSound = "step/snow";
+	}
+
+	default {
+		DistanceCheck "r_ThingLOD";
+		//+THRUACTORS;
+		//-NOINTERACTION;
+		-SELACOACTOR.SlopeAlignment;
+		RenderStyle "normal";
+		-NOGRAVITY;
+		radius 4;
+		alpha 0;
+		maxstepheight 9;
+		scale 1.0;
+	}
+
+	states {
+		spawn:
+			TNT1 A 0;
+			SNPL A -1 {
+				bNointeraction = true;
+				becomeSteppable(32, 4);
+				sleepindefinite();
+				frame = frameID;
+			}
+			stop;
+	}
+}
+
+class SnowDecalAutomated: SnowDecal {
+
+	void checkEvenFloor() {
+		// Check to see if the floor is equal around the actor.
+		for(int x=0;x<360;x+=60) 
+		{
+			for(int j;j<45;j+=5) {
+				FLineTraceData RemoteRay;
+				LineTrace(x,90, 90,offsetz: height,offsetforward:j, data: RemoteRay);
+				if(remoteRay.HitType == TRACE_HitFloor) 
+				{
+					if(!surfaceDistance) {
+						surfaceDistance = RemoteRay.Distance;
+					}
+					if(RemoteRay.Distance > 20) {
+						destroy();
+					}
+				}
+			}
+		}
+	}
+
+	default {
+		scale 0.6;
+	}
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		A_SETANGLE(random(0,360));
+		A_Setscale(scale.x+frandom(0.2,0.7));
+		frameID = random(0,3);
+	}
+
+	states {
+		spawn:
+			TNT1 A 0;
+			SNPL A 9 {
+				A_SetRenderStyle(0, STYLE_Translucent);
+				frame = frameID;
+			}
+			SNPL AAAA 1 {
+				if(hasNearbyDecal(45)) {
+					destroy();
+				}
+				frame = frameID;
+				A_FADEIN(0.25);
+			}
+			SNPL A 6 {
+				checkEvenFloor();
+				A_SetRenderStyle(1.0, STYLE_NORMAL);
+				frame = frameID;
+			}
+			SNPL A -1 {
+				bNointeraction = true;
+				sleepindefinite();
+				frame = frameID;
+				becomeSteppable(32, 4);
+			}
+			stop;
+	}
+}
+
+// An expanding pool that spawns on dead enemies.
+class PurpleBloodPool : DecalLeader {
+	mixin GoreMasterMixin;
+	float scaleSpeed;
+	bool shouldExpand;
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		shouldExpand = true;
+		scaleSpeed = 0.0045;
+		angle = random(0,259);
+		checkEvenSurface(90);
+	}
+	
+	void stopExpanding() {
+		sleepIndefinite();
+		shouldExpand = false;
+	}
+
+	override void tick() 
+	{
+		super.tick();
+		if(scale.x < frandom(0.4, 0.55) && shouldExpand) 
+		{
+			scale = (scale.x + scaleSpeed, scale.y + scaleSpeed);
+			if(scaleSpeed > 0.0005) 
+			{
+				scaleSpeed -= 0.000005;
+			}
+		}
+	}
+
+	default {
+		SelacoActor.SleepDistance 0;
+		+FLATSPRITE
+		alpha 0.9;
+		SCALE 0;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 35;
+			PPOL A -1 
+			{
+				frame = random(0,3);
+			}
+		Death:
+			TNT1 A -1;
+			stop;
+	}
+}
+
+class RedBloodPool : PurpleBloodPool
+{
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		scaleSpeed = 0.0035;
+	}
+
+	default
+	{
+		SelfLighting "";
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			RPOL A -1
+			{
+				frame = random(0,2);
+			}
+		Death:
+			TNT1 A 1;
+			stop;
+	}	
+}

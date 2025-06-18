@@ -1,0 +1,1716 @@
+#include "Brightmaps/panels.txt"
+#include "Brightmaps/textures.txt"
+#include "Brightmaps/jerrytex.txt"
+#include "Brightmaps/GrenadeLauncherDisplay.txt"
+#include "Brightmaps/paintings.txt"
+#include "materials.gl"
+
+HardwareShader PostProcess Scene {
+    Shader "SHADERS/filmgrain.glsl" 330
+    Name "FilmGrain"
+    uniform float ttime
+    uniform float intensity
+    uniform float scale
+    Enabled
+}
+
+material texture glass1
+{
+    normal "NORMAL/glass1_n.png"
+    specular "NORMAL/glass1_s.png"
+    specularlevel 35
+    glossiness 5
+}
+
+material flat glassblu
+{
+    normal "NORMAL/glass1_n.png"
+    specular "NORMAL/glass1_s.png"
+    specularlevel 35
+    glossiness 5
+}
+
+HardwareShader PostProcess Scene {
+    Shader "SHADERS/screenrain.glsl" 330
+    Name "ScreenRain"
+    Texture rippleTex "SHADERS/RAINNORM.png"
+    Texture controlTex "SHADERS/RAINCONT.png"
+    uniform float amount
+    uniform float timer
+    uniform vec2 offset
+    Enabled
+}
+
+
+// Light Shafts must fade out as you approach them
+HardwareShader Sprite LTRDA0 {
+	Shader "SHADERS/lightshaft.glsl"
+}
+
+HardwareShader Sprite LTRDB0 {
+	Shader "SHADERS/lightshaft.glsl"
+}
+
+HardwareShader Sprite LTRDC0 {
+	Shader "SHADERS/lightshaft.glsl"
+}
+
+HardwareShader Sprite LTRDD0 {
+	Shader "SHADERS/lightshaft.glsl"
+}
+
+HardwareShader Sprite LTRDE0 {
+	Shader "SHADERS/lightshaft.glsl"
+}
+
+HardwareShader Sprite LTRDF0 {
+	Shader "SHADERS/lightshaft.glsl"
+}
+
+pointlight IceGrenade
+{
+	Color 0.0 0.8 1.0
+	size 25
+	offset 0 20 0
+}
+
+object IceGrenade {
+	frame GRENZ { LIGHT IceGrenade }
+}
+
+
+pointlight DoubleSphereGlow
+{
+    color 1.0 0.0 1.0
+    size 64
+}
+
+object DoubleDamagePowerup
+{
+    frame DDMGA { light DoubleSphereGlow }
+}
+
+pointlight BrokenJunctionTrail
+{
+    color 0.3 0.3 0.7
+    size 60
+}
+object PlasmaPuffMissile {
+    frame TNT1 {light BrokenJunctionTrail}
+}
+
+pointlight BrokenJunction
+{
+    color 0.3 0.3 0.7
+    offset 0 0 15
+    size 150
+}
+
+object JunctionBox {
+    frame TNT1 {light BrokenJunction}
+}
+
+// SKYBOX
+Skybox "LATENIGHT" fliptop
+{
+  SKY_N
+  SKY_E
+  SKY_S
+  SKY_W
+  SKY_T
+  SKY_B
+}
+
+Skybox "Void" 
+{
+  BLACKOUT
+  BLACKOUT
+  BLACKOUT
+  BLACKOUT
+  BLACKOUT
+  BLACKOUT
+}
+
+Skybox "LATE2" fliptop
+{
+  SKY2_N
+  SKY2_E
+  SKY2_S
+  SKY2_W
+  SKY2_T
+  SKYNG_B
+}
+
+Skybox NIGHT fliptop
+{
+  SKYNG_N
+  SKYNG_E
+  SKYNG_S
+  SKYNG_W
+  SKYNG_T
+  SKYNG_B
+}
+
+Skybox DAWN fliptop
+{
+  DAWN_N
+  DAWN_E
+  DAWN_S
+  DAWN_W
+  DAWN_T
+  DAWN_B
+}
+
+Skybox EDAWN fliptop
+{
+  EDAWN_N
+  EDAWN_E
+  EDAWN_S
+  EDAWN_W
+  EDAWN_T
+  DAWN_B
+}
+
+
+Skybox LEGACY fliptop
+{
+  ABS_N
+  ABS_E
+  ABS_S
+  ABS_W
+  ABS_T
+  ABS_B
+}
+
+// MARKERS
+
+Pointlight RedMarkerLight {
+    color 1 0.1 0.1
+    size 16
+    offset 0 5 0
+}
+Pointlight BlueMarkerLight {
+    color 0.3 0.3 1.0
+    size 16
+    offset 0 5 0
+}
+Pointlight YellowMarkerLight {
+    color 1.0 1.0 0.1
+    size 16
+    offset 0 5 0
+}
+Pointlight GreenMarkerLight {
+    color 0.1 1.0 0.1
+    size 16
+    offset 0 5 0
+}
+Pointlight PurpleMarker {
+    color 1.0 0.1 1.0
+    size 16
+    offset 0 5 0
+}
+object RedMarker
+{
+    frame TNT1 {Light RedMarkerLight}
+}
+object BlueMarker
+{
+    frame TNT1 {Light BlueMarkerLight}
+}
+object YellowMarker
+{
+    frame TNT1 {Light YellowMarkerLight}
+}
+object GreenMarker
+{
+    frame TNT1 {Light GreenMarkerLight}
+}
+object PurpleMarker
+{
+    frame TNT1 {Light PurpleMarker}
+}
+Pointlight heartneon2 {
+    color 1 0 0.6
+    size 24
+    offset 0 35 0
+}
+
+Pointlight heartneon3 {
+    color 1 0 0.7
+    size 32
+    offset 0 35 0
+}
+Pointlight heartneon4 {
+    color 1 0.3 0.75
+    size 48
+    offset 0 35 0
+}
+Pointlight heartneon5 {
+    color 1 0.4 0.75
+    size 56
+    offset 0 35 0
+}
+
+object NeonSignHeart {
+    Frame VOXEB {Light heartNeon2}
+    Frame VOXEC {Light heartNeon3}
+    Frame VOXED {Light heartNeon4}
+    Frame VOXEE {Light heartNeon5}
+}
+
+
+PointLight PaintingLight
+{
+    noshadowmap 1
+    color 1.0 1.0 1.0
+    size 4
+    offset 2 5 0
+}
+
+PointLight FragShellLight
+{
+    color 0.9 0.7 0.1
+    size 64
+    noshadowmap 1
+}
+PointLight IceShellLight
+{
+    color 0.3 0.3 0.9
+    size 64
+    noshadowmap 1
+}
+PointLight AcidShellLight
+{
+    color 0.3 0.7 0.3
+    size 64
+    noshadowmap 1
+}
+object GrenadeLauncherFragBomb 
+{
+    frame VOXEL {light FragShellLight}
+}
+object GrenadeLauncherAcidBomb 
+{
+    frame VOXEL {light AcidShellLight}
+}
+object GrenadeLauncherIceBomb 
+{
+    frame VOXEL {light IceShellLight}
+}
+brightmap texture MONITOR_A {
+  map "MD/screens/MONITOR_A_BW.png"
+}
+
+PointLight ComputerMonitor
+{
+    noshadowmap 1
+    color 0.7 1.0 1.0
+    size 16
+    offset 15 15 0
+}
+
+PointLight ComputerMonitorGreen
+{
+    noshadowmap 1
+    color 0.4 0.8 0.4
+    size 32
+    offset 15 15 0
+}
+
+Pointlight SwitchGreen {
+    noshadowmap 1
+    color 0.1 0.7 0.1
+    size 8
+    offset 2 10 0 
+}
+
+Pointlight SwitchRed {
+    noshadowmap 1
+    color 0.7 0.1 0.1
+    size 8
+    offset 2 4 -0
+}
+
+Pointlight SwitchRedEmpty {
+    color 1.0 0.2 0.2
+    size 0
+    offset 2 -2 -0
+}
+
+Pointlight SwitchGreenEmpty {
+    color 0 0 0
+    size 8
+    offset 2 4 -0
+}
+
+object SWITCH1 {
+    Frame SWI1A {Light SwitchGreen}
+}
+
+object SWITCH1 {
+    Frame SWI1B {Light SwitchGreenEmpty}
+}
+
+object SWITCH1 {
+    Frame SWI1D {Light SwitchRedEmpty}
+}
+
+object SWITCH1 {
+    Frame SWI1E {Light SwitchRed}
+}
+
+object SWITCH2 {
+    Frame SWI2A {Light SwitchGreen}
+}
+
+object SWITCH2 {
+    Frame SWI2B {Light SwitchGreenEmpty}
+}
+
+object SWITCH2 {
+    Frame SWI2D {Light SwitchRedEmpty}
+}
+
+object SWITCH2 {
+    Frame SWI2E {Light SwitchRed}
+}
+
+object ComputerMonitor_A {
+    Frame VOXEL {Light ComputerMonitor}
+}
+
+object ComputerMonitor_B {
+    Frame VOXEL {Light ComputerMonitor}
+}
+
+object ComputerMonitor_A2 {
+    Frame VOXEL {Light ComputerMonitorGreen}
+}
+
+object ComputerMonitor_B2 {
+    Frame VOXEL {Light ComputerMonitorGreen}
+}
+
+PointLight CyroLight
+{
+    color 0.3 0.3 1.0
+    size 90
+}
+
+pulselight StimpackLight
+{
+    noshadowmap 1
+    color 0.1 0.1 1.0
+    size 40
+    secondarySize 1
+    interval 0.65
+}
+
+pointlight keyboardGlow
+{
+    attenuate 1
+    color 0.3 0.7 1.0
+    offset 0 10 0
+    size 48
+}
+
+object HOLOKEYBOARD
+{
+    frame VOXE { light keyboardGlow }
+}
+
+
+pointlight BlueHue {
+	color 0.1 0.1 1.0
+	size 13
+}
+
+pointlight GREENORBTHING {
+	color 0.0 1.0 0.0
+	size 250
+}
+
+Object SomeBrightObject {
+	Frame PGEYA {light GREENORBTHING }
+}
+
+pointlight TradingCard {
+	color 1.0 1.0 1.0
+	size 30
+}
+
+pointlight Flashlight3
+{
+    attenuate 1
+    color 0.66 0.66 0.96
+    size 250
+    offset 0 100 0
+}
+
+pointlight FlashlightBrighter
+{
+    color 0.7 0.7 0.7
+    size 330
+    offset 0 57 5
+    Spot 21 29
+}
+pointlight FlashlightDimmer
+{
+    noshadowmap 1
+    color 0.4 0.4 0.55
+    size 220
+    offset 0 57 5
+    Spot 25 42
+}
+
+
+//pointlight FlashlightBrighter
+//{
+//    color 0.6 0.6 0.6
+//    size 210
+//    offset 0 57 5
+//}
+//pointlight FlashlightDimmer
+//{
+//    noshadowmap 1
+//    color 0.4 0.5 0.4
+//    size 160
+//    offset 0 57 5
+//    Spot 1 40
+//}
+
+
+
+// MINE
+pulselight PULSEMINE
+{
+    noshadowmap 1
+    color 0.3 0.5 1.0
+    size 20
+    secondarySize 8
+    interval 0.65
+}
+
+pulselight ABILITYPICKUP
+{
+    color 0.4 0.4 0
+    size 40
+    secondarySize 70
+    interval 1.0
+	offset 0 40 0
+}
+
+
+pointlight EnemyGlow {
+    color 1.0 0.4 0.4
+    size 20
+}
+
+
+pointlight CredLight {
+    noshadowmap 1
+    color 0.7 0.5 0
+    size 10
+}
+
+flickerlight2 PlasmaShield {
+    attenuate 1
+    color 1.0 0.4 0.4 
+    size 90
+    secondarySize 85
+    interval 0.05
+}
+
+object ShieldPieceMain {
+    frame SHIEA {light PlasmaShield}
+}
+
+PointLight YellowLight {
+    attenuate 1
+    color 0.7 0.7 0.3
+    size 70
+}
+
+PointLight mortarLight {
+    noshadowmap 1
+    color 1 0.6 0.3
+    size 120
+}
+
+object mortar
+{
+    frame VOXEL {light mortarLight}
+}
+
+pointlight BlueLight {
+    attenuate 1
+    color 0.2 0.2 1.0
+    size 70
+}
+
+pointlight SparkMissileLight
+{
+    noshadowmap 1
+    color 0.9 0.5 0.1
+    size 35
+}
+
+object SparkMissile
+{
+    frame LENY {light SparkMissileLight}
+}
+object SparkMissilePersistant
+{
+    frame LENY {light SparkMissileLight}
+}
+object SparkMissileGravity
+{
+    frame LENY {light SparkMissileLight}
+}
+
+
+pointlight PurpleLight {
+    attenuate 1
+    color 1.0 0.4 1.0
+    size 70
+}
+
+pointlight orangeLight {
+    attenuate 1
+    offset 5 10 0
+    color 1.0 0.4 0.4
+    size 70
+}
+
+pointlight RedLightSmaller {
+    attenuate 1
+    color 0.5 0.1 0.1
+    size 35
+}
+
+pointlight EnforcerMuzzleLight {
+    color 0.5 0.4 0.1
+    size 60
+}
+
+
+object AlienMuzzleMinigun {
+    frame EMU2 {light EnforcerMuzzleLight }
+}
+
+object DoorMarker {
+    // Killig these lights for now. I'm not feeling it. It adds to the overal busyness of a scene.
+    //FRAME LOCKA {light YellowLight}
+    //FRAME LOCKL {light YellowLight}
+    //FRAME LOCKB {light BlueLight}
+    //FRAME LOCKC {light PurpleLight}
+    FRAME LOCKN {light orangeLight}
+    FRAME UNLOA {light GreenLight}
+    FRAME UNLOB {light GreenLight}
+    FRAME UNLOC {light GreenLight}
+    FRAME UNLOD {light GreenLight}
+    FRAME UNLOE {light GreenLight}
+    FRAME UNLOF {light GreenLight}
+    FRAME UNLOG {light GreenLight}
+    FRAME UNLOH {light GreenLight}
+    FRAME UNLOI {light GreenLight}
+    FRAME UNLOJ {light GreenLight}
+    FRAME UNLOK {light GreenLight}
+}
+
+pointlight YellowLightSmaller {
+    color 1.0 1.0 0
+    size 35
+}
+
+Object credits {
+	FRAME CREDB { LIGHT CredLight }
+}
+
+
+Object BlueFlareSmall {
+	Frame PGEZ { LIGHT BlueLight }
+}
+
+Object BlueFlare {
+	Frame PGEZ { LIGHT BlueLight }
+}
+
+Object RedFlare4 {
+	Frame PGEX { LIGHT RedLightSmaller }
+}
+
+Object YellowFlare3 {
+	Frame PGEX { LIGHT YellowLightSmaller }
+}
+
+// Objects
+
+Object SentryGun
+{
+	Frame SENTA { Light SentryTurretFriendly}
+}
+
+pointLight SentryTurretFriendly
+{
+    color 0.2 1.0 0.2
+    size 30
+}
+
+//Lightning Gun
+pointlight M2PlasmaLight1
+{
+    color 0.0 0.8 1.0
+    size 96
+}
+
+flickerlight2 ElectrocutionLight
+{
+    color 0.0 0.8 1.0
+    size 42
+    secondarySize 32
+    interval 0.05
+    offset 0 0 0
+}
+
+pulselight grenadeLight
+{
+    color 1.0 1.0 0.0
+    size 60
+    secondarySize 10
+    interval 0.8
+}
+
+pointlight ClusterLight
+{
+    color 0.3 1.0 0.3
+    size 60
+}
+
+
+object AcesGrenadeFlare
+{
+	frame PGEXC { light grenadeLight }
+}
+
+
+pointlight PlantExplosiveRed
+{
+	Color 1.0 0.2 0.2
+	size 33
+	offset 0 10 0
+}
+
+object explosivePlant {
+    frame PLEXA {light PlantExplosiveRed}
+}
+
+pointlight PhoneLight
+{
+	Color 0.0 0.6 1.0
+	size 33
+	offset 0 10 0
+}
+
+object BlueFlareSmall2
+{
+	Frame PGEZA { light PhoneLight }
+}
+
+pointlight BlueLED
+{
+	Color 0.0 0.4 1.0
+	size 7
+	offset 0 10 0
+}
+
+flickerlight2 WeldLight
+{
+    noshadowmap 1
+    color 0.0 0.8 1.0
+    size 42
+    secondarySize 32
+    interval 0.05
+    offset 0 0 0
+}
+
+
+object WeldEffect
+{
+    Frame WLD1 {light WeldLight}
+}
+
+Pointlight CABICARD
+{
+    noshadowmap 1
+	Color 0.0 1.0 0.0
+	size 7
+}
+
+Object CabinetCard
+{
+	Frame CABIA { Light CABICARD }
+}
+
+pointlight LightningImpactLight
+{
+    color 0.0 0.8 1.0
+    size 128
+}
+
+
+pointlight DangerIndicator {
+    color 1.0 0 0
+    size 128
+}
+
+object IncomingDanger {
+    frame DNGR {light DangerIndicator}
+}
+
+// Armour Helmet
+pulselight WeaponUpgradeSpawner
+{
+    color 0.0 0.6 0.0
+    size 48
+    secondarySize 64
+    interval 0.8
+}
+
+
+pointlight DeskLight
+{
+    color 0.6 0.6 0.6
+    size 30
+    offset 0 0 10
+}
+
+// DESK LIGHT
+
+object desklamp_stand {
+    frame DESLB { light DeskLight }
+}
+
+//Explosion
+pulselight EXPLOSIONFLASH
+{
+    color 1.0 0.3 0.0
+    size 100
+    secondarySize 120
+    interval 0.1
+    offset 0 60 0
+}
+
+pointlight cameraLED
+{
+    color 1.0 0.3 0.0
+    size 30
+}
+
+object SecurityCamera
+{
+    frame CAMMA { light cameraLED }
+
+}
+
+pointlight PortableMedkitDecorationLight
+{
+    color 1.0 0 0
+    size 45
+}
+
+object PortableMedkitDecoration
+{
+    frame MEDSA { light PortableMedkitDecorationLight }
+}
+
+flickerlight2 TPortNormal
+{
+    color 0.5 0.5 0.7
+    size 40
+    secondarySize 56
+    interval 0.01
+    offset 0 32 0
+}
+
+flickerlight2 TPortZap
+{
+    color 0.45 0.45 0.9
+    size 88
+    secondarySize 128
+    interval 0.01
+    offset 0 32 0
+}
+
+
+flickerlight BFGEXPLO
+{
+    color 0.1 1.0 0.0
+    size 200
+	secondarySize 240
+	chance 0.99
+}
+
+
+
+
+object BurningAlien
+{
+    frame BDT1 { light BURNINGACTOR }
+	frame BDT2 { light BURNINGACTOR }
+	frame BDT3 { light BURNINGACTOR }
+}
+object BurningCivilian
+{
+    frame BDT1 { light BURNINGACTOR }
+	frame BDT2 { light BURNINGACTOR }
+	frame BDT3 { light BURNINGACTOR }
+}
+object BurningCrawlerMine
+{
+    frame CRBRA { light BURNINGACTOR }
+    frame CRBRB { light BURNINGACTOR }
+    frame CRBRC { light BURNINGACTOR }
+    frame CRBRD { light BURNINGACTOR }
+    frame CRBRE { light BURNINGACTOR }
+    frame CRBRF { light BURNINGACTOR }
+    frame CRBRG { light BURNINGACTOR }
+    frame CRBRH { light BURNINGACTOR }
+}
+
+
+
+
+
+pulselight FSKULL
+{
+color 1.0 1.0 0.0
+size 32
+secondarysize 25
+interval 3
+}
+
+pointlight CABINET_LIGHT
+{
+    color 1.0 1.0 08
+    size 20
+    offset 20 16 0
+}
+
+object SPACEBRO_FRAMES
+{
+    frame SCBA { light CABINET_LIGHT }
+}
+
+// Plasma
+pointlight PLASMABALL
+{
+    color 0.6 0.6 1.0
+    size 32
+}
+
+pointlight PLASMABALLDetonate
+{
+    color 0.6 0.6 1.0
+    size 64
+}
+
+pointlight PlasmaMuzzleLight {
+    color 0.6 0.6 1.0
+    size 96
+}
+
+object BlueFlareMedium {
+    frame PGEZ {light PlasmaMuzzleLight}
+}
+
+pointlight PLASMABALL_TRAVEL
+{
+    color 0.3 0.3 1.0
+    size 32
+}
+
+pointlight PLASMABALLSMALL
+{
+    color 0.0 0.2 1.0
+    size 80
+}
+
+object PlasmaPuff
+{
+    frame PLSE { light PLASMABALL }
+}
+
+
+// DOOR LOCKS
+pulselight BLUELOCK
+{
+    color 0.5 0.5 1.0
+    size 110
+}
+
+pulselight REDLOCK
+{
+    color 1.0 0.5 0.5
+    size 130
+}
+
+pulselight YELLOWLOCK
+{
+    color 1.0 1.0 0.5
+    size 130
+}
+
+pulselight GreenUnlock
+{
+    color 0.4 1.0 0.4
+    size 130
+}
+
+
+Object BlueDoorLock {
+    frame LOCKM {light BLUELOCK}
+    frame UNLO {light GreenUnlock}
+}
+
+Object RedDoorLock {
+    frame LOCKL {light REDLOCK}
+    frame UNLO {light GreenUnlock}
+}
+
+Object YellowDoorLock {
+    frame LOCKO {light YELLOWLOCK}
+    frame UNLO {light GreenUnlock}
+}
+
+// Floor lamp
+pointlight LAMP
+{
+    color 1.0 1.0 1.0
+    size 56
+    offset 0 44 0
+}
+
+pointlight YELLOWLAMP
+{
+    color 1.0 1.0 0.0
+    size 20
+
+}
+
+// Tall red torch
+pulselight BURNINGACTOR
+{
+    color 1.0 0.4 0.1
+    size 58
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+    noshadowmap 1
+}
+
+flickerlight2 Flamelight {
+    color 1.0 0.3 0
+    size 95
+	secondarysize 85
+	interval 0.5
+}
+
+flickerlight2 FlamelightMedium {
+    noshadowmap 1
+    color 1.0 0.3 0
+    size 70
+	secondarysize 76
+	interval 0.5
+}
+
+flickerlight2 FlamelightSmall {
+    color 1.0 0.5 0
+    size 55
+	secondarysize 52
+	interval 0.5
+}
+
+flickerlight2 GeneratorPulse {
+    color 0.2 0.4 0.4 
+    size 50
+    secondarySize 43
+    interval 0.006
+}
+flickerlight2 GeneratorPulseBroken {
+    color 0.35 0.4 0.4 
+    size 50
+    secondarySize 35
+    interval 0.004
+}
+object Generator
+{
+    frame VOXEA {light GeneratorPulse}
+    frame VOXEB {light GeneratorPulseBroken}
+}
+
+object FireActor
+{
+	frame FLME { light FlamelightMedium }
+}
+
+
+object CarFire
+{
+	frame FLM1 { light FlamelightMedium }
+    frame FLM2 { light FlamelightMedium }
+    frame FLM3 { light FlamelightMedium }
+}
+
+object Megafire
+{
+	frame FLME { light FlamelightMedium }
+}
+
+pointlight HUEALIEN
+{
+    attenuate 0
+    color 1.0 0.3 0.2
+    size 60
+	offset 10 0 0
+}
+
+object POWERCELL
+{
+    frame VOXEB { light HUEALIEN }
+}
+
+pointlight HUEALIENLARGE
+{
+    attenuate 0
+    color 1.0 0.3 0.2
+    size 80
+	offset 10 0 0
+}
+
+object RedFlareLarge
+{
+    frame LENR { light HUEALIENLARGE }
+}
+
+
+object RedFlareLargeShort
+{
+    frame LENR { light HUEALIENLARGE }
+}
+pointlight HUEALIENBLUE
+{
+    color 0.2 1.0 0.2
+    size 80
+	offset 10 0 0
+}
+
+pointlight YellowMuzzleFlashUltra
+{
+    color 2.0 0.3 0
+    size 100
+	offset 10 0 0
+}
+
+pointlight YellowMuzzleFlashLow
+{
+    color 2.0 0.3 0
+    size 90
+	offset 10 0 0
+}
+
+pointlight HUEHUELARGE
+{
+    attenuate 0
+    color 2.0 0.3 0
+    size 150
+	offset 10 0 0
+}
+
+pointlight HUEHUE
+{
+    attenuate 1
+    color 2.0 0.3 0
+    size 120
+	offset 10 0 0
+}
+
+pointlight HUECRICK
+{
+    attenuate 1
+    color 10.0 0.3 0.1
+    size 150
+	offset 10 0 0
+}
+
+pointlight WHIWHI
+{
+    color 1.0 0.5 0
+    size 60
+}
+
+pointlight GreenLight
+{
+    color 0 1.0 0
+    size 120
+    offset 5 10 0
+}
+
+Pointlight VACBOTLightBlue
+{
+    attenuate 1
+    Color 0.0 0.4 1.0
+    size 20
+    noshadowmap 1
+}
+Pointlight VACBOTLightGreen
+{
+    attenuate 1
+    Color 0.4 1.0 0.4
+    size 20
+    noshadowmap 1
+}
+Pointlight VACBOTLightRed
+{
+    attenuate 1
+    Color 1.0 0.4 0.4
+    size 20
+    noshadowmap 1
+}
+
+Pointlight VACBOTLightBluePinned
+{
+    attenuate 1
+    offset 0 10 0
+    Color 0.0 0.4 1.0
+    size 20
+    noshadowmap 1
+}
+object Combat_Vacbot {
+    frame VOXE {light VACBOTLightBlue}
+}
+
+object VACBOT_PINNED {
+    frame VOXE {light VACBOTLightBluePinned}
+}
+object VACBOT_WOUNDED {
+    frame VOXE {light VACBOTLightBlue}
+}
+
+Pointlight VACBOTLightBlue_Charging
+{
+    Color 0.2 1.0 0.2
+    size 10
+    noshadowmap 1
+}
+
+object VACBOT_LED 
+{
+    frame VOXEA {light VACBOTLightBlue}
+    frame VOXEB {light VACBOTLightRed}
+    frame VOXEC {light VACBOTLightGreen}
+}
+
+pulselight HUEBLU
+{
+    color 0.3 0.3 1.0
+    size 50
+	secondarySize 64
+	interval 0.02
+}
+
+pointlight NAILGUNBLU
+{
+    color 1.0 0.3 0
+    size 130
+}
+
+
+Object BlueMuzzleFlash {
+	frame PGEZA {light HUEBLU }
+}
+
+Object NailgunFlash {
+	frame PGEZA {light NAILGUNBLU }
+}
+
+pointlight HUESHOTGUN
+{
+    noshadowmap 0
+    color 1.5 0.4 0
+    size 135
+}
+
+pointlight HUEHUE_SMALL
+{
+    attenuate 1
+    color 0.4 0.2 0
+    size 92
+    noshadowmap 1
+}
+
+pointlight HUEHUE_TINY
+{
+    color 0.4 0.2 0
+    size 24
+    noshadowmap 1
+}
+
+object Stacked_Sparks_Lite {
+	frame IPF2 { light HUEHUE_TINY }
+	frame TNT1 { light HUEHUE_TINY }
+}
+
+
+pointlight HUEHUE_SMALL_SHADOW
+{
+    color 0.4 0.2 0
+    size 80
+    noshadowmap 0
+}
+
+pointlight HUEHUE_SPARKS
+{
+    color 0.4 0.2 0
+    size 79
+    noshadowmap 0
+}
+
+
+flickerlight HUEHUE_SPARKS_FLICKER
+{
+    color 0.4 0.2 0
+    size 15
+    secondarySize 79
+    chance 0.2
+    noshadowmap 1
+}
+
+pointlight GRENADE_LIGHT
+{
+    color 0.8 0.3 0
+    size 28
+	offset 0 10 0
+    noshadowmap 1
+}
+
+pointlight yellowcard
+{
+    color 1.0 1.0 1.0
+    size 48
+    noshadowmap 1
+}
+
+pointlight purplecard
+{
+    color 1.0 0.1 1.0
+    size 48
+    noshadowmap 1
+}
+pointlight bluecard
+{
+    color 0.0 0.0 1.0
+    size 48
+    noshadowmap 1
+}
+
+object OMNI_PURPLECARD {
+	frame PURP {light purplecard}
+}
+
+
+object OMNI_BLUECARD {
+	frame BLUE {light bluecard}
+}
+
+object OMNI_YELLOWCARD {
+	frame YELL {light yellowcard}
+}
+
+pointlight HUEHUEHUEHUE
+{
+    color 0.5 0.4 0
+    size 92
+}
+
+pointlight FLUOLIGHTSOURCE
+{
+    color 0.9 0.8 0.8
+    size 92
+}
+
+
+object FluorescentLightBlue {
+    frame VOXE { light FLUOLIGHTSOURCE }
+}
+
+object RicoChet
+{
+    frame IPF2 { light HUEHUE_SMALL }
+	frame NULL { light HUEHUE_SMALL }
+}
+
+object SparkFlare_W1 {
+	frame LENY { light HUEHUE_SPARKS }
+}
+object YellowMuzzleFlashUltra
+{
+    frame TNT1 { light YellowMuzzleFlashUltra }
+}
+
+object YellowMuzzleFlashLow
+{
+    frame TNT1 { light YellowMuzzleFlashLow }
+}
+
+
+object YellowFlareSmallBB
+{
+    frame LENY { light HUEHUE_SMALL }
+}
+
+
+object YellowFlareSmallSparks
+{
+    frame LENY { light HUEHUE_SPARKS }
+}
+
+object YellowFlareSmallSparksFlicker
+{
+    frame LENY { light HUEHUE_SPARKS_FLICKER }
+}
+
+
+object YellowFlareSmallShadowCaster
+{
+    frame LENY { light HUEHUE_SMALL_SHADOW }
+}
+
+object YellowFlareSmall
+{
+    frame LENY { light HUEHUE_SMALL }
+}
+
+object YellowFlareLong
+{
+    frame LENY { light HUEHUE_SMALL }
+}
+
+
+object MarineMuzzle1
+{
+    frame FMU1 { light HUEHUE }
+}
+
+
+object OrangeLensFlareAlt
+{
+    frame LEYS { light HUEHUE }
+}
+object OrangeLensFlareCricket
+{
+    frame LEYS { light HUECRICK }
+}
+
+pointlight BlueBrightLight {
+    color 0.7 0.7 1
+    size 500
+}
+
+object LightParticleBlueMoving {
+    frame PGEZA {light BlueBrightLight}
+}
+
+object Fan_top {
+    frame PLAYA {light FanLight}
+}
+
+pointlight GRENADELIGHT { 
+    color 1.0 0.3 0.0
+    size 16
+}
+pointlight GRENADELIGHTICE { 
+    color 0.0 0.3 1.0
+    size 16
+}
+
+pointlight LightTravel
+{
+    color 1.0 1.0 1.0
+    size 120
+}
+
+// Yellow Keys
+pulselight YELLOWKEY
+{
+    color 1.0 1.0 0
+    size 48
+    secondarySize 18
+    interval 2.0
+}
+
+// Blue Keys
+pulselight BLUEKEY
+{
+    color 0.3 0.3 1.0
+    size 48
+    secondarySize 18
+    interval 2.0
+}
+
+// Purple Keys
+pulselight PurpleKey
+{
+    color 1.0 0.0 0.9
+    size 48
+    secondarySize 18
+    interval 2.0
+}
+
+pulselight BrightExplosion
+{
+    color 1.0 0.3 0.1
+    size 90
+    secondarySize 200
+    interval 1.9
+}
+
+object OMNI_PURPLECARD_PICKUP {
+    frame VOXEL {light PurpleKey}
+}
+object OMNI_BLUECARD_PICKUP {
+    frame VOXEL {light BLUEKEY}
+}
+object OMNI_YELLOWCARD_PICKUP {
+    frame VOXEL {light YELLOWKEY}
+}
+pulselight BrightExplosionAcid
+{
+    color 0.1 0.6 0.1
+    size 50
+    secondarySize 150
+    interval 1.3
+}
+
+
+pointlight BarrelLight {
+    color 1.0 0.0 0.0
+    size 50
+}
+
+// TODO: Disabled, for some reason it's not pulsing anymore and that makes me angry
+// UPDATE: FUCKING PULSE!!! :@
+//object BaseAcidExplosion
+//{
+//	frame ACBA { light BrightExplosionAcid }
+//}
+
+object BaseExplosionEffectScripted
+{
+	frame BANG { light BrightExplosion }
+}
+
+object BaseExplosionEffectTilted
+{
+	frame BANG { light BrightExplosion }
+}
+
+object SecurityCard
+{
+    frame SECUR { light PurpleKey }
+}
+
+pointlight ARMORSHARD
+{
+    noshadowmap 1
+    color 0.3 1.0 0.3
+    size 8    
+}
+
+pointlight HEALTHSHARD
+{
+    noshadowmap 1
+    color 1.0 0.3 0.3
+    size 8    
+}
+
+pointlight GREENARMOR1
+{
+    noshadowmap 1
+    color 0.3 1.0 0.3
+    size 16
+}
+pointlight BLUEARMOR1
+{
+    noshadowmap 1
+    color 0.3 0.3 1.0
+    size 16
+}
+
+pointlight EPICARMOR1
+{
+    noshadowmap 1
+    color 1.0 0.3 1.0
+    size 16
+}
+pointlight LEGENDARYARMOR1
+{
+    noshadowmap 1
+    color 1.0 1.0 0.3
+    size 16
+}
+
+Pulselight WeaponGlowCommon {
+    color 0.7 0.7 0.7
+    size 48
+    secondarySize 42
+    interval 1.5
+    offset 0 0 0
+}
+Pulselight WeaponGlowUncommon {
+    color 0.6 0.6 1.0
+    size 48
+    secondarySize 42
+    interval 1.5
+    offset 0 0 0
+}
+Pulselight WeaponGlowRare {
+    color 1.0 1.0 0.6
+    size 48
+    secondarySize 42
+    interval 1.5
+    offset 0 0 0
+}
+Pulselight WeaponGlowLegendary {
+    color 1.0 0.6 0.6
+    size 48
+    secondarySize 42
+    interval 1.5
+    offset 0 0 0
+}
+object RarityEmblemFloor {
+    frame LOGOA {light WeaponGlowCommon}
+    frame LOGOB {light WeaponGlowUncommon}
+    frame LOGOC {light WeaponGlowRare}
+    frame LOGOD {light WeaponGlowLegendary}
+}
+
+Object ArmorShardPickup {
+    frame VPXEL {light ARMORSHARD}
+}
+
+Object HealthShardPickup {
+    frame HELBB {light HEALTHSHARD}
+}
+
+Object CommonArmor
+{
+	//frame ARM1 { light GREENARMOR1 }
+}
+Object RareArmor
+{
+	//frame ARM1 { light BLUEARMOR1 }
+}
+Object EpicArmor
+{
+	//frame ARM1 { light EPICARMOR1 }
+}
+Object LegendaryArmor
+{
+	//frame ARM1 { light LEGENDARYARMOR1 }
+}
+
+// Doom Imp Fireball
+pointlight FIREBALLATTACK
+{
+    color 1.0 0.4 0.0
+    size 90
+}
+
+Object FireballProjectile
+{
+	frame FRBL { light FIREBALLATTACK }
+}
+
+object AlienTracer
+{
+ frame TRAC { light WHIWHIPS }
+}
+
+object AlienTracerTurret
+{
+ frame TRAC { light WHIWHIPS }
+}
+
+
+
+pulselight ROCKETLIGHT
+{
+    color 1.0 0.3 0.0
+    size 48
+    secondarySize 54
+    interval 0.1
+    offset 0 0 0
+}
+
+flickerlight2 Flarestick
+{
+    color 1.5 0.1 0.1
+    size 145
+    secondarySize 135
+    interval 0.4
+    offset -30 20 0
+}
+
+flickerlight2 FlarestickBig
+{
+    color 1.0 0.0 0.0
+    size 140
+    secondarySize 19
+    interval 0.1
+    offset 0 20 5
+}
+
+pulselight InjectionLight
+{
+	color 1.0 0.2 0.0
+	size 60
+    secondarySize 30
+	interval 0.9
+}
+
+object HealthUpgrade
+{
+    frame VOXE {light InjectionLight}
+}
+
+object FlareStick
+{
+frame FLAR { light FlareStickBig }
+}
+
+object FlareFireEffectLight
+{
+    frame FLFR { light FlareStick }
+}
+
+// HEALING ITEMS
+pointlight HealingItem
+{
+    color 1.0 0.1 0.1
+    size 32
+    offset 0 32 0
+}
+
+pointlight LightCubeLight
+{
+    attenuate 1
+	color 0.8 0.35 0.8
+	size 110
+    offset 0 32 0
+}
+
+object LightCubeOn
+{
+frame VOXE {light LightCubeLight}
+}

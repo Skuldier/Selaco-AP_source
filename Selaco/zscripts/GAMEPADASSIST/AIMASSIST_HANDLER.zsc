@@ -1,0 +1,289 @@
+
+// Parts of this is written by RicardoLuis0, thank you for giving us a headstart to work with and making the implementation of Aim Assist less of a pain!
+// Rewritten & Selaco-fied by Nexxtic
+
+// TO-DO:
+// - Make snapping speed dependent on distance from crosshair
+// - Vertical recoil needs work
+// - Adjusting your position on the target after a "lock on" does not feel very intuitive
+// - Add different behavior for when the player is zooming, is it currently far too aggressive when you zoom
+// - Is it mostly optimized but it could be better. The amount of linetraces must be handled better
+// - Add a 'Aimassist' flag rather than scanning for bIsMonster. (DONE)
+// - (Experiment) Prioritize hazards over enemies
+// - Smoke Grenades should disable aim assist
+class GamepadAssistHandler:StaticEventHandler{
+	mixin UIInputHandlerAccess;
+	AimAssistPlayerData playerData[1];
+
+	override void OnRegister(){
+		playerData[0]=new("AimAssistPlayerData");
+	}
+
+	//get angle and delta from two positions
+	static vector3,double,double lookAt(Vector3 pos1,Vector3 pos2){
+		//calculate difference between pos1 and pos2 (level.Vec3Diff takes portals into account)
+		
+		Vector3 delta=level.Vec3Diff(pos1,pos2);
+		
+		//calculate angle and pitch to other actor
+		double target_angle=atan2(delta.y,delta.x);
+		double target_pitch=-asin(delta.z/delta.length());
+
+		return delta,target_angle,target_pitch;
+	}
+
+	// Do all the aiming stuff. Disable this to make it worthless.
+	bool doAim(){
+		if(!isUsingGamepad() || !playerData[0].enabled || players[0].mo.health <= 0) return false; // Dont do anything if Aim Assistance is disabled
+		PlayerPawn pawn=players[0].mo;
+		
+		// Fixed values
+		double closest_distance=playerData[0].AIMASSIST_DISTANCE;
+		float onCrosshairDistance=playerData[0].AIMASSIST_DISTANCE+1500;
+		double accuracy=playerData[0].AIMASSIST_ACCURACY;
+		// Adjustable values
+		int assistedMode = playerData[0].assistedMode;
+		int ringerMode = playerData[0].ringerMode;
+		double snapArc = playerData[0].snapArc;
+
+		Actor closest=null;
+		Actor onCrosshair=null;
+		Actor hit=null;
+		Vector3 crosshairLocation=(0,0,0);
+		Vector3 hitLocation=(0,0,0);
+		//check straight ahead
+		[onCrosshair,onCrosshairDistance,crosshairLocation]=playerData[0].doTrace(pawn,0,0,onCrosshair,onCrosshairDistance);
+
+		// Double arc when Assisted Mode is active
+		if(assistedMode) {
+			snapArc = 12;
+		}
+		for(double i_a = snapArc*-1;i_a<=snaparc&&!(closest);i_a+=accuracy){
+			[closest,closest_distance,hitLocation]=playerData[0].doTrace(pawn,i_a,90,closest,closest_distance);
+		}
+
+		// Slow down lookscale when target is within the player's crosshair.
+		if(onCrosshair){
+			PlayerPawn dawn=players[0].mo;
+			let w = SelacoWeapon(dawn.player.ReadyWeapon);
+			if(w) {
+				w.targetFound = true;
+			}
+			if(level.time % 8 == 0 && ringerMode && onCrosshair.bisMonster) {
+				playerData[0].S_StartSound("ui/gwyn/hover1", CHAN_AUTO, volume:1.0, pitch:0.9);
+			}
+		} 
+
+		// Only apply aim assist to moving targets, then start steering towards them.
+		if(closest && (validateAimAssist(closest) || assistedMode)) {
+			float pheight=pawn.viewheight*pawn.player.crouchfactor;
+			Vector3 aimheight=(0,0,playerData[0].getAimHeight(closest.height,pheight,closest_distance));
+			Vector3 delta;
+			double target_angle,target_pitch;
+			Vector3 view=pawn.pos+(0,0,pheight);
+			// Target angle and pitch
+			[delta,target_angle,target_pitch]=lookAt(view,closest.pos+aimheight);
+
+			FLineTraceData t;
+			pawn.LineTrace(target_angle,playerData[0].AIMASSIST_DISTANCE,target_pitch,TRF_NOSKY,pawn.viewheight*pawn.player.crouchfactor,data:t);
+			if(t.hitType!=TRACE_HitActor||t.hitActor!=closest){
+				[delta,target_angle,target_pitch]=lookAt(view,(hitLocation.x,hitLocation.y,closest.pos.z+aimheight.z));
+				pawn.LineTrace(target_angle,playerData[0].AIMASSIST_DISTANCE,target_pitch,TRF_NOSKY,pawn.viewheight*pawn.player.crouchfactor,data:t);
+				//try to aim at correct xy
+				[delta,target_angle,target_pitch]=lookAt(view,(closest.pos.x,closest.pos.y,hitLocation.z));
+				pawn.LineTrace(target_angle,playerData[0].AIMASSIST_DISTANCE,target_pitch,TRF_NOSKY,pawn.viewheight*pawn.player.crouchfactor,data:t);
+			}
+			// Angle / Pitch Difference
+			double angle_diff=pawn.DeltaAngle(pawn.angle,target_angle);
+			double pitch_diff=pawn.DeltaAngle(pawn.pitch,target_pitch);
+			double snapOnSpeed=playerData[0].snapOnSpeed;
+			
+			// Make a few changes when we're using Assisted Mode
+			if(assistedMode) {
+				if(!onCrosshair && level.time % 3 == 0 && ringerMode) {
+					playerData[0].S_StartSound("ui/gwyn/hover1", CHAN_AUTO, volume:0.6, pitch:0.7);
+				}
+				snapOnSpeed = 2;
+				closest.A_SPAWNITEMEX("LockonAnchor", 0, 0, 0, flags:SXF_SETMASTER);
+			}
+
+			// Angle to target
+			if(abs(angle_diff)>snapOnSpeed){
+				//if rotation speed is lower than difference, add/subtract rotation speed
+				pawn.A_SetAngle(pawn.angle+(angle_diff>0?snapOnSpeed:-snapOnSpeed),SPF_INTERPOLATE);
+			}else{
+				//if rotation speed is higher than differece, set to target angle
+				pawn.A_SetAngle(target_angle,SPF_INTERPOLATE);
+			}
+
+			// Pitch to target (Assisted Mode only)
+			if(assistedMode) {
+				if(abs(pitch_diff)>snapOnSpeed){
+					//if rotation speed is lower than difference, add/subtract rotation speed
+					pawn.A_SetPitch(pawn.pitch+(pitch_diff>0?snapOnSpeed:-snapOnSpeed),SPF_INTERPOLATE);
+				}else{
+					//if rotation speed is higher than differece, set to target pitch
+					pawn.A_SetPitch(target_pitch,SPF_INTERPOLATE);
+				}
+			}
+
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	bool validateAimAssist(actor assistTarget) {
+		// Moving targets only
+		if(playerData[0].aimAssistStyle == 1 && abs(assistTarget.vel.x) + abs(assistTarget.vel.y) > 0) 
+		{
+			return true;
+		}
+		// Always (sort of, we only do this for targets that are actually active.)
+		if(playerData[0].aimAssistStyle == 2 && assistTarget.lastHeard) 
+		{
+			return true;
+		}
+		return false;
+	}
+
+	override void WorldTick(){
+		if(playeringame[0]){
+			doAim();
+		}
+		// I truly hope we can someday get a listener for this. For now, just check every second.
+		if(level.time % 35 == 0) {
+			playerData[0].UpdateCVARs();
+		}
+	}
+}
+
+// PLAYER DATA
+class AimAssistPlayerData {
+	bool enabled; // Check if player uses Aim Assist
+
+	double accuracy; 
+	double radial_precision;
+	double snapOnSpeed;
+	int aimAssistStyle;
+
+	int ringerMode;
+	int snapArc;
+	int assistedMode;
+    const HEIGHT_OFFSET = 10; // How far down do we aim? This aims roughly around the chest of the target. 
+
+	//const AIMASSIST_STRENGTH = 0.65; // How fast do we move the camera towards the target? (It is now an adjustable Cvar!)
+    const AIMASSIST_DISTANCE = 1500; // Maximum range for the aim assist to snap onto a target
+    const AIMASSIST_SNAPANGLE = 4; // How close to the crosshair must the target be before we snap onto it
+    const AIMASSIST_ACCURACY = 0.8;  // Stepsize of how far the linetrace increases per loop in order to reach the snapangle (Higher = performance)
+    const AIMASSIST_SPEED_VERTICAL = 0.1; // Same as horizontal, but vertical! :dawn_nerd: (UNUSED FOR NOW)
+    const AIMASSIST_RADIAL_ACCURACY = 90;
+
+    // TO-DO: We really need to look into a listener for Cvars.
+	void UpdateCVARs(){
+		enabled=CVAR.GetCVar("AIMASSIST_ENABLE",players[0]).getBool();
+		if(enabled) { // Only do these if Aim Assist is enabled to reduce load for KB/M users
+			aimAssistStyle = CVAR.GetCVar("AIMASSIST_STYLE",players[0]).getFloat();
+			snapArc = AIMASSIST_SNAPANGLE;
+			accuracy = AIMASSIST_ACCURACY;
+			snapOnSpeed=CVAR.GetCVar("AIMASSIST_STRENGTH",players[0]).getFloat();
+			ringerMode = CVAR.GetCVar("AIMASSIST_RINGER",players[0]).getFloat();
+			if(skill < 3) {
+				assistedMode = CVAR.GetCVar("AIMASSIST_ASSISTEDMODE",players[0]).getFloat();
+				if(assistedMode) {
+					accuracy = 1;
+				}
+			}
+		}
+	}
+		
+	float calculateEHeight(float eheight){
+		return eheight - HEIGHT_OFFSET;
+	}
+	
+	float getAimHeight(float enemyheight,float playerheight,float distance){
+		return calculateEHeight(enemyheight);
+	}
+
+	// Do linetrace and get resuls
+	play Actor,double,Vector3 doTrace(PlayerPawn a,double iterate_accuracyngle,double i_rotation,Actor closest,double closest_distance){
+		FLineTraceData t;
+		Vector3 hitLocation=(0,0,0);
+		// Do a linetrace around iterate_accuracy and iterate_radial in a circle
+		if(a.LineTrace(a.angle+(sin(i_rotation)*iterate_accuracyngle),			// Angle
+							AIMASSIST_DISTANCE,									// Distance
+							a.pitch+(cos(i_rotation)*iterate_accuracyngle),		// Pitch
+							TRF_NOSKY,											// Flag
+							a.viewheight*a.player.crouchfactor,					// Height
+							data:t									
+		)) {
+			if(t.hitType==TRACE_HitActor){//if hit is an actor
+				let actor = SelacoActor(t.hitActor);
+				if((actor is "SelacoActor") && actor.bAimAssist){ // Look for actors with the Aim Assist flag
+					if(!closest||a.Distance3DSquared(t.HitActor)>closest_distance*closest_distance){ // Squared distance comparison
+						//Turn this into the new 'Closest'
+						closest=t.HitActor;
+						closest_distance=a.Distance3DSquared(t.HitActor);
+						hitLocation=t.hitLocation;
+					}
+				}
+			}
+		}
+		return closest,closest_distance,hitLocation;
+	}
+}
+
+class LockonAnchor : Actor {
+	override void PostBeginPlay() {
+		 if(players[0].mo) {
+			A_FACE(players[0].mo);
+			if(master) {
+				A_SpawnItemEx("LockonMarker2", 0, -1*master.radius-10, master.height-10);
+				A_SpawnItemEx("LockonMarker1", 0, master.radius+10, master.height-10);
+				A_SpawnItemEx("LockonMarker4", 0, -1*master.radius-10, 0);
+				A_SpawnItemEx("LockonMarker3", 0, master.radius+10, 0);
+			}
+		 }
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+// Used for Assisted Mode to show lockons
+// Top Left
+class LockonMarker1 : Actor {
+	default {
+		+WALLSPRITE;
+		+NOINTERACTION;
+		scale 0.3;
+	}
+	states {
+		Spawn:	
+			TNT1 A 0;
+			ASSI A 1 bright;
+			stop; 
+	}
+}
+
+// Top Right
+class LockonMarker2 : LockonMarker1 {
+	default {
+		+XFLIP;
+	}
+}
+// BOTTOM LEFT
+class LockonMarker3 : LockonMarker1 {
+	default {
+		+YFLIP;
+	}
+}
+// BOTTOM LEFT
+class LockonMarker4 : LockonMarker1 {
+	default {
+		+YFLIP;
+		+XFLIP;
+	}
+}

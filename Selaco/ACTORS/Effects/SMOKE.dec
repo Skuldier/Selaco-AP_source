@@ -1,0 +1,1257 @@
+ACTOR RainSmoke : ExplosionSmoke
+{
+	Alpha 0.0
+	Scale 0.6
+	Speed 0.5
+	Mass 100
+    States
+    {
+    Spawn:
+		TNT1 A 0
+		SMK9 CCCCDEFGHIJKLM 2 A_FADEIN(0.01)
+		SMK9 MMMMMMMMMM 1 A_FADEOUT(0.01)
+		Goto Death
+	Death:
+		TNT1 A 0
+		Stop
+	Stap:		
+		TNT1 A 0
+		Stop
+    }
+}
+
+
+ACTOR PaperSmoke: ExplosionSmoke
+{
+Speed 0.2
+Alpha 0.01
+scale 0.5
+	States
+    {
+    Spawn:
+	TNT1 A 0
+	TNT1 A 0 A_JumpIf(waterlevel > 1, "Stap")
+	smk9 AAAAAAAA 2 A_FadeIn(0.02)
+	smk9 AAAAAAAAAAAAAAAAA 2
+	smk9 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 2 A_FadeOut(0.01)
+	Goto Death
+	Death:
+	    TNT1 A 0
+    Stop
+Stap:		
+TNT1 A 0
+Stop
+    }
+
+}
+
+
+/*ACTOR SmokeTrailPiece: ExplosionSmoke
+{
+	Speed 0.3
+	GRAVITY 0.3
+	Alpha 0.3
+	+ROLLSPRITE
+	scale 0.4
+	States
+		{
+		Spawn:
+			TNT1 A 0 A_Setroll(frandom(0,360))
+			SMK3 A 15
+			SMK3 ABCDEFGHIJKLM 2
+			Goto Death
+		ParticlePhysics:
+		Death:
+			TNT1 A 0
+			Stop
+		}
+}*/
+
+
+ACTOR SmokeTrailPieceArmor: SmokeTrailPieceSmall
+{
+	scale 0.43
+	alpha 0.65	
+	states {
+		Spawn:
+			TNT1 A 0 ACS_NamedExecuteAlways("ParticlePhysics", 0, 0, 0, 0)//Check Effects
+			SBLO ABCDEFGHIJKL 2
+			SBLO MMMMMM 1 A_FADEOUT(0.05)
+			stop
+	}
+}
+
+// All these SmokeTrailPieceSmall actors are sloppy as hell. Might want to improve this part later.
+ACTOR SmokeTrailPieceSmall9: SmokeTrailPieceSmall
+{
+	scale 0.13
+}
+
+
+ACTOR SmokeTrailPieceTight: SmokeTrailPieceSmall
+{
+	Speed 2
+	Alpha 0.5
+	scale 0.1
+}
+
+ACTOR SpawnImpactSmokeBlue: ExplosionSmoke
+{
+	RenderStyle Translucent
+	Speed 0.5
+	Alpha 0.1
+	scale 0.1
+	States
+		{
+    Spawn:
+		TNT1 A 1
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("AdvancedSmokeEffects")==1,"SpawnSmoke")
+	Death:
+	    TNT1 A 0
+		stop
+	SpawnSmoke:
+			ZSMK AAA 3 A_FadeIn(0.08)
+			ZSMK A 100
+			ZSMK AAA 3 A_FADEOUT(0.08)
+			goto Death
+	Death:
+	    TNT1 A 0
+    Stop
+	Stap:		
+	TNT1 A 0
+	Stop
+		}
+}
+
+ACTOR SpawnWoodSmoke: ExplosionSmoke
+{
+	Speed 0.5
+	scale 1.3
+	Alpha 0.06
+	States
+		{
+    Spawn:
+		TNT1 A 1
+		TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("AdvancedSmokeEffects")==1,"SpawnSmoke")
+	Death:
+	    TNT1 A 0
+		stop
+	SpawnSmoke:
+			WSMK AAA 3 A_FadeIn(0.06)
+	Looper:
+			WSMK A 1 {
+				A_Fadeout(0.01, FTF_REMOVE);
+			}
+			loop
+	Death:
+	    TNT1 A 0
+    Stop
+	Stap:		
+	TNT1 A 0
+	Stop
+		}
+}
+
+ACTOR BigSmokes: ExplosionSmoke
+{
+    Speed 1
+	Alpha 0.24
+	Scale 1.0
+    States
+    {
+		Spawn:
+			TNT1 A 0
+		Death:
+			SMK3 AABBCCDDEEFFGGHHIIJJKKLLMM 1
+			Stop
+    }
+}
+
+ACTOR GunFireSmoke: ExplosionSmoke
+{
+	Alpha 0.05
+	Scale 0.4
+	Renderstyle Add
+  Speed 8
+    States
+    {
+    Spawn:
+        SMOK A 0
+        Goto Death
+	Death:
+		TNT1 A 0
+		TNT1 A 0 A_JUmp(256, "Death1", "Death2", "Death3", "Death4")
+		
+	Death1:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("GunFireSmoke1", 7, 0, 180, 0, 0)
+		Stop
+		
+	Death2:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("GunFireSmoke2", 7, 0, 180, 0, 0)
+		Stop
+		
+	Death3:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("GunFireSmoke3", 7, 0, 180, 0, 0)
+		Stop	
+		
+	Death4:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("GunFireSmoke4", 7, 0, 180, 0, 0)
+		Stop	
+		
+Stop
+    }
+}
+
+ACTOR BarrelSmokeSpawner: GunFireSmoke
+{
+    States
+    {
+    Spawn:
+        SMOK A 0
+        Goto Death
+	Death:
+		TNT1 A 0
+		TNT1 A 0 A_JUmp(256, "Death1", "Death2", "Death3", "Death4")
+		
+	Death1:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("BarrelSmoke1", 7, 0, 180, 0, 0)
+		Stop
+		
+	Death2:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("BarrelSmoke2", 7, 0, 180, 0, 0)
+		Stop
+		
+	Death3:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("BarrelSmoke3", 7, 0, 180, 0, 0)
+		Stop	
+		
+	Death4:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("BarrelSmoke4", 7, 0, 180, 0, 0)
+		Stop	
+		
+    }
+}
+ACTOR RailgunSmokeSpawner: ExplosionSmoke
+{
+	Alpha 0.07
+	Scale 0.4
+	Renderstyle Add
+  Speed 8
+    States
+    {
+    Spawn:
+        SMOK A 0
+        Goto Death
+	Death:
+		TNT1 A 0
+		TNT1 A 0 A_JUmp(256, "Death1", "Death2", "Death3", "Death4")
+		
+	Death1:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("RailgunSmoke", 7, 0, 180, 0, 0)
+		Stop
+	Death2:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("RailgunSmoke2", 7, 0, 180, 0, 0)
+		Stop
+	Death3:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("RailgunSmoke3", 7, 0, 180, 0, 0)
+		Stop	
+	Death4:	
+		TNT1 A 0
+		TNT1 A 0 A_SpawnProjectile("RailgunSmoke4", 7, 0, 180, 0, 0)
+		Stop	
+		
+Stop
+    }
+}
+
+
+
+ACTOR GunFireSmokeMassive: ExplosionSmoke
+{
+	Alpha 0.2
+	Scale 0.40
+	Renderstyle Add
+    States
+    {
+    Spawn:
+		TNT1 A 0
+		SMOK ABCDEFGHIJKLMNOPQ 2
+		goto Death
+	Death:
+		TNT1 A 0
+		stop
+		
+Stop
+    }
+}
+
+actor CarpetSmoke : GunFireSmoke {
+	Alpha 0.3
+	Scale 0.27	
+	states {
+		Spawn:
+			TNT1 A 0
+			SMOK ABCDEFGHIJKLMNOPQ 1 A_FADEOUT(0.025)
+			goto Death
+		Death:
+			TNT1 A 0
+			stop
+	}
+}
+
+ACTOR BarrelSmoke: GunFireSmoke
+{
+	alpha 0.1
+    States
+    {
+    Spawn:
+        SMOK A 0
+        Goto Death
+	Death:
+		TNT1 A 0
+		TNT1 A 0 A_Stop
+		tnt1 a 0 a_rECOIL(-2)
+		SMOK ABCDEFGHIJKLMNOPQ 1 A_CHANGEVELOCITY(0, frandom(-0.3, 0.3), frandom(0.2, 0.4), CVF_RELATIVE )
+		stop
+    }
+}
+
+ACTOR BarrelSmoke1 : BarrelSmoke {
+	Scale -0.11
+}
+ACTOR BarrelSmoke2 : BarrelSmoke1 {
+	XScale 0.1
+	YScale -0.1
+}
+
+ACTOR BarrelSmoke3: BarrelSmoke1
+{
+	XScale -0.08
+	YScale 0.08
+}
+ACTOR BarrelSmoke4: BarrelSmoke1
+{
+	XScale 0.1
+	YScale -0.11
+}
+
+
+ACTOR GunFireSmoke1: GunFireSmoke
+{
+	Alpha 0.16
+	Scale 0.15
+	Renderstyle Add
+ 	Speed 3
+    States
+    {
+		Spawn:
+			SMOK A 0
+			Goto Death
+		Death:
+			TNT1 A 0
+			TNT1 A 0 A_Stop
+			SMOK ABCDEFGHIJKLMNOPQ 1		
+			Stop
+    }
+}
+
+ACTOR GunFireSmoke2: GunFireSmoke1
+{
+	Scale -0.11
+}
+
+ACTOR GunFireSmoke3: GunFireSmoke1
+{
+	XScale -0.14
+	YScale 0.14
+}
+
+ACTOR GunFireSmoke4: GunFireSmoke1
+{
+	XScale 0.1
+	YScale -0.1
+}
+
+ACTOR RailgunSmoke: GunFireSmoke
+{
+	Alpha 0.12
+	Scale 0.2
+	Renderstyle Add
+  Speed 8
+    States
+    {
+    Spawn:
+        SMOK A 0
+        Goto Death
+	Death:
+		TNT1 A 0
+		TNT1 A 0 A_Stop
+		tnt1 a 0 a_rECOIL(-2)
+		SMOK ABCDEFGHIJKLMNOPQABCDEFGHIJKLMNOPQABCDEFGHIJKLMNOPQ 1
+		
+Stop
+    }
+}
+
+ACTOR RailgunSmoke2: GunFireSmoke1
+{
+	Scale -0.21
+}
+
+ACTOR RailgunSmoke3: GunFireSmoke1
+{
+	XScale -0.23
+	YScale 0.23
+}
+
+ACTOR RailgunSmoke4: GunFireSmoke1
+{
+	XScale 0.24
+	YScale -0.25
+}
+
+ACTOR CasingSmoke: GunFireSmoke
+{
+	Alpha 0.05
+	//Scale 0.17
+	XScale 0.12
+	YScale 0.31
+	Renderstyle Add
+  Speed 8
+    States
+    {
+    Spawn:
+        SMOK A 0
+        Goto Death
+	Death:
+		TNT1 A 0
+		TNT1 A 0 A_Stop
+		tnt1 a 0 //a_rECOIL(-1)
+		TNT1 A 0 ThrustThingz(0,1,0,0)
+		PUF2 EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 2 A_FadeOut(0.001)
+		Stop
+    }
+}
+
+ACTOR SmallSmokers: BigSmokes
+{
+    Scale 3.3
+    Speed 0
+    Alpha 0.11
+    -NOGRAVITY
+    -NOINTERACTION
+    Gravity 0.005
+    States
+    {
+    Spawn:
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        PUF2 EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 2 A_FadeOut(0.003)
+        Goto Death
+	Death:
+	    TNT1 A 0
+	
+Stop
+}
+}
+
+
+ACTOR BigSmallSmokers: BigSmokes
+{
+    Scale 0.6
+    Speed 0
+    Alpha 0.11
+    -NOGRAVITY
+    -NOINTERACTION
+    Gravity 0.005
+    States
+    {
+    Spawn:
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        PUF2 EEFGHIJK 4 A_FadeOut(0.005)
+        PUF2 LMNOPQRSTUVWXYZ 4 A_FadeOut(0.005)
+        Goto Death
+	Death:
+	    TNT1 A 0
+	
+Stop
+}
+}
+
+
+ACTOR AltSmoke: ExplosionSmoke
+{
++NOINTERACTION
++NOCLIP
+Scale 0.8
+States
+    {
+    Spawn:
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        PUF2 A 1
+        Goto Death
+	Death:                                                          
+        PUF2 ABCDEFGHIJKLMNOPQRSTUVWXYZ 2 A_FadeOut(0.010)
+		
+Stop
+    }
+}
+
+ACTOR ShinnySmoke: AltSmoke
+{
+Scale 2.0
+Renderstyle Add
+}
+
+Actor Vapor1: PlasmaSmoke
+{
+Renderstyle Add
+}
+
+
+Actor RocketSmokeTrail52Moving: ExplosionSmoke
+{
+Speed 1
+Scale 0.3
+Alpha 0.15
+}
+
+ACTOR RocketSmokeTrail52: ExplosionSmoke
+{
+Speed 1
+Alpha 0.3
+Scale 0.3
+States
+{
+Spawn:
+TNT1 A 2
+TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+//SMK1 IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII 1 A_FadeOut(0.005)
+SMK3 B 20
+SMK3 CDEFGHIJKLM 1
+Stop
+}
+}
+
+Actor OldschoolRocketSmokeTrail1: AltSmoke
+{
+	Alpha 0.6
+Speed 1
++CLIENTSIDEONLY
+Scale 1.5
+States
+    {
+    Spawn:       
+	    TNT1 A 3
+        PUFY CCCCCCCCCCCCCCCCCCCCCCCC 2 A_FadeOut(0.050)
+		//PUFF AAAAAAAAAAAAAAAAAAAAAAAAAA 2 A_FadeOut(0.030)
+Stop
+}
+}
+
+
+Actor OldschoolRocketSmokeTrailBig: AltSmoke
+{
+	Alpha 0.7
+Speed 1
++CLIENTSIDEONLY
+Scale 0.45
+States
+    {
+    Spawn:  
+	    TNT1 A 2
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        SMK3 BCDEFGHIJKKLLMMN 2
+		Stop
+		
+Stop
+}
+}
+
+Actor OldschoolRocketSmokeTrailDarker: AltSmoke
+{
+	Alpha 0.6
+Speed 1
++CLIENTSIDEONLY
+Scale 0.2
+States
+    {
+    Spawn:  
+	    TNT1 A 2
+        SMK6 BCDEFGHIJKKLLMMNNNNNN 1
+		SMK6 NNNN 1 A_FadeOut(0.1)
+		Stop
+		
+Stop
+}
+}
+
+
+Actor SmallSmoke: AltSmoke
+{
++CLIENTSIDEONLY
+	Speed 1
+Scale 1.5
+}
+
+Actor SmallSmoke15: ExplosionSmoke
+{
+RenderStyle Add
++CLIENTSIDEONLY
+	Speed 1
+Alpha 0.3
+Scale 0.5
+    States
+    {
+    Spawn:
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        SMOK A 1
+        Goto Death
+	Death:
+	    SMOK AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQ 2 A_FadeOut(0.010)	
+Stop
+    }
+}
+
+Actor LongSmallSmoke: AltSmoke
+{
+	
+Speed 1
++CLIENTSIDEONLY
+Scale 0.5
+States
+    {
+    Spawn:
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        PUF2 A 1
+        Goto Death
+	Death:                                                          
+        PUF2 EFGHIJKLMNOPQRSTUVWXYZ 4 A_FadeOut(0.010)
+		
+Stop
+}
+}
+
+
+ACTOR MeleeSmoke: ExplosionSmoke
+{
+Speed 1
+Alpha 0.64
+Scale 0.2
+States
+{
+Spawn:
+SMK3 B 4
+SMK3 CDEFGHIJKLM 2
+Stop
+}
+}
+
+Actor SmokingPiece
+{
++MISSILE
++NOBLOCKMAP
++DROPOFF
++NOTELEPORT
++FORCEXYBILLBOARD
++NOTDMATCH
++GHOST
+radius 5
+height 5
+mass 1
+damage 0
++NOGRAVITY
+speed 8
+gravity 0.7
+states
+		{
+		Spawn:
+		TNT1 A 0
+		TNT1 A 2
+        Stop
+		}
+}
+
+Actor ExplosionPieceTrail
+{
+	Alpha 0.2
+	RenderStyle Translucent
+	Scale 0.7
+    Speed 1
+    +NOCLIP
+    +NOGRAVITY
+	+FORCEXYBILLBOARD
+    +CLIENTSIDEONLY
+    +RANDOMIZE
+    +CLIENTSIDEONLY
+    States
+    {
+    Spawn:
+	   NULL A 0
+	   Goto Death
+	Death:
+      SMOK ABCDEFGHIJKLMNOPQ 1
+      Stop
+	}
+}
+
+
+Actor SmokeTrail
+{
+    Scale 0.4
+    Alpha 0.3
+    Speed 1
+	RenderStyle Translucent
+    +NOCLIP
+    +NOGRAVITY
+	+FORCEXYBILLBOARD
+    +CLIENTSIDEONLY
+    +RANDOMIZE
+    +CLIENTSIDEONLY
+    States
+    {
+    Spawn:
+	   NULL A 0
+	   Goto Death
+	Death:
+  TNT1 A 0 A_Jump(64,4)
+  TNT1 A 0 A_Jump(128,4)
+  TNT1 A 0 A_Jump(192,4)
+  TNT1 A 0 A_Jump(255,4)
+      SMOK ABCDEFGHIJKLMNOPQ 2 BRIGHT
+      stop
+      SMOK AABBCDDEEFFGGHHIIJJJKKLLMMNNOOPPQQ 2 BRIGHT
+      stop
+      SMOK ABCCDDEFFGHHIJJKKLMMNNOOPQ 2 BRIGHT
+      stop
+      SMOK AABCDEFFGGHIJKLMMNNOPQQ 2 BRIGHT
+      stop
+
+      Stop
+	}
+}
+
+ACTOR SmokeTrail2
+{
+    Radius 1
+    Height 1
+	Alpha 0.3
+	RenderStyle Translucent
+	Scale 0.8
+	Speed 1
+	Gravity 0
+    +NOBLOCKMAP
+	+NOTELEPORT
+	+MISSILE
+	+FORCEXYBILLBOARD
+    +RANDOMIZE
+    +CLIENTSIDEONLY
+    States
+    {
+    Spawn:
+        NULL A 3
+        Goto Death
+Death:
+  TNT1 A 0 A_Jump(64,4)
+  TNT1 A 0 A_Jump(128,4)
+  TNT1 A 0 A_Jump(192,4)
+  TNT1 A 0 A_Jump(255,4)
+      SMOK ABCDEFGHIJKLMNOPQ 2 BRIGHT
+      stop
+      SMOK ABCDEFGHIJKLMNOPQ 2 BRIGHT
+      stop
+      SMOK ABCDEFGHIJKLMNOPQ 2 BRIGHT
+      stop
+      SMOK ABCDEFGHIJKLMNOPQ 2 BRIGHT
+      stop
+    }
+}
+
+Actor RocketPropulsion
+{
+    Alpha 1.0
+	RenderStyle Translucent
+    +NOCLIP
+    +NOGRAVITY
+	+FORCEXYBILLBOARD
+    +CLIENTSIDEONLY
+    +RANDOMIZE
+	Translation "48:71=100:111", "72:79=5:8"
+    States
+    {
+    Spawn:
+	   NULL A 3
+	   Goto Death
+	Death:
+      TNT1 A 0 A_SpawnProjectile ("SmokeTrail2", 0, 0, random (0, 360), 2, random (0, 160))
+      stop
+	}
+}
+
+
+Actor RocketPropulsion2
+{
+    Scale 0.5
+    Alpha 0.5
+    Speed 1
+	RenderStyle Add
+    +NOCLIP
+    +NOGRAVITY
+	+FORCEXYBILLBOARD
+    +CLIENTSIDEONLY
+    +RANDOMIZE
+    +CLIENTSIDEONLY
+    States
+    {
+    Spawn:
+	   NULL A 0
+	   Goto Death
+	Death:
+      TNT1 A 3
+  TNT1 A 0 A_Jump(64,4)
+  TNT1 A 0 A_Jump(128,4)
+  TNT1 A 0 A_Jump(192,4)
+  TNT1 A 0 A_Jump(255,4)
+      SMOK ABCDEFGHIJKLMNOPQ 2 BRIGHT
+      stop
+      SMOK AABBCDDEEFFGGHHIIJJJKKLLMMNNOOPPQQ 2 BRIGHT
+      stop
+      SMOK ABCCDDEFFGHHIJJKKLMMNNOOPQ 2 BRIGHT
+      stop
+      SMOK AABCDEFFGGHIJKLMMNNOPQQ 2 BRIGHT
+      stop
+
+      Stop
+	}
+}
+
+ACTOR RocketPropulsion3: RocketPropulsion2
+{
+    Alpha 0.3
+	RenderStyle Translucent
+}
+
+
+
+
+
+
+
+Actor SmokeSpawner
+{
+    Speed 20
+    +NOCLIP
+    States
+    {
+    Spawn:
+      TNT1 A 1
+      TNT1 A 0 Thing_ChangeTID(0,390)
+	TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+ NULL AA 0 A_SpawnProjectile ("ShotSmoke", 0, 0, random (0, 360), 2, random (0, 180))
+        Stop
+	Performance:
+		TNT1 A 1
+		Stop
+    }
+}
+
+Actor SmokeSpawner11
+{
+    Speed 25
+	SCALE 0.3
+    +NOCLIP
+    States
+    {
+    Spawn:
+      TNT1 A 1
+	TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+      TNT1 A 0 Thing_ChangeTID(0,390)
+ NULL A 0 A_SpawnProjectile ("ShotSmoke", 0, 0, random (0, 360), 2, random (0, 180))
+        Stop
+		
+	Performance:
+		TNT1 A 1
+		Stop
+    }
+}
+
+ACTOR ShotSmoke
+{
++NOGRAVITY
++NOBLOCKMAP
++FLOORCLIP
++FORCEXYBILLBOARD
++NOINTERACTION
++FORCEXYBILLBOARD
++MISSILE
+Speed 1
+RenderStyle Add
+Alpha		0.06
++CLIENTSIDEONLY
+Radius		0
+Height		0
+Scale		0.6
+
+States
+ {
+    Spawn:
+         NULL A 1
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+         SMOK AABBCCDDEEFFGGHHIIJJKK 1 A_FadeOut(0.001)
+        Stop
+	Performance:
+		TNT1 A 1
+		Stop
+    }
+}
+
+ACTOR TorchSmoke
+{
++NOGRAVITY
++NOBLOCKMAP
++FLOORCLIP
++FORCEXYBILLBOARD
++NOINTERACTION
++FORCEXYBILLBOARD
++MISSILE
++GHOST
+Speed 1
+	RenderStyle Translucent
+Alpha		0.2
++CLIENTSIDEONLY
++NOCLIP
+Radius		0
+Height		0
+Scale		1.2
+
+States
+ {
+    Spawn:
+         NULL A 1
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+	    SMOK AAAAABBBBBCCCCCDDDDDEEEEEFFFFFGGGGGHHHHHIIIIIJJJJJKKKKK 1 A_FadeOut(0.005)
+        Stop
+	Performance:
+		TNT1 A 1
+		Stop
+    }
+}
+
+
+ACTOR QuickSmoke: ExplosionSmoke
+{
+    Speed 1
+	Alpha 0.50
+	Scale 1.3
+    States
+    {
+    Spawn:
+	TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        PUFF ABCD 4
+        Stop
+		Death:
+		TNT1 A 0
+		Stop
+    }
+}
+
+
+
+
+ACTOR EvilRedSmoke25
+{
+    Radius 0
+    Height 0
+	Alpha 0.3
+	RenderStyle Translucent
+	Scale 2.5
+	Speed 1
+	Gravity 0
+    +NOBLOCKMAP
+    +NOTELEPORT
+    +DONTSPLASH
+	+MISSILE
+	+FORCEXYBILLBOARD
+    +CLIENTSIDEONLY
+    +NOINTERACTION
+    States
+    {
+    Spawn:
+        BSP4 B 1
+        Goto Death
+	Death:
+	    BSP4 CCCCCDDDDDEEEEEFFFFFGGGGGHHHHHIIIIIJJJJJKKKKK 1 BRIGHT A_FadeOut(0.005)
+		Stop
+    }
+}
+
+
+
+ACTOR TorchSmokeSpawner
+{
+    Radius 8
+    Height 8
+    Speed 5
+	Mass 6
+	BounceFactor 0.5
+	+DOOMBOUNCE
+    Speed 0
+    +NOBLOCKMAP
+	+MISSILE
+    +NOTELEPORT
+    +DONTSPLASH
+    +MOVEWITHSECTOR
+    +NODAMAGETHRUST
+    +CLIENTSIDEONLY
+    States
+    {
+	Spawn:
+		TNT1 A 0
+		TTRB A 0 bright A_SpawnProjectile ("PlasmaSmoke", 0, 0, random (0, 360), 2, random (70, 110))
+		stop
+    }
+}
+
+
+
+
+ACTOR GreenSmokeTrail
+{
+    Radius 5
+    Height 5
+	Alpha 0.5
+	RenderStyle Translucent
+	Scale 0.2
+	Gravity 0
+    +NOBLOCKMAP
+    +NOTELEPORT
+    +DONTSPLASH
+	+MISSILE
+	+CLIENTSIDEONLY
+	+FORCEXYBILLBOARD
+    States
+    {
+    Spawn:
+        TNT1 A 3
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        Goto Death
+	Death:
+	    ESMK ABCDEFGH 1
+		Stop
+	Performance:
+		TNT1 A 1
+		Stop
+    }
+}
+
+ACTOR GreenSmoke
+{
+    Radius 1
+    Height 1
+	Alpha 0.5
+	RenderStyle Translucent
+	Scale 0.2
+	Gravity 0
+    Speed 2
+    +NOBLOCKMAP
+    +NOTELEPORT
+    +DONTSPLASH
+	+MISSILE
+	+CLIENTSIDEONLY
+	+FORCEXYBILLBOARD
+    States
+    {
+    Spawn:
+        TNT1 A 3
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+        Goto Death
+	Death:
+	    ESMK ABCDEFGH 5
+		Stop
+	Performance:
+		TNT1 A 1
+		Stop
+    }
+}
+
+ACTOR GreenSmokes
+{
+    Radius 1
+    Height 1
+	Alpha 0.1
+	RenderStyle Translucent
+	Scale 0.4
+	Gravity 0
+    Speed 1
+    +NOBLOCKMAP
+    +NOTELEPORT
+    +DONTSPLASH
+	+MISSILE
+	+CLIENTSIDEONLY
+	+FORCEXYBILLBOARD
+    States
+    {
+    Spawn:
+		TNT1 A 0 ACS_NamedExecuteAlways("PerformanceMode", 0, 0, 0, 0)//Check Effects
+	    ESMK ABCDEFGH 5 BRIGHT
+		Stop
+	Performance:
+		TNT1 A 1
+		Stop
+    }
+}
+
+
+ACTOR BaseAcidExplosion : BaseExplosionEffect {
+	states {
+		Spawn:
+			TNT1 A 0
+			DB28 ABCDEFGHIJKLMNOPQRSTUVWXY 1
+			Goto Death
+		Death:
+			TNT1 A 0
+			DB28 ZZZZZZZZZZZZZZZZZZZZZZZZZZZZ 1 a_fADEOUT(0.05)
+		Stop
+	}
+}
+
+ACTOR BaseAcidExplosionSmall : BaseAcidExplosion {
+	scale 0.7
+	alpha 0.4
+}
+
+ACTOR BaseFrostExplosion : BaseExplosionEffect {
+	states {
+		Spawn:
+			TNT1 A 0
+			DB29 ABCDEFGHIJKLMNOPQRSTUVWXY 1
+			Goto Death
+		Death:
+			TNT1 A 0
+			DB29 ZZZZZZZZZZZZZZZZZZZZZZZZZZZZ 1 a_fADEOUT(0.05)
+		Stop
+	}
+}
+
+ACTOR TurretSmoke : BaseExplosionEffect {
+	scale 0.8
+}
+
+ACTOR LargeExplosionSmoke : SmallExplosionSmoke {
+	scale 1.2	
+}
+ACTOR LargeExplosionSmokeSlow : SmallExplosionSmoke {
+	scale 1.2
+	states {
+		Spawn:
+		TNT1 A 0
+		TNT1 A 0 {
+			if(random(0,1)) {
+				bXflip = true;
+			}
+			if(random(0,1)) {
+				bYflip = true;
+			}
+			A_SETROLL(random(0,360));
+			A_SETSCALE(frandom(0.8,0.9));
+		}
+		TNT1 A 0 {
+			A_SETTICS(random(0,4));
+		}
+		SEXP AB 0 {
+			A_SETTICS(random(1,2));
+			a_fADEOUT(0.003);
+		}
+		SEXP CDEFGHIJKLMNOPQRSTUVW 0 {
+			A_SETTICS(random(1,2));
+			a_fADEOUT(0.004);
+		}
+		Goto Death
+		Stop
+		
+		Stap:	
+		Performance:	
+			TNT1 A 0
+			Stop
+	}	
+}
+
+Actor SmallExplosionSmokeSlow :LargeExplosionSmokeSlow {
+	scale 1.2
+	states {
+		Spawn:
+		TNT1 A 0
+		TNT1 A 0 {
+			if(random(0,1)) {
+				bXflip = true;
+			}
+			if(random(0,1)) {
+				bYflip = true;
+			}
+			A_SETROLL(random(0,360));
+			A_SETSCALE(frandom(0.6,0.75));
+		}
+		TNT1 A 0 {
+			A_SETTICS(random(0,4));
+		}
+		SEXP AB 2 {
+			a_fADEOUT(0.002);
+		}
+		SEXP CDEFGHIJKLMNOPQRSTUVW 1 {
+			a_fADEOUT(0.002);
+		}
+		Goto Death
+		Stop
+		
+		Stap:	
+		Performance:	
+			TNT1 A 0
+			Stop
+	}	
+}
+
+
+ACTOR SmallExplosionSmokeBlue : SmallExplosionSmoke {
+	alpha 1.0
+	scale 0.8
+	Translation "0:255=%[0,0,0]:[0.69,0.79,0.9]"
+}
+
+// Same as the normal explosions. Except these are used for scripts. Look a little prettier.
+ACTOR BaseExplosionEffectScripted : BaseExplosionEffect
+{
+    States
+    {
+    Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_SpawnItemEx ("PrettyExplosionParticleRainPerformance",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0)
+		TNT1 AAAA 0 A_SpawnProjectile ("HugeWallChunk", 2, 0, random (0, 270), 2, random (0, 190))
+		stop
+    }
+}
+
+ACTOR BaseExplosionEffectTilted : BaseExplosionEffect
+{
+	+Rollsprite
+    States
+    {
+    Spawn:
+		TNT1 A 0
+		TNT1 A 0 A_SetRoll(-90)
+		TNT1 A 0 A_SpawnProjectile ("Spark_impact", 2, 0, random (0, 270), 2, random (0, 190))
+		TNT1 AAAA 0 A_SpawnProjectile ("HugeWallChunk", 2, 0, random (0, 270), 2, random (0, 190))
+		BANG ABCDEFGHIJKLMNOPQRSTUVWXYZ 1 
+		TNT1 A 0
+		stop
+    }
+}

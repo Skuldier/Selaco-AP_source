@@ -1,0 +1,209 @@
+// Gameplay object used to provide power to Generators. (Example: SE_03B)
+class PowerCell : PickupableDecoration
+{
+    LookExParams generatorParameters;
+    mixin MEDIUM_METAL_PROP; // Behave like metal
+
+    bool spottedPlayer;
+    bool inserted;
+    actor generatorIcon;
+    bool generatorIconSuccess;
+
+    actor newPowercell;
+    bool newPowerCellSuccess;
+
+    bool fadeSpawn;
+
+    vector3 startPosition; // Used to respawn the Power Cell after being shut down.
+
+
+
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        // Important object, play a humming sound for attention
+        A_PLAYSOUND("POWERCELL/LOOP", CHAN_6, 0.5, 1);
+
+        // Assign looking parameters for Automap
+		generatorParameters.minDist = 0;
+    	generatorParameters.maxDist = 512; // LINE OF SIGHT FOR SHOTGUNNER - Causing them to make an accurate shot
+        startPosition = pos;
+
+        if(fadeSpawn)
+        {
+            alpha = 0;
+            A_SetRenderStyle(STYLE_ADD, 0);
+        }
+    }
+
+    override void tick()
+    {
+        super.tick();
+        // When a Power Cell is destroyed, the new one fades in. Looks less weird, I think? No idea.
+        if(fadeSpawn && alpha < 1.0)
+        {
+            A_FADEIN(0.05);
+        }
+        if(alpha >= 1.0)
+        {
+            A_SetRenderStyle(STYLE_NORMAL, 1.0);
+            fadeSpawn = false;
+        }
+    }
+
+    default
+    {
+        tag "$OBJECT_POWERCELL";
+        +SHOOTABLE
+    
+        // Physics
+        gravity 1.05;
+        friction 0.4;
+        mass 9000;
+        height 27;
+
+        health 700;
+
+        damageFactor "MeleeImpact", 0;
+        DamageFactor "MeleeImpactTaser", 0;
+
+        // Pickup behavior
+        -PickupableDecoration.TranslucentPickup
+        +SelacoActor.essential;
+        PickupableDecoration.landingSound "POWERCELL/IMPACT";
+        PickupableDecoration.ThrowVel 2;
+        PickupableDecoration.MaxThrowVel 4;
+        PickupableDecoration.HoldHeight -25; 
+    }
+
+    states
+    {
+        Throw:
+            VOXE L 1 {
+                if(isTouchingSurface())
+                {
+                    for(int x=0;x<4;x++)
+                    {
+                        A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", frandom(-5,5), frandom(-5,5));
+                    }
+                    A_PLAYSOUND("POWERCELL/IMPACT", CHAN_AUTO, 0.8, pitch:frandom(0.9,1.15));
+                    setStateLabel("Spawn");
+                }
+            }
+            loop;
+        Pickup:
+            TNT1 A 0 A_PLAYSOUND("POWERCELL/PICKUP", CHAN_AUTO);
+        Putdown:
+        // Idle state -> Not connected to a a generator
+        Spawn:
+            VOXE L 5
+            {
+                if(!spottedPlayer && LookForPlayers(false, generatorParameters))
+                {
+                    [generatorIconSuccess, generatorIcon] = A_SPAWNITEMEX("PowercellIcon", flags:SXF_SETMASTER);
+                    spottedPlayer = true;
+                }
+            }
+            loop;
+            
+        // Placed in Generator
+        Activated:
+            TNT1 A 0
+            {
+                // Insertion sound
+                A_PLAYSOUND("POWERCELL/INSERT", CHAN_AUTO, 1.0, 0, 0.7);
+
+                // Make the PowerCell indestructible
+                bBuddha = true;
+            }
+
+            // It takes 33 ticks for the Power Cell to activate. Keep this in mind during scripting.
+            VOXE L 33 
+            {
+                // Deactivate pickup upon activation.
+                activationtype = THINGSPEC_DEFAULT;
+                bUseSpecial = false;
+                
+                // Stop making it pushable
+                bPushable = false;
+                mass = 9000;
+                
+                bNoPain = true;
+                A_STOPSOUND(CHAN_6); // Stop the idle humming sound
+                A_PLAYSOUND("POWERCELL/CONNECTED", CHAN_AUTO, 0.7, 0, 0.7);
+                
+                A_KILLCHILDREN();
+
+                inserted = true;
+            }
+
+            TNT1 A 0
+            {
+                A_SPAWNITEMEX("PowerCellIconSuccess");
+                emit("SparkParticle360", chance: 0.75, numTries: 360, angle:random(0,0), speed:frandom(0.3,0.6), offset:(0,0,3), velocity:(0,0,0));
+            }
+
+            // Change Model texture to Red (Installed)
+            VOXE B -1;
+            loop;
+        Xdeath:
+        Death:
+            TNT1 A 0
+            {
+                A_SPAWNITEMEX("PlayerShaker1");
+                //A_PLAYSOUND("dest/JunctionBox", CHAN_AUTO);
+                A_SPAWNITEMEX("ShockExplosion");
+            }
+            TNT1 A 0 
+            {
+                A_SpawnItemEX("ExplosionWithLotsOfSparks");
+                newPowercell = spawn("PowerCell", startPosition);
+                newPowerCell.A_SPAWNITEMEX("PowercellIcon", flags:SXF_SETMASTER);
+                if(powerCell(newPowerCell))
+                {
+                    powerCell(newPowerCell).ChangeTid(tid);
+					powerCell(newPowerCell).spottedPlayer = true;
+                    powerCell(newPowerCell).fadeSpawn = true;
+                }
+            }
+            TNT1 A 35;
+            TNT1 A 0 
+            {
+                if(generatorIcon) generatorIcon.destroy();
+                
+                TutorialHandler.TutorialMessage("TUT_POWERCELL", 1);
+            }
+            stop;
+    }
+}
+
+// EXAMPLE ACS CODE. Doesn't have to be used like this though.
+
+/* script "WaitForGenerator" open
+{
+	while(true)
+	{
+		// Check for Powercells in sector 5
+		if(ThingCountNameSector("Powercell", 0, 5))
+		{
+			
+			// TID 4 -> PowerCell
+			Thing_remove(4);
+			
+			// Spawn new PowerCell inside the receptacle at a fixed position
+			SpawnSpotFacingForced("PowerCell", 3, 3);
+			delay(1);
+			
+			// Enable activation on newly spawn actor
+			SetActorState(3, "Activated");
+			
+			// Boot up time
+			delay(33);
+			
+			// The generator is now on.
+			ChangeFloor(5, "CIRLIT1R");
+			terminate;
+		}
+		delay(3);
+	}
+} */

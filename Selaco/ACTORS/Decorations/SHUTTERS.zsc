@@ -1,0 +1,357 @@
+
+// Wonderful shutter pieces with tier-based destruction..
+// Worth adding at least 1 or 2 more shutter variants for the sake of variety.
+
+class ShutterWindow1 : SelacoActor {
+	const DAMAGE_STATES = 5;
+	const TOTAL_SHUTTERS = 10;
+	int shuttersLost;
+	int hitsTaken;
+
+	default {
+		// FLAGS
+			-BLOODSPLATTER;
+			+NOBLOODDECALS
+			-SOLID;
+			+WALLSPRITE;
+			+NOGRAVITY;
+			+DONTTHRUST
+			+SHOOTABLE;
+			+Special;	// Required for Touch()
+		// PROPS
+			tag "$OBJECT_WINDOWSHUTTER";
+			DamageFactor "explosiveimpact", 255;
+			BloodType "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+			PainChance 255;
+			scale 1.0;
+			height 60;
+			radius 40;
+			mass 250;
+			health 400;
+			+HITSCANTHRU;
+			+SELACOACTOR.EnemyProjectilePassThru;
+			-SELACOACTOR.WakeNearPlayer;
+			+SELACOACTOR.WakeOnPain;
+			+SELACOACTOR.SleepWhenIdle;
+			+SelacoActor.BreakOnMelee;
+	}
+
+	override bool canCollideWith(Actor other, bool passive) {
+		if(!Super.canCollideWith(other, passive)) return false;
+
+		Vector2 cpos = getClosestPos(other.pos.xy);
+		let dist = (cpos - other.pos.xy).length();
+
+		if(dist < other.radius * 0.75) return true;
+		return false;
+	}
+
+	clearscope Vector2 getClosestPos(Vector2 pos) {
+        let angVec = angleToVector(angle, 1);
+        let dir = (-angVec.y, angVec.x);
+        let wpos = self.pos.xy;
+        return Ladder.pointOnLine(wpos, wpos + (dir * radius), pos, false);
+    }
+
+    override void breakByMelee(Actor source) 
+    { 
+		
+		// Make sure Dawn actually hit us with a melee
+		if(source is 'Dawn' && source.player) {
+			let player = source.player;
+			let eye = source.pos.z + player.viewHeight;
+			Vector3 sourcePos = (source.pos.xy, eye), resultPos;
+			let projectileDir = PickupableDecoration.vecFromAngle(source.angle, source.pitch);
+			bool hasHit;
+			
+			[hasHit, resultPos] = getLineAttackCol(sourcePos, projectileDir);
+			
+			if(!hasHit || (resultPos - sourcePos).length() > 90) {
+				return;
+			}
+		}
+
+		Die(source, source, 0, "MeleeImpact");
+		health = 0;
+		bBreakOnMelee = false;
+    }
+
+	void breakByImpact(Actor source) {
+		spawnRemainingShutters(source);
+        die(source, source, 0, "meleeimpact");
+	}
+
+
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+
+		// Correct hitboxes based on given scale
+		A_SETSIZE(radius*scale.x, height*scale.y);
+	}
+
+	// In case of death, shoot however many shutters are still on the thing.
+	void spawnRemainingShutters(actor toucher) {
+		while(shuttersLost <= TOTAL_SHUTTERS) {
+			spawnShutter(toucher);
+		} 
+	}
+
+	// Propel all remaining shutter pieces forward upon player / monster touch.
+    override void Touch(Actor toucher) {
+		if(!canCollideWith(toucher, true)) return;	// For some reason canCollide isn't used for touch()
+		if(health <= 0) { return; }
+
+		wake();
+
+		// Get velocity of toucher
+		int toucherVelocity = abs(toucher.vel.x) + abs(toucher.vel.y);
+
+		if(toucher && (toucher is 'PlayerPawn' && toucherVelocity >= 1) || toucher.bIsMonster) {
+			// In case of the player, apply some screen shake
+			if(toucher is 'PlayerPawn' && getCvar("g_Screenshake") >= 2) {
+                A_QuakeEx(3, 3, 2, 13, 0, 200, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+			}
+
+			breakByImpact(toucher);
+		}
+	}
+
+
+	bool, Vector3 getLineAttackCol(Vector3 sourcePos, Vector3 dirUnit) {
+		let angVec = angleToVector(angle, 1);
+		let dir = (-angVec.y, angVec.x) * radius;
+
+		Vector2 resultPos;
+		bool result;
+		[result, resultPos] = Ladder.getIntersection(sourcePos.xy, sourcePos.xy + (dirUnit.xy * 9999), pos.xy - dir, pos.xy + dir);
+
+		if(!result) {
+			return false, (0,0,0);
+		}
+
+		// Rough vertical check
+		double slope = dirUnit.z / dirUnit.xy.length();
+		double colz = sourcePos.z + ((resultPos - sourcePos.xy).length() * slope);
+
+		let dumpPos = (resultPos.x, resultPos.y, colz) - pos;
+		//A_SpawnParticle("red", SPF_FULLBRIGHT, 690, 5, 0, dumpPos.x, dumpPos.y, height / 2.0, 0, 0, 0);
+		//A_SpawnParticle("green", SPF_FULLBRIGHT, 690, 5, 0, dumpPos.x, dumpPos.y, dumpPos.z, 0, 0, 0);
+
+		if(colz < pos.z || colz > pos.z + height) {
+			return false, (0,0,0);
+		}
+
+		return true, (resultPos.x, resultPos.y, colz);
+	}
+
+
+	// Prevent spawning "blood" if the trace did not actually hit
+	override void SpawnLineAttackBlood(Actor attacker, Vector3 bleedpos, double SrcAngleFromTarget, int originaldamage, int actualdamage) {
+		if(!(attacker is 'PlayerPawn')) return;
+		if(!attacker.player) return;
+
+		let player = attacker.player;
+		let eye = attacker.pos.z + player.viewHeight;
+		Vector3 resultPos;
+		let projectileDir = PickupableDecoration.vecFromAngle(attacker.angle, attacker.pitch);
+		bool hasHit;
+
+		[hasHit, resultPos] = getLineAttackCol((attacker.pos.xy, eye), projectileDir);
+		
+		if(!hasHit) return;
+
+		Super.SpawnLineAttackBlood(attacker, resultPos - (projectileDir * 4.0), SrcAngleFromTarget, originaldamage, actualdamage);
+	}
+
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) 
+	{
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+        if(damage > 3 && inflictor)
+		{
+			// If we know this is a hitscan attack, trace it back to the owner and make sure it collided with our center
+			if(source && source != inflictor && (inflictor is 'HitPuff' || inflictor is 'Ricochet' || inflictor is 'GlassDamagePuff')) {
+				Vector3 projectileDir;
+				Vector3 sourcePos;
+
+				if(source is 'PlayerPawn' && source.player) {
+					let eye = source.pos.z + source.player.viewHeight;
+					sourcePos = (source.pos.xy, eye);
+					projectileDir = PickupableDecoration.vecFromAngle(source.angle, source.pitch);
+					if(projectileDir ~== (0,0,0)) return 0;
+				} else {
+					sourcePos = (source.pos.xy, source.pos.z + (height / 2.0));
+					projectileDir = (inflictor.pos - sourcePos).unit();
+					if(projectileDir ~== (0,0,0)) {
+						sourcePos = inflictor.pos;
+						projectileDir = inflictor.vel.unit();
+					}
+					if(projectileDir ~== (0,0,0)) return 0;
+				}
+				
+				if(!getLineAttackCol(sourcePos, projectileDir)) return 0;
+			}
+
+			if(inflictor is "WeaponMelee") return 0;	// Already handled by break func
+
+			spawnShutter(inflictor, 1, damagetype);
+			if(hitsTaken >= 5) 
+			{
+				spawnShutter(inflictor, 2, damagetype);
+			}
+			if(hitsTaken >= DAMAGE_STATES || damageType == "Shotgun" || damageType == "MeleeImpact" || damageType == "ExplosiveImpact")
+			{
+				hitsTaken = DAMAGE_STATES;
+				die(source,inflictor);
+			}
+			hitsTaken++;
+		}
+        return res;
+    }
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		if(inflictor)
+		{
+			spawnRemainingShutters(inflictor);
+		}
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+
+	// Look at target, spawn shutter, go back to default angle.
+	void spawnShutter(actor inflictor, int amount = 1, Name damageType = 'damage')
+	{
+		float velocityMulti = getVelocityMultiplier(damageType);
+
+		// We temporarily look at the actor, then shoot the shutter piece in the opposite direction.
+		int oldAngle = angle;
+		A_FACE(inflictor);
+
+		// Fire desired amount of shutter pieces
+		for(int x=0;x<=amount;x++)
+		{
+			shuttersLost++;
+
+			// Spawn effects at point of impact
+			float randomZoffset = frandom(15,height);
+			float randomYoffset = frandom(radius/2, -1*(radius/2));
+			A_SpawnItemEx("SpawnImpactSmokeSmall", frandom(-2,2), randomYoffset, randomZoffset);
+			A_SpawnItemEx("BulletImpactEffectPlasticStationarySmall", frandom(-2,2), randomYoffset, randomZoffset);
+			A_SPAWNITEMEX("ShutterPiece", 0, 0, randomZoffset, (FRANDOM(4, 13)*velocityMulti)*-1, frandom(-2, 2), frandom(3,6));
+
+			// Stop when we run out of shutters
+			if(shuttersLost >= TOTAL_SHUTTERS)
+			{
+				break;
+			}
+		}
+
+		// Restore correct angle
+		A_SETANGLE(oldAngle);
+	}
+
+	float getVelocityMultiplier(Name damageType)
+	{
+		float velocityMulti = 1;
+		if(damageType == "ExplosiveImpact" || damageType == "Shotgun" || damageType == "ExplosiveImpact" || damageType == "RailgunPuff")
+		{
+			velocityMulti = 2.5;
+		}
+		return velocityMulti;
+	}
+
+	states{
+		Precache:
+			SHU1 ABCDEFGR 0;
+			stop;
+		spawn:
+			TNT1 A 0;
+		Looper:
+			SHU1 A 1 {
+				frame = hitsTaken;
+			}
+			loop;
+		Pain.BulletAlien:
+		Pain.NailDamage:
+		Pain:
+			SHU1 A 0;
+			goto Looper;
+		Pain.Shotgun:
+		Death.Shotgun:
+		Death.MeleeImpact:
+		Death.ExplosiveImpact:
+		Death:
+			goto DeathIdle;
+		DeathIdle:
+			TNT1 A 0 A_PLAYSOUND("dest/shutterbreak", CHAN_AUTO,0.4, 0, 0.7);
+			TNT1 A 0 {
+				A_SpawnItemEx("SpawnImpactSmokeSmallLong", frandom(-2,2), 0, frandom(-10, 25));
+				bNoInteraction = true;
+			}
+			SHU1 R -1;
+			stop;
+	}
+}
+
+
+class ShutterPiece : SelacoActor {
+	int currentFrame;
+	int frameMax;
+	default {
+		renderstyle "translucent";
+		+wallsprite;
+		+Thruactors
+		+missile
+		speed 10;
+		scale 0.7;
+		radius 5;
+		+doombounce;
+		bouncefactor 0.3;
+		bouncecount 3;
+		seeSound "bounce/shutter";
+	}
+	states {
+		spawn:
+			TNT1 A 0;	
+			TNT1 A 0 {
+				A_PLAYSOUND("bounce/shutter", CHAN_BODY, 0.6);
+				invoker.frameMax = 6;
+				invoker.currentFrame = random(0,6);
+			}
+		Looper:
+			SHUT A 2 {
+				frame = invoker.currentFrame;
+				A_SetTics(3);
+				if (invoker.currentFrame == invoker.frameMax) {
+					invoker.currentFrame = -1;
+				}
+				invoker.currentFrame++;
+			}
+			loop;
+		death:
+			SHUT A 35 {
+				A_PLAYSOUND("bounce/shutter", CHAN_BODY, 0.6);
+				A_setAngle(angle + random(-5, 5));
+				bWallsprite = false;
+				invoker.currentFrame = random(0,6);
+				frame = invoker.currentFrame;
+				invoker.currentFrame = frame;
+				bFLATSPRITE = true;
+			}
+		deathloop: // Arkane lololol
+			SHUT A 1 {
+				if(vel.z == 0) {
+					setStateLabel("SleepMode");
+				}
+			}
+			loop;
+		SleepMode:
+			SHUT A 1 {
+				SleepIndefinite();
+				frame = invoker.currentFrame;
+				bNoInteraction = true;
+			}
+			stop;
+	}
+}

@@ -1,0 +1,239 @@
+class ShaderHandler : StaticEventHandler {
+	mixin CVARBuddy;
+	mixin ScreenSizeChecker;
+	mixin UIDrawer;
+	mixin HudDrawer;
+	
+	bool levelDisable, cameraGrainDisable;
+
+    ui uint tix;
+	ui bool grainEnabled, viewingThroughCamera;
+	ui bool rainEnabled, isRaining, rainHandlerEnabled;
+	ui int grainRate;
+	ui bool playerUnderWater;
+
+	CVar cvGrain, cvGrainRate, cvGrainScale, cvGrainStrength, cvRainShader;
+
+	double svRainAmount;
+	uint svRainTick, mapStartTick;
+
+	ui double screenScale;
+	ui double rainAmount, rainTimeLast, stoppedTime;
+	ui double deltaCameraAngle;
+	ui TextureID skyTex;
+
+	static clearscope ShaderHandler Instance() {
+        return ShaderHandler(StaticEventHandler.Find("ShaderHandler"));
+    }
+
+	// TODO: Remove the handler if the necessary CVARS cannot be found
+	override void OnRegister() {
+		cvGrain = CVar.FindCVar("r_filmgrain");
+		cvGrainRate = CVar.FindCVar("r_filmgrain_time");
+		cvGrainScale = CVar.FindCVar("r_filmgrain_scale");
+		cvGrainStrength = CVar.FindCVar("r_filmgrain_intensity");
+		cvRainShader = CVar.FindCVar("r_rainshader");
+	}
+
+	override void WorldUnloaded(WorldEvent e) {
+		levelDisable = false;
+		cameraGrainDisable = false;
+	}
+
+	override void WorldLoaded(WorldEvent e) {
+		svRainAmount = 0;
+		svRainTick = level.totalTime;
+		mapStartTick = level.totalTime;
+		PPShader.SetEnabled("ScreenRain", level.rainymap && cvRainShader.getInt());
+	}
+
+    override void ConsoleProcess(ConsoleEvent e) {
+		// Debug print
+		if(e.Name.MakeLower() == "shaders") {
+			Console.Printf("Post Process Shaders\n==========================");
+            Console.Printf("Film Grain: %s  Rate: %d  Size: %f %s", grainEnabled ? "Enabled" : "Disabled", grainRate, cvGrainScale.getFloat(), viewingThroughCamera ? "Camera Mode" : "");
+		}
+	}
+
+	protected clearscope int invCount(class<Inventory> inv, int defValue = 0) {
+		let mo = players[consolePlayer].mo;
+		let i = mo ? mo.FindInventory(inv) : null;
+		return i ? i.Amount : defValue; 
+	}
+
+	// Handle effect shaders here
+	override void UITick() {
+		if(!skyTex.isValid()) skyTex = TexMan.CheckForTexture("F_SKY1");
+		if(levelDisable) grainEnabled = false;
+		
+		if(screenSizeChanged() || tix == 0) {
+            // Calculate the correct scale based on 1080p
+			screenScale = getScreenScale(screenSize, virtualScreenSize); 	// No HUD scaling
+        }
+
+		rainAmount = mapStartTick == level.totalTime ? 0 : max(rainAmount, svRainAmount);
+
+		if(!players[consolePlayer].mo || players[consolePlayer].mo.waterLevel >= 3) {
+			if(!playerUnderWater) {
+				playerUnderWater = true;
+				rainAmount = 0;
+				PPShader.SetEnabled("ScreenRain", false);
+			}
+		} else {
+			if(playerUnderWater) {
+				PPShader.SetEnabled("ScreenRain", rainEnabled && rainAmount > 0.01);
+			}
+			playerUnderWater = false;
+		}
+		
+		if(tix % 17 == 0) {
+			grainEnabled = cvGrain.getInt() > 0 && Level.levelnum != 99 && !levelDisable && invCount('isPlaying');
+			grainRate = cvGrainRate.getInt();
+			PPShader.SetEnabled("FilmGrain", grainEnabled);
+			PPShader.SetUniform1f("FilmGrain", "scale", cvGrainScale.getFloat() / screenScale);
+			PPShader.SetUniform1f("FilmGrain", "intensity", cvGrainStrength.getFloat());
+			
+			rainEnabled = cvRainShader.getInt() > 0;
+			let handler = RainHandler.Instance();
+			if(handler) rainHandlerEnabled = handler.rainIsEnabled;
+			else rainHandlerEnabled = true;
+			PPShader.SetEnabled("ScreenRain", rainEnabled && !playerUnderWater && rainAmount > 0.01);
+		}
+
+		// We assume here that a camera is active if the player is not viewing through themselves
+		if(players[consolePlayer].camera is 'CameraNew' && Level.levelnum != 99 && !cameraGrainDisable) {
+			viewingThroughCamera = true;
+			PPShader.SetEnabled("FilmGrain", true);
+			PPShader.SetUniform1f("FilmGrain", "scale", 0.25 / screenScale);
+			PPShader.SetUniform1f("FilmGrain", "intensity", 0.25);
+			PPShader.SetUniform1f("FilmGrain", "ttime", tix * (1.0/35.0));
+
+			if(tix % grainRate == 0) PPShader.SetUniform1f("FilmGrain", "ttime", frandom(0.0001, 0.9999));
+
+			let cam = CameraNew(players[consolePlayer].camera);
+			deltaCameraAngle = cam.angleIncrement;
+		} else if(players[consolePlayer].camera == players[consolePlayer].mo) {
+			if(viewingThroughCamera) {
+				viewingThroughCamera = false;
+				PPShader.SetEnabled("FilmGrain", grainEnabled);
+				PPShader.SetUniform1f("FilmGrain", "scale", cvGrainScale.getFloat() / screenScale);
+				PPShader.SetUniform1f("FilmGrain", "intensity", cvGrainStrength.getFloat());
+			}
+
+			if(grainEnabled && tix % grainRate == 0) PPShader.SetUniform1f("FilmGrain", "ttime", frandom(0.0001, 0.9999));
+		} else {
+			PPShader.SetEnabled("FilmGrain", false);
+		}
+
+		tix++;
+	}
+
+	override void WorldTick() {
+		// Clear rain setting
+		if(svRainTick != level.totalTime) {
+			svRainAmount = 0;
+		}
+	}
+
+	override void RenderUnderlay (RenderEvent e) {
+		if(rainEnabled && !playerUnderWater) {
+			double time = (double(tix) + e.FracTic) * ITICKRATE;
+
+			// Add rain if the player is looking upwards and is under sky
+			if(level.rainymap && players[consolePlayer].mo && players[consolePlayer].mo.ceilingpic == skytex && rainHandlerEnabled) {
+				double desiredRain = e.viewPitch < 5 ? clamp(((abs(5.0 + e.viewPitch) + 5.0) / 85.0) + 0.1, 0.1, 1.0) : 0.0;
+				rainAmount = min(1.0, rainAmount + ((desiredRain - rainAmount) * ((time - rainTimeLast) / 3.0)));	// 3 seconds to full rain
+				stoppedTime = time;
+				isRaining = true;
+			} else {
+				if(isRaining) {
+					isRaining = false;
+					stoppedTime = time;
+				}
+				rainAmount = max(0, rainAmount - ((time - rainTimeLast) / 4.0));	// 3 seconds to no rain
+			}
+
+			rainTimeLast = time;
+
+			if(rainAmount > 0.01) {
+				PPShader.SetEnabled("ScreenRain", true);
+
+				Vector2 offset = HUD.ShakeOffset();
+				offset.x /= 1920.0;
+				offset.y /= 1080.0;
+				PPShader.SetUniform1f("ScreenRain", "timer", time);
+				//PPShader.SetUniform1f("ScreenRain", "timerStopped", stoppedTime);
+				PPShader.SetUniform1f("ScreenRain", "amount", rainAmount);
+				PPShader.SetUniform2f("ScreenRain", "offset", offset);
+			}
+		}
+	}
+
+	override void RenderOverlay (RenderEvent e) {
+		// Render a basic camera overlay
+		if(viewingThroughCamera) {
+
+			// Draw REC
+			DrawImgAdvanced("CAM_REC2", (200, 200), flags: 0, scale: (2, 2), filter: false);
+
+			// Draw red dot
+			if(sin(level.time * 20.0) > 0.0) DrawImgAdvanced("CAM_REC1", (200, 200), flags: 0, scale: (2, 2), filter: false);
+
+			// Draw 4 frame pieces
+			DrawXImgAdvanced("CAM_REC3", (75, 75), flags: 0, 									a: 0.75, scale: (2, 2), center: (0,0), filter: false);
+			DrawXImgAdvanced("CAM_REC3", (-75, 75), flags: DR_SCREEN_RIGHT, 					a: 0.75, scale: (2, 2), center: (1,0), flipX: true, filter: false);
+			DrawXImgAdvanced("CAM_REC3", (-75, -75), flags: DR_SCREEN_RIGHT | DR_SCREEN_BOTTOM, a: 0.75, scale: (2, 2), center: (1,1), flipX: true, flipY: true, filter: false);
+			DrawXImgAdvanced("CAM_REC3", (75, -75), flags: DR_SCREEN_BOTTOM, 					a: 0.75, scale: (2, 2), center: (0,1), flipY: true, filter: false);
+
+			// Draw center frame
+			DrawImgAdvanced("CAM_REC4", (0, 0), flags: DR_SCREEN_CENTER | DR_IMG_CENTER, a: 0.5, scale: (2, 2), filter: false);
+
+			// Draw time
+			DrawStr('SEL21FONT', CommonUI.getTimeString(Level.totalTime), (0,82), DR_SCREEN_HCENTER | DR_TEXT_HCENTER, a: 0.75, monoSpace: true, scale: (2, 2), filter: false);
+
+			// Draw security logo
+			DrawXImgAdvanced("CAMLOGO1", (-125, -125), flags: DR_SCREEN_RIGHT | DR_SCREEN_BOTTOM,  a: 0.75, scale: (2, 2), center: (1,1), filter: false);
+			
+			let cam = CameraNew(players[consolePlayer].camera);
+
+			if(cam) {
+				// Draw yaw	
+				DrawImgAdvanced("CAM_REC5", (0, -50), flags: DR_SCREEN_CENTER | DR_IMG_CENTER | DR_IMG_BOTTOM | DR_SCREEN_BOTTOM, a: 0.75, scale: (2, 2), filter: false);
+				double displayAng = UIMath.LerpD(deltaCameraAngle, double(cam.angleIncrement), e.FracTic);
+				displayAng = displayAng / double(cam.ROTATE_ANGLE);
+				DrawImgAdvanced("CAM_REC6", (displayAng * (780.0 * 0.5), -95), flags: DR_SCREEN_CENTER | DR_IMG_CENTER | DR_IMG_BOTTOM | DR_SCREEN_BOTTOM, a: 0.75, scale: (2, 2), filter: false);
+			}
+
+			// Draw overlay color
+			DrawImgAdvanced("CAM_OVRL", (0, 0), flags: DR_SCALE_IS_SIZE, a: 1, scale: virtualScreenSize, filter: true);
+		}
+	}
+
+
+	// Disable all shaders until level change
+	void LevelSetEnabled(bool enable) {
+		levelDisable = !enable;
+	}
+
+	// Disable grain shader specific to viewing from a camera
+	void LevelSetCameraGrain(bool enable) {
+		cameraGrainDisable = !enable;
+	}
+
+	static void LevelSetRain(int amount = 256) {
+		let sh = Instance();
+		if(sh) {
+			sh.svRainAmount = double(amount) / 256.0;
+			if(amount == 0) sh.svRainTick = 0;
+			else sh.svRainTick = level.totalTime;
+		}
+	}
+
+	static void LevelAddRain(int amount = 256) {
+		let sh = Instance();
+		if(sh) {
+			sh.svRainAmount = clamp(sh.svRainAmount + double(amount) / 256.0, 0.0, 1);
+			sh.svRainTick = level.totalTime;
+		}
+	}
+}

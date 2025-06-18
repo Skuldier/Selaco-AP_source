@@ -1,0 +1,36 @@
+class WireDecoration1 : SelacoACtor
+{
+    int ticker;
+    override void tick() {
+        super.tick();
+        if(ticker == 2 ) {
+           SleepIndefinite();
+        } else {
+            ticker++;
+        }
+    }
+
+
+    default {
+        SelacoActor.SleepDistance 0;
+        DistanceCheck "r_ThingLOD";
+        +FLATSPRITE
+        +ROLLSPRITE
+        +NOINTERACTION
+        -SOLID
+        radius 9;
+        height 2;
+        scale 1.0;
+        alpha 1.0;
+    }
+
+states
+{
+	Spawn:
+		VOXE L -1;
+		Loop;
+	Destroy:
+		TNT1 A 0;
+		stop;
+}
+}

@@ -1,0 +1,254 @@
+mixin class BurningActor
+{
+	override void BeginPlay() {
+		super.beginPlay();
+		if(getCvar("g_censoredmode") == 1) {
+			destroy();
+		}
+	}
+
+    bool isDead;
+    int ticker;
+    int smokeQuality;
+    override void tick() {
+        // This is demanding! Keep it for high and above. Dont want people's PC to burn down harder than this burning civilian
+         if(ticker == 0) {
+             smokeQuality = getCvar("r_smokequality");
+         }
+         super.tick();
+         if(!isDead) {
+            ticker++;
+            A_SpawnDefinedParticle("FlameParticleDefinition", frandom(-15,15), frandom(-15,15), frandom(0,height), 0, frandom(-0.5,0.5), 2);
+            if(smokeQuality >= 3) {
+                A_SpawnItemEx("BurningCivilianSmoke", 0, 0, frandom(5, height-5), 0, 0, 2);
+            }
+         }
+         if(level.time % random(5,7) == 0)
+            health-=3;
+        if(health <= 0 && !isDead)
+        {
+            isDead = true;
+            SetStateLabel("Death");
+        }
+    }
+
+    default
+    {
+        SelacoActor.sleepdistance 0;
+        Radius 13;
+        Height 56;
+        Speed 2;
+        Scale 0.74;
+        MaxStepHeight 18;
+        yscale 0.50;
+        Health 150;
+        GibHealth 25;
+        damagetype "Fire";
+        damagefactor "Burn", 0.0;
+        damagefactor "Fire", 0.0;
+        damagefactor "Flame", 0.0;
+        damagefactor "Head", 0.0;
+        damagefactor "ExplosiveImpact", 10.0;
+        -COUNTKILL
+        +NOICEDEATH
+        +CASTSPRITESHADOW
+        +SHOOTABLE
+        +NOBLOCKMONST
+        +DONTSPLASH
+        MaxDropOffHeight 6000;
+        Mass 1500;
+    }
+}
+
+class BurningJuggernaut : BurningAlien
+{
+
+    override void postBeginPlay()
+    {
+        A_playsound("grunt/burn", chan_auto, 0.9, pitch:0.7);
+    }
+
+    default
+    {
+        Scale 0.9; 
+        xscale 1.4;
+        speed 2;
+    } 
+    states
+    {
+        Spawn: 
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                A_PlaySound("fire/loop", CHAN_5, 0.7, 1);
+                bxflip = true;
+            }
+        Run:
+            BDT1 AAA 2 Bright {
+                A_EXPLODE(2, 70, 0, 0, 0, 0, 0);
+                A_Wander();
+            }
+            BDT1 B 2 Bright A_Wander();
+            TNT1 A 0 A_Recoil(-2);
+
+            BDT1 BB 2 Bright {
+                A_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+                A_Wander();
+            }
+            TNT1 A 0 A_Recoil(-2);
+            BDT1 C 2 Bright {
+                A_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+                A_Wander();
+            }
+            BDT1 CC 2 Bright A_Wander();
+            TNT1 A 0 A_Recoil(-2);
+            BDT1 DD 2 Bright {
+                A_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+                A_Wander();
+            }
+            BDT1 D 2 Bright {
+                A_Wander();
+            }
+            TNT1 A 0 A_Recoil(-2);
+		    Loop;
+    }
+}
+
+class BurningCivilian : SelacoActor
+{
+
+    override void postBeginPlay()
+    {
+        A_playsound("BURNINGDUDE", chan_auto, 0.7);
+    }
+
+    default
+    {
+        BloodType "Selaco_RedBlood_Armor";
+    }
+
+    mixin BurningActor;
+    States
+    {
+    Spawn: 
+        TNT1 A 0;
+        TNT1 A 0
+        {
+            A_PlaySound("fire/loop", CHAN_5, 0.7, 1);
+            bxflip = true;
+        }
+    Run:
+        BDT1 AA 2 Bright {
+            A_EXPLODE(2, 70, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		BDT1 B 2 Bright A_Wander();
+		TNT1 A 0 A_Recoil(-2);
+
+        BDT1 B 2 Bright {
+             A_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		TNT1 A 0 A_Recoil(-2);
+        BDT1 C 2 Bright {
+             A_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		BDT1 C 2 Bright A_Wander();
+		TNT1 A 0 A_Recoil(-2);
+        BDT1 D 2 Bright {
+             A_EXPLODE(1, 50, 0, 0, 0, 0, 0);
+			A_Wander();
+		}
+		BDT1 D 2 Bright {
+            A_Wander();
+        }
+		TNT1 A 0 A_Recoil(-2);
+		TNT1 A 0 A_GiveInventory("PoorGuyBurningLife", 1);
+		TNT1 A 0 A_JumpIfInventory("PoorGuyBurningLife", 8, "Death");
+		Loop;
+
+	Death.ExplosiveImpact:
+	TNT1 A 0;
+	TNT1 A 0 ThrustThingZ(0,60,0,1);
+	TNT1 A 0;
+
+    Death:
+	    TNT1 A 0 A_Fall;
+        BDT1 EFGHijkLMN 4 Bright A_SpawnProjectile("BurningCivilianSmoke", frandom(5,10), 0, random (0, 360), 2, random (50, 130));
+        TNT1 A 0 A_SpawnItemex("BurnMark", frandom(-15, 15), frandom(-15, 15));
+        TNT1 A 0 A_SETSCALE(0.46, 0.4);
+        TNT1 A 0 {
+            A_SETSIZE(10,5);
+            A_STOPSOUND(CHAN_5);
+            bShootable = false;
+            bSolid = false;
+        }
+        TNT1 A 0 {
+            if(random(0,1) == 0) {SetStateLabel("Death1"); }
+            else                 {SetStateLabel("Death2"); }
+        }
+        Stop;
+	Death1:
+	    BCD1 AB 3 Bright A_SpawnProjectile("BurningCivilianSmoke", frandom(5,10), 0, random (0, 360), 2, random (50, 130));
+        BCD1 CDEF 3 A_SpawnProjectile("BurningCivilianSmoke", frandom(5,10), 0, random (0, 360), 2, random (50, 130));
+        TNT1 A 0 {
+            IsDead = true;
+        }
+        BCD1 GGGGGGGG 6 A_SpawnProjectile("BurningCivilianSmoke", frandom(5,10), 0, random (0, 360), 2, random (50, 130));
+        BCD1 G -1;
+        stop;
+	Death2:
+	    BCD2 AB 3 Bright;
+        BCD2 CDE 3;
+        TNT1 A 0 {
+            IsDead = true;
+        }
+        BCD2 FFFFFFFF 6 A_SpawnProjectile("BurningCivilianSmoke", frandom(5,10), 0, random (0, 360), 2, random (50, 130));
+        BCD1 F -1;
+	xdeath:
+        TNT1 A 0 A_PlaySound("misc/xdeath");
+        Stop;
+    }
+}
+
+class burningAlien : BurningCivilian
+{
+
+    default
+    {
+        +NOBLOODDECALS
+        decal "OminousPurpleSplat";
+        BloodType "Selaco_PurpleBlood_Armor";
+    }
+
+    override void postBeginPlay()
+    {
+        A_PLAYSOUND("grunt/burn", CHAN_VOICE, 0.7, 0, 0.7);
+    }
+}
+
+class BurnMark : actor {
+    int frameID;
+    default {
+        +FLATSPRITE;
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                sprite = getSpriteIndex("BCDA");
+                invoker.frameID = random(0,3);
+            }
+            BCDA ABCD 0;
+            TNT1 A 35 {
+                frame = invoker.frameID;
+            }
+            TNT1 A 1 {
+                bNoInteraction = true;
+                frame = invoker.frameID;
+                A_SETTICS(getCvar("cl_maxdecals"));
+            }
+            stop;
+    }
+}

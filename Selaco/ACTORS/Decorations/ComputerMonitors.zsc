@@ -1,0 +1,755 @@
+class MasterMonitor : Interactable {
+	string activationActor;
+	bool turnedOn;
+	actor monitor;
+	bool success;
+
+	property TurnedOn		: turnedOn; // It's a very horny monitor.
+	property ActivationActor : activationActor;
+
+    default 
+	{
+		tag "$OBJECT_COMPUTERMONITOR";
+        Activation THINGSPEC_Switch;
+		DistanceCheck "r_ThingLOD";
+        Health 10;
+        radius 21;
+		MaxStepHeight 3;
+		DamageFactor "BulletAlien", 5;
+        height 25;
+        scale 1.0;
+
+
+		// We roll our own sleep, thank you very much
+		-SELACOACTOR.SleepWhenFar;
+		-SELACOACTOR.WakeNearPlayer;
+        -SELACOACTOR.SleepWhenIdle;
+		-SelacoActor.WakeOnTouch;
+		+SelacoActor.thruplayers;
+		ThruBits THRUBITS_DESK_STATICS;		// Will not collide with any other static desk objects
+		+ALLOWTHRUBITS;
+		+CANPASS
+		+SOLID
+        +SHOOTABLE;
+        -NOBLOOD;
+        +USESPECIAL;
+
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+    }
+	states {
+		Spawn:
+			VOXE L 35;
+			TNT1 A 0 
+			{
+				if(turnedOn)
+				{
+					A_PLAYSOUND("ambient/comp", CHAN_AUTO, 0.5, 1, 1.35);
+				}
+			}
+			VOXE L -1;
+			stop;
+		Active:
+			TNT1 A 0
+			{
+				if(turnedOn)
+				{
+					A_PLAYSOUND("monitor/OFF", CHAN_AUTO, 0.7);
+				}
+				else
+				{
+					A_PLAYSOUND("monitor/ON", CHAN_AUTO, 0.7);
+				}
+				A_SPAWNITEMEX(activationActor);
+			}
+			stop;
+		Xdeath:
+		Death.explosiveimpact:
+		    TNT1 A 0 {
+				for(int x=0;x<getCvar("r_ParticleIntensity");x++) {
+                    A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+				A_SpawnProjectile("ComputerMonitorPiece2", frandom(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece2", frandom(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", frandom(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", frandom(10,32), 0, frandom(0, 360));
+			}
+			goto Death;
+		Death.Shotgun:
+		    TNT1 A 0 {
+				for(int x=0;x<getCvar("r_ParticleIntensity");x++) {
+                    A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+			}
+		Xdeath:
+		Death:
+			TNT1 A 0 {
+				 EmitDefinition('LongerSparkDefinition', chance: 1.0, numTries: 35, angle:random(0,360), pitch:-15, offset:(0, 0, 16));
+
+				 // Maybe turn into a broken monitor
+				 if(random(0,100) <= 50) {
+					A_PLAYSOUND("DESTRUCTION/SHEETMETAL", chan_auto, 1.0);
+					A_SPAWNITEMEX("MONITOR_BUSTED", angle:random(-15,15));
+					A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+					A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+					destroy();
+					return;
+				 }
+			}
+			TNT1 A 0 {
+				A_SPAWNITEMEX("ComputerMonitor_Feet"); 
+				A_PLAYSOUND("DESTRUCTION/SHEETMETAL", chan_auto, 0.6);
+				for(int x=1;x<getCvar("r_ParticleIntensity");x++) {
+					A_SpawnDefinedParticle("BulletImpactEffectPlasticStationaryDefinition", 5, frandom(-15,15), frandom(-10,10));
+                    A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+				A_PLAYSOUND("dest/compcase", CHAN_AUTO, 0.5, pitch:frandom(1.1,1.35));
+				A_SpawnProjectile("ComputerMonitorPiece1", 32, 0, frandom(170, 190), CMF_OFFSETPITCH , frandom(-40,-60));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+			}
+			stop;
+	}
+}
+
+class ComputerMonitor : MasterMonitor
+{
+	
+	int screenFrame;
+	int r,g,b;
+
+	bool poweredOn;
+	void turnOff()
+	{
+		poweredOn = false;
+		activationType = THINGSPEC_DEACTIVATE;
+		useTag = "$INTERACT_TURNON";
+		A_STOPSOUND(CHAN_5);
+		if(level.time > 0)
+		{
+			A_PLAYSOUND("monitor/ON", CHAN_AUTO, 0.7);
+		}
+		if(lightActor)
+		{
+			lightActor.destroy();
+		}
+		SetStateLabel("idle_off");
+	}
+
+	void turnOn()
+	{
+		poweredOn = true;
+		activationType = THINGSPEC_ACTIVATE;
+		useTag = "$INTERACT_TURNOFF";
+		if(level.time > 0)
+		{
+			A_PLAYSOUND("monitor/OFF", CHAN_AUTO, 0.7);
+		}
+		if(!lightActor)
+		{
+			spawnLight(r, g, b, 16*scale.x, 0, shadowRequirement:-1,xOffset:16, divisionSpeed:0, followActor:self, ignoreLightLimit:1, zOffset:16);
+		}
+		A_PLAYSOUND("ambient/comp", CHAN_5, 0.5, 1, 1.35);
+		SetStateLabel("idle_on");
+	}
+
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+
+		int screenArg = args[1];
+		bool turnedOn = !args[0];
+
+		if(screenArg == 0)
+		{
+			screenFrame = random(1,6); // The amount of frames we have. 0 is reserved for random
+		}
+		else
+		{
+			screenFrame = screenArg;
+		}
+
+		setLightColor();
+
+		if(turnedOn)
+		{
+			turnOn();
+		}
+		else
+		{
+			turnOff();
+		}
+	}
+
+
+	override void prepareForTravel(DawnLevelTransitioner trans) {
+        Super.prepareForTravel(trans);
+
+        // Delete light actor
+		if(lightActor) 
+			lightActor.destroy();
+    }
+
+	override void finishedTravel(PlayerPawn newPP, DawnLevelTransitioner transitioner) {
+        Super.finishedTravel(newPP, transitioner);
+
+		// Recreate light actor if we are on
+		if(poweredOn && !lightActor) {
+			spawnLight(r, g, b, 16*scale.x, 0, shadowRequirement:-1,xOffset:16, divisionSpeed:0, followActor:self, ignoreLightLimit:1, zOffset:16);
+		}
+    }
+
+	void setLightColor()
+	{
+		switch (screenFrame)
+		{
+		case 1:
+		case 2:
+			r = 52;
+			g = 165;
+			b = 186;
+			break;
+
+		case 3:
+		case 4:
+			r = 52;
+			g = 227;
+			b = 186;
+			break;
+
+		case 5:
+		case 6:
+			r = 93;
+			g = 89;
+			b = 255;
+			break;
+
+		case 7:
+		case 8:
+		case 23:
+			r = 124;
+			g = 31;
+			b = 31;
+			break;
+		}
+	}
+
+	default
+	{
+		//+SELACOACTOR.PreventSleep
+	}
+
+	states
+	{
+		Spawn:
+		idle_on:
+			TNT1 A 0;
+			VOXE A -1
+			{
+				frame = screenFrame;
+			}
+			loop;
+		Active:
+			TNT1 A 0
+			{
+				turnOff();
+			}
+		Idle_off:
+			VOXE Z -1;
+			stop;
+		Inactive:
+			TNT1 A 0
+			{
+				turnOn();
+			}
+			goto spawn;
+
+	}
+}
+
+class ComputerMonitor_Feet : SelacoActor
+{
+	default
+	{
+		MaxStepHeight 3;
+        scale 1.0;
+	}
+
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1;
+			loop;
+	}
+}
+
+class BrokenComputerScreen : PickupableDecoration
+{
+	default
+	{
+		tag "$OBJECT_BROKENCOMPUTER";
+        +USESPECIAL;
+        Activation THINGSPEC_Switch;
+		DistanceCheck "r_ThingLOD";
+        Health 10;
+        +SHOOTABLE;
+        -NOBLOOD;
+        radius 20;
+		MaxStepHeight 3;
+		DamageFactor "BulletAlien", 5;
+        height 12;
+        scale 1.0;
+
+		// We roll our own sleep, thank you very much
+		-SELACOACTOR.SleepWhenFar;
+		-SELACOACTOR.WakeNearPlayer;
+        -SELACOACTOR.SleepWhenIdle;
+		+SELACOACTOR.decorativeActor;
+		+SELACOACTOR.thruplayers
+		
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+	}	
+
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+		Death:
+			TNT1 A 0 {
+				 EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 15, pitch: frandom(-25,-190), offset:(0, 0, 32));
+			}
+			TNT1 A 0 {
+				A_PLAYSOUND("Dest/snap", chan_auto, 0.8);
+                A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+				A_PLAYSOUND("dest/compcase", CHAN_AUTO, 0.4, pitch:frandom(1.1,1.35));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(0, 360));
+			}
+			stop;
+	}
+}
+
+
+
+
+
+
+// THESE ARE DEPCRECATED. Only kept for compatability. Best to not use it.
+class ComputerMonitor_A : MasterMonitor {
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = false;
+			monitor.args[1] = 1;
+		}
+		destroy();
+	}
+
+	default {
+		MasterMonitor.turnedOn true;
+		MasterMonitor.ActivationActor "ComputerMonitor_A_OFF";
+		SelacoActor.UseTag "$INTERACT_TURNOFF";
+    }
+}
+
+class ComputerMonitor_B : ComputerMonitor_A 
+{
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = false;
+			monitor.args[1] = 2;
+		}
+		destroy();
+	}
+	default
+	{
+		MasterMonitor.ActivationActor "ComputerMonitor_B_OFF";
+	}
+}
+
+
+class ComputerMonitor_A_OFF : MasterMonitor 
+{
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = true;
+			monitor.args[1] = 1;
+		}
+		destroy();
+	}
+	default 
+	{	
+		MasterMonitor.ActivationActor "ComputerMonitor_A";
+		SelacoActor.UseTag "$INTERACT_TURNON";
+    }
+}
+
+class ComputerMonitor_B_OFF : ComputerMonitor_A_OFF 
+{ 
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = true;
+			monitor.args[1] = 2;
+		}
+		destroy();
+	}
+	default 
+	{	
+		MasterMonitor.ActivationActor "ComputerMonitor_B";
+		SelacoActor.UseTag "$INTERACT_TURNON";
+    }
+}
+
+class ComputerMonitor_A2 : MasterMonitor 
+{
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = false;
+			monitor.args[1] = 2;
+		}
+		destroy();
+	}
+	default 
+	{
+		MasterMonitor.ActivationActor "ComputerMonitor_A2_OFF";
+		SelacoActor.UseTag "$INTERACT_TURNOFF";
+    }
+}
+
+class ComputerMonitor_B2 : ComputerMonitor_A2 
+{	
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = false;
+			monitor.args[1] = 2;
+		}
+		destroy();
+	}
+	default
+	{
+		MasterMonitor.ActivationActor "ComputerMonitor_B2_OFF";
+	}
+}
+
+class ComputerMonitor_A2_OFF : ComputerMonitor_A_OFF 
+{
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = false;
+			monitor.args[1] = 2;
+		}
+		destroy();
+	}
+	default
+	{
+		MasterMonitor.ActivationActor "ComputerMonitor_A2";
+	}
+}
+class ComputerMonitor_B2_OFF : ComputerMonitor_A_OFF 
+{
+	override void postBeginPlay()
+	{
+		[success, monitor] = A_SPAWNITEMEX("ComputerMonitor");
+		if(monitor && ComputerMonitor(monitor))
+		{
+			monitor.args[0] = false;
+			monitor.args[1] = 2;
+		}
+		destroy();
+	}
+	default
+	{
+		MasterMonitor.ActivationActor "ComputerMonitor_B2";
+	}
+}
+
+class FRUITFUL_COMPUTER : MasterMonitor
+{
+	default
+	{
+		activation THINGSPEC_DEFAULT;
+		-UseSpecial
+	}
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+		Xdeath:
+		Death.ExplosiveImpact:
+		Death.Shotgun:
+		Death:
+			TNT1 A 0
+			{
+				A_SPAWNITEMEX("FRUITFUL_MONITOR_DAMAGED");
+				A_SpawnProjectile("ComputerMonitorPiece3", frandom(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", frandom(10,32), 0, frandom(0, 360));
+			}
+			stop;
+	}
+}
+
+class FRUITFUL_MONITOR_DAMAGED : SelacoActor { 
+	default
+	{
+		+Shootable
+		+SelacoActor.thruplayers
+		+CANPASS
+		+SOLID
+        +SHOOTABLE;
+        -NOBLOOD;
+        +USESPECIAL;
+
+		health 10;
+		radius 30;
+
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+	}
+	states
+	{
+		spawn:
+			VOXE L -1;
+			stop;
+		Death:
+			TNT1 A 0 {
+				A_SpawnProjectile("ComputerMonitorPiece3", frandom(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece3", frandom(10,32), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece2", frandom(0,16), 0, frandom(0, 360));
+				A_SpawnProjectile("ComputerMonitorPiece2", frandom(16,17), 0, frandom(0, 360));
+				A_SPAWNITEMEX("FRUITFUL_MONITOR_FEET");
+			}
+			stop;
+	}
+}
+
+class FRUITFUL_MONITOR_FEET : SelacoActor
+{
+	default
+	{
+		+THRUACTORS;
+		+NOBLOCKMAP;
+	}
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			loop;
+	}
+}
+
+class ComputerBox : PickupableDecoration
+{
+	bool computerDestroyed;
+	string computerActor;
+	property ComputerActor : computerActor;
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+		int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+        if(damage > 8 && frameNum  == 0)
+		{
+			frameNum = 1;
+		}
+        return res;
+    }
+
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		frameNum = 0;
+		if(args[0] == 1)
+		{
+			frameNum = 1;
+			health*=0.5;
+		}
+	}
+
+	default
+	{		
+		-NOBLOOD
+		+NOBLOODDECALS
+		+CANPASS
+		health 75;
+		painchance 255;
+        BounceSound "impact/box";
+		BloodType "Cardboard_Chunk", "Cardboard_Chunk", "Cardboard_Chunk";
+		radius 20;
+		height 30;
+		mass 300;
+
+		-PickupableDecoration.TranslucentPickup;
+	}
+	states
+	{
+		Pain:
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1
+			{
+				frame = frameNum;
+			}
+			stop;
+		Death.explosiveimpact:
+			TNT1 A 0
+			{
+				computerDestroyed = true;
+			}
+		Death:
+			TNT1 AAAAAAAAA 0 {
+				A_SPAWNITEMEX("Cardboard_Chunk", frandom(-20,20), frandom(-20,20),frandom(0,30));
+			}
+			TNT1 A 0
+			{
+				A_SPAWNITEMEX("COMPUTER_BOX_FOAM_1", 15, 0, 15, frandom(1,3), frandom(-0.4,-0.2), frandom(3,8), angle:random(0,360));
+				A_SPAWNITEMEX("COMPUTER_BOX_FOAM_2", -15, 0, 15, frandom(1,3), frandom(-0.4,0.2), frandom(3,8), angle:random(0,360));
+				A_SPAWNITEMEX("COMPUTER_BOX_FOAM_3", 15, 0, 15, frandom(1,3), frandom(-0.4,-0.2), frandom(3,8), angle:random(0,360));
+				A_SPAWNITEMEX("COMPUTER_BOX_FOAM_4", -15, 0, 15, frandom(1,3), frandom(-0.4,0.2), frandom(3,8), angle:random(0,360));
+				A_SPAWNITEMEX("COMPUTER_BOX_FOAM_5", 15, 0, 15, frandom(1,3), frandom(-0.4,-0.2), frandom(3,8), angle:random(0,360));
+			}
+			TNT1 A 0
+			{
+				if(!computerDestroyed)
+				{
+					A_SPAWNITEMEX(computerActor);
+				}
+			}
+			TNT1 A 0 A_PLAYSOUND("dest/cardboardbreak", CHAN_AUTO, 1.0, 0, 0.7, 0, frandom(0.9,1.1));
+			stop;
+	}
+}
+
+class FRUITFUL_BOX : ComputerBox
+{
+	default
+	{
+		height 31;
+		tag "$OBJECT_FRUITFUL_BOX";
+		ComputerBox.computerActor "FRUITFUL_COMPUTER";
+	}
+}
+
+class PHILD_BOX : ComputerBox
+{
+	default
+	{
+		tag "$OBJECT_PHILD_BOX";
+		ComputerBox.computerActor "ComputerMonitor_A_OFF";
+	}
+}
+
+class COMPUTER_BOX_FOAM_1 : SelacoActorDecorationMissile
+{
+    // No longer moving
+    override void deathEffects()
+    {
+		WorldOffset.z += 5;
+		if(random(0,100) <= 25)
+		{
+     		a_playsound("BOUNCE/FOAM", CHAN_AUTO, 0.4, pitch:Frandom(1.0,1.7));
+		}
+    }
+
+    // Hits floor
+    override void bounceEffects()
+    {
+        for(int x=0;x<=3;x++) {
+            A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+        }
+		if(random(0,100) <= 25)
+		{
+     		a_playsound("BOUNCE/FOAM", CHAN_AUTO, 0.4, pitch:Frandom(1.0,1.7));
+		}
+    }
+
+	default
+	{
+     	BounceFactor 0.2;
+        bounceCount 3;
+		SeeSound "";
+	}
+}
+
+class COMPUTER_BOX_FOAM_2 : COMPUTER_BOX_FOAM_1 { }
+class COMPUTER_BOX_FOAM_3 : COMPUTER_BOX_FOAM_1 { }
+class COMPUTER_BOX_FOAM_4 : COMPUTER_BOX_FOAM_1 { }
+class COMPUTER_BOX_FOAM_5 : COMPUTER_BOX_FOAM_1 { }
+
+class MONITOR_BUSTED : PickupableDecoration {
+	default {
+		tag "$OBJECT_BROKENMONITOR";
+		DistanceCheck "r_ThingLOD";
+        Health 10;
+        radius 21;
+		MaxStepHeight 3;
+		DamageFactor "BulletAlien", 5;
+        height 25;
+        scale 1.0;
+
+		+ALLOWTHRUBITS;
+		+CANPASS
+		+SOLID
+		+SelacoActor.thruplayers;
+        +SHOOTABLE;
+        -NOBLOOD;
+        +USESPECIAL;
+
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+	}
+	states {
+		Spawn:
+			VOXE L -1;
+			stop;
+		Pain:
+		Death:
+			TNT1 A 0 {
+				 EmitDefinition('LongerSparkDefinition', chance: 1.0, numTries: 35, angle:random(0,360), pitch:-15, offset:(0, 0, 16));
+			}
+			TNT1 A 0 {
+				A_SPAWNITEMEX("ComputerMonitor_Feet"); 
+				A_PLAYSOUND("DESTRUCTION/SHEETMETAL", chan_auto, 0.6);
+				for(int x=1;x<getCvar("r_ParticleIntensity");x++) {
+					A_SpawnDefinedParticle("BulletImpactEffectPlasticStationaryDefinition", 5, frandom(-15,15), frandom(-10,10));
+                    A_SpawnProjectile("circuitboard", random(20,32), angle:random(0,360), CMF_AIMDIRECTION, pitch:frandom(-80,-170));
+                }
+				A_PLAYSOUND("dest/compcase", CHAN_AUTO, 0.5, pitch:frandom(1.1,1.35));
+				A_SpawnProjectile("ComputerMonitorPiece1", 32, 0, frandom(170, 190), CMF_OFFSETPITCH , frandom(-40,-60));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece2", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+				A_SpawnProjectile("ComputerMonitorPiece3", random(10,32), 0, frandom(140, 240));
+			}
+			stop;
+	}
+}

@@ -1,0 +1,7979 @@
+// Example: 
+brightmap texture FACBOX1A
+{
+	map "brightmaps/textures/FACBOX1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ACERED
+{
+	map "brightmaps/textures/ACETEAL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ACETEAL
+{
+	map "brightmaps/textures/ACETEAL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BAGCHKA
+{
+	map "brightmaps/textures/BAGCHK.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS106
+{
+	map "TEXTURES/WALLS/POS106.PNG"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONPRNT
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONNERD
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONNERD
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHBOARD
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCEI4A
+{
+	map "brightmaps/textures/PTHCEI4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCEI2B
+{
+	map "brightmaps/textures/PTHCEI2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCEI2O
+{
+	map "brightmaps/textures/PTHCEI2B.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PTHWHI1C
+{
+	map "brightmaps/textures/PTHWHI1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHWHI1D
+{
+	map "brightmaps/textures/PTHWHI1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHPIL1B
+{
+	map "brightmaps/textures/PTHPIL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHBAR2A
+{
+	map "brightmaps/textures/PTHBAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAL1A
+{
+	map "brightmaps/textures/DRSTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAL1B
+{
+	map "brightmaps/textures/DRSTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAL1C
+{
+	map "brightmaps/textures/DRSTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BAGCHKB
+{
+	map "brightmaps/textures/BAGCHK.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLOBTH1
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLOBTH2
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYNG_W
+{
+	map "brightmaps/auto/SKY_W.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYNG_N
+{
+	map "brightmaps/auto/SKY_N.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYNG_N
+{
+	map "brightmaps/auto/SKY_N.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYNG_E
+{
+	map "brightmaps/auto/SKY_E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DAWN_W
+{
+	map "brightmaps/auto/SKY_W.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DAWN_S
+{
+	map "brightmaps/auto/SKY_S.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DAWN_N
+{
+	map "brightmaps/auto/SKY_N.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DAWN_E
+{
+	map "brightmaps/auto/SKY_E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture EDAWN_W
+{
+	map "brightmaps/auto/SKY_W.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture EDAWN_S
+{
+	map "brightmaps/auto/SKY_S.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture EDAWN_N
+{
+	map "brightmaps/auto/SKY_N.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture EDAWN_E
+{
+	map "brightmaps/auto/SKY_E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLOBTH3
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLOBTH4
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLOBTH5
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BAGCHKC
+{
+	map "brightmaps/textures/BAGCHK.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BAGCHKD
+{
+	map "brightmaps/textures/BAGCHK.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BARLITE1
+{
+	map "brightmaps/textures/TALLTRM4.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture LITEP1
+{
+	map "brightmaps/AUTO/lite1.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BARLITE2
+{
+	map "brightmaps/textures/TALLTRM4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BAYRBDOR
+{
+	map "brightmaps/textures/BAYRBDOR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BAYRBDOS
+{
+	map "brightmaps/textures/BAYRBDOR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BAYRBDOG
+{
+	map "brightmaps/textures/BAYRBDOR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BEDSHT3A
+{
+	map "brightmaps/textures/BEDSHT3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK1A
+{
+	map "brightmaps/textures/BLEDPK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK1R
+{
+	map "brightmaps/textures/BLEDPK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK2A
+{
+	map "brightmaps/textures/BLEDPK2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK2R
+{
+	map "brightmaps/textures/BLEDPK2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK3A
+{
+	map "brightmaps/textures/BLEDPK3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK3G
+{
+	map "brightmaps/textures/BLEDPK3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK3R
+{
+	map "brightmaps/textures/BLEDPK3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK3W
+{
+	map "brightmaps/textures/BLEDPK3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK4A
+{
+	map "brightmaps/textures/BLEDPK4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK4G
+{
+	map "brightmaps/textures/BLEDPK4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK4R
+{
+	map "brightmaps/textures/BLEDPK4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLEDPK4O
+{
+	map "brightmaps/textures/BLEDPK4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLLEDW1A
+{
+	map "brightmaps/textures/BLLEDW1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLLEDW1P
+{
+	map "brightmaps/textures/BLLEDW1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLLEDW1B
+{
+	map "brightmaps/AUTO/BLLEDW1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLLEDW2A
+{
+	map "brightmaps/AUTO/BLLEDW1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLLEDW2B
+{
+	map "brightmaps/AUTO/BLLEDW1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLLEDW2C
+{
+	map "brightmaps/AUTO/BLLEDW1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKSGA
+{
+	map "brightmaps/textures/BLOCKWLS.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKWLA
+{
+	map "brightmaps/textures/BLOCKWLA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKWLF
+{
+	map "brightmaps/textures/BLOCKWLA.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BLOCKWLY
+{
+	map "brightmaps/textures/BLOCKWLA.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap sprite SLDCA0
+{
+	map "sprites/effects/decals/slime/SLDCA0.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap sprite SLDCB0
+{
+	map "sprites/effects/decals/slime/SLDCB0.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap sprite SLDCC0
+{
+	map "sprites/effects/decals/slime/SLDCC0.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap sprite SLDCD0
+{
+	map "sprites/effects/decals/slime/SLDCD0.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap sprite SLDCE0
+{
+	map "sprites/effects/decals/slime/SLDCE0.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap sprite SLDCF0
+{
+	map "sprites/effects/decals/slime/SLDCF0.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BLOCKWLZ
+{
+	map "brightmaps/textures/BLOCKWLA.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BLOCKWGA
+{
+	map "brightmaps/textures/BLOCKWLA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOGPI1B
+{
+	map "brightmaps/textures/BLOGPI1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOGPI1G
+{
+	map "brightmaps/textures/BLOGPI1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOGPI1Y
+{
+	map "brightmaps/textures/BLOGPI1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOKFBF
+{
+	map "brightmaps/textures/BLOCKWLA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOLED1B
+{
+	map "brightmaps/textures/BLOLED1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOLED1G
+{
+	map "brightmaps/textures/BLOLED1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOLED1Y
+{
+	map "brightmaps/textures/BLOLED1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKWLL
+{
+	map "brightmaps/textures/BLEDPK4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKSGA
+{
+	map "brightmaps/textures/BLOCKWLS.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKSCA
+{
+	map "brightmaps/textures/BLOCKWLS.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKSWA
+{
+	map "brightmaps/textures/BLOCKWLA.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BLOCKSCB
+{
+	map "brightmaps/textures/BLOCKWLS.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOCKSCC
+{
+	map "brightmaps/textures/BLOCKWLS.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOLON1E
+{
+	map "brightmaps/textures/BLOLON1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOLON1F
+{
+	map "brightmaps/textures/BLOLON1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOSIDEB
+{
+	map "brightmaps/textures/BLOSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOSIDEG
+{
+	map "brightmaps/textures/BLOSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOSIDEL
+{
+	map "brightmaps/textures/BLOSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOSIDEY
+{
+	map "brightmaps/textures/BLOSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOTRM2B
+{
+	map "brightmaps/textures/BLOTRM2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOTRM2G
+{
+	map "brightmaps/textures/BLOTRM2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOTRM2L
+{
+	map "brightmaps/textures/BLOTRM2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLOTRM2Y
+{
+	map "brightmaps/textures/BLOTRM2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUGRT1C
+{
+	map "brightmaps/textures/BLUGRT1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUGRT1D
+{
+	map "brightmaps/textures/BLUGRT1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCA
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCB
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BLUTXSCC
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCD
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCE
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCF
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCG
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCH
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCI
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCJ
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUTXSCK
+{
+	map "brightmaps/textures/BLUTXSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CAB1
+{
+	map "brightmaps/textures/CAB1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CIRLIT1B
+{
+	map "brightmaps/textures/CIRLIT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CIRLIT1G
+{
+	map "brightmaps/textures/CIRLIT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CIRLIT1O
+{
+	map "brightmaps/textures/CIRLIT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CIRLIT1P
+{
+	map "brightmaps/textures/CIRLIT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CIRLIT1R
+{
+	map "brightmaps/textures/CIRLIT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CIRLIT1Y
+{
+	map "brightmaps/textures/CIRLIT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CIRLIT1W
+{
+	map "brightmaps/textures/CIRLIT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN2A
+{
+	map "brightmaps/textures/CITGEN2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN2D
+{
+	map "brightmaps/textures/CITGEN2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN2E
+{
+	map "brightmaps/textures/CITGEN2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN4A
+{
+	map "brightmaps/textures/CITGEN4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN4B
+{
+	map "brightmaps/textures/CITGEN4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN4D
+{
+	map "brightmaps/textures/CITGEN4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN4E
+{
+	map "brightmaps/textures/CITGEN4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN4F
+{
+	map "brightmaps/textures/CITGEN4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CITGEN4G
+{
+	map "brightmaps/textures/CITGEN4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture COLTOR1A
+{
+	map "brightmaps/textures/COLTOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture COLTOR1B
+{
+	map "brightmaps/textures/COLTOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture COLTOR1C
+{
+	map "brightmaps/textures/COLTOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture COLTOR1D
+{
+	map "brightmaps/textures/COLTOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture COLTOR1E
+{
+	map "brightmaps/textures/COLTOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture COLTOR1F
+{
+	map "brightmaps/textures/COLTOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture COLTOR1G
+{
+	map "brightmaps/textures/COLTOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRFAC1A
+{
+	map "brightmaps/textures/DRFAC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRFAC1B
+{
+	map "brightmaps/textures/DRFAC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGTDEO
+{
+	map "brightmaps/textures/DRLGTDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGTDEL
+{
+	map "brightmaps/textures/DRLGTDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGPT1B
+{
+	map "brightmaps/textures/DRLGPT1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRCLD
+{
+	map "brightmaps/textures/DRCLD.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRCLE
+{
+	map "brightmaps/textures/DRCLD.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRUP1A
+{
+	map "brightmaps/textures/DRUP1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRUP1B
+{
+	map "brightmaps/textures/DRUP1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRUP2A
+{
+	map "brightmaps/textures/DRUP2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRUP2B
+{
+	map "brightmaps/textures/DRUP2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CABILONA
+{
+	map "brightmaps/textures/CABILONA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CABILONB
+{
+	map "brightmaps/textures/CABILONA.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture CABILONL
+{
+	map "brightmaps/textures/CABILONA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILOBW1
+{
+	map "brightmaps/textures/CEILOBW1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILOBW2
+{
+	map "brightmaps/textures/CEILOBW1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture comp4c_8
+{
+	map "brightmaps/textures/comp4c_8.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture comp4o_8
+{
+	map "brightmaps/textures/comp4c_8.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture compvegr
+{
+	map "brightmaps/textures/compvent.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture compvenr
+{
+	map "brightmaps/textures/compvent.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DORELS1A
+{
+	map "brightmaps/textures/DORELS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DORELS1B
+{
+	map "brightmaps/textures/DORELS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DORTOPA
+{
+	map "brightmaps/textures/DORTOPA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DORTOPC
+{
+	map "brightmaps/textures/DORTOPC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DORTOPD
+{
+	map "brightmaps/textures/DORTOPA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRELEV3O
+{
+	map "brightmaps/textures/DRELEV3O.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRELEV3L
+{
+	map "brightmaps/textures/DRELEV3O.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DREPTH3O
+{
+	map "brightmaps/textures/DRELEV3O.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DREPTH3L
+{
+	map "brightmaps/textures/DRELEV3O.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRFBF1A
+{
+	map "brightmaps/textures/DRFBF1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRFBF1B
+{
+	map "brightmaps/textures/DRFBF1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRFBF2A
+{
+	map "brightmaps/textures/DRFBF2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRFBF2B
+{
+	map "brightmaps/textures/DRFBF2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FBFTRIMA
+{
+	map "brightmaps/textures/FBFTRIMA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FBFTRIMB
+{
+	map "brightmaps/textures/FBFTRIMA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLALK1A
+{
+	map "brightmaps/textures/DRLALK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLALK1B
+{
+	map "brightmaps/textures/DRLALK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGT48B
+{
+	map "brightmaps/textures/DRLGT48L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGT48D
+{
+	map "brightmaps/textures/DRLGT48L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGT48G
+{
+	map "brightmaps/textures/DRLGT48L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGT48L
+{
+	map "brightmaps/textures/DRLGT48L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGT48P
+{
+	map "brightmaps/textures/DRLGT48L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGT48Y
+{
+	map "brightmaps/textures/DRLGT48L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGTDEG
+{
+	map "brightmaps/textures/DRLGTDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGTDEB
+{
+	map "brightmaps/textures/DRLGTDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLGTDED
+{
+	map "brightmaps/textures/DRLGTDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAR1C
+{
+	map "brightmaps/textures/DRSTAR1O.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAR1O
+{
+	map "brightmaps/textures/DRSTAR1O.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DROPD
+{
+	map "brightmaps/textures/DROPD.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DROPE
+{
+	map "brightmaps/textures/DROPD.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRDLGTO3
+{
+	map "brightmaps/textures/DRDLGTRD.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRPTHS2A
+{
+	map "brightmaps/textures/DRPTHS2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRPTHS2B
+{
+	map "brightmaps/textures/DRPTHS2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRVACA
+{
+	map "brightmaps/textures/DRVACA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRVACB
+{
+	map "brightmaps/textures/DRVACA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRVACC
+{
+	map "brightmaps/textures/DRVACA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRVACD
+{
+	map "brightmaps/textures/DRVACA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ELBOXL1
+{
+	map "brightmaps/textures/ELBOXL1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ELBOXL1A
+{
+	map "brightmaps/textures/ELBOXL1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENCYL4T3
+{
+	map "brightmaps/textures/ENCYL4T3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENCYL4T4
+{
+	map "brightmaps/textures/ENCYL4T3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENCYL4T4
+{
+	map "brightmaps/textures/ENCYL4T3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL1B
+{
+	map "brightmaps/textures/ENWL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL1C
+{
+	map "brightmaps/textures/ENWL1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL1D
+{
+	map "brightmaps/textures/ENWL1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL1E
+{
+	map "brightmaps/textures/ENWL1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL4C
+{
+	map "brightmaps/textures/ENWL4D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL4D
+{
+	map "brightmaps/textures/ENWL4D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL5C
+{
+	map "brightmaps/textures/ENWL5D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENWL5D
+{
+	map "brightmaps/textures/ENWL5D.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture FACCIR2A
+{
+	map "brightmaps/textures/FACCIR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACCIR2B
+{
+	map "brightmaps/textures/FACCIR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACCIR2C
+{
+	map "brightmaps/textures/FACCIR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACCIR2D
+{
+	map "brightmaps/textures/FACCIR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACCOM1E
+{
+	map "brightmaps/textures/FACCOM1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACMON1A
+{
+	map "brightmaps/textures/FACMON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACMON1B
+{
+	map "brightmaps/textures/FACMON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACMON1C
+{
+	map "brightmaps/textures/FACMON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACPAN1A
+{
+	map "brightmaps/textures/FACPAN1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACSCR3A
+{
+	map "brightmaps/textures/FACSCR3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACSCR3B
+{
+	map "brightmaps/textures/FACSCR3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACSCR3C
+{
+	map "brightmaps/textures/FACSCR3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACPAN1B
+{
+	map "brightmaps/textures/FACPAN1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTRI1A
+{
+	map "brightmaps/textures/FACTRI1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTRI1B
+{
+	map "brightmaps/textures/FACTRI1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTRI1C
+{
+	map "brightmaps/textures/FACTRI1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTRI1D
+{
+	map "brightmaps/textures/FACTRI1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTRM1B
+{
+	map "brightmaps/textures/FACTRM1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTRM2C
+{
+	map "brightmaps/textures/FACTRM2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTRM2D
+{
+	map "brightmaps/textures/FACTRM2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACVEN1B
+{
+	map "brightmaps/textures/FACVEN1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACVEN1C
+{
+	map "brightmaps/textures/FACVEN1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACWAL1B
+{
+	map "brightmaps/textures/FACWAL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACWAL7A
+{
+	map "brightmaps/textures/FACWAL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACWAL7C
+{
+	map "brightmaps/textures/FACWAL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACWAL7D
+{
+	map "brightmaps/textures/FACWAL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACWAL7E
+{
+	map "brightmaps/textures/FACWAL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLADIS1B
+{
+	map "brightmaps/textures/FLADIS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLADIS1G
+{
+	map "brightmaps/textures/FLADIS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLADIS1O
+{
+	map "brightmaps/textures/FLADIS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLADIS1P
+{
+	map "brightmaps/textures/FLADIS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLADIS1R
+{
+	map "brightmaps/textures/FLADIS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLADIS1W
+{
+	map "brightmaps/textures/FLADIS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLADIS1Y
+{
+	map "brightmaps/textures/FLADIS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLODOR
+{
+	map "brightmaps/textures/FLODOR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLODORA
+{
+	map "brightmaps/textures/FLODOR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLODORB
+{
+	map "brightmaps/textures/FLODOR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOHOR1B
+{
+	map "brightmaps/textures/FLOHOR1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOHOR1D
+{
+	map "brightmaps/textures/FLOHOR1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOLOK1A
+{
+	map "brightmaps/textures/FLOLOK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOLOK1B
+{
+	map "brightmaps/textures/FLOLOK1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOLOK1C
+{
+	map "brightmaps/textures/FLOLOK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOLOK1D
+{
+	map "brightmaps/textures/FLOLOK1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOLOK1E
+{
+	map "brightmaps/textures/FLOLOK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOLOK1F
+{
+	map "brightmaps/textures/FLOLOK1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FSTRS1A
+{
+	map "brightmaps/textures/FSTRS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FSTRS1Y
+{
+	map "brightmaps/textures/FSTRS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GWYNSD1A
+{
+	map "brightmaps/textures/GWYNSD1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GWYNSD1B
+{
+	map "brightmaps/textures/GWYNSD1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GWYNSD1C
+{
+	map "brightmaps/textures/GWYNSD1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HANGWL1A
+{
+	map "brightmaps/textures/HANGWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HAZCOL1A
+{
+	map "brightmaps/textures/HAZCOL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HAZCOL1B
+{
+	map "brightmaps/textures/HAZCOL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HAZCOL1C
+{
+	map "brightmaps/textures/HAZCOL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HAZCOL1D
+{
+	map "brightmaps/textures/HAZCOL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HAZCOL1E
+{
+	map "brightmaps/textures/HAZCOL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HAZCOL1F
+{
+	map "brightmaps/textures/HAZCOL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET1B
+{
+	map "brightmaps/textures/HRZLET1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET1C
+{
+	map "brightmaps/textures/HRZLET1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET1D
+{
+	map "brightmaps/textures/HRZLET1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET1E
+{
+	map "brightmaps/textures/HRZLET1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET1O
+{
+	map "brightmaps/textures/HRZLET1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET2B
+{
+	map "brightmaps/textures/HRZLET2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET2C
+{
+	map "brightmaps/textures/HRZLET2C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET2D
+{
+	map "brightmaps/textures/HRZLET2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET2E
+{
+	map "brightmaps/textures/HRZLET2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZLET2F
+{
+	map "brightmaps/textures/HRZLET2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HRZPIP1L
+{
+	map "brightmaps/textures/HRZPIP1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HZWTM1B
+{
+	map "brightmaps/textures/HZWTM1B.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PNLDRST3
+{
+	map "brightmaps/textures/PNLDRST3.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PNLDRST4
+{
+	map "brightmaps/textures/PNLDRST3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAG1A
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAG1B
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture AOSWALL
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENCYL3C
+{
+	map "brightmaps/textures/ENCYL3C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ENCYL3D
+{
+	map "brightmaps/textures/ENCYL3C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL1A
+{
+	map "brightmaps/textures/FLOWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL2A
+{
+	map "brightmaps/textures/FLOWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL2B
+{
+	map "brightmaps/textures/FLOWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GRILITE1
+{
+	map "brightmaps/textures/GRILITE1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GRILITE2
+{
+	map "brightmaps/textures/GRILITE1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL2B
+{
+	map "brightmaps/textures/FLOWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL3A
+{
+	map "brightmaps/textures/FLOWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL3B
+{
+	map "brightmaps/textures/FLOWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL4A
+{
+	map "brightmaps/textures/FLOWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL5A
+{
+	map "brightmaps/textures/FLOWAL5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL5B
+{
+	map "brightmaps/textures/FLOWAL5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL5C
+{
+	map "brightmaps/textures/FLOWAL5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FLOWAL5D
+{
+	map "brightmaps/textures/FLOWAL5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GHOTEAL
+{
+	map "brightmaps/textures/GHOTEALA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GHOTEALA
+{
+	map "brightmaps/textures/GHOTEALA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GHOTEALB
+{
+	map "brightmaps/textures/GHOTEAL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GHOTEALC
+{
+	map "brightmaps/textures/GHOTEALC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HARVEY1
+{
+	map "brightmaps/textures/HARVEY1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HARVEY2
+{
+	map "brightmaps/textures/HARVEY1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ISOCELEA
+{
+	map "brightmaps/textures/ISOCELEA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR2A
+{
+	map "brightmaps/textures/JNKSTR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR2B
+{
+	map "brightmaps/textures/JNKSTR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR2C
+{
+	map "brightmaps/textures/JNKSTR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR3A
+{
+	map "brightmaps/textures/JNKSTR3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR3B
+{
+	map "brightmaps/textures/JNKSTR3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR4A
+{
+	map "brightmaps/textures/JNKSTR4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR6A
+{
+	map "brightmaps/textures/JNKSTR6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture JNKSTR6B
+{
+	map "brightmaps/textures/JNKSTR6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTA5
+{
+	map "brightmaps/textures/MCTA5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTA5A
+{
+	map "brightmaps/textures/MCTA5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTA5C
+{
+	map "brightmaps/textures/MCTA5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTA5Q
+{
+	map "brightmaps/textures/MCTA5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC291
+{
+	map "brightmaps/auto/MCTC291.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture LCKR1
+{
+	map "brightmaps/textures/LCKR3.png"
+}
+
+brightmap texture MCTCZ2R
+{
+	map "brightmaps/textures/MCTCL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCZ2Y
+{
+	map "brightmaps/textures/MCTCL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCDEFG
+{
+	map "brightmaps/textures/MCTCL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCDEFP
+{
+	map "brightmaps/textures/MCTCL2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture MCTCDEFL
+{
+	map "brightmaps/textures/MCTCZ4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCZ2
+{
+	map "brightmaps/textures/MCTCZ4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCZ4
+{
+	map "brightmaps/textures/MCTCZ4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCZZ
+{
+	map "brightmaps/textures/MCTCZZ.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCZZ2
+{
+	map "brightmaps/textures/MCTCZZ.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABFLATA
+{
+	map "brightmaps/textures/LABFLATA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABFLATB
+{
+	map "brightmaps/textures/LABFLATA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABFLATC
+{
+	map "brightmaps/textures/LABFLATA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABHAZ1A
+{
+	map "brightmaps/textures/LABHAZ1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSIDEB
+{
+	map "brightmaps/textures/LABSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSIDEG
+{
+	map "brightmaps/textures/LABSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSIDEL
+{
+	map "brightmaps/textures/LABSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSIDEY
+{
+	map "brightmaps/textures/LABSIDEL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABTRMTC
+{
+	map "brightmaps/textures/LABTRMTC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABTRMTD
+{
+	map "brightmaps/textures/LABTRMTC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL1A
+{
+	map "brightmaps/textures/LABWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL1D
+{
+	map "brightmaps/textures/LABWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture LABWAL1B
+{
+	map "brightmaps/textures/LABWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture STIRTEX1
+{
+	map "brightmaps/textures/LABWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture LABWAL1C
+{
+	map "brightmaps/textures/LABWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL2A
+{
+	map "brightmaps/textures/LABWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL2B
+{
+	map "brightmaps/textures/LABWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL2C
+{
+	map "brightmaps/textures/LABWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL4A
+{
+	map "brightmaps/textures/LABWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL4B
+{
+	map "brightmaps/textures/LABWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL4C
+{
+	map "brightmaps/textures/LABWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL3A
+{
+	map "brightmaps/textures/LABWAL3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL3B
+{
+	map "brightmaps/textures/LABWAL3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWAL3C
+{
+	map "brightmaps/textures/LABWAL3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LCKR2
+{
+	map "brightmaps/textures/LCKR3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LCKR3
+{
+	map "brightmaps/textures/LCKR3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LCKR4
+{
+	map "brightmaps/textures/LCKR3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LEDSIC1A
+{
+	map "brightmaps/textures/LEDSIC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LFW11
+{
+	map "brightmaps/textures/LFW11.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LFW18BL
+{
+	map "brightmaps/textures/LFW18LED.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LFW18GR
+{
+	map "brightmaps/textures/LFW18LED.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LFW18RE
+{
+	map "brightmaps/textures/LFW18LED.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LFW20LA
+{
+	map "brightmaps/textures/LFW20LA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LFW20LB
+{
+	map "brightmaps/textures/LFW20LA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LFLNE1A
+{
+	map "brightmaps/textures/LFLNE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LITEPLRA
+{
+	map "brightmaps/textures/LITEPLRA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LITEPLRB
+{
+	map "brightmaps/textures/LITEPLRA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MACWAL2A
+{
+	map "brightmaps/textures/MACWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MACWAL2B
+{
+	map "brightmaps/textures/MACWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MACWAL2C
+{
+	map "brightmaps/textures/MACWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALGT1
+{
+	map "brightmaps/textures/MALGT1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCARET1A
+{
+	map "brightmaps/textures/MCARET1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCARET1B
+{
+	map "brightmaps/textures/MCARET1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC3
+{
+	map "brightmaps/textures/MCTC3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC27D
+{
+	map "brightmaps/textures/MCTC27D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC27F
+{
+	map "brightmaps/textures/MCTC27D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC27U
+{
+	map "brightmaps/textures/MCTC27U.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC27V
+{
+	map "brightmaps/textures/MCTC27V.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC293
+{
+	map "brightmaps/auto/MCTC293.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTC294
+{
+	map "brightmaps/auto/MCTC294.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSCA
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSCB
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSCC
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSCD
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSCE
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSCF
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSDA
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSDB
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSDC
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSDD
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEA
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEB
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEC
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSED
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEE
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEF
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEG
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEH
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEI
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEJ
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MCTCSEK
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UA
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UB
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UC
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UD
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UE
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UF
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UG
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UH
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UI
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UJ
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MEDN4UK
+{
+	map "brightmaps/textures/MEDN4UA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MINW4DC
+{
+	map "brightmaps/textures/MINW4DW.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MINW4DG
+{
+	map "brightmaps/textures/MINW4DW.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MINW4DW
+{
+	map "brightmaps/textures/MINW4DW.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NOSWAL1C
+{
+	map "brightmaps/textures/NOSWAL1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NOSWAL2A
+{
+	map "brightmaps/textures/NOSWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NOSWAL2B
+{
+	map "brightmaps/textures/NOSWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NOSWAL2C
+{
+	map "brightmaps/textures/NOSWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NOSWAL2D
+{
+	map "brightmaps/textures/NOSWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAL1B
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAL2A
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAG2A
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAG2C
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAG4A
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAG2D
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAG2E
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAL2C
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAL2E
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIWAL4A
+{
+	map "brightmaps/auto/OFIWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MDTFE1C
+{
+	map "brightmaps/textures/MCTCSCA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PEGLED1A
+{
+	map "brightmaps/textures/PEGLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PILAHOLC
+{
+	map "brightmaps/textures/PILAHOLC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PILAHOLB
+{
+	map "brightmaps/textures/PILAHOLC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PIPCP2L
+{
+	map "brightmaps/textures/PIPCP2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PIPFAT1B
+{
+	map "brightmaps/textures/PIPFAT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PIPFAT1G
+{
+	map "brightmaps/textures/PIPFAT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PIPFAT1R
+{
+	map "brightmaps/textures/PIPFAT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PIPFAT1Y
+{
+	map "brightmaps/textures/PIPFAT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLTRBX1B
+{
+	map "brightmaps/textures/PLTRBX1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PMACHPAA
+{
+	map "brightmaps/textures/PMACHPAA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PMACHPAB
+{
+	map "brightmaps/textures/PMACHPAB.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSELA
+{
+	map "brightmaps/textures/PNLSELA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSELB
+{
+	map "brightmaps/textures/PNLSELA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSELC
+{
+	map "brightmaps/textures/PNLSELA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSO19
+{
+	map "brightmaps/textures/PNLSO19.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSO20
+{
+	map "brightmaps/textures/PNLSO19.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSO21
+{
+	map "brightmaps/textures/PNLSO19.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSO22
+{
+	map "brightmaps/textures/PNLSO19.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSO23
+{
+	map "brightmaps/textures/PNLSO19.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHINCRA
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHINCRB
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLRFWL
+{
+	map "brightmaps/textures/PNLRFWL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLRFW1
+{
+	map "brightmaps/textures/PNLRFW1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLRFW1O
+{
+	map "brightmaps/textures/PNLRFW1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLS15L1
+{
+	map "brightmaps/textures/PNLS15L1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLS15L2
+{
+	map "brightmaps/textures/PNLS15L2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLS32L1
+{
+	map "brightmaps/textures/PNLS32L1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLS32L2
+{
+	map "brightmaps/textures/PNLS32L2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSK12O
+{
+	map "brightmaps/auto/PNLSK12.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSK5B
+{
+	map "brightmaps/textures/PNLSK5B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSK5C
+{
+	map "brightmaps/textures/PNLSK5B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSKTOR
+{
+	map "brightmaps/auto/PNLSKT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSKT
+{
+	map "brightmaps/auto/PNLSKT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTSL
+{
+	map "brightmaps/textures/PNLSTSL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTS4
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTS5
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTS6
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTS7
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTS8
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTS9
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLSTS10
+{
+	map "brightmaps/textures/PNLSTS4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHDACTA
+{
+	map "brightmaps/auto/FLSTE4N.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHDACTB
+{
+	map "brightmaps/auto/FLSTE4N.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHFCBE
+{
+	map "brightmaps/textures/PTHFCBE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHFCBF
+{
+	map "brightmaps/textures/PTHFCBF.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHFCBG
+{
+	map "brightmaps/textures/PTHFCBG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL1B
+{
+	map "brightmaps/textures/PTHCOL1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL2B
+{
+	map "brightmaps/textures/PTHCOL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL1O
+{
+	map "brightmaps/textures/PTHCOL1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL2O
+{
+	map "brightmaps/textures/PTHCOL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL1R
+{
+	map "brightmaps/textures/PTHCOL1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL2R
+{
+	map "brightmaps/textures/PTHCOL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL1G
+{
+	map "brightmaps/textures/PTHCOL1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCOL2G
+{
+	map "brightmaps/textures/PTHCOL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHTBL1B
+{
+	map "brightmaps/textures/PTHTBL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHWALLP
+{
+	map "brightmaps/textures/RCWBLU.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PTHWALLR
+{
+	map "brightmaps/textures/RCWBLU.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PTHWALLV
+{
+	map "brightmaps/textures/RCWBLU.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHWALL4
+{
+	map "brightmaps/textures/PTHWALL4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHWALLT
+{
+	map "brightmaps/textures/PTHWALL4.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PTHWALL6
+{
+	map "brightmaps/textures/PTHWALL6.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHWBE1B
+{
+	map "brightmaps/textures/PTHWBE1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR1B
+{
+	map "brightmaps/textures/PURBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR1G
+{
+	map "brightmaps/textures/PURBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR1O
+{
+	map "brightmaps/textures/PURBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR1P
+{
+	map "brightmaps/textures/PURBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR1R
+{
+	map "brightmaps/textures/PURBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR1W
+{
+	map "brightmaps/textures/PURBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR2A
+{
+	map "brightmaps/textures/PURBAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR2L
+{
+	map "brightmaps/textures/PURBAR2L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURBAR3A
+{
+	map "brightmaps/textures/PURBAR3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RIBTRI1A
+{
+	map "brightmaps/textures/RIBTRI1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RIBTRI2A
+{
+	map "brightmaps/textures/RIBTRI2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RIGSTR1A
+{
+	map "brightmaps/textures/RIGSTR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RIGSTR1B
+{
+	map "brightmaps/textures/RIGSTR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RIGSTR1C
+{
+	map "brightmaps/textures/RIGSTR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TALLTRM4
+{
+	map "brightmaps/textures/TALLTRM4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TALLTRM5
+{
+	map "brightmaps/textures/TALLTRM4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TALLTRM6
+{
+	map "brightmaps/textures/TALLTRM4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TALLTRM7
+{
+	map "brightmaps/textures/TALLTRM4.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TEETHW1B
+{
+	map "brightmaps/textures/TEETHW1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN1B
+{
+	map "brightmaps/textures/TRIGENB.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN2B
+{
+	map "brightmaps/textures/TRIGENB.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN3A
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN3G
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN3O
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN3P
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN3R
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN4A
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN4G
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN4O
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN4P
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIGEN4R
+{
+	map "brightmaps/textures/TRIGEN3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIMTH1C
+{
+	map "brightmaps/textures/TRIMTH1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIPIC1A
+{
+	map "brightmaps/textures/TRIPIC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TRIPIC1B
+{
+	map "brightmaps/textures/TRIPIC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILOBW3
+{
+	map "brightmaps/textures/CEILOBW1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILOBW4
+{
+	map "brightmaps/textures/CEILOBW1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PMACHPAE
+{
+	map "brightmaps/textures/PMACHPAE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RINLED1A
+{
+	map "brightmaps/textures/RINLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RINLED1B
+{
+	map "brightmaps/textures/RINLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RINLED1G
+{
+	map "brightmaps/textures/RINLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RINLED1O
+{
+	map "brightmaps/textures/RINLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RINLED1P
+{
+	map "brightmaps/textures/RINLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RINLED1R
+{
+	map "brightmaps/textures/RINLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCANACTI
+{
+	map "brightmaps/textures/SCANWAIT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCANBRK
+{
+	map "brightmaps/textures/SCANWAIT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCANWAIT
+{
+	map "brightmaps/textures/SCANWAIT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCRLAB1A
+{
+	map "brightmaps/textures/SCRLAB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCRLAB1B
+{
+	map "brightmaps/textures/SCRLAB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCRLAB1C
+{
+	map "brightmaps/textures/SCRLAB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCRLAB1D
+{
+	map "brightmaps/textures/SCRLAB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCRLAB1E
+{
+	map "brightmaps/textures/SCRLAB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SCRLAB1F
+{
+	map "brightmaps/textures/SCRLAB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SDBLOK1B
+{
+	map "brightmaps/textures/SDBLOKB.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SDBLOK2B
+{
+	map "brightmaps/textures/SDBLOKB.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SEGPIL1L
+{
+	map "brightmaps/textures/SEGPIL1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SEGPIL1B
+{
+	map "brightmaps/textures/SEGPIL1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SLBXCL1A
+{
+	map "brightmaps/textures/SLBXCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SMTHWL1A
+{
+	map "brightmaps/textures/SMTHWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SMTHWL1B
+{
+	map "brightmaps/textures/SMTHWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SMTHWL2A
+{
+	map "brightmaps/textures/SMTHWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SMTHWL2B
+{
+	map "brightmaps/textures/SMTHWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO4B
+{
+	map "brightmaps/textures/STARCO4C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO4C
+{
+	map "brightmaps/textures/STARCO4C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO4G
+{
+	map "brightmaps/textures/STARCO4C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO4P
+{
+	map "brightmaps/textures/STARCO4C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO4R
+{
+	map "brightmaps/textures/STARCO4C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO4S
+{
+	map "brightmaps/textures/STARCO4C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO4Y
+{
+	map "brightmaps/textures/STARCO4C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STAROF1A
+{
+	map "brightmaps/textures/STAROF1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STAROF1B {
+	map "brightmaps/textures/STAROF1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARSC1A
+{
+	map "brightmaps/textures/STARSC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARSC1B
+{
+	map "brightmaps/textures/STARSC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARSC1D
+{
+	map "brightmaps/textures/STARSC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARSC1G
+{
+	map "brightmaps/textures/STARSC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARSC1P
+{
+	map "brightmaps/textures/STARSC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARSC1R
+{
+	map "brightmaps/textures/STARSC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARST1A
+{
+	map "brightmaps/textures/STARST1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARST1B
+{
+	map "brightmaps/textures/STARST1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARST1G
+{
+	map "brightmaps/textures/STARST1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARST1P
+{
+	map "brightmaps/textures/STARST1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARST1R
+{
+	map "brightmaps/textures/STARST1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTB1A
+{
+	map "brightmaps/textures/STARTB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTB1B
+{
+	map "brightmaps/textures/STARTB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARST1Y
+{
+	map "brightmaps/textures/STARST1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1A
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1C
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1B
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1D
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1G
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1H
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1P
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL1R
+{
+	map "brightmaps/textures/STARWL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL7A
+{
+	map "brightmaps/textures/STARWL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL7B
+{
+	map "brightmaps/textures/STARWL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL7D
+{
+	map "brightmaps/textures/STARWL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL7G
+{
+	map "brightmaps/textures/STARWL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL7P
+{
+	map "brightmaps/textures/STARWL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWL7R
+{
+	map "brightmaps/textures/STARWL7A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STETRM2B
+{
+	map "brightmaps/textures/STETRM2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STETRM2C
+{
+	map "brightmaps/textures/STETRM2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STETRM2D
+{
+	map "brightmaps/textures/STETRM2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STETRM2W
+{
+	map "brightmaps/textures/STETRM2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STEW1CT
+{
+	map "brightmaps/textures/STEW1CT.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STELWF1C
+{
+	map "brightmaps/textures/STELWF1C.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture STELWF1G
+{
+	map "brightmaps/textures/STELWF1C.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture STELWF1D
+{
+	map "brightmaps/textures/STELWF1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture UDMLITE
+{
+	map "brightmaps/textures/ACETEAL.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ULTWDE1A
+{
+	map "brightmaps/textures/ULTWDE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ULTWDE2A
+{
+	map "brightmaps/textures/ULTWDE2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture USCRP1A
+{
+	map "brightmaps/textures/USCRP1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VEASY1A
+{
+	map "brightmaps/Auto/VEASY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VEASY1B
+{
+	map "brightmaps/Auto/VEASY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VERPIP1L
+{
+	map "brightmaps/textures/VERPIP1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACTRAK2
+{
+	map "brightmaps/textures/VACTRAKA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACTRAKA
+{
+	map "brightmaps/textures/VACTRAKA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACTRAKB
+{
+	map "brightmaps/textures/VACTRAKA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODBLA1G
+{
+	map "brightmaps/textures/WODBLA1G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODBLA1O
+{
+	map "brightmaps/textures/WODBLA1G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODBLA1R
+{
+	map "brightmaps/textures/WODBLA1G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODWAL1B
+{
+	map "brightmaps/textures/WODWAL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WPWLCL1A
+{
+	map "brightmaps/textures/WODWAL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WPWLCL1B
+{
+	map "brightmaps/textures/WODWAL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WPWLCL1C
+{
+	map "brightmaps/textures/WODWAL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RCWA3A
+{
+	map "brightmaps/auto/RCWA3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RCWA3T
+{
+	map "brightmaps/auto/RCWA3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RCWA4A
+{
+	map "brightmaps/auto/RCWA3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RCWA4T
+{
+	map "brightmaps/auto/RCWA3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RCWA5A
+{
+	map "brightmaps/auto/RCWA3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RCWA5P 
+{
+	map "brightmaps/auto/RCWA3A.png"
+	disablefullbright
+	light HUEHUE
+	
+}
+brightmap texture RCWA5T
+{
+	map "brightmaps/auto/RCWA3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SPISUP1B
+{
+	map "brightmaps/Textures/SPISUP1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STNDHR
+{
+	map "brightmaps/Textures/STNDHR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STNDHO
+{
+	map "brightmaps/Textures/STNDHR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STNDHL
+{
+	map "brightmaps/Textures/STNDHR.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture UPCABA
+{
+	map "brightmaps/textures/UPCABA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture UPCABB
+{
+	map "brightmaps/textures/UPCABA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHCABA
+{
+	map "brightmaps/textures/PTHCABA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LITEORA7
+{
+	map "brightmaps/auto/litepur6.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WEISCL1A
+{
+	map "brightmaps/textures/WEISCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WEISCL1B
+{
+	map "brightmaps/textures/WEISCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WEISCL1C
+{
+	map "brightmaps/textures/WEISCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WEISCL1D
+{
+	map "brightmaps/textures/WEISCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WEISCL1E
+{
+	map "brightmaps/textures/WEISCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODSCR1A
+{
+	map "brightmaps/textures/WODSCR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODSCR1B
+{
+	map "brightmaps/textures/WODSCR1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODDOR1A
+{
+	map "brightmaps/textures/WODDOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODDOR1B
+{
+	map "brightmaps/textures/WODDOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STIRTEX2
+{
+	map "brightmaps/textures/PEGLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture tekgry06
+{
+	map "brightmaps/textures/TEKGRY06.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture tekgry07
+{
+	map "brightmaps/textures/TEKGRY06.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture tekgry08
+{
+	map "brightmaps/textures/TEKGRY06.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHWO6B
+{
+	map "brightmaps/textures/PTHWO6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHWO6O
+{
+	map "brightmaps/textures/PTHWO6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LADLED1A
+{
+	map "brightmaps/textures/LADLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LADLED1B
+{
+	map "brightmaps/textures/LADLED1A.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PLITBL1A
+{
+	map "textures/walls/PLITBL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POSLIAN
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS31A
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARPOS9
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POS31B
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLSIG04
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEONOSHR
+{
+	map "textures/neon temp/NEONOSHR.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONDEBG
+{
+	map "textures/neon temp/NEONDEBG.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONHYD1
+{
+	map "textures/neon temp/NEONHYD1.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONHYD2
+{
+	map "textures/neon temp/NEONHYD2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONSHP1
+{
+	map "textures/neon temp/NEONSHP1.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONSHP2
+{
+	map "textures/neon temp/NEONSHP2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONSHP3
+{
+	map "textures/neon temp/NEONSHP3.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONACE1
+{
+	map "textures/neon temp/NEONACE1.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONALT1
+{
+	map "textures/neon temp/NEONALT1.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONALT2
+{
+	map "textures/neon temp/NEONALT2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONISRP
+{
+	map "textures/neon temp/NEONISRP.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONROBO
+{
+	map "textures/neon temp/NEONROBO.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONFRUT
+{
+	map "textures/neon temp/NEONFRUT.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONPONY
+{
+	map "textures/neon temp/NEONPONY.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEONPOL1
+{
+	map "textures/neon temp/NEONPOL1.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONPOL2
+{
+	map "textures/neon temp/NEONPOL2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONFBF
+{
+	map "textures/neon temp/NEONFBF.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONGWYC
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture PONGTBLA
+{
+	map "textures/walls/PONGTBLA.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POOLTBLA
+{
+	map "textures/walls/POOLTBLA.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEONDON1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE		
+}
+brightmap texture NEONDON2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE		
+}
+
+brightmap texture POSERR1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONISAC
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONPAT2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONLIAN
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture PUR_100
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture PUR_250
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture PUR_500
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture PUR_SUCC
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+
+brightmap texture NEONBU01
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU02
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU03
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU04
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU05
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONHYDR
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONXEN
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONCONS
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEONBU06
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU07
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU08
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU09
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU10
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU11
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU12
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU13
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU14
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU15
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU16
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU17
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU18
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONBU19
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEONVACS
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONVAC2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POS88
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture pos89
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEONCLOT
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POSERR2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POSERR3
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POSERR4
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POSERR5
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture POSERR6
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POSERR7
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture POSERR8
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture POSERR9
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+
+brightmap texture NEONDEIM
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEON17
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POS83
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POS84
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POS85
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POS86
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture POS87
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONDATE
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture NEONPATH
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture HOLSIG05
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture HOLSIG01
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture HOLSIG02
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+brightmap texture HOLSIG03
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture pos82
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture PERFNEON
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+brightmap texture NEONELEC
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE	
+}
+
+
+brightmap texture POS79
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POSGOTE
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+
+brightmap texture SHTPAN1A
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+
+brightmap texture libneon1
+{
+	map "textures/NEON TEMP/libneon1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture libsign
+{
+	map "textures/NEON TEMP/libsign.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONBROD
+{
+	map "textures/NEON TEMP/NEONBROD.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONBRO2
+{
+	map "textures/NEON TEMP/NEONBRO2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONGC
+{
+	map "textures/NEON TEMP/NEONGC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONGC2
+{
+	map "textures/NEON TEMP/NEONGC2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture NEONGC3
+{
+	map "textures/NEON TEMP/NEONGC3.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture NEONGC4
+{
+	map "textures/NEON TEMP/NEONGC4.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POS70
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS71
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS72
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS73
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS74
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS75
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS76
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS76A
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76B
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76C
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76D
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76E
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76F
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76G
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76H
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76I
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76J
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76K
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS76L
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture OFICAG2B
+{
+	map "BRIGHTMAPS/AUTO/OFICAG2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG0
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG1
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG2
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG3
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG4
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG5
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG6
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG7
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG8
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG9
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG10
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG11
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG12
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG13
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG14
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG15
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LIBTAG16
+{
+	map "BRIGHTMAPS/AUTO/LIBTAG.png"
+	disablefullbright
+	light HUEHUE
+}
+
+
+
+brightmap texture PLITBL1B
+{
+	map "textures/walls/PLITBL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PLITBL1C
+{
+	map "textures/walls/PLITBL1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURC_TUR
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OOORDER1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OOORDER2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OOORDER3
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OOORDER4
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OOORDER5
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture WILTEKA
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WILTEKB
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture WILTEKC
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture WILTEKD
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture WILTEKE
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture WILTEKF
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUEPA
+}
+
+brightmap texture PURC_TUR
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS33A
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS33B
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS33C
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POS36
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS47
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS59
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS61
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS62
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture pos109
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture menupos1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture menupos2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture menupos3
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POS49
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS53
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+
+brightmap texture PURC_COM
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PURC_AMM
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BOARDGL0
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BOARDGL1
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture BOARDGL2
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture BOARDGL3
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture BOARDGL4
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture BOARDGL5
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture BOARDGL6
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture BOARDGL7
+{
+	map "brightmaps/textures/BRCPMOXL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONSAL1
+{
+	map "TEXTURES/NEON TEMP/NEONSAL1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONSAL2
+{
+	map "TEXTURES/NEON TEMP/NEONSAL2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONSAL3
+{
+	map "TEXTURES/NEON TEMP/NEONSAL3.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PTHBOARD
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PUR_AMMO
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PUR_COMP
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PUR_GREN
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PUR_MINE
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PUR_MKIT
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PUR_SHLD
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture FBF_LOG
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture FBF_ACC
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture FBF_ADM
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FBF_TRAN
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FBF_SAL
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PUR_TURR
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POSRES1
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POSFBF7
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POSFBF8
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POSFBF6
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POSFBF5
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POSRES2
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POSRES3
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POSRES4
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POSRES5
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POSRES6
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POSRES7
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POSRES8
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POS63
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PLITBL1D
+{
+	map "textures/walls/PLITBL1D.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture FASWAL1D
+{
+	map "brightmaps/auto/FASWAL1b.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PLITBL1E
+{
+	map "textures/walls/PLITBL1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITBL1F
+{
+	map "textures/walls/PLITBL1F.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITRE1A
+{
+	map "textures/walls/PLITRE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITRE1B
+{
+	map "textures/walls/PLITRE1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITRE1C
+{
+	map "textures/walls/PLITRE1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITRE1D
+{
+	map "textures/walls/PLITRE1D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITRE1E
+{
+	map "textures/walls/PLITRE1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITRE1F
+{
+	map "textures/walls/PLITRE1F.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITWH1A
+{
+	map "textures/walls/PLITWH1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITWH1B
+{
+	map "textures/walls/PLITWH1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITWH1C
+{
+	map "textures/walls/PLITWH1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITWH1D
+{
+	map "textures/walls/PLITWH1D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITWH1E
+{
+	map "textures/walls/PLITWH1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PLITWH1F
+{
+	map "textures/walls/PLITWH1F.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture EXITRED
+{
+	map "TEXTURES/NEON TEMP/EXITRED.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONFUNK
+{
+	map "TEXTURES/NEON TEMP/NEONFUNK.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONGOT2
+{
+	map "TEXTURES/NEON TEMP/NEONGOT2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONGOT1
+{
+	map "TEXTURES/NEON TEMP/NEONGOT1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONGWYN
+{
+	map "TEXTURES/NEON TEMP/NEONGWYN.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONAUTO
+{
+	map "TEXTURES/NEON TEMP/NEONAUTO.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONCOLA
+{
+	map "TEXTURES/NEON TEMP/NEONCOLA.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONPARK
+{
+	map "TEXTURES/NEON TEMP/NEONPARK.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONTDAY
+{
+	map "TEXTURES/NEON TEMP/NEONTDAY.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONBURG
+{
+	map "TEXTURES/NEON TEMP/NEONBURG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONMERC
+{
+	map "TEXTURES/NEON TEMP/NEONMERC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONSPAC
+{
+	map "TEXTURES/NEON TEMP/NEONSPAC.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONDINE
+{
+	map "TEXTURES/NEON TEMP/NEONDINE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture GRNABO1
+{
+	map "TEXTURES/NEON TEMP/GRNABO1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GRNABO2
+{
+	map "TEXTURES/NEON TEMP/GRNABO2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GRNABO3
+{
+	map "TEXTURES/NEON TEMP/GRNABO3.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEREST1A
+{
+	map "TEXTURES/NEON TEMP/NEREST1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEREST1B
+{
+	map "TEXTURES/NEON TEMP/NEREST1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEREST1C
+{
+	map "TEXTURES/NEON TEMP/NEREST1C.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture OMNIPURP
+{
+	map "TEXTURES/flats/OMNIPURP.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJFL1C
+{
+	map "brightmaps/textures/BLUJFL1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJFL1D
+{
+	map "brightmaps/textures/BLUJFL1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJNK1E
+{
+	map "brightmaps/textures/BLUJNK1E.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture ROMANBOW
+{
+	map "TEXTURES/walls/ROMANBOW.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS3C
+{
+	map "brightmaps/textures/SKYS3C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS3D
+{
+	map "brightmaps/textures/SKYS3C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILGT1B
+{
+	map "brightmaps/textures/CEILGT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILGT1G
+{
+	map "brightmaps/textures/CEILGT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILGT1O
+{
+	map "brightmaps/textures/CEILGT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILGT1P
+{
+	map "brightmaps/textures/CEILGT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILGT1R
+{
+	map "brightmaps/textures/CEILGT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILGT1W
+{
+	map "brightmaps/textures/CEILGT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CEILGT1Y
+{
+	map "brightmaps/textures/CEILGT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CABILONA
+{
+	map "brightmaps/textures/CABILONA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CABILONB
+{
+	map "brightmaps/textures/CABILONA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CABILONL
+{
+	map "brightmaps/textures/CABILONA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJNK1F
+{
+	map "brightmaps/textures/BLUJNK1F.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTOF1B
+{
+	map "brightmaps/textures/FACTOF1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTOF1C
+{
+	map "brightmaps/textures/FACTOF1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture FACTOI1B
+{
+	map "brightmaps/textures/FACTOI1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLDTRM1B
+{
+	map "brightmaps/textures/BLDTRM1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS8E
+{
+	map "brightmaps/textures/SKYS8E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS7E
+{
+	map "brightmaps/textures/SKYS7E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRBUOY1A
+{
+	map "brightmaps/textures/DRBUOY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRBUOY1B
+{
+	map "brightmaps/textures/DRBUOY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture DRINDU1A
+{
+	map "brightmaps/textures/DRINDU1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRINDU1B
+{
+	map "brightmaps/textures/DRINDU1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRINDU1C
+{
+	map "brightmaps/textures/DRINDU1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRINDU2A
+{
+	map "brightmaps/textures/DRINDU1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRINDU2B
+{
+	map "brightmaps/textures/DRINDU1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRINDU2C
+{
+	map "brightmaps/textures/DRINDU1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLEFT1A
+{
+	map "brightmaps/textures/DRLEFT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLEFT1B
+{
+	map "brightmaps/textures/DRLEFT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLEFT1E
+{
+	map "brightmaps/textures/DRLEFT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRDBGE1A
+{
+	map "brightmaps/textures/DRDBGE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRDBGE1B
+{
+	map "brightmaps/textures/DRDBGE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RN_RCT1A
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1A
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT2A
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT2B
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT2C
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT2D
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1B
+{
+	map "brightmaps/textures/ROADCT1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1C
+{
+	map "brightmaps/textures/ROADCT1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1D
+{
+	map "brightmaps/textures/ROADCT1D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1E
+{
+	map "brightmaps/textures/ROADCT1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1F
+{
+	map "brightmaps/textures/ROADCT1F.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1G
+{
+	map "brightmaps/textures/ROADCT1G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1H
+{
+	map "brightmaps/textures/ROADCT1H.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1I
+{
+	map "brightmaps/textures/ROADCT1I.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture RN_RCT1J
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ROADCT1J
+{
+	map "brightmaps/textures/ROADCT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRBLUP1A
+{
+	map "brightmaps/textures/DRBLUP1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRBLUP1B
+{
+	map "brightmaps/textures/DRBLUP1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRBLDB1A
+{
+	map "brightmaps/textures/DRBLDB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRBLDB1B
+{
+	map "brightmaps/textures/DRBLDB1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSHUT1A
+{
+	map "brightmaps/textures/DRSHUT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSHUT1B
+{
+	map "brightmaps/textures/DRSHUT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSHUT1D
+{
+	map "brightmaps/textures/DRSHUT1D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CCHEAB1C
+{
+	map "brightmaps/textures/CCHEAB1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CCHEAB1D
+{
+	map "brightmaps/textures/CCHEAB1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CCHEAB2A
+{
+	map "brightmaps/textures/CCHEAB2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CCHEAB2B
+{
+	map "brightmaps/textures/CCHEAB2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJNK7B
+{
+	map "brightmaps/textures/BLUJNK7B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJNK5D
+{
+	map "brightmaps/textures/BLUJNK5D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PRCWAL1A
+{
+	map "brightmaps/textures/PRCWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PRCWAL1B
+{
+	map "brightmaps/textures/PRCWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PRCWAL2A
+{
+	map "brightmaps/textures/PRCWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PRCWAL2B
+{
+	map "brightmaps/textures/PRCWAL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMOXM1
+{
+	map "brightmaps/textures/CPMOXM1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PRCHOR3B
+{
+	map "brightmaps/textures/PRCHOR3B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PRCHOR3C
+{
+	map "brightmaps/textures/PRCHOR3B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS8I
+{
+	map "brightmaps/textures/SKYS8I.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO5A
+{
+	map "brightmaps/textures/STARCO5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO5B
+{
+	map "brightmaps/textures/STARCO5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO5G
+{
+	map "brightmaps/textures/STARCO5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO5O
+{
+	map "brightmaps/textures/STARCO5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO5P
+{
+	map "brightmaps/textures/STARCO5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCO5R
+{
+	map "brightmaps/textures/STARCO5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARHO3A
+{
+	map "brightmaps/textures/STARHO3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARHO3B
+{
+	map "brightmaps/textures/STARHO3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARHO3G
+{
+	map "brightmaps/textures/STARHO3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARHO3P
+{
+	map "brightmaps/textures/STARHO3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARHO3R
+{
+	map "brightmaps/textures/STARHO3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTH2A
+{
+	map "brightmaps/textures/STARTH2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTH2B
+{
+	map "brightmaps/textures/STARTH2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTH2G
+{
+	map "brightmaps/textures/STARTH2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTH2P
+{
+	map "brightmaps/textures/STARTH2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTH2R
+{
+	map "brightmaps/textures/STARTH2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ALRMPN1A
+{
+	map "brightmaps/textures/ALRMPN1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ALRMPN1B
+{
+	map "brightmaps/textures/ALRMPN1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAL1A
+{
+	map "brightmaps/textures/DRSTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAL1B
+{
+	map "brightmaps/textures/DRSTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAL1C
+{
+	map "brightmaps/textures/DRSTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARTH3W
+{
+	map "brightmaps/textures/STARTH3W.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLOPN1A
+{
+	map "brightmaps/textures/HOLOPN1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture HOLOPN2A
+{
+	map "brightmaps/textures/HOLOPN1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARCU1G
+{
+	map "brightmaps/textures/STARCU1L.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture doormet3
+{
+	map "brightmaps/textures/doormet5.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture doormet4
+{
+	map "brightmaps/textures/doormet5.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture doormet5
+{
+	map "brightmaps/textures/doormet5.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture doormet6
+{
+	map "brightmaps/textures/doormet5.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAR2A
+{
+	map "brightmaps/textures/DRSTAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAR2B
+{
+	map "brightmaps/textures/DRSTAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSTAR2C
+{
+	map "brightmaps/textures/DRSTAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture WODESK1B
+{
+	map "brightmaps/textures/WODESK1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS10B
+{
+	map "brightmaps/textures/SKYS10B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARLK1A
+{
+	map "brightmaps/textures/STARLK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE1A
+{
+	map "TEXTURES/VRTILE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE1B
+{
+	map "TEXTURES/VRTILE1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE1G
+{
+	map "TEXTURES/VRTILE1G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE2A
+{
+	map "TEXTURES/VRTILE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE2B
+{
+	map "TEXTURES/VRTILE1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE2G
+{
+	map "TEXTURES/VRTILE1G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE3A
+{
+	map "TEXTURES/VRTILE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE3B
+{
+	map "TEXTURES/VRTILE1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE3G
+{
+	map "TEXTURES/VRTILE1G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE4A
+{
+	map "TEXTURES/VRTILE4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE4B
+{
+	map "TEXTURES/VRTILE4B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE4G
+{
+	map "TEXTURES/VRTILE4G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE5A
+{
+	map "TEXTURES/VRTILE5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE5B
+{
+	map "TEXTURES/VRTILE5B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VRTILE5G
+{
+	map "TEXTURES/VRTILE5G.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARLK1B
+{
+	map "brightmaps/textures/STARLK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARLK1C
+{
+	map "brightmaps/textures/STARLK1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARLK2A
+{
+	map "brightmaps/textures/STARLK2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARLK2B
+{
+	map "brightmaps/textures/STARLK2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARLK2C
+{
+	map "brightmaps/textures/STARLK2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS11A
+{
+	map "brightmaps/textures/SKYS11A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS11B
+{
+	map "brightmaps/textures/SKYS11B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL2A
+{
+	map "brightmaps/textures/SERVCL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL3A
+{
+	map "brightmaps/textures/SERVCL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL3B
+{
+	map "brightmaps/textures/SERVCL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL3C
+{
+	map "brightmaps/textures/SERVCL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL3D
+{
+	map "brightmaps/textures/SERVCL2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWS1B
+{
+	map "brightmaps/textures/STARWS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWS1G
+{
+	map "brightmaps/textures/STARWS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWS1P
+{
+	map "brightmaps/textures/STARWS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWS1R
+{
+	map "brightmaps/textures/STARWS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture STARWS1W
+{
+	map "brightmaps/textures/STARWS1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL4A
+{
+	map "brightmaps/textures/SERVCL2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL4B
+{
+	map "brightmaps/textures/SERVCL2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL4C
+{
+	map "brightmaps/textures/SERVCL2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL4D
+{
+	map "brightmaps/textures/SERVCL2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL5A
+{
+	map "brightmaps/textures/SERVCL2C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL5B
+{
+	map "brightmaps/textures/SERVCL2C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL5C
+{
+	map "brightmaps/textures/SERVCL2C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL5D
+{
+	map "brightmaps/textures/SERVCL2C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL1A
+{
+	map "brightmaps/textures/SERVCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL1B
+{
+	map "brightmaps/textures/SERVCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL1C
+{
+	map "brightmaps/textures/SERVCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL1D
+{
+	map "brightmaps/textures/SERVCL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL2A
+{
+	map "brightmaps/textures/SERVCL2D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL2B
+{
+	map "brightmaps/textures/SERVCL2D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL2C
+{
+	map "brightmaps/textures/SERVCL2D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SERVCL2D
+{
+	map "brightmaps/textures/SERVCL2D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS3J
+{
+	map "brightmaps/textures/SKYS3J.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLDHOR1A
+{
+	map "brightmaps/textures/BLDHOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLDPRO1A
+{
+	map "brightmaps/textures/BLDPRO1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLDHOR1B
+{
+	map "brightmaps/textures/BLDHOR1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLDHOR1C
+{
+	map "brightmaps/textures/BLDHOR1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLDHOR2B
+{
+	map "brightmaps/textures/BLDHOR2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SMLMAC1A
+{
+	map "brightmaps/textures/SMLMAC1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture KITTOP1A
+{
+	map "brightmaps/textures/KITTOP1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture KITTOP1B
+{
+	map "brightmaps/textures/KITTOP1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture KITBOX1E
+{
+	map "brightmaps/textures/KITBOX1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture KITBOX1F
+{
+	map "brightmaps/textures/KITBOX1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture KITBOX1G
+{
+	map "brightmaps/textures/KITBOX1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture KITBOX1H
+{
+	map "brightmaps/textures/KITBOX1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR2A
+{
+	map "brightmaps/textures/CARPAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR2B
+{
+	map "brightmaps/textures/CARPAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR2C
+{
+	map "brightmaps/textures/CARPAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR3A
+{
+	map "brightmaps/textures/CARPAR3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR6A
+{
+	map "brightmaps/textures/CARPAR6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR6B
+{
+	map "brightmaps/textures/CARPAR6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARTRM1B
+{
+	map "brightmaps/textures/CARTRM1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR8C
+{
+	map "brightmaps/textures/CARPAR8C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR8D
+{
+	map "brightmaps/textures/CARPAR8C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR9A
+{
+	map "brightmaps/textures/CARPAR9A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARHOR1A
+{
+	map "brightmaps/textures/CARHOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR2D
+{
+	map "brightmaps/textures/CARPAR2D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR8E
+{
+	map "brightmaps/textures/CARPAR8E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS10D
+{
+	map "brightmaps/textures/SKYS10B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture INDCRA1A
+{
+	map "brightmaps/textures/INDCRA1A.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture POS56
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS57
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture POS58
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture INDCRA2A {
+	map "brightmaps/textures/INDCRA2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture INDCRA3A
+{
+	map "brightmaps/textures/INDCRA3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRAPROFA
+{
+	map "brightmaps/textures/DRAPROFA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRAPROFB
+{
+	map "brightmaps/textures/DRAPROFA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJNK8A
+{
+	map "brightmaps/textures/BLUJNK8A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture BLUJNK8B
+{
+	map "brightmaps/textures/BLUJNK8B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TOXWAL1A
+{
+	map "brightmaps/textures/TOXWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TOXWAL1B
+{
+	map "brightmaps/textures/TOXWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TOXPAN1D
+{
+	map "brightmaps/textures/TOXPAN1D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TOXCOL1B
+{
+	map "brightmaps/textures/TOXCOL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIHOR1A
+{
+	map "brightmaps/textures/OFIHOR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFICAB1D
+{
+	map "brightmaps/textures/OFICAB1D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OFIHOR2B
+{
+	map "brightmaps/textures/OFIHOR2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TOXFLA1A
+{
+	map "brightmaps/textures/TOXFLA1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSLID1A
+{
+	map "brightmaps/textures/DRSLID1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSLID1B
+{
+	map "brightmaps/textures/DRSLID1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSUP1B
+{
+	map "brightmaps/textures/LABSUP1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSUP1D
+{
+	map "brightmaps/textures/LABSUP1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABTIL1B
+{
+	map "brightmaps/textures/LABTIL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABTIL1C
+{
+	map "brightmaps/textures/LABTIL1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABTRM1A
+{
+	map "brightmaps/textures/LABTRM1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABS1A
+{
+	map "brightmaps/textures/DRLABS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABS1B
+{
+	map "brightmaps/textures/DRLABS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABS2A
+{
+	map "brightmaps/textures/DRLABS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABS2B
+{
+	map "brightmaps/textures/DRLABS1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LADDER1A
+{
+	map "brightmaps/textures/LADDER1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LADDER1B
+{
+	map "brightmaps/textures/LADDER1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSTE3C
+{
+	map "brightmaps/textures/LABSTE3C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON1A
+{
+	map "brightmaps/textures/LABMON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON1B
+{
+	map "brightmaps/textures/LABMON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON1C
+{
+	map "brightmaps/textures/LABMON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON1D
+{
+	map "brightmaps/textures/LABMON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMOXL6A
+{
+	map "brightmaps/textures/CPMOXL6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMOXL6B
+{
+	map "brightmaps/textures/CPMOXL6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMOXL7A
+{
+	map "brightmaps/textures/CPMOXL6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMOXL7B
+{
+	map "brightmaps/textures/CPMOXL6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMLON1A
+{
+	map "brightmaps/textures/CPMLON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture OHNO
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMLON1D
+{
+	map "brightmaps/textures/CPMLON1D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMLON1R
+{
+	map "brightmaps/textures/CPMLON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMOXLB
+{
+	map "brightmaps/textures/CPMOXLB.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMOXL6D
+{
+	map "brightmaps/textures/CPMOXL6D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPSMALLG
+{
+	map "brightmaps/textures/CPSMALLG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPSMALLE
+{
+	map "brightmaps/textures/CPSMALLG.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPSMALLB
+{
+	map "brightmaps/textures/CPSMALLB.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMLON1B
+{
+	map "brightmaps/textures/CPMLON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPMLON1B
+{
+	map "brightmaps/textures/CPMLON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWALPA
+{
+	map "brightmaps/textures/LABWALPA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWALPB
+{
+	map "brightmaps/textures/LABWALPA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWALPC
+{
+	map "brightmaps/textures/LABWALPA.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABHLD1A
+{
+	map "brightmaps/textures/LABHLD1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABHLD1B
+{
+	map "brightmaps/textures/LABHLD1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABHLD1C
+{
+	map "brightmaps/textures/LABHLD1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPUPNLX2
+{
+	map "brightmaps/textures/CPUPNLX2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CPUPNLY1
+{
+	map "brightmaps/textures/CPUPNLY1.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON2A
+{
+	map "brightmaps/textures/LABMON2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON2B
+{
+	map "brightmaps/textures/LABMON2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON2C
+{
+	map "brightmaps/textures/LABMON2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON3A
+{
+	map "brightmaps/textures/LABMON2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON3B
+{
+	map "brightmaps/textures/LABMON2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABMON3C
+{
+	map "brightmaps/textures/LABMON2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABBLO1A
+{
+	map "brightmaps/textures/LABBLO1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABBLO1b
+{
+	map "brightmaps/textures/LABBLO1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABBLO2A
+{
+	map "brightmaps/textures/LABBLO1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSTE4A
+{
+	map "brightmaps/textures/LABSTE4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSTE4B
+{
+	map "brightmaps/textures/LABSTE4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABSTE4C
+{
+	map "brightmaps/textures/LABSTE4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABBAR1A
+{
+	map "brightmaps/textures/LABBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABBAR1B
+{
+	map "brightmaps/textures/LABBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABBAR1C
+{
+	map "brightmaps/textures/LABBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWHI1A
+{
+	map "brightmaps/textures/LABWHI1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWHI3A
+{
+	map "brightmaps/textures/LABWHI3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWHI3A
+{
+	map "brightmaps/textures/LABWHI3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWHI2B
+{
+	map "brightmaps/textures/LABWHI2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABFLV1A
+{
+	map "brightmaps/textures/LABFLV1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABFLV1B
+{
+	map "brightmaps/textures/LABFLV1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABLAM1A
+{
+	map "brightmaps/textures/LABLAM1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABLAM1B
+{
+	map "brightmaps/textures/LABLAM1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABPOT1A
+{
+	map "brightmaps/textures/LABPOT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABW1A
+{
+	map "brightmaps/textures/DRLABW1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABW1B
+{
+	map "brightmaps/textures/DRLABW1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABWHI3B
+{
+	map "brightmaps/textures/LABWHI3B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABW2A
+{
+	map "brightmaps/textures/DRLABW2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRLABW2B
+{
+	map "brightmaps/textures/DRLABW2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTRM1A
+{
+	map "brightmaps/textures/SAFTRM1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ARCWAL1A
+{
+	map "brightmaps/textures/ARCWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ARCBAR1A
+{
+	map "brightmaps/textures/ARCBAR1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ARCBAR2A
+{
+	map "brightmaps/textures/ARCBAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ARCTRM1A
+{
+	map "brightmaps/textures/ARCTRM1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ARCFLA1B
+{
+	map "brightmaps/textures/ARCFLA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFFLA1A
+{
+	map "brightmaps/textures/SAFFLA1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFFLA2A
+{
+	map "brightmaps/textures/SAFFLA2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFLON1A
+{
+	map "brightmaps/textures/SAFLON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFFLA4A
+{
+	map "brightmaps/textures/SAFFLA4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTAL1A
+{
+	map "brightmaps/textures/SAFTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTAL1B
+{
+	map "brightmaps/textures/SAFTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFFLA4B
+{
+	map "brightmaps/textures/SAFFLA4A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTAL1A
+{
+	map "brightmaps/textures/SAFTAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFSMV1A
+{
+	map "brightmaps/textures/SAFSMV1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTRM3A
+{
+	map "brightmaps/textures/SAFTRM3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTRM1B
+{
+	map "brightmaps/textures/SAFTRM1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSAFE1A
+{
+	map "brightmaps/textures/DRSAFE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSAFE1B
+{
+	map "brightmaps/textures/DRSAFE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTRM4B
+{
+	map "brightmaps/textures/SAFTRM4B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTRM3B
+{
+	map "brightmaps/textures/SAFTRM3B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE1A
+{
+	map "brightmaps/textures/MALELE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE1B
+{
+	map "brightmaps/textures/MALELE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE1C
+{
+	map "brightmaps/textures/MALELE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE1D
+{
+	map "brightmaps/textures/MALELE1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE2A
+{
+	map "brightmaps/textures/MALELE2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE6C
+{
+	map "brightmaps/textures/MALELE6C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PERFWI2A
+{
+	map "brightmaps/textures/PERFWI2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFTRM6B
+{
+	map "brightmaps/textures/SAFTRM6B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE5D
+{
+	map "brightmaps/textures/MALELE5D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE5E
+{
+	map "brightmaps/textures/MALELE5D.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALELE1E
+{
+	map "brightmaps/textures/MALELE1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA1B
+{
+	map "brightmaps/textures/MALREA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA1C
+{
+	map "brightmaps/textures/MALREA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA1D
+{
+	map "brightmaps/textures/MALREA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture MALREA1E
+{
+	map "brightmaps/textures/MALREA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA2A
+{
+	map "brightmaps/textures/MALREA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA2B
+{
+	map "brightmaps/textures/MALREA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA2C
+{
+	map "brightmaps/textures/MALREA1B.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PNLELEV1
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELEV2
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELEV3
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELEV4
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELEV5
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELEV6
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELEV7
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELEV8
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PNLELES1
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELES2
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELES3
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELES4
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLELES5
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture TEDREF1A
+{
+	map "brightmaps/textures/TEDREF1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA5A
+{
+	map "brightmaps/textures/MALREA5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALREA1F
+{
+	map "brightmaps/textures/MALREA1F.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALTOY1A
+{
+	map "brightmaps/textures/MALTOY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALTOY1B
+{
+	map "brightmaps/textures/MALTOY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALTOY1C
+{
+	map "brightmaps/textures/MALTOY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALTOY1D
+{
+	map "brightmaps/textures/MALTOY1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALTOY3A
+{
+	map "brightmaps/textures/MALTOY3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALTOY3B
+{
+	map "brightmaps/textures/MALTOY3A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRMALT1A
+{
+	map "brightmaps/textures/DRMALT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRMALT1B
+{
+	map "brightmaps/textures/DRMALT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRMALT1C
+{
+	map "brightmaps/textures/DRMALT1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABCAT2B
+{
+	map "brightmaps/textures/LABCAT2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture LABCRA1A
+{
+	map "brightmaps/textures/LABCRA1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ISAWAL1A
+{
+	map "brightmaps/textures/ISAWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ISAFLA3A
+{
+	map "brightmaps/textures/ISAWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ISAFLA3B
+{
+	map "brightmaps/textures/ISAWAL1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ISALON1A
+{
+	map "brightmaps/textures/ISALON1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ISAWAL4B
+{
+	map "brightmaps/textures/ISAWAL4B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ISAFLA4A
+{
+	map "brightmaps/textures/ISAWAL4B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALDIY2B
+{
+	map "brightmaps/textures/MALDIY2B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALDIY5A
+{
+	map "brightmaps/textures/MALDIY5A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALDIY6A
+{
+	map "brightmaps/textures/MALDIY6A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALDIY6B
+{
+	map "brightmaps/textures/MALDIY6B.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture MALDIY1E
+{
+	map "brightmaps/textures/MALDIY1E.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSKYS1C
+{
+	map "brightmaps/textures/DRSKYS1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture DRSKYS1D
+{
+	map "brightmaps/textures/DRSKYS1C.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture GRSBLU
+{
+	map "brightmaps/textures/GRSBLU.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ALACLO1A
+{
+	map "brightmaps/textures/ALACLO1A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ALACLO1F
+{
+	map "brightmaps/textures/ALACLO1F.png"
+	disablefullbright
+	light HUEHUE
+}
+
+
+
+
+
+
+
+
+// Electricity by Borion
+brightmap texture ELECTR01
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture ELECTR02
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONSEL1
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONSEL2
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture pos64
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS66
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS68A
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS68B
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS68C
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS68D
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS68E
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS67
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS69
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture ELECTR03
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture ELECTR04
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture ELECTR05
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}brightmap texture ELECTRM1
+{
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ELECTRM2 {
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ELECTRM3 {
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ELECTRM4 {
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture ELECTRM5 {
+	map "brightmaps/textures/ALLWHITE.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SKYS8B {
+	map "brightmaps/textures/SKYS8B.png"
+	disablefullbright
+	light HUEHUE
+}
+
+// VACBOT-PANELS
+brightmap texture VACFRM0
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM3
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM4
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM5
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM6
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM7
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM8
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM9
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM10
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM11
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM12
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM13
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM14
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM15
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM16
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM17
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM18
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM19
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM20
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM21
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM22
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM23
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM24
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM25
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM26
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM27
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM28
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM29
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture VACFRM30
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture CARPAR99
+{
+	map "brightmaps/textures/CARPAR2A.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI0
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI3
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI4
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI5
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI6
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI7
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI8
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCI9
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PNLARCG0
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCG1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCG2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS90
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS91
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS92
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS93
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS94
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture POS95
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture NEONGYM
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture PNLARCG3
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCG4
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCG5
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCG6
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCG7
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCG8
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture PNLARCR0
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture NEONBUIL
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+
+brightmap texture SAFEPOS1
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}
+brightmap texture SAFEPOS2
+{
+	map "brightmaps/textures/ALLWHITE2.png"
+	disablefullbright
+	light HUEHUE
+}

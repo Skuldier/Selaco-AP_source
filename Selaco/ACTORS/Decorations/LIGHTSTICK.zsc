@@ -1,0 +1,176 @@
+class FlareStickDecoration : PickupableDecoration
+{
+
+	SmokeHandler sh;
+
+	//bool grabbed;
+	bool success;
+	bool throwScript;
+	actor flare1, flare2, flarecorona;
+	protected int flare1TravelTID, flare2TravelTID, flarecoronaTravelTID;
+
+	// OM_01A
+	const throwDelay = 48;
+	int throwTimer;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		sh = SmokeHandler.instance();
+		A_PLAYSOUND("FLARE/BURN", CHAN_7, 0.5, 1);
+		[success, flare1] = A_SpawnItemeX("FlareFireEffect", 16, 0, 1.9, flags:SXF_SETMASTER);
+		[success, flare2] = A_SpawnItemeX("FlareFireEffectLight", 16, 0, 1.5, flags:SXF_SETMASTER);
+		[success, flarecorona] = A_SpawnItemeX("RedFlarePermanent", 16, 0, 1.5, flags:SXF_SETMASTER);
+	}
+
+	override void tick() {
+		super.tick();
+		if(flare1 && flare2 && flarecorona) {
+			flare2.A_Warp(AAPTR_Master, 16, 0, 1.5, flags:WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION );
+			flare1.A_Warp(AAPTR_Master, 16, 0, 1.9, flags:WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION );
+			flarecorona.A_Warp(AAPTR_Master, 10, 0, 1.9, flags:WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION );
+		}
+		if(throwScript && throwTimer <= throwDelay) {
+			throwTimer++;
+			if(throwTimer == throwDelay) {
+				PlayerPawn pawn=players[0].mo;
+				let d = Dawn(pawn);
+				if(d.holdingObject) {
+					throw();
+					d.dropObject();
+				}
+			}
+		}
+	}
+
+	void killFlare() {
+		throwScript= true;
+		a_playsound("fire/ignite", CHAN_7, 1.0, 0, 0.8);
+		for(int x=0;x<2;x++) {
+			A_SpawnItemEx("BodyImpactSmokeTiny", 13,0,2, frandom(-4, 4), frandom(-4, 4), 2.7);
+		}
+		flare1.destroy();
+		flare2.destroy();
+		flarecorona.destroy();
+	}
+
+	default {
+		tag "$OBJECT_FLARE";
+		PickupableDecoration.grabSound "PICKUP/FLARE";
+		-SelacoActor.SleepWhenIdle;
+		+PickupableDecoration.HoldFromFront
+		-PickupableDecoration.HoldFromBack;
+        PickupableDecoration.HoldDistance 21;
+		PickupableDecoration.ThrowVel 6;
+		PickupableDecoration.MaxThrowVel 30;
+        PickupableDecoration.HoldHeight -11;
+		+thruactors;
+		radius 10;
+		height 5;
+		mass 150;
+		scale 1;
+	}
+
+	States
+	{
+		pickup:
+			TNT1 A 0 {
+				// We dont want to see the smoke effect of the flare close to the camera
+				// This boolean stopts the effect from spawning.
+				//grabbed = true;
+				setStateLabel("Looper");
+			}
+		Spawn:
+			TNT1 A 0;
+		PutDown:
+		Throw:
+			TNT1 A 0 {
+				//grabbed = false;
+			}
+		Looper:
+			VOXE L 2;
+			TNT1 A 0 {
+				if(sh && sh.currentSmokeSetting+1 >= 2 && !isPickedUp() && flare1) { 
+					A_SpawnItemEx("FlareSmoke", 13,0,2, frandom(-0.03, 0.03), frandom(-0.03, 0.03), 0.9);
+				}
+			}
+			loop;
+		KillFlame:
+			VOXE L 1 killFlare();
+			goto looper;
+		Death:
+			VOXE L 1 killFlare();
+			stop;
+	}
+
+
+	// Travel funcs for moving between levels =============================
+	/*int prepareAttachedForTravel(Actor attachedActor) {
+		if(attachedActor) {
+			int oldTID = attachedActor.tid;
+
+			attachedActor.UnlinkFromWorld();
+            attachedActor.ChangeTid(0);
+            
+            // Move object into the stat num for travelling objects
+            attachedActor.ChangeStatNum(STAT_TRAVELLING);
+
+            // Remove all attached lights, they should be recreated on the other side
+            attachedActor.DeleteAttachedLights();
+
+			return oldTID;
+		}
+
+		return 0;
+	}
+
+	void restoreAttachedFromTravel(Actor attachedActor, int oldTID) {
+		attachedActor.ChangeStatNum(STAT_DEFAULT);
+		attachedActor.ChangeTid(oldTID);
+		attachedActor.LinkToWorld();
+	}*/
+
+	override void prepareForTravel(DawnLevelTransitioner trans) {
+        Super.prepareForTravel(trans);
+
+        prepareAttachedForTravel(flare1);
+		prepareAttachedForTravel(flare2);
+		prepareAttachedForTravel(flarecorona);
+    }
+
+	override void finishedTravel(PlayerPawn newPP, DawnLevelTransitioner transitioner) {
+        Super.finishedTravel(newPP, transitioner);
+
+		restoreAttachedFromTravel(flare1);
+		restoreAttachedFromTravel(flare2);
+		restoreAttachedFromTravel(flarecorona);
+    }
+
+
+	override bool Slam(Actor victim) {
+		if(victim is 'EnemySoldier' && flare1) {
+			double veld = clamp(vel.length(), ThrowVel, MaxThrowVel);
+			if(MaxThrowVel - veld < 5) {
+				victim.DamageMobj(self, players[consolePlayer].mo, 150, 'Fire');
+				killFlare();
+				destroy();
+				return true;
+			}
+		}
+
+		if(victim is 'Dawn') return true;
+
+		if(victim.bShootable) {
+			// Bounce off object
+			vel.xy = (0,0);
+			convertBackFromProjectile();
+			return false;
+		}
+
+		return true;
+	}
+
+
+	override bool canCollideWith(Actor other, bool passive) {
+		if(other is 'Dawn') return false;
+		return Super.canCollideWith(other, passive);
+	}
+}

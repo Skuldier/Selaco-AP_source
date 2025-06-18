@@ -1,0 +1,3192 @@
+enum ParticleEmitterFlags {
+    PE_SPEED_IS_MULTIPLIER      = 0x1,
+    PE_ABSOLUTE_PITCH           = 0x2,
+    PE_ABSOLUTE_ANGLE           = 0x4,
+    PE_ABSOLUTE_OFFSET          = 0x8,      // Offset position from emitter in absolute coords
+    PE_FORCE_VELOCITY           = 0x10,     // Do not generate velocity from speed, set it with velocity arg
+    PE_ABSOLUTE_POSITION        = 0x20,     // Position particle at coordinates specified by offset arg
+    PE_IGNORE_CHANCE            = 0x40,     // Force fire, don't use random chance
+    PE_ABSOLUTE_SPEED           = 0x80,     // Ignore random speed
+    PE_ABSOLUTE_VELOCITY        = 0x100,    // Velocity is added in absolute coords, ignoring emitter orientation
+    PE_NO_INSANE_PARTICLES      = 0x200,    // Do not spawn additional particles on INSANE
+    PE_ISBLOOD                  = 0x400     // Treat this particle as blood, same as bIsBlood on SelacoParticle
+}
+
+struct SpreadRandomizer3 {
+    double delta[3];
+
+    double newRandom(double min = 0.0, double max = 1.0, double spread = 0.15) {
+        let rndav = (delta[0] + delta[1] + delta[2]) * 0.33333333;
+        double rnd = frandom(min, max);
+
+        let gap = max - min;
+
+        if(abs(rndav - rnd) < spread || abs(delta[2] - rnd) < spread) {
+            rnd += frandom(min, max);
+            rnd = ( rnd - ( floor( rnd / gap ) * gap ) ) + min;
+        }
+
+        delta[0] = delta[1];
+        delta[1] = delta[2];
+        delta[2] = rnd;
+
+        return rnd;
+    }
+}
+
+// Particle handler just keeps track of all particles that spawn and despawn to try to keep particles at their limits
+class ParticleHandler : EventHandler {
+    int activeParticles;
+    int currentParticleSetting;
+    int cleanupPhasePos;
+
+    Array<SelacoParticle> oldParticles;
+    class<SelacoParticle> spRef;
+
+    // Particles are removed immediately when going over this number
+    static const int particleLimits[] = { 
+        500,    // Low
+        800,    // Med
+        1600,   // High
+        2000,   // Ultra    
+        6000    // Insane
+    };
+
+    // Particles start to fade out where possible when going over this number
+    static const int cullLimits[] = { 
+        250,    // Low
+        400,    // Med
+        800,    // High
+        1000,   // Ultra   
+        3000    // Insane
+    };
+
+    override void OnRegister() {
+        spRef = 'SelacoParticle';
+        currentParticleSetting = clamp(CVar.FindCVar("r_particleIntensity").GetInt() - 1, 0, 5);
+    }
+
+    // Force old particles that are still around to remove themselves
+    void cleanupParticles() {
+        // oldParticles will have a lot of dead references in it, so we have to go through until we
+        // find valid particles to clean
+        int toRemove = activeParticles - particleLimits[currentParticleSetting];
+        int toDelete = 0;
+
+        for(int x = 0; x < oldParticles.size() && (toRemove > 0 || !oldParticles[x]); x++) {
+            if(oldParticles[x]) {
+                oldParticles[x].Destroy();
+                toRemove--;
+
+                //Console.Printf("Destroying particle: %s  Limit reached: %d of %d", oldParticles[x].GetClassName(), activeParticles, particleLimits[currentParticleSetting]);
+            }
+
+            toDelete++;
+        }
+
+        oldParticles.delete(0, toDelete);
+    }
+
+
+    void cullParticles() {
+        // oldParticles will have a lot of dead references in it, so we have to go through until we
+        // find valid particles to clean
+        int toCull = activeParticles - cullLimits[currentParticleSetting];
+        int toDelete = 0;
+
+        for(int x = 0; x < oldParticles.size() && toCull > 0; x++) {
+            if(oldParticles[x]) {
+                oldParticles[x].bCleanedUp = true;
+                oldParticles[x].cull();
+                activeParticles--;
+                toCull--;
+            }
+
+            toDelete++;
+        }
+
+        oldParticles.delete(0, toDelete);
+    }
+
+    // Clean the oldParticles array, in small chunks to remove dead references
+    void cleanupOldParticles() {
+        for(int x = 0; x < 100 && cleanupPhasePos < oldParticles.size(); x++) {
+            if(!oldParticles[cleanupPhasePos]) {
+                oldParticles.delete(cleanupPhasePos);
+                cleanupPhasePos--;
+            }
+
+            cleanupPhasePos++;
+        }
+
+        if(cleanupPhasePos >= oldParticles.size()) {
+            cleanupPhasePos = 0;
+        }
+    }
+
+    void deleteAllParticles() {
+        for(int x = 0; x < oldParticles.size(); x++) {
+            if(oldParticles[x]) {
+                oldParticles[x].bCleanedUp = true;
+                oldParticles[x].destroy();
+            }
+        }
+
+        oldParticles.clear();
+    }
+
+    void particleWasDestroyed(SelacoParticle particle)
+    {
+        if(particle && /*!particle.bImportant &&*/ !particle.bCleanedUp) activeParticles--;       
+    }
+
+    override void WorldTick() {
+        if(level.time % 35 == 0) {
+            currentParticleSetting = clamp(CVar.FindCVar("r_particleIntensity").GetInt() - 1, 0, 5);
+        } else if(level.time % 6) {
+            cleanupOldParticles();
+        }
+    }
+
+    override void WorldUnloaded(WorldEvent e) {
+        deleteAllParticles();
+    }
+
+    static clearscope ParticleHandler Instance() {
+        return ParticleHandler(EventHandler.Find("ParticleHandler"));
+    }
+
+    static clearscope Vector3 rot(Vector3 p, double angle, double pitch) {
+        double ca = cos(angle);
+        double cp = pitch ~== 0 ? 1 : cos(pitch);
+        double sa = sin(angle);
+        double sp = pitch ~== 0 ? 0 : sin(pitch);
+
+        // Pitch
+        Vector3 r = p;
+        r.z = p.z * cp - p.x * sp;
+        r.x = p.z * sp + p.x * cp;
+
+        // Yaw
+        p.x = r.x;
+        r.x = r.x * ca - p.y * sa;
+        r.y = p.y * ca + p.x * sa;
+
+        return r;
+    }
+    
+
+    // Static version of particle emitter code
+    // TODO: Make only one version of this that both the mixin and handler can use
+    static void Emit(class<SelacoParticle> cls, Actor master = NULL, float chance = 1.0, int numTries = 1, float angle = 0, float pitch = 0, float speed = 0, Vector3 offset = (0,0,0), Vector3 velocity = (0,0,0), int flags = 0, out Array<SelacoParticle> returnAr = null) {
+        if(!cls) return;
+
+        SpreadRandomizer3 angleRandomizer;
+        SpreadRandomizer3 speedRandomizer;
+        readonly<SelacoParticle> defaultParticle = GetDefaultByType(cls).default;
+        
+        // Multiply the emit chance based on particle settings
+        if(!(flags & PE_IGNORE_CHANCE)) {
+            let spawnSetting = CVar.GetCVAR(((flags & PE_ISBLOOD) || defaultParticle.bIsBlood) ? "r_bloodquality" : "r_particleIntensity").getInt();
+            switch(spawnSetting) {
+                case 1:
+                    chance *= defaultParticle.qualityChanceLow;
+                    break;
+                case 2:
+                    chance *= defaultParticle.qualityChanceMed;
+                    break;
+                case 4:
+                    chance *= defaultParticle.qualityChanceUlt;
+                    break;
+                case 5:
+                    chance *= defaultParticle.qualityChanceInsane;
+                    if(!(flags & PE_NO_INSANE_PARTICLES)) numTries = ceil(numTries * 1.2);    // Spawn additional particles on INSANE
+                    break;
+                default:
+                    chance *= defaultParticle.qualityChanceHigh;
+                    break;
+            }
+        }
+
+        if(master) {
+            if((flags & PE_ABSOLUTE_ANGLE) == 0) angle += master.angle;
+            if((flags & PE_ABSOLUTE_PITCH) == 0) pitch += master.pitch;
+        }
+        
+        for(int x = 0; x < numTries; x++) {
+            if(flags & PE_IGNORE_CHANCE || random[emit]() / 256. <= chance) {
+                Vector3 pos;
+                
+                // Find position+offset
+                if(flags & PE_ABSOLUTE_POSITION) {
+                    pos = offset;
+                } else {
+                    pos = master ? master.pos : offset;
+
+                    if(master && flags & PE_ABSOLUTE_OFFSET) {
+                        pos += offset; 
+                    } else if(master) {
+                        pos += rot(offset, angle, pitch);
+                    }
+                }
+
+                
+                SelacoParticle p = SelacoParticle(Actor.Spawn(cls, pos));
+
+                p.master = master;
+
+                // Configure orientation, used both for angling flatsprites and for fire-direction
+                p.angle = angle + (angleRandomizer.newRandom(0.0, 1.0) * (defaultParticle.maxAng - defaultParticle.minAng)) + defaultParticle.minAng;
+                p.pitch = pitch + (angleRandomizer.newRandom(0.0, 1.0) * (defaultParticle.maxPitch - defaultParticle.minPitch)) + defaultParticle.minPitch;
+                p.roll = (frandom(0.0, 1.0) * (defaultParticle.maxRoll - defaultParticle.minRoll)) + defaultParticle.minRoll;
+                p.rollSpeed = (frandom(0.0, 1.0) * (defaultParticle.maxRollSpeed - defaultParticle.minRollSpeed)) + defaultParticle.minRollSpeed;
+                if(defaultParticle.minScaleX >= 0) p.scale.x *= (frandom(0.0, 1.0) * (defaultParticle.maxScaleX - defaultParticle.minScaleX)) + defaultParticle.minScaleX;
+                if(!defaultParticle.bSquaredScale && defaultParticle.minScaleY >= 0) p.scale.y *= (frandom(0.0, 1.0) * (defaultParticle.maxScaleY - defaultParticle.minScaleY)) + defaultParticle.minScaleY;
+                else if(defaultParticle.minScaleX >= 0 && defaultParticle.bSquaredScale) p.scale.y = p.scale.x;
+
+                p.startScale = p.scale;
+
+                // Set speed
+                if(!(flags & PE_FORCE_VELOCITY)) {
+                    if(flags & PE_ABSOLUTE_SPEED) {
+                        p.speed = speed;
+                    } else {
+                        // Use the default.speed arg if the random args are invalid (which they are by default)
+                        if(defaultParticle.minSpeed == SelacoParticle.INVALID || defaultParticle.maxSpeed == SelacoParticle.INVALID) {
+                            p.speed = defaultParticle.speed;
+                            p.speed = flags & PE_SPEED_IS_MULTIPLIER ? p.speed * speed : p.speed + speed;
+                        } else {
+                            p.speed = (speedRandomizer.newRandom(0.0, 1.0) * (defaultParticle.maxSpeed - defaultParticle.minSpeed)) + defaultParticle.minSpeed;
+                            p.speed = flags & PE_SPEED_IS_MULTIPLIER ? p.speed * speed : p.speed + speed;
+                        }
+                    }
+
+                    p.vel = SelacoActor.vecFromAngle(p.angle, p.pitch, p.speed);
+                    if(master) p.vel += master.vel * defaultParticle.InheritVelocity;
+                    p.vel += flags & PE_ABSOLUTE_VELOCITY ? velocity : (velocity ~== (0,0,0) ? (0,0,0) : rot(velocity, p.angle, p.pitch));
+                } else {
+                    if(flags & PE_ABSOLUTE_VELOCITY) {
+                        p.vel = velocity;
+                    } else {
+                        p.vel = velocity ~== (0,0,0) ? (0,0,0) : rot(velocity, p.angle, p.pitch);
+                    }
+                }
+
+                // Set life
+                if(defaultParticle.minLife > 0 || defaultParticle.maxLife > 0) {
+                    let minLife = MAX(0, defaultParticle.minLife);
+                    p.life = random[lfe](minLife, MAX(minLife, defaultParticle.maxLife));
+
+                    switch(CVar.GetCVAR("r_particlelifespan").getInt()) {
+                        case 1:
+                            p.life = round(p.life * defaultParticle.lifeMultLow);
+                            break;
+                        case 2:
+                            p.life = round(p.life * defaultParticle.lifeMultMed);
+                            break;
+                        case 3:
+                            p.life = round(p.life * defaultParticle.lifeMultHigh);
+                            break;
+                        case 4:
+                            p.life = round(p.life * defaultParticle.lifeMultUlt)*2;
+                            break;
+                        case 5:
+                            p.life = round(p.life * defaultParticle.lifeMultInsane);
+                            break;
+                        default:
+                            p.life = round(p.life * defaultParticle.lifeMultHigh);
+                            break;
+                    }
+                } else {
+                    p.life = -1;
+                }
+
+                p.startLife = p.life;
+
+                // Set bounces
+                if(defaultParticle.minRandomBounces >= defaultParticle.maxRandomBounces) {
+                    p.maxBounces = random[bnc](defaultParticle.minRandomBounces, defaultParticle.maxRandomBounces);
+                } else {
+                    p.maxBounces = -1;
+                }
+
+                if(returnAr) {
+                    returnAr.push(p);
+                }
+            }
+        }        
+    }
+}
+
+
+mixin class ParticleEmitter {
+    //ParticleHandler pHandler;
+    double particleLifetimeModifier;
+
+    const INVALID = -99999;
+
+    // TODO: Add spawn shape settings for things like radius spawn, conical, donut, cube etc
+
+    // Emit a particle based on input and the particle config itself
+    // Velocity is generated based on angles and speed
+    // Velocity arg is added to the generated velocity in absolute values unless set as absolute (PE_ABSOLUTE_VELOCITY)
+    // Speed arg is added to random speed unless set as absolute (PE_ABSOLUTE_SPEED)
+    // Angles are relative to the calling actor orientation by default
+    // TODO: Emit can fire any actor technically, so allow it to fire anything but only cache SelacoParticle
+    // It would be nice to supply an offset function so we don't calculate offsets for particles that will never spawn due to quality settings :(   
+    void emit(class<SelacoParticle> cls, float chance = 1.0, int numTries = 1, float angle = 0, float pitch = 0, float speed = 0, Vector3 offset = (0,0,0), Vector3 velocity = (0,0,0), int flags = 0, out Array<SelacoParticle> returnAr = null, float scaleBoost = 0, int particleSpawnOffsets = 0) {
+        if(!cls) return;
+
+        /*if(!pHandler) {
+            pHandler = ParticleHandler.instance();
+        }*/
+        SpreadRandomizer3 angleRandomizer;
+        SpreadRandomizer3 speedRandomizer;
+        readonly<SelacoParticle> defaultParticle = GetDefaultByType(cls).default;
+        
+        // Multiply the emit chance based on particle settings
+        // Add chance reduction for distant particles depending on setting and distance
+        // TODO: Account for player FOV when multiplying by distance
+        if(!(flags & PE_IGNORE_CHANCE)) {
+            let spawnSetting = CVar.GetCVAR(((flags & PE_ISBLOOD) || defaultParticle.bIsBlood) ? "r_bloodquality" : "r_particleIntensity").getInt();
+            Actor mo = players[consolePlayer].mo;
+            double distance = mo ? (mo.pos - pos).length() : 0;
+            
+            switch(spawnSetting) {
+                case 1:
+                    chance *= defaultParticle.qualityChanceLow;
+                    chance *= 1.0 - ((clamp(distance, 400.0, 1200.0) - 600.0) / 800.0);
+                    break;
+                case 2:
+                    chance *= defaultParticle.qualityChanceMed;
+                    chance *= 1.0 - ((clamp(distance, 512.0, 1500.0) - 600.0) / 988.0);
+                    break;
+                case 4:
+                    chance *= defaultParticle.qualityChanceUlt;
+                    chance *= 1.0 - ((clamp(distance, 600.0, 1800.0) - 600.0) / 1200.0);
+                    break;
+                case 5:
+                    chance *= defaultParticle.qualityChanceInsane;
+                    if(!(flags & PE_NO_INSANE_PARTICLES)) numTries = ceil(numTries * 1.2);    // Spawn additional particles on INSANE
+                    chance *= 1.0 - ((clamp(distance, 700.0, 1800.0) - 600.0) / 1100.0);
+                    break;
+                default:
+                    chance *= defaultParticle.qualityChanceHigh;
+                    chance *= 1.0 - ((clamp(distance, 600.0, 1800.0) - 600.0) / 1200.0);
+                    break;
+            }
+        }
+
+        angle = flags & PE_ABSOLUTE_ANGLE ? angle : self.angle + angle;
+        pitch = flags & PE_ABSOLUTE_PITCH ? pitch : self.pitch + pitch;
+
+        for(int x = 0; x < numTries; x++) {
+            if(flags & PE_IGNORE_CHANCE || random[emit]() / 256. <= chance) {
+                Vector3 pos;
+                
+                // Find position+offset
+                if(flags & PE_ABSOLUTE_POSITION) {
+                    pos = offset;
+                } else {
+                    pos = self.pos;
+
+                    if(flags & PE_ABSOLUTE_OFFSET) {
+                        pos += offset; 
+                    } else {
+                        pos += rot(offset, angle, pitch);
+                    }
+                }
+
+
+                SelacoParticle p = SelacoParticle(Spawn(cls, pos));
+
+                p.master = self;
+                //p.handler = pHandler;
+                // Configure orientation, used both for angling flatsprites and for fire-direction
+                p.angle = angle + (angleRandomizer.newRandom(0.0, 1.0) * (defaultParticle.maxAng - defaultParticle.minAng)) + defaultParticle.minAng;
+                p.pitch = pitch + (angleRandomizer.newRandom(0.0, 1.0) * (defaultParticle.maxPitch - defaultParticle.minPitch)) + defaultParticle.minPitch;
+                p.roll = (frandom(0.0, 1.0) * (defaultParticle.maxRoll - defaultParticle.minRoll)) + defaultParticle.minRoll;
+                p.rollSpeed = (frandom(0.0, 1.0) * (defaultParticle.maxRollSpeed - defaultParticle.minRollSpeed)) + defaultParticle.minRollSpeed;
+                if(defaultParticle.minScaleX >= 0) p.scale.x *= (frandom(0.0, 1.0) * (defaultParticle.maxScaleX - defaultParticle.minScaleX)) + defaultParticle.minScaleX;
+                if(!defaultParticle.bSquaredScale && defaultParticle.minScaleY >= 0) p.scale.y *= (frandom(0.0, 1.0) * (defaultParticle.maxScaleY - defaultParticle.minScaleY)) + defaultParticle.minScaleY;
+                else if(defaultParticle.minScaleX >= 0 && defaultParticle.bSquaredScale) p.scale.y = p.scale.x;
+
+                if(scaleBoost)
+                {
+                    p.scale*=scaleBoost;
+                }
+
+                p.startScale = p.scale;
+
+                // Set speed
+                if(!(flags & PE_FORCE_VELOCITY)) {
+                    if(flags & PE_ABSOLUTE_SPEED) {
+                        p.speed = speed;
+                    } else {
+                        // Use the default.speed arg if the random args are invalid (which they are by default)
+                        if(defaultParticle.minSpeed == SelacoParticle.INVALID || defaultParticle.maxSpeed == SelacoParticle.INVALID) {
+                            p.speed = defaultParticle.speed;
+                            p.speed = flags & PE_SPEED_IS_MULTIPLIER ? p.speed * speed : p.speed + speed;
+                        } else {
+                            p.speed = (speedRandomizer.newRandom(0.0, 1.0) * (defaultParticle.maxSpeed - defaultParticle.minSpeed)) + defaultParticle.minSpeed;
+                            p.speed = flags & PE_SPEED_IS_MULTIPLIER ? p.speed * speed : p.speed + speed;
+                        }
+                    }
+
+                    p.vel = SelacoActor.vecFromAngle(p.angle, p.pitch, p.speed) + (self.vel * defaultParticle.InheritVelocity);
+                    p.vel += flags & PE_ABSOLUTE_VELOCITY ? velocity : (velocity ~== (0,0,0) ? (0,0,0) : rot(velocity, p.angle, p.pitch));
+                } else {
+                    if(flags & PE_ABSOLUTE_VELOCITY) {
+                        p.vel = velocity;
+                    } else {
+                        p.vel = velocity ~== (0,0,0) ? (0,0,0) : rot(velocity, p.angle, p.pitch);
+                    }
+                }
+
+                // Move around if particle offset is set
+                if(particleSpawnOffsets > 0) {
+                    pos.x+ frandom(-particleSpawnOffsets, particleSpawnOffsets);
+                    pos.y+ frandom(-particleSpawnOffsets, particleSpawnOffsets);
+                    pos.z+ frandom(0, particleSpawnOffsets);
+                }
+
+                // Set life
+                if(defaultParticle.minLife > 0 || defaultParticle.maxLife > 0) {
+                    let minLife = MAX(0, defaultParticle.minLife);
+                    p.life = random[lfe](minLife, MAX(minLife, defaultParticle.maxLife));
+
+                    switch(GetCVAR("r_particlelifespan")) {
+                        case 1:
+                            p.life = round(p.life * defaultParticle.lifeMultLow);
+                            break;
+                        case 2:
+                            p.life = round(p.life * defaultParticle.lifeMultMed);
+                            break;
+                        case 4:
+                            p.life = round(p.life * defaultParticle.lifeMultUlt);
+                            break;
+                        case 5:
+                            p.life = round(p.life * defaultParticle.lifeMultInsane);
+                            break;
+                        default:
+                            p.life = round(p.life * defaultParticle.lifeMultHigh);
+                            break;
+                    }
+
+                    if(particleLifetimeModifier > 0) p.life *= particleLifetimeModifier;
+                } else {
+                    p.life = -1;
+                }
+
+                p.startLife = p.life;
+
+                // Set bounces
+                if(defaultParticle.minRandomBounces >= defaultParticle.maxRandomBounces) {
+                    p.maxBounces = random[bnc](defaultParticle.minRandomBounces, defaultParticle.maxRandomBounces);
+                } else {
+                    p.maxBounces = -1;
+                }
+
+                if(returnAr) {
+                    returnAr.push(p);
+                }
+            }
+        }        
+    }
+
+    /*static clearscope Vector3 vecFromAngle(double yaw, double pitch, double length = 1.0) {
+        Vector3 r;
+
+        double hcosb = cos(pitch);
+        r.x = cos(yaw) * hcosb;
+        r.y = sin(yaw) * hcosb;
+        r.z = -sin(pitch);
+
+        return r * length;
+    }*/
+
+    static clearscope Vector3 rot(Vector3 p, double angle, double pitch) {
+        double ca = cos(angle);
+        double cp = pitch ~== 0 ? 1 : cos(pitch);
+        double sa = sin(angle);
+        double sp = pitch ~== 0 ? 0 : sin(pitch);
+
+        // Pitch
+        Vector3 r = p;
+        r.z = p.z * cp - p.x * sp;
+        r.x = p.z * sp + p.x * cp;
+
+        // Yaw
+        p.x = r.x;
+        r.x = r.x * ca - p.y * sa;
+        r.y = p.y * ca + p.x * sa;
+
+        return r;
+    }
+
+    // Offset helper funcs for random emit() offsets
+    static clearscope Vector3 rectOffset(double xRadius, double yRadius) {
+        return (frandom(-xRadius, xRadius), frandom(-yRadius, yRadius), 0);
+    }
+
+    static clearscope Vector3 pointOnLinedef(Line linedef, double xyFact = 0.5, double zFact = 0.5, bool useFrontSector = true, double floorZ = double.MAX, double ceilingZ = double.MAX) {
+        Vector2 xyPos = linedef.v1.p + (linedef.delta * xyFact);
+        Sector sec = useFrontSector && linedef.frontsector ? linedef.frontsector : linedef.backsector;
+
+        // This dumbness is to allow caching of the floor/ceiling heights
+        if(ceilingZ == double.MAX) ceilingZ = sec.ceilingplane.ZatPoint(xyPos);
+        if(floorZ == double.MAX) floorZ = sec.floorplane.ZatPoint(xyPos);
+
+        return (xyPos.x, xyPos.y, floorZ + ((ceilingZ - floorZ) * zFact));
+    }
+
+    static clearscope Vector3 linedefOffset(Line linedef, double minXY = 0, double maxXY = 1, double minZ = 0, double maxZ = 1, bool useFrontSector = true, double floorZ = double.MAX, double ceilingZ = double.MAX) {
+        return pointOnLinedef(linedef, frandom(minXY, maxXY), frandom(minZ, maxZ), useFrontSector, floorZ, ceilingZ);
+    }
+}
+
+
+
+class SelacoParticle : Actor {
+    meta float stopSpeed;
+    meta float inheritVelocity;
+    meta float minAng, maxAng;
+    meta float minPitch, maxPitch;
+    meta float minSpeed, maxSpeed;
+    meta float minFadeVel, maxFadeVel;
+    meta float minFadeLife, maxFadeLife;
+    meta float minScaleX, maxScaleX;
+    meta float minScaleY, maxScaleY;
+    meta float minFadeScaleX, maxFadeScaleX;
+    meta float minFadeScaleY, maxFadeScaleY;
+    meta float minScaleLife, maxScaleLife;
+    meta float minScaleVel, maxScaleVel;
+    meta float minRandomBounces, maxRandomBounces;
+    meta float minRoll, maxRoll, minRollSpeed, maxRollSpeed;
+    meta float rollDamping, rollDampingBounce;
+    meta float restingPitchMin, restingPitchMax, restingPitchSpeed;
+    meta float restingRollMin, restingRollMax, restingRollSpeed;
+    
+    meta Sound bounceSound;
+    meta float bounceSoundChance, bounceSoundMinSpeed, bounceSoundPitchMin, bounceSoundPitchMax;
+    meta float bounceFudge;
+    meta float minBounceDeflect, maxBounceDeflect;
+
+    meta float qualityChanceLow, qualityChanceMed, qualityChanceHigh, qualityChanceUlt, qualityChanceInsane;
+    meta float lifeMultLow, lifeMultMed, lifeMultHigh, lifeMultUlt, lifeMultInsane;
+
+    meta int minLife, maxLife;
+    meta int bounceAccuracy;
+
+    int life, startLife;        // Tics to live, -1 = forever
+    int bounces, maxBounces;    // Reaching maxBounces destroys the particle
+    int invalidateTicks;        // Ticks counting up to invalidation
+    int8 lifeQuality;
+    float rollSpeed, pitchSpeed, drag;
+    Vector2 startScale;
+    private int pFlags;
+    Sector lastSector;
+
+    const INVALID = -99999;
+    const BOUNCE_SOUND_ATTENUATION = 1.5;
+    
+    property QualityChances : qualityChanceLow, qualityChanceMed, qualityChanceHigh, qualityChanceUlt, qualityChanceInsane;     // Chance multiplier that a particle will spawn based on r_particleIntensity setting
+    property LifespanMutliplier : lifeMultLow, lifeMultMed, lifeMultHigh, lifeMultUlt, lifeMultInsane;                          // Lifetime multiplier for r_particleLifespan
+
+    property StopSpeed      : stopSpeed;
+    property RandomAngle    : minAng, maxAng;                   // For random angle offsets, controls fire direction
+    property RandomPitch    : minPitch, maxPitch;               // For random pitch offsets, controls fire direction
+    property RandomSpeed    : minSpeed, maxSpeed;               // For speed offsets, controls fire speed
+    property RandomLife     : minLife, maxLife;                 // Random life range, max must be greater than min
+    property RandomRoll     : minRoll, maxRoll;                 // Random roll
+    property RandomRollSpeed: minRollSpeed, maxRollSpeed;       // Random roll speed
+    property RandomScaleX   : minScaleX, maxScaleX;             // Random scale X
+    property RandomScaleY   : minScaleY, maxScaleY;             // Random scale Y
+    property RandomScale    : minScaleX, maxScaleX, minScaleY, maxScaleY;                       // Shortcut for defining scale in one line Format: xMin, xMax, yMin, yMax
+    property BounceFudge    : bounceFudge;                      // Amount of randomness to add to bounce velocities
+    property BounceDeflect  : minBounceDeflect, maxBounceDeflect;   // Amount of random deflection (in angles) when bouncing
+    property BounceAccuracy : bounceAccuracy;                   // Amount of ticks between sector transition ground/ceiling checks
+    property FadeVelRange   : minFadeVel, maxFadeVel;           // Alpha goes from 1.0 to 0.0 in this velocity range
+    property FadeLifeRange  : minFadeLife, maxFadeLife;         // Alpha goes from 1.0 to 0.0 in this life range
+    property ScaleLifeRange : minScaleLife, maxScaleLife;       // Scale goes from min to max in this life range
+    property ScaleRangeX    : minFadeScaleX, maxFadeScaleX;     // Scale goes from min to max in ScaleLifeRange
+    property ScaleRangeY    : minFadeScaleY, maxFadeScaleY;     // Scale goes from min to max in ScaleLifeRange
+    property ScaleRange     : minFadeScaleX, maxFadeScaleX, minFadeScaleY, maxFadeScaleY;       // Shortcut for defining scale range in one line Format: xMin, xMax, yMin, yMax
+    property BouncesRange   : minRandomBounces, maxRandomBounces;
+    property RollDampAir    : rollDamping;                      // Roll damping per frame, in air           0 = none, 1 = stop rolling
+    property RollDampBounce : rollDampingBounce;                // When bouncing, apply damping to roll,    0 = none, 1 = stop rolling
+    property BounceSound    : bounceSound;                      // Play this sound when bouncing
+    property BounceSoundChance      : bounceSoundChance;           // Chance 0-1 that a bounce sound will play when bouncing
+    property BounceSoundMinSpeed    : bounceSoundMinSpeed;         // Minimum bounce velocity required to play a bounce sound
+    property BounceSoundPitchRange  : bounceSoundPitchMin, bounceSoundPitchMax;
+    property RestorePitch   : restingPitchMin, restingPitchMax, restingPitchSpeed;      // On bounce or rest, under this speed set pitch to 0/180 +- random pitch
+    property RestoreRoll    : restingRollMin, restingRollMax, restingRollSpeed;         // On bounce or rest, under this speed set roll to 0/180 +- random pitch
+    property Drag           : drag;                                                     // 1.0 reduces the speed to 0 every frame, 0 means no drag
+    // Flags for particle emitter usage
+    property InheritVelocity  : inheritVelocity;    // Particles inherit emitter velocity, if present
+
+    flagdef KillStop            : pFlags, 0;    // Kill the particle when it stops moving
+    flagdef DirFromMomentum     : pFlags, 1;    // Always face the direction of travel
+    flagdef InstantBounce       : pFlags, 2;    // Clear interpolation on bounce, useful when using DirFromMomentum
+    flagdef VelocityFade        : pFlags, 3;    // Fade out between min and max fadeVel
+    flagdef LifeFade            : pFlags, 4;    // Fade out between min and max fadeLife
+    flagdef NoProcess           : pFlags, 5;    // This is set when killing the particle, so it may be used after for sprite things
+    flagdef RollStop            : pFlags, 6;    // Stop rolling when coming to rest
+    flagdef SleepStop           : pFlags, 7;    // Use Sleep() when the particle comes to rest for the rest of it's idle lifetime. Warning: Will probably float if on a moving surface
+    flagdef NoStates            : pFlags, 8;    // Don't tick the state machine
+    flagdef FadeAtBounceLimit   : pFlags, 9;    // Once the bounce limit is reached, start fading out using lifetime settings
+    flagdef Important           : pFlags, 10;   // If not flagged as important, particles will not spawn when reaching the limits
+    flagdef CleanedUp           : pFlags, 11;   // Used by the particle limiter, this value is set once the particle has been marked for cleaning
+    flagdef SquaredScale        : pFlags, 12;   // Random scale is always square (Match X and Y scale)
+    flagdef IsBlood             : pFlags, 13;   // Treat this particle as blood. Use different spawn variables such as r_BloodQuality instead of r_particleIntensity
+    flagdef LifeScale           : pFlags, 14;   // Follow min/max scale over lifetime
+    
+    // Internal, Do not set
+    flagdef HasTicked           : pFlags, 30;
+    flagdef AtRest              : pFlags, 31;
+
+    ParticleHandler ph;
+
+    // TODO: Change fade life to a float based on total life instead of absolute values
+    // TODO: Add flag for ignoring emitter rotation
+
+    default {
+        -solid;
+        speed 5;
+        mass 1;
+        radius 5;
+        height 5;
+        gravity 1;
+        +NOINTERACTION;
+        +NOBLOCKMAP;
+        +NOSAVEGAME
+        +FORCEXYBILLBOARD;
+        +CLIENTSIDEONLY;
+	    //+DOOMBOUNCE;
+        +BOUNCEONCEILINGS;
+        +BOUNCEONFLOORS;
+        +BOUNCEAUTOOFFFLOORONLY;
+        +BOUNCEONACTORS;
+        +INVISIBLEINMIRRORS // Improves performance when shown in an area with mirrors.
+        +DONTSPLASH;
+        +ALLOWTHRUFLAGS;
+        +THRUACTORS;
+        +THRUGHOST;
+        -ACTIVATEIMPACT;
+        -ACTIVATEMCROSS;
+        -ACTIVATEPCROSS;
+        +GHOST;
+
+        +BOUNCEAUTOOFF;
+       
+
+        Damage 0;
+        BounceFactor 0.7;
+        DistanceCheck "r_thingLOD";
+        RenderStyle "Add";
+        MaxStepHeight 8;
+        //bounceType  "Hexen";
+        
+
+        SelacoParticle.StopSpeed 0.4;
+        SelacoParticle.InheritVelocity 0;
+        -SelacoParticle.KillStop;
+        +SelacoParticle.InstantBounce;
+        -SelacoParticle.VelocityFade;
+        -SelacoParticle.LifeFade;
+        -SelacoParticle.LifeScale;
+        -SelacoParticle.NoProcess;
+        -SelacoParticle.NoStates;
+        -SelacoParticle.FadeAtBounceLimit;
+        +SelacoParticle.SquaredScale;
+        SelacoParticle.BounceFudge 0.15;
+        SelacoParticle.BounceAccuracy 3;
+        SelacoParticle.FadeVelRange 0.4, 2;
+        SelacoParticle.FadeLifeRange 0, 25;
+        SelacoParticle.RandomLife -1, -1;           // -1 minLife disables lifetime
+        SelacoParticle.RandomSpeed -99999, INVALID;
+        SelacoParticle.RandomScaleX -1, -1;         // -1 means not random, use default Scale property instead
+        SelacoParticle.RandomScaleY -1, -1;         // -1 means not random, use default Scale property instead
+        SelacoParticle.BouncesRange -1, -1;         // -1 means there is no limit   
+        SelacoParticle.RandomRoll 0, 0;             // Don't roll by default
+        SelacoParticle.RollDampAir 0;               // Don't damp roll in air
+        SelacoParticle.RollDampBounce 0.3;          // Slight roll damping on bounce
+        SelacoParticle.BounceSoundChance 0.2;
+        SelacoParticle.BounceSoundMinSpeed 2.0;
+        SelacoParticle.BounceSoundPitchRange 0.95, 1.05;
+        SelacoParticle.RestorePitch 0, 0, -1;       // Never restore pitch
+        SelacoParticle.RestoreRoll 0, 0, -1;        // Never restore roll
+        SelacoParticle.Drag 0;                      // No drag
+        SelacoParticle.BounceDeflect -25, 25;       // 50 degrees random deflection
+        SelacoParticle.ScaleLifeRange 0, 25;        // Backwards compared to life range
+        SelacoParticle.ScaleRange 1.0, 0.2, 1.0, 0.2;   // Starts at 1.0 and scales to 0.2 at end of life
+
+        // When designing particles, intensity and lifespan values should match the ULTIMATE setting
+        SelacoParticle.QualityChances       0.10, 0.25, 0.6, 1.0, 9999;
+        SelacoParticle.LifespanMutliplier   0.07, 0.1, 0.3, 1.0, 3.0;
+    }
+
+    override void OnDestroy()
+    {
+        if(ph)
+        {
+            ph.particleWasDestroyed(self);
+        }
+        super.OnDestroy();
+    }
+
+    // Called when restoring a particle as if it were new
+    /*virtual void prepareForReuse() {
+        if(!startState) { startState = FindState('Spawn'); }
+
+        //cached = false;
+        setState(startState);
+    }*/
+
+    void handleParticles()
+    {
+        ph.oldParticles.push(SelacoParticle(self));
+        ph.activeParticles++;
+        if(ph.particleLimits[ph.currentParticleSetting]) {
+            ph.cleanupParticles();
+        }
+
+        if(ph.cullLimits[ph.currentParticleSetting] < ph.activeParticles) {
+            ph.cullParticles();
+        }
+    }
+
+    override void beginPlay()
+    {
+        ph = ParticleHandler.Instance();
+        super.BeginPlay();
+    }
+
+    override void postBeginPlay() {
+
+        // Handle culling and limits
+        handleParticles();
+
+        if(bDirFromMomentum) {
+            // TODO: Allow customizing which face is prominent
+            // We have to do this once at setup to fix interpolation errors
+            let dir = vel.unit();
+            angle = atan2(dir.y, dir.x);
+            pitch = -asin(dir.z);
+            roll = 90;
+        }
+
+        super.postBeginPlay();
+        lastSector = curSector;
+
+        // If we spawned with no life set, make it infinite
+        if(life == 0) { life = -1; }
+    }
+
+    // Clean up this particle as quickly as possible, triggered by the particle limiter
+    virtual void cull() {
+        if(bLifeFade && life > 0) {
+            if(life > maxFadeLife || life > TICRATE) {
+                // Impose a practical limit of 1 second for fading out
+                life = MIN(TICRATE, maxFadeLife);
+                self.wake();    // Just in case we slept for whatever reason
+            }
+
+            // Otherwise this particle should be already on it's way out
+        } else {
+            destroy();
+        }
+    }
+
+    override void tick() {   
+        bool bounced = false;
+        bool travelled = false;     // Has changed sectors this frame
+
+        if(isFrozen()) return;
+
+        Vector3 dPos = pos, dVel = vel;
+        //let dFloorz = floorZ, dCeilZ = ceilingz;
+
+        if(bNOINTERACTION) {
+            if(!bAtRest) vel.z -= gravity;
+        }
+
+        // Apply drag
+        vel *= 1.0 - drag;
+
+        roll += rollSpeed;
+        pitch += pitchSpeed;
+
+        
+
+        if(!bHasTicked || !bNoStates) {
+            Super.tick();
+            bHasTicked = true;
+        } else {
+            SetXYZ(pos + vel); 
+        }
+        
+        if(life >= 0) {
+            if(life-- <= 0) {
+                cleanup();
+                return;
+            }
+        }
+        
+        if(!bNoProcess) {
+            // Only run our custom "physics" code if NOINTERACTION is set
+            if(bNOINTERACTION) {            
+                // Periodically check for floor/ceiling information
+                if((level.totaltime - SpawnTime) % bounceAccuracy == 0 && (lastSector != curSector || bNoStates)) {
+                    if(bNoStates) { // Without a normal tick we need to manually get sector info
+                        LinkContext ctx;
+                        UnlinkFromWorld(ctx);
+                        SetXYZ(pos);
+                        LinkToWorld(ctx);
+                        FindFloorCeiling();
+                    } else {
+                        FindFloorCeiling(FFCF_SAMESECTOR);
+                    }
+
+                    if(lastSector != curSector) {
+                        travelled = true;
+                    }
+
+                    lastSector = curSector;
+                }
+
+                // Custom bouncing
+                if(bBOUNCEONFLOORS) {
+                    // Theoretically we don't need to relink when moving here, because we are only moving to floor/ceiling
+                    // Bounce the particle off floor or ceiling
+                    if(pos.z < floorz && vel.z < 0) {
+                        if(pos.z - vel.z - floorz >= -MaxStepHeight) {
+                            SetXYZ((pos.x, pos.y, floorz)); 
+                            vel.z *= -(bouncefactor * frandom(1.0 - bounceFudge, 1.0));
+                            bounced = true;
+                            invalidateTicks = 0;
+                        } else {
+                            vel.z = 0;
+                            invalidateTicks++;
+                        }
+
+                        vel.x *= bouncefactor;
+                        vel.y *= bouncefactor;
+
+                        // Rotate direction by deflection
+                        vel.xy = Actor.RotateVector(vel.xy, frandom(minBounceDeflect, maxBounceDeflect));
+                    } else if(pos.z > ceilingz && vel.z > 0) {
+                        if(pos.z - vel.z - ceilingz <= MaxStepHeight) {
+                            SetXYZ((pos.x, pos.y, ceilingz));
+                            vel.z *= -(bouncefactor * frandom(1.0 - bounceFudge, 1.0));
+                            bounced = true;
+                            invalidateTicks = 0;
+                        } else {
+                            vel.z = 0;
+                            invalidateTicks++;
+                        }
+                        
+                        vel.x *= bouncefactor;
+                        vel.y *= bouncefactor;
+
+                        // Rotate direction by deflection
+                        vel.xy = Actor.RotateVector(vel.xy, frandom(minBounceDeflect, maxBounceDeflect));
+                    } else {
+                        invalidateTicks = 0;
+                    }
+
+                    if(bounced) {
+                        onBounce();
+                    }
+
+                    if(invalidateTicks > 5) {
+                        destroy();
+                        return;
+                    }
+                }
+            } else {
+                bool onFloor = abs(pos.z - floorz) < 0.01 || abs(dPos.z - floorz) < 0.01;
+
+                // Try to detect bounces, we can only detect floor bounces for now
+                if(bBOUNCEONFLOORS) {
+                    if(onFloor && ((dVel.z < 0 && vel.z >= 0) || (dPos.z > floorz)) ) {
+                        bounced = true;
+                        onBounce();
+                    }
+                }
+
+                // Check for becoming at rest while on the floor
+                if(!bounced && !bAtRest && onFloor) {
+                    let velSqrd = (vel.X*vel.X + vel.Y*vel.Y + vel.Z*vel.Z);
+                    if(velSqrd < (stopSpeed * stopSpeed)) { 
+                        vel = (0,0,0);
+
+                        if(bKillStop) {
+                            cleanup();
+                            return;
+                        } else {
+                            onBeginRest();
+                        }
+                    }
+                }
+            }
+
+            if(bVelocityFade || bLifeFade) {
+                handleFading();
+            }
+
+            if(bLifeScale) {
+                handleScaling();
+            }
+
+            // Face direction of travel
+            if(bDirFromMomentum) {
+                // TODO: Allow customizing which face is prominent
+                let dir = vel.unit();
+                angle = atan2(dir.y, dir.x);
+                pitch = -asin(dir.z);
+                roll = 90;
+
+                if(bounced && bInstantBounce) {
+                    ClearInterpolation();
+                }
+            }
+
+            // Roll speed damping
+            if(!bounced && !bAtRest) {
+                rollSpeed *= 1.0 - rollDamping;
+            }
+        }
+    }
+
+    void handleFading() {
+        float velocityFade = bVelocityFade ? (vel.length() - minFadeVel) / (maxFadeVel - minFadeVel) : 1.0;
+        float lifeFade = bLifeFade ? float(life - minFadeLife) / float(maxFadeLife - minFadeLife) : 1.0;
+        alpha = CLAMP(velocityFade * lifeFade, 0.0, 1.0);
+
+        if (alpha < 0.999 && GetRenderStyle() != STYLE_Translucent) {
+            switch (GetRenderStyle()) {
+                case STYLE_Normal:
+                case STYLE_None:
+                    A_SetRenderStyle(alpha, STYLE_Translucent);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    void handleScaling() {
+        float life = self.startLife > 0 ? self.life / float(self.startLife) : 1.0;
+        float lifeScale = /*bLifeScale ? */float(life - minScaleLife) / (maxScaleLife - minScaleLife)/* : 1.0*/;
+        Vector2 mScale = (maxFadeScaleX, maxFadeScaleY);
+        Vector2 finalScale = mScale + lifeScale * ((minFadeScaleX, minFadeScaleY) - mScale);
+        
+        scale = (
+                    startScale.x * CLAMP(finalScale.x, min(maxFadeScaleX, minFadeScaleX), max(maxFadeScaleX, minFadeScaleX)), 
+                    startScale.y * CLAMP(finalScale.y, min(maxFadeScaleY, minFadeScaleY), max(maxFadeScaleY, minFadeScaleY))
+                );
+    }
+
+    void cleanup() {
+        bNoProcess = true;
+
+        if(onDeath()) {
+            self.destroy();
+        }
+    }
+
+    virtual void onBounce() {
+        // Roll speed damping
+        rollSpeed *= 1.0 - rollDampingBounce;
+
+        let velSqrd = (vel.X*vel.X + vel.Y*vel.Y + vel.Z*vel.Z);
+
+        // Clean up if we reached the bounce limit
+        if(maxBounces >= 0) {
+            if(bounces++ >= maxBounces) {
+                if(bFadeAtBounceLimit && bounces - 1 == maxBounces) {
+                    // Shortcut life
+                    if(life > maxFadeLife) {
+                        life = maxFadeLife;
+                    }
+                } else if(!bFadeAtBounceLimit) {
+                    cleanup();
+                    return;
+                }
+            }
+        }
+
+        // Hit ground and moving too slow. Stop.
+        if(bNOINTERACTION && velSqrd < (stopSpeed * stopSpeed)) { 
+            vel = (0,0,0);
+
+            if(bKillStop) {
+                cleanup();
+                return;
+            } else {
+                onBeginRest();
+            }
+        } else if(bounceSound && velSqrd > (bounceSoundMinSpeed * bounceSoundMinSpeed) && frandom(0.0, 1.0) <= bounceSoundChance) {
+            A_StartSound(bounceSound, CHAN_AUTO, flags: 0, volume: 1.0, attenuation: BOUNCE_SOUND_ATTENUATION, pitch: frandom(bounceSoundPitchMin, bounceSoundPitchMax));
+        }
+
+        // If necessary, angle the particle to multiples of 180 degrees
+        /*if(restingRollSpeed >= 0 && velSqrd <= (restingRollSpeed * restingRollSpeed)) {
+            double nroll = normAngle(roll);
+            double droll = nroll;
+            nroll = (round(nroll / 180.0) * 180.0) + frandom(restingRollMin, restingRollMax) + rollSpeed;
+            roll += nroll - droll;
+        }
+
+        if(restingPitchSpeed >= 0 && velSqrd <= (restingPitchSpeed * restingPitchSpeed)) {
+            double npitch = normAngle(pitch);
+            double dpitch = npitch;
+            npitch = (round(npitch / 180.0) * 180.0) + frandom(restingPitchMin, restingPitchMax) + pitchSpeed;
+            pitch += npitch - dpitch;
+        }*/
+        if(restingRollSpeed >= 0 && velSqrd <= (restingRollSpeed * restingRollSpeed)) {
+            roll += (((round(roll / 180.0) * 180.0) + frandom(restingRollMin, restingRollMax)) - roll) * 0.65;
+        }
+
+        if(restingPitchSpeed >= 0 && velSqrd <= (restingPitchSpeed * restingPitchSpeed)) {
+            pitch += (((round(pitch / 180.0) * 180.0) + frandom(restingPitchMin, restingPitchMax)) - pitch) * 0.65;
+        }
+    }
+
+    // Called when hitting the floor/ceiling and coming to a stop
+    // Warning: Not called if KillStop is enabled
+    virtual void onBeginRest() {
+        bAtRest = true;
+
+        if(bRollStop) {
+            rollSpeed = 0;
+            pitchSpeed = 0;
+        }
+
+        if(restingRollSpeed >= 0) {
+            roll = (round(roll / 180.0) * 180.0) + frandom(restingRollMin, restingRollMax);
+        }
+
+        if(restingPitchSpeed >= 0) {
+            pitch = (round(pitch / 180.0) * 180.0) + frandom(restingPitchMin, restingPitchMax);
+        }
+
+        if(bSleepStop && life > 10) {
+            let lifeLeft = life - (minFadeLife + maxFadeLife);
+
+            if(lifeLeft > 0) {
+                Sleep(lifeLeft);
+                life = minFadeLife + maxFadeLife;
+            }
+        }
+    }
+
+    override void wake() {
+        if(developer < 0) RestoreRenderStyle();
+        Super.wake();
+    }
+
+    override void sleep(int tics) {
+        if(developer < 0) {
+            SetShade("FF0000");
+            A_SetRenderStyle(1, STYLE_Stencil);
+        }
+        Super.sleep(tics);
+    }
+
+    // Can override to prevent death
+    virtual bool onDeath() { return true; }
+
+
+    // More convenience functions
+    static clearscope float normAngle(float ang)  {
+        return ( ang - ( floor( ang / 360.0 ) * 360.0 ) );
+    }
+
+    static clearscope Vector3 rot(Vector3 p, double angle, double pitch) {
+        double ca = cos(angle);
+        double cp = pitch ~== 0 ? 1 : cos(pitch);
+        double sa = sin(angle);
+        double sp = pitch ~== 0 ? 0 : sin(pitch);
+
+        // Pitch
+        Vector3 r = p;
+        r.z = p.z * cp - p.x * sp;
+        r.x = p.z * sp + p.x * cp;
+
+        // Yaw
+        p.x = r.x;
+        r.x = r.x * ca - p.y * sa;
+        r.y = p.y * ca + p.x * sa;
+
+        return r;
+    }
+
+    static clearscope double GetIntensity(class<SelacoParticle> cls) {
+        switch(CVar.FindCVar("r_particleIntensity").GetInt()) {
+            case 1:
+                return GetDefaultByType(cls).qualityChanceLow;
+            case 2:
+                return GetDefaultByType(cls).qualityChanceMed;
+            case 4:
+                return GetDefaultByType(cls).qualityChanceUlt;
+            case 5:
+                return GetDefaultByType(cls).qualityChanceInsane;
+            default:
+                return GetDefaultByType(cls).qualityChanceHigh;
+        }
+    }
+
+    static clearscope double GetLifespan(class<SelacoParticle> cls) {
+        switch(CVar.FindCVar("r_particlelifespan").GetInt()) {
+            case 1:
+                return GetDefaultByType(cls).lifeMultLow;
+            case 2:
+                return GetDefaultByType(cls).lifeMultMed;
+            case 3:
+                return GetDefaultByType(cls).lifeMultHigh;
+            case 4:
+                return GetDefaultByType(cls).lifeMultUlt;
+            case 5:
+                return GetDefaultByType(cls).lifeMultInsane;
+            default:
+                return GetDefaultByType(cls).lifeMultHigh;
+        }
+    }
+}
+
+
+class WaterParticle : SelacoParticle {
+    bool allowSplash;
+    int aliveticks;
+    string spriteIndex;
+    override void tick()
+    {
+        super.tick();
+		if(aliveticks < 7) {
+			aliveticks++;
+		} else {
+			allowSplash = true;
+		}
+    }
+    
+
+    // For some reason Sprite Index isn't working.
+    void waterDropTick()
+    {
+        vel = (0,0,0);
+        scale*=1.03;
+        SetOrigin((pos.x, pos.y, floorz), false);
+        A_FadeOut(0.02);   
+    }
+
+
+    default {
+        speed 20;
+        radius 5;
+		height 5;
+        gravity 0.7;
+		xscale 0.05;
+		yscale 0.06;
+        bounceFactor 0;
+
+        SelacoParticle.RandomSpeed  2, 6;
+        SelacoParticle.BouncesRange 0,  0;      // Die when it hits the floor
+        SelacoParticle.RandomAngle -5, 5;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomScaleY 0.9, 2.9;
+        SelacoParticle.RandomScaleX 0.9, 2.8;
+        +SelacoParticle.KillStop;
+        -SelacoParticle.DirFromMomentum;
+        +Rollsprite
+    }
+
+    states {
+        Index:
+            LIQU A 0;
+            LIQV A 0;
+        Spawn:
+		    WSPH AAAAAAAAAABCDDDDDDDD 1;
+        Looper:
+            WSPH D -1;
+            loop;
+        Death:
+        Plop:
+			TNT1 A 0 A_SETRENDERSTYLE(1.0, STYLE_Translucent);
+			TNT1 A 0 {
+				if(!allowSplash) {
+					destroy();
+				}
+			}
+			TNT1 A 0 
+			{
+
+                A_SETSCALE(scale.x*4);
+                A_PLAYSOUND("impact/waterdrop", pitch:frandom(1.0,1.2));
+
+                if(random(0,2) == 1)
+                {
+                    A_SPAWNITEMEX("WaterFoam", 0, 0, 2, 0.8, 0 ,0);
+                    destroy();
+                }
+                if(random(0,1) == 0)
+                {
+                    setStateLabel("Style2");
+                }
+			}
+            goto Style1;
+        Style1:
+			LIQU AABBCCDDEEFFGGHHII 1 
+            {
+                waterDropTick();
+            }
+            stop;
+        Style2: 
+			LIQV AABBCCDDEEFFGGHHII 1 
+            {
+                waterDropTick();
+            }
+            stop;
+    }
+
+    override bool onDeath() {
+        bNoStates = false;  // Let's do states again
+        bRollSprite = false;
+        bNOINTERACTION = true;
+        SetStateLabel("Plop");
+        return false;
+    }
+}
+
+
+class WaterLeakParticle : WaterParticle
+{
+    default
+    {
+        +INTERPOLATEANGLES;
+        +SelacoParticle.NoStates 
+        gravity 0.6;
+        SelacoParticle.RandomAngle -35, 35;
+        SelacoParticle.RandomSpeed  0, 2;
+        SelacoParticle.RandomRollSpeed -15, 15;
+        SelacoParticle.RandomScaleY 1.3, 2.9;
+        SelacoParticle.RandomScaleX 1.3, 2.8;
+    }
+   states
+   {
+        Spawn:
+		    WSPH D 1;
+            loop;
+
+   } 
+}
+
+class WaterLeakParticleStray : WaterLeakParticle
+{
+    default
+    {
+        SelacoParticle.RandomAngle -65, 65;
+        SelacoParticle.RandomSpeed  0, 3;
+    }
+}
+
+class TestRainParticleNoSpeed : WaterParticle
+{
+    default
+    {
+		xscale 0.01;
+		yscale 0.25;
+        SelacoParticle.RandomSpeed  0, 0;
+    }
+}
+
+/* class DebrisChunkParticle : SelacoParticle {
+    
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        gravity 0.65;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Translucent";
+        XScale 0.11;
+        Yscale 0.11;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.LifespanMutliplier   0.6, 1.0, 2.0, 3.0, 8.0;
+        SelacoParticle.RandomLife 60, 90;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -45, 45;
+        SelacoParticle.BounceSound "chunk/impact";
+        SelacoParticle.BounceFudge 0.8;
+
+        // Fire args for emitter
+        SelacoParticle.RandomAngle -35, 35;
+        SelacoParticle.RandomPitch -25, 55;
+        SelacoParticle.RandomSpeed 1, 11;
+        SelacoParticle.RandomScaleY 1, 6;
+        SelacoParticle.RandomScaleX 1, 6;
+    }
+
+    // Try not to rely on states to do the work
+    // Ticking the state machine is expensive because it comes with other overhead we don't need most of the time
+    // Use NoStates if particle has only one graphic, or turn bNoStates on and off when possible to disable/enable the state machine
+    // The Spawn state (and first tick of that state) will always be called
+    states {
+        Spawn:
+            DUST ABCDE 0;       // Precache frames (Probably unecessary)
+            DUST A -1 {
+                Frame = random(0,4);                // Pick random graphic
+            }
+            stop;
+    }
+} */
+
+class MetalShrapnelParticle : SelacoParticle {
+    
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        alpha 1.0;
+        gravity 0.6;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+        +NOINTERACTION
+        RenderStyle "add";
+        XScale 0.11;
+        Yscale 0.11;
+        SelacoParticle.QualityChances       0, 0.5, 0.75, 1.0, 2.5;
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.FadeVelRange     1.2 , 3;
+        SelacoParticle.LifespanMutliplier   0.3, 1.5, 2, 2.3, 3.5;
+        SelacoParticle.RandomLife 60, 105;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -5, 5;
+        SelacoParticle.BounceFudge 0.3;
+        
+        // Fire args for emitter
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomPitch -45,45;
+        SelacoParticle.RandomAngle -45, 45;
+        SelacoParticle.RandomRollSpeed -60, 60;
+        SelacoParticle.RandomSpeed 1, 7;
+
+        SelacoParticle.RandomScalex -0.01, 0.07;
+
+    }
+
+    // Try not to rely on states to do the work
+    // Ticking the state machine is expensive because it comes with other overhead we don't need most of the time
+    // Use NoStates if particle has only one graphic, or turn bNoStates on and off when possible to disable/enable the state machine
+    // The Spawn state (and first tick of that state) will always be called
+    states {
+        Spawn:
+            FEMB ABCDE 0;       // Precache frames (Probably unecessary)
+            FEMB A -1 bright {
+                Frame = random(0,4);                // Pick random graphic
+            }
+            stop;
+    }
+}
+
+class MetalShrapnelParticleExplosion : MetalShrapnelParticle {
+    default {
+        SelacoParticle.RandomAngle 0, 360;
+    }
+}
+
+class ShortMetalShrapnelParticle360 : MetalShrapnelParticle {
+    
+    default {
+        SelacoParticle.RandomSpeed 1, 5;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomScalex -0.02, 0.03;
+        SelacoParticle.RandomLife 40, 50;
+        SelacoParticle.RandomPitch -45, -90;  
+    }
+}
+
+class TestEmitter2 : actor {
+	default {
+		+NOINTERACTION
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 35 {
+				A_SPAWNITEMEX("CutoffArmRight", 0, 0, 0, 5, 0, frandom(-1,1), angle:random(0,360));
+			}
+			loop;
+	}
+}
+
+class testEmitter : SelacoActor {
+    int particleType;
+
+/*     override void postBeginPlay() {
+        float time1,time2;
+        time1 = msTimeF();
+        for(int x=0;x<11000;x++) {
+            A_SpawnItemEX("Ominous_PurpleSpot", frandom(-900, 900), frandom(-900,900));
+        }
+        time2 = msTimeF();
+        console.printf("TIME: %f", time2-time1);
+    }
+ */
+
+    override void tick() {
+        super.tick();
+        if(level.time % 1 == 0) {
+            if(g_useNewParticles) {
+                A_SpawnDefinedParticle("PurpleBloodMissileDefinitionNoDecal", frandom(-4, 4), frandom(-4, 4),frandom(0, 2), frandom(-4, 4), frandom(-4, 4), frandom(2, 14), random(0,360));
+            } else {
+                A_SpawnItemEx("PurpleBloodMissileNoDecal", frandom(-4, 4), frandom(-4, 4),frandom(0, 2), frandom(-4, 4), frandom(-4, 4), frandom(2, 14), random(0,360));
+            }
+        }
+    }
+
+    default {
+        +NOINTERACTION
+    }
+
+    states {
+        Spawn:
+            TNT1 A -1;
+            stop;
+    }
+}
+
+
+class ShortMetalShrapnelParticle360Short : ShortMetalShrapnelParticle360 {
+    
+    default {
+        SelacoParticle.RandomLife 15, 25;
+    }
+}
+class ShortMetalShrapnelParticle360Shorter : ShortMetalShrapnelParticle360 {
+    
+    default {
+        SelacoParticle.FadeLifeRange    5   , 10;
+        SelacoParticle.RandomSpeed 1, 8;
+        SelacoParticle.RandomLife 10, 15;
+        SelacoParticle.RandomPitch 20,110;
+        SelacoParticle.RandomScalex 0.02, 0.09;
+    }
+
+}
+class PlasmaMoltenSteel : MetalShrapnelParticle
+{
+    default
+    {
+        gravity 0.4;
+        XScale 0.08;
+        Yscale 0.08;
+        BounceFactor 0.5;
+        SelacoParticle.QualityChances       0.15, 0.5, 0.75, 1.0, 2.5;
+        SelacoParticle.LifespanMutliplier   0, 1, 1, 1, 5;
+        SelacoParticle.RandomLife 50, 90;
+        SelacoParticle.RandomPitch -45,45;
+        SelacoParticle.RandomAngle -35, 35;
+        SelacoParticle.RandomSpeed 1, 8;
+    }
+}
+
+class PlasmaMoltenSteelFast : PlasmaMoltenSteel
+{
+    default
+    {
+        XScale 0.12;
+        Yscale 0.12;
+        SelacoParticle.RandomPitch 250,360;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomSpeed 1, 9;
+        SelacoParticle.RandomScaleX 0, 0.07;
+    }   
+}
+
+class PlasmaMoltenSteel360 : PlasmaMoltenSteel
+{
+    default
+    {
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch 160, 190;  
+    }
+}
+
+class MetalShrapnelParticleSpherical : MetalShrapnelParticle
+{
+    default
+    {
+        SelacoParticle.RandomPitch -80,40;
+    }
+}
+
+/* class MetalShrapnelParticleVeryShort : MetalShrapnelParticle
+{
+    
+}
+ */
+// Same but..360!
+class MetalShrapnelParticle360 : MetalShrapnelParticle{
+
+    override void tick()
+    {
+        super.tick();
+        scale*=0.99;
+        if(scale.x <= 0)
+        {
+            destroy();
+        }
+    }
+
+    default {
+        SelacoParticle.RandomAngle -360, 360;
+        SelacoParticle.RandomSpeed 1, 6;
+        SelacoParticle.RandomPitch -70, -110;
+    }
+}
+
+class MetalShrapnelParticleShort : MetalShrapnelParticle360 {
+
+    default {
+        XScale 0.18;
+        Yscale 0.18;
+        -SelacoParticle.LifeFade;
+        +SelacoParticle.LifeScale;
+        SelacoParticle.ScaleLifeRange 0, 1;
+        SelacoParticle.ScaleRangeX    1, 0.05; 
+        SelacoParticle.ScaleRangeY    1, 0.05; 
+        SelacoParticle.FadeLifeRange    10   , 20;
+        SelacoParticle.RandomAngle -360, 360;
+        SelacoParticle.RandomSpeed 1, 11;
+        SelacoParticle.RandomPitch -70,-110;
+        SelacoParticle.RandomLife 7, 10;
+    }
+}
+
+class MetalShrapnelParticleShortWideFloor : MetalShrapnelParticleShort {
+
+    default {
+        SelacoParticle.RandomPitch -30,-150;
+    }
+}
+class MetalShrapnelParticleShortWideWall : MetalShrapnelParticleShort {
+
+    default {
+        SelacoParticle.RandomAngle 0, 180;
+    }
+}
+class MetalShrapnelParticleShortWild : MetalShrapnelParticleShort{
+    default {
+        SelacoParticle.RandomSpeed 1, 12;
+        SelacoParticle.RandomAngle -360, 360;
+        SelacoParticle.RandomPitch -40,-140;
+    }
+}
+
+// TODO:
+// It looks good but I still dont *love* it. Make it better!
+class EmberShotEffect : MetalShrapnelParticleShortWild{
+
+    float time;
+    float randomFactorX;
+    float randomFactorY;
+    
+    const SLOWDOWN_FACTOR = 0.98;
+    const DIRECTION_CHANGE_SPEED = 0.35;
+
+    override void beginPlay() {
+        super.beginPlay();
+    
+        // Make some more stretched looking
+        if(random(0,100) < 25) {
+            scale.y*=1.5;
+        }
+
+        // Randomize starting position since emit offsets are based on groups, not individual particles.
+        float maxDistance = 7; 
+        SetOrigin((
+            pos.x+frandom(-maxDistance, maxDistance), 
+            pos.y+frandom(-maxDistance, maxDistance), 
+            pos.z+frandom(-maxDistance, maxDistance)
+        ), false);
+    
+        // Introduce randomness to add variability
+        randomFactorX = frandom(-25, 25); // Random small offsets for waving
+        randomFactorY = frandom(-25, 25); 
+    }
+
+    override void tick() {
+        super.tick();
+    
+        // Gradually slow down the velocity
+        vel *= SLOWDOWN_FACTOR;
+    
+        // Simulate chaotic directional changes
+        time += DIRECTION_CHANGE_SPEED;
+    
+        float pitchOscillation = sin(time + randomFactorX) * frandom(15, 15);
+        float angleOscillation = cos(time + randomFactorY) * frandom(15, 15); // Smaller random waves
+    
+        // Add extra random shaking to make it messy
+        pitch += pitchOscillation + frandom(-25, 25);
+        angle += angleOscillation + frandom(-25, 25);
+    
+        // Calculate velocity relative to the current angle and pitch
+        vector3 direction = (
+            cos(pitch) * cos(angle),
+            sin(angle),
+            cos(pitch) * sin(angle)
+        );
+    
+        // Update velocity direction
+        vel += direction * frandom(0.05, 0.35); // Random small adjustments
+    }
+
+
+    default {
+        gravity 0.015;
+        XScale 0.08;
+        Yscale 0.11;
+        SelacoParticle.BounceAccuracy 15;
+        SelacoParticle.ScaleRangeX    1, 0.0; 
+        SelacoParticle.ScaleRangeY    1, 0.0; 
+        SelacoParticle.RandomLife 20, 37;
+        SelacoParticle.RandomSpeed 0, 9;
+        SelacoParticle.Randomangle -30,30;
+        SelacoParticle.RandomPitch -25,25;
+    }
+}
+
+class EmberShotEffectGravity : EmberShotEffect {
+
+    override void beginPlay() {
+        super.beginPlay();
+        randomFactorX = frandom(-1, 1);
+        randomFactorY = frandom(-1, 1); 
+    }
+    
+    default {
+        gravity 0.19;
+    }
+}
+
+class MetalShrapnelParticleShortWall : MetalShrapnelParticleShort {
+    default {
+        gravity 0.1;
+        SelacoParticle.LifespanMutliplier   0.5, 1, 1, 1.1, 1.1;
+        SelacoParticle.RandomAngle -25, 25;
+        SelacoParticle.RandomPitch -25, 25;
+        SelacoParticle.RandomLife 5, 8;
+        SelacoParticle.RandomSpeed 1, 10;
+    }
+}
+
+class MetalShrapnelParticleShortishWall : MetalShrapnelParticleShort {
+    default {
+        gravity 0.1;
+        SelacoParticle.RandomAngle -20, 20;
+        SelacoParticle.RandomPitch -25, 25;
+        SelacoParticle.RandomLife 5, 7;
+    }
+}
+
+class MetalShrapnelParticleShortBig : MetalShrapnelParticle{
+    default {
+        scale 0.45;
+        SelacoParticle.RandomAngle -360, 360;
+        SelacoParticle.RandomSpeed 1, 6;
+        SelacoParticle.RandomPitch -140, -170;
+        SelacoParticle.RandomLife 15, 20;
+        SelacoParticle.RandomScalex 1.1, 3.3;
+    }
+}
+
+class MetalChunk : SelacoParticle
+{
+
+    override void tick()
+    {
+        super.tick();
+        if(vel.length() > 0){
+            A_SPAWNITEMEX("BodyImpactSmokeUltraTinyFast");
+        }
+    }
+
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        alpha 1.0;
+        gravity 0.6;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+        +NOINTERACTION
+        RenderStyle "translucent";
+        XScale 0.46;
+        Yscale 0.46;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.FadeVelRange     1.2 , 3;
+        SelacoParticle.LifespanMutliplier   0.3, 1.5, 2, 2.3, 3.5;
+        SelacoParticle.RandomLife 60, 105;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -5, 5;
+        SelacoParticle.BounceFudge 0.3;
+        // Fire args for emitter
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomPitch -45,45;
+        SelacoParticle.RandomAngle -45, 45;
+        SelacoParticle.RandomRollSpeed -30, 30;
+        SelacoParticle.RandomSpeed 1, 6;
+
+
+        SelacoParticle.BounceSound "METAL/SHARD/BOUNCE";
+
+    }
+
+    states {
+        Spawn:
+            BRPT ABCDE 0;       // Precache frames (Probably unecessary)
+            BRPT A -1 {
+                Frame = random(0,4);                // Pick random graphic
+            }
+            stop;
+    }   
+}
+
+class MetalChunk360 : MetalChunk
+{
+    default
+    {
+        SelacoParticle.RandomPitch -25,25;
+        SelacoParticle.RandomSpeed 1, 9;
+        SelacoParticle.RandomAngle -180, 180;
+    }
+}
+
+class ToiletChunk : SelacoParticle {
+    int frameID;
+    default {
+
+        renderStyle "normal";
+
+        speed 2;
+        radius 5;
+		height 5;
+        gravity 0.95;
+        friction 1.5;
+
+        bounceFactor        0.4;
+        wallbouncefactor    0.4;
+
+        +MISSILE;
+        -NOINTERACTION;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        -SelacoParticle.NoStates;
+        +SelacoParticle.InstantBounce;
+        SelacoParticle.RollDampBounce 0.7;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.LifespanMutliplier   0.6, 1.0, 2.0, 3.0, 8.0;
+        SelacoParticle.RandomLife 240, 380;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -25, 25;
+        SelacoParticle.BounceSound "bounce/glass";
+
+        // Fire args for emitter
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch -70, -170;
+        SelacoParticle.RandomSpeed 3.5, 9;
+        SelacoParticle.RestorePitch -15, 15, 4;
+        SelacoParticle.RestoreRoll -15, 15, 2;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE A -1 {
+                A_SETROLL(random(0,360));
+                frameID = random(0,4);
+                scale = (scale.x + frandom(0,0.6), scale.y + + frandom(0,0.6));
+                frame = frameID;
+            }
+        Death:  // Do not allow a real death state, this is triggered by being a missile and bounces stop
+            VOXE A -1 {
+                frame = frameID;
+            }
+    }
+}
+
+class ToiletChunkWild : ToiletChunk {
+    default {
+        SelacoParticle.RandomRollSpeed 60, 250;  
+        SelacoParticle.RandomPitch 0, -240;
+    }
+}
+class ToiletChunkSlowAsBalls : ToiletChunk {
+    default {
+        SelacoParticle.RandomRollSpeed 60, 250;  
+        SelacoParticle.RandomPitch 0, -240;
+    }
+}
+
+// Used for truly chunky hits. Like explosions or cricket shots
+/* class DebrisChunkParticleLarge : DebrisChunkParticle {
+    default
+    {
+        SelacoParticle.RandomSpeed 1, 15;
+    }
+    states {
+        Spawn:
+            DUST ABCDE 0;       // Precache frames (Probably unecessary)
+            DUST A -1 {
+                Frame = random(0,4);                // Pick random graphic
+            }
+            stop;
+    }
+}
+class DebrisChunkParticleLarge360 : DebrisChunkParticleLarge {
+    default
+    {
+        SelacoParticle.RandomPitch -70,-110;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomScaleY 1.215, 1.867;
+        SelacoParticle.RandomScaleX 1.215, 1.867;
+        XScale 0.12;
+        Yscale 0.12;
+    }
+    states {
+        Spawn:
+            DUST ABCDE 0;       // Precache frames (Probably unecessary)
+            DUST A -1 {
+                Frame = random(0,4);                // Pick random graphic
+            }
+            stop;
+    }
+}
+
+class DebrisFadeChunkParticle : DebrisChunkParticle {
+    default {
+        +SelacoParticle.FadeAtBounceLimit;
+        SelacoParticle.BouncesRange 0, 0;
+    }
+} */
+
+/* class TestDebrisFadeEmitter : Actor {
+    mixin ParticleEmitter;
+
+	default {
+        +NOGRAVITY;
+        +NOBLOCKMAP;
+        +NOINTERACTION;
+        height 64;
+    }
+	
+	states {
+		Spawn:
+			TNT1 AAAAAAAAAA 1 {
+                emit('DebrisFadeChunkParticle', chance: 1, numTries: 8, offset: (20, 0, 0));
+			}
+			stop;
+	}
+}
+
+class TestParticleHeavy : SelacoParticle {
+	default {
+        speed 4;
+        radius 0.5;
+		height 0.5;
+        gravity 0.5;
+        +FLATSPRITE;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Add";
+        XScale 0.2;
+        Yscale 0.019;
+
+        //+SelacoParticle.KillStop;
+        +SelacoParticle.DirFromMomentum;
+        //+SelacoParticle.VelocityFade;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;
+        +SelacoParticle.LifeScale;
+        SelacoParticle.ScaleLifeRange 0.5, 1.0;
+        SelacoParticle.ScaleRange 4.0, 0.2, 4.0, 0.2;
+        SelacoParticle.FadeVelRange 0.2, 3;
+        SelacoParticle.FadeLifeRange 0, 15;
+        SelacoParticle.RandomLife 100, 101;
+
+        SelacoParticle.StopSpeed 2;
+
+        // Fire args for emitter
+        SelacoParticle.RandomAngle -25, 25;
+        SelacoParticle.RandomPitch -25, 25;
+        SelacoParticle.RandomSpeed 2.5, 4;
+    }
+
+    states
+    {
+        Spawn:
+		    SPRK B -1 BRIGHT;
+            stop;
+		    /*SPRK BBBBBBBBBB 3 Bright A_FadeOut(0.1);
+            TNT1 A 1 {  // Must have a frame time > 0 or DEATH will be called automatically
+                cleanup();
+            }
+        Death:
+            stop;
+    }
+} */
+
+/* class TestParticleHeavy2 : SparkX {
+	default {
+        speed 4;
+        radius 5;
+        height 5;
+        gravity 0.5;
+        +SpawnCeiling;
+
+
+        RenderStyle "Add";
+        Scale 0.2;
+    }
+
+    states
+    {
+        Spawn:
+			TNT1 A 1;
+			TNT1 A 0 {
+				A_SetScale(frandom(0.020, 0.030), frandom(0.020, 0.020));
+				A_ChangeVelocity(frandom(0.2, 0.7), frandom(0.1, 0.33), frandom(0.4, 1.3), CVF_RELATIVE);
+			}
+		    SPKO A 20 BRIGHT;
+		    SPKO AAAAAAAAAA 3 Bright A_FadeOut(0.1);
+        Death:
+            stop;
+    }
+
+    /*
+    Model TestParticleHeavy2
+    {
+    noperpixellighting  Path "MD/Projectiles"
+    SKIN 0 "SPKOA0.png" 
+    MODEL 0 "Tracer.md3" 
+    Scale 2.0 2.0 2.0 
+    PITCHFROMMOMENTUM 
+
+    FrameIndex SPKO A 0 0 
+    }
+
+}
+    */
+/* class SawDust : SelacoParticle {
+        
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        gravity 0.65;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Translucent";
+        XScale 0.09;
+        Yscale 0.08;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.RandomLife 380, 600;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -60, 60;
+
+        // Fire args for emitter
+        SelacoParticle.RandomAngle -45, 45;
+        SelacoParticle.RandomPitch -35, 35;
+        SelacoParticle.RandomSpeed 3, 12;
+    }
+
+    states {
+        Spawn:
+            SAWD A 0;       // Precache frames (Probably unecessary)
+            SAWD A -1 {
+                Frame = random(0,8);                // Pick random graphic
+                A_SetScale(frandom(0.13, 0.17));    // Set random scale
+            }
+            stop;
+    }
+}
+
+class SawDust360 : SawDust
+{
+    default
+    {
+        // Fire args for emitter
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch 0, 180;
+        SelacoParticle.RandomSpeed 1, 5;    
+
+        XScale 0.25;
+        Yscale 0.25;
+    }
+}
+class SawDustFastBrief : SawDust
+{
+    default
+    {
+        XScale 0.22;
+        Yscale 0.25;
+        gravity 0.7;
+
+        +SelacoParticle.LifeScale 
+        SelacoParticle.QualityChances       0, 0.5, 0.75, 1.0, 2.5;
+        SelacoParticle.ScaleLifeRange 0, 1;
+        SelacoParticle.ScaleRange 1.0, 0, 1.0, 0;   // Starts at 1.0 and scales to 0.2 at end of life
+        SelacoParticle.RandomLife 16,20;
+        SelacoParticle.FadeLifeRange    2   , 5;
+        SelacoParticle.LifespanMutliplier   1,  1, 1, 1, 1;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -60, 60;
+        SelacoParticle.RandomAngle -45, 45;
+        SelacoParticle.RandomPitch -35, 35;
+        SelacoParticle.RandomSpeed 3, 11;
+        SelacoParticle.RandomScaleY 0.5, 4;
+        SelacoParticle.RandomScaleX 0.5, 4;
+    }
+} */
+
+/* class SawDustFastUltraBrief : SawDustFastBrief
+{
+    default
+    {
+        SelacoParticle.RandomLife 10, 15;
+        SelacoParticle.FadeLifeRange    5   , 10;
+    }
+}
+ */
+class PlankParticle : SelacoParticle
+{
+
+    int frameID;
+    bool isDead;
+    override void tick()
+    {
+        super.tick();
+        if(!isDead && vel.length() == 0)
+        {
+            isDead = true;
+            roll = 0;
+            pitch = 0;
+        }
+    }
+
+    default
+    {
+        gravity 0.7;
+        RenderStyle "Translucent";
+        +MISSILE
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        SelacoParticle.QualityChances       0, 0.3, 0.6, 1.0, 9999;
+        SelacoParticle.LifespanMutliplier   0.5, 0.7, 1.0, 5.0, 5.0;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomRollSpeed 20, 35;
+        SelacoParticle.RandomPitch 60, 120;
+        SelacoParticle.RandomLife 200, 350;
+        SelacoParticle.RandomSpeed 5,16;
+        SelacoParticle.BounceSound "bounce/woodplank";
+    }
+    states {
+        Spawn:
+            WOOD A 0;       // Precache frames (Probably unecessary)
+            WOOD A -1 {
+                angle=random(0,360);
+                frameID = random(0,3);                // Pick random graphic
+                frame = frameID;
+                if(random(0,1) == 1) {bxflip = true;}
+            }
+            stop;
+    }
+}
+
+class PlankParticleShort : PlankParticle
+{
+    default
+    {
+        SelacoParticle.RandomLife 70, 100;
+    }
+}
+
+class WoodParticle : SelacoParticle
+{
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        gravity 0.65;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Translucent";
+        XScale 0.73;
+        Yscale 0.73;
+
+        bounceFactor 0.6;
+        -SelacoParticle.DirFromMomentum;
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.LifespanMutliplier   0.5, 0.7, 1.0, 5.0, 5.0;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.RandomLife 45, 75;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -25, 25;
+        SelacoParticle.BounceSound "bounce/wood";
+
+        // Fire args for emitter
+        SelacoParticle.RandomAngle -25, 25;
+        SelacoParticle.RandomPitch -35, 35;
+        SelacoParticle.RandomSpeed 2, 10;
+        SelacoParticle.RandomScaleY 0.215, 0.467;
+        SelacoParticle.RandomScaleX 0.215, 0.467;
+    }
+
+    states {
+        Spawn:
+            WOOD A 0;       // Precache frames (Probably unecessary)
+            WOOD A -1 {
+                Frame = random(0,3);                // Pick random graphic
+                if(random(0,1) == 1) {bxflip = true;}
+            }
+            stop;
+    }
+}
+
+class WoodParticleSmallGrey: WoodParticle
+{
+  default {
+    
+        Translation "0:255=%[0,0,0]:[0.4,0.5,0.9]";
+        XScale 1.51;
+        Yscale 1.51;
+        SelacoParticle.LifespanMutliplier   2.5, 2.7, 2.0, 7.0, 15.0;
+        SelacoParticle.RandomAngle -45, 45;
+        SelacoParticle.RandomPitch -45, 45;
+  }
+}
+
+/* class WoodParticleSmall: WoodParticle
+{
+    states {
+        Spawn:
+            WOOD A 0;       // Precache frames (Probably unecessary)
+            WOOD A -1 {
+                Frame = random(0,3);                // Pick random graphic
+                if(random(0,1) == 1) {bxflip = true;}
+                A_SetScale(frandom(0.84, 0.9));    // Set random scale
+            }
+            stop;
+    }
+} */
+
+class plasmaEmberParticle : SelacoParticle {
+    // override void Tick() {
+    //    super.tick();
+    //    A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.5, 0.5), frandom(-0.5, 0.5), CVF_RELATIVE);
+    //}
+    default {
+        speed 2;
+        radius 5;
+		height 5;
+        gravity 0.5;
+        +ROLLSPRITE;
+        +NOGRAVITY;
+        +NOBLOCKMAP;
+        -DOOMBOUNCE
+
+        RenderStyle "Add";
+        XScale 0.21;
+        Yscale 0.21;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.LifespanMutliplier   1.0, 1.0, 1.0, 1.0, 1.0;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll -30, 30;
+        SelacoParticle.RandomRollSpeed -5, 5;
+        SelacoParticle.RandomLife       15  , 35;
+        // Fire args for emitter
+        SelacoParticle.RandomAngle -25, 25;
+        SelacoParticle.RandomPitch -35, -45;
+        SelacoParticle.RandomSpeed 2, 4;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_SetScale(frandom(0.047, 0.057));
+            }
+            EMBR B -1 BRIGHT;
+            stop;
+    }
+} 
+
+// Explosion Embers
+class EmberEmitterParticle : SelacoParticle {
+    override void Tick() {
+        super.tick();
+        A_ChangeVelocity(frandom(-0.9, 0.9), frandom(-0.5, 0.5), frandom(-0.5, 0.5), CVF_RELATIVE);
+    }
+    default {
+        speed 2;
+        radius 5;
+		height 5;
+        gravity 0;
+        +ROLLSPRITE;
+        +NOGRAVITY;
+        +NOBLOCKMAP;
+        -DOOMBOUNCE
+
+        RenderStyle "Add";
+        XScale 0.21;
+        Yscale 0.21;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.LifespanMutliplier   1.0, 1.0, 1.0, 1.0, 1.0;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll -30, 30;
+        SelacoParticle.RandomRollSpeed -5, 5;
+        SelacoParticle.RandomLife       15  , 35;
+        // Fire args for emitter
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch 0, 360;
+        SelacoParticle.RandomSpeed 7, 12;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_SetScale(frandom(0.047, 0.057));
+            }
+            EMBR B -1 BRIGHT;
+            stop;
+    }
+} 
+
+Class PorcelainShard : SelacoParticle {
+
+    override void onBeginRest() {
+        rollSpeed = 0;
+        pitchSpeed = 0;
+        pitch = pitch > 180 ? 180 : 0;
+        roll = 0;
+        
+        if(bSleepStop && life > 10) {
+            let lifeLeft = life - (minFadeLife + maxFadeLife);
+
+            if(lifeLeft > 0) {
+                Sleep(lifeLeft);
+                life = minFadeLife + maxFadeLife;
+            }
+        }
+    }
+    
+    override void onBounce() {
+        if(vel.length() < 2) {
+            pitch = pitch > 180 ? 180 : 0;
+            roll = 0;
+            pitchSpeed *= 0.5;
+        } else {
+            pitchSpeed = max(pitchSpeed * 2, 5);
+        }
+
+        Super.onBounce();
+    }
+
+	default {
+        speed 5;
+        gravity 0.82;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+        +FLATSPRITE;
+
+        RenderStyle "Translucent";
+        XScale 0.67;
+        Yscale 0.69;
+
+        bounceFactor 0.6;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.LifespanMutliplier   0.5, 0.7, 1.0, 5.0, 10.0;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.RandomLife 350, 550;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.BounceSound "bounce/ceramic";
+
+        // Fire args for emitter
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -25, 25;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch -60, -120;
+        SelacoParticle.RandomSpeed 4, 10;
+        SelacoParticle.RandomScaleY 0.6, 0.8;
+        SelacoParticle.RandomScaleX 0.6, 0.8;
+		translation "0:255=4:4";
+	}
+    states {
+        Spawn:
+            BPRT A 0;       // Precache frames (Probably unecessary)
+            POSH A -1 {
+                Frame = random(0,12);                // Pick random graphic
+                if(random(0,1) == 1) {bxflip = true;}
+            }
+            stop;
+   }
+}
+
+class Porcelain : PorcelainShard {
+    default {
+        speed 6;
+        alpha 1.0;
+        gravity 0.7;
+        Renderstyle "normal";
+    }
+}
+
+class PaperEmitter : SelacoActor
+{
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 emit('PaperPieceParticle', 1.0, 25);
+            stop;
+    }
+}
+
+
+Class PaperPieceParticle : SelacoParticle
+{
+    int paperRollSpeed;
+    string paperSinglePiece;
+
+    property PaperSinglePiece : paperSinglePiece;
+
+	int watercount, lifespan, spawnChance;
+	int dice;
+	int firstTick;
+	actor paperActor;
+	bool success;
+	int framenumber;
+	float zVelocity1;
+	float zVelocity2;
+	int zVelocityTics;
+	int xVelocityMax;
+	int timer;
+
+	override void Tick() {
+        if(isFrozen())
+        {
+            return;
+        }
+		movePaper();
+		if(Pos.Z <= FloorZ && timer > 6) {
+			die(self,self);
+		}
+		super.tick();
+	}
+
+	bool bIsOnFloor() {
+		return (Pos.Z == FloorZ);
+	}
+
+	virtual void movePaper() {
+		timer++;
+		if(timer > 260) {
+			A_FADEOUT(0.05, FTF_REMOVE);
+		}
+		A_SETPITCH(Pitch+3, SPF_INTERPOLATE);
+		A_SETANGLE(angle+3, SPF_INTERPOLATE);
+		A_ChangeVelocity((0.04* frandom(xVelocityMax*-1, xVelocityMax)), (0.04*frandom(xVelocityMax*-1, xVelocityMax)), 0.08 * frandom(zvelocity1,zvelocity2));
+		A_SETROLL(roll + paperRollSpeed, SPF_INTERPOLATE);
+		zVelocityTics++;
+		if (zVelocityTics == 25) {
+			zvelocity1 = -0.5;
+			zvelocity2 = -0.5;
+			xVelocityMax = 2;
+		}	
+	}
+
+	default {
+		-WALLSPRITE;
+		+FLATSPRITE;
+		+NoBlockmap
+		+NoInteraction
+		+INVISIBLEINMIRRORS
+        +INTERPOLATEANGLES;
+        renderstyle "translucent";
+        gravity 0.0;
+        //speed 1;
+		scale 0.16;
+        +SelacoParticle.NoStates;
+        PaperPieceParticle.paperSinglePiece "paperDecalSingle";
+        SelacoParticle.RandomSpeed 0, 0;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch  -175, -190;
+	}
+	States
+	{
+	    Spawn:
+            TNT1 A 0;
+            PAPP A -1 {
+                paperRollSpeed = random(5,8);
+                framenumber = random(0,3);
+                zvelocity1 = 2;
+                zvelocity2 = zvelocity1*-1;
+                xVelocityMax = 2;
+                if(random(0,4) == 4)
+                {
+                    A_CHANGEVELOCITY(frandom(-1.8, 1.8),frandom(-1.8, 1.8), frandom(2.0,3.0));
+                } else 
+                {
+                    A_CHANGEVELOCITY(frandom(-0.5, 0.5),frandom(-0.5, 0.5), frandom(0.6,2.0));
+                }
+                A_SETPITCH(random(0,360));
+                frame = framenumber;
+            }
+            loop;
+        KillIt:
+        Death:
+            TNT1 A 0 {
+                // Only show paper pieces that actually manages to get some air time.
+                if(timer > 6 ) {
+                    A_PLAYSOUND("impact/paperlanding", CHAN_AUTO, 0.6, 0, 1.0, pitch:frandom(1.2, 1.4));
+                    [success, paperActor] = A_SPAWNITEMEX(paperSinglePiece, flags:SXF_SETMASTER);
+                    if(paperActor) {
+                        paperDecalSingle(paperActor).frameID = framenumber;
+                        paperActor.angle = angle;
+                    }
+                }
+                destroy();
+            }
+            stop;
+        }
+}
+
+class PaperParticleTexture : SelacoParticle
+{
+
+    int paperRollSpeed;
+
+	override void tick() {
+		super.tick();
+        gravity+=0.001;
+		A_SETPITCH(Pitch+3);
+		A_SETANGLE(angle+3);
+		A_SETROLL(roll + paperRollSpeed, SPF_INTERPOLATE);
+	}
+
+    default
+    {
+        +ROLLSPRITE;
+        +FLATSPRITE;
+        scale 0.13;
+        gravity 0;
+        renderstyle "translucent";
+        +SelacoParticle.NoStates
+        +SelacoParticle.LifeFade;
+        SelacoParticle.LifespanMutliplier   0.5, 1.1, 1.2, 1.5, 3.0;
+        SelacoParticle.FadeVelRange 0.2, 3;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.RandomLife 25, 35;
+        SelacoParticle.RandomAngle -25,25;
+        SelacoParticle.RandomPitch  -25, 25;
+        SelacoParticle.randomspeed  0.4, 5;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -5, 5;
+    }
+    states
+    {
+	    Spawn:
+            TNT1 A 0;
+            BKPG A 1 {
+                    paperRollSpeed = random(5,8);
+                    A_SETROLL(random(0,360));
+                    A_SETPITCH(random(0,360));
+                    A_SETANGLE(random(0,360));
+                    frame = random(0,16);
+                }
+            stop;
+        Death:
+            stop;
+    }
+}
+
+// Stationary piece of paper
+class paperDecalSingle : Actor {
+    mixin Steppable;
+    mixin SleepDebugger;
+
+    string paperSprite;
+    property PaperSprite : paperSprite;
+
+    override void beginPlay() {
+        super.beginPlay();
+        setOrigin((pos.x, pos.y, floorz), false);
+    }
+
+	override void PostBeginPlay() {
+        Super.postbeginPlay();
+
+        steppableSpawns = 'PaperPieceLow';
+        steppableDestroys = true;
+        if(random(0,100) <= 25) {
+            passiveStepSound = "step/paper";
+        }
+	}
+
+	int frameID;
+	default {
+		+FLOORCLIP;
+		+FLATSPRITE;
+		+INVISIBLEINMIRRORS
+        PaperDecalSingle.PaperSprite "PAPP";
+		SCALE 0.2;
+		alpha 0;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+                sprite = getSpriteIndex(PaperSprite);
+				// Prevent decals from stacking because ew.
+				if(checkProximity(getClassName(), 7, 2)) {
+					die(self, self);
+				}
+			}
+			TNT1 AAA 1 {
+				A_FADEIN(0.333);
+				frame = frameID;
+			}
+			TNT1 A 5 {
+                alpha = 1;
+				frame = frameID;
+			}
+			TNT1 A 1 {
+                bSteppableDestroys = true;
+                bSteppableIgnoresTimeout = true;
+                becomeSteppable(16, 2);
+				frame = frameID;
+                Sleep(350);
+			}
+		Death:
+			TNT1 AAAAAAAAAAAAA 1 {
+                bSPECIAL = false;   // Stop steppable
+				A_FADEOUT(0.1, FTF_REMOVE);
+				frame = frameID;
+			}
+			stop;
+	}
+}
+
+class PopcornParticle : SelacoParticle
+{
+
+    override void tick()
+    {
+        super.tick();
+        pitch+=10;
+    }
+
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        gravity 0.45;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Translucent";
+        XScale 0.09;
+        Yscale 0.09;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.LifespanMutliplier   0.6, 1.0, 2.0, 3.0, 8.0;
+        SelacoParticle.RandomLife 60, 90;
+        SelacoParticle.StopSpeed 2;
+        
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed -60, 60;
+        SelacoParticle.BounceSound "chunk/impact";
+
+        // Fire args for emitter
+        SelacoParticle.RandomAngle -90, 90;
+        SelacoParticle.RandomPitch -55, 25;
+        SelacoParticle.RandomSpeed 0.4, 7;
+        SelacoParticle.RandomScaleY 0.915, 4.567;
+        SelacoParticle.RandomScaleX 0.915, 4.467;
+    }
+
+    // Try not to rely on states to do the work
+    // Ticking the state machine is expensive because it comes with other overhead we don't need most of the time
+    // Use NoStates if particle has only one graphic, or turn bNoStates on and off when possible to disable/enable the state machine
+    // The Spawn state (and first tick of that state) will always be called
+    states {
+        Spawn:
+            POPC ABCD 0;       // Precache frames (Probably unecessary)
+            POPC A -1 {
+                Frame = random(0,3);                // Pick random graphic
+            }
+            stop;
+    }  
+}
+
+class PopcornParticle360 : PopcornParticle
+{
+    default
+    {
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch -10,-176;
+    }
+}
+
+class BookPaperParticle : PaperPieceParticle
+{
+
+    override void PostBeginPlay()
+    {
+        super.postbeginPlay();
+        framenumber = random(0,16);
+    }
+
+
+    default
+    {
+        PaperPieceParticle.paperSinglePiece "BookPaperSinglePiece";
+    }
+
+    states 
+    {
+	    Spawn:
+            TNT1 A 0;
+            BKPG A -1 
+            {
+                frame = framenumber;
+                framenumber = random(0,3);
+                zvelocity1 = 2;
+                zvelocity2 = zvelocity1*-1;
+                xVelocityMax = 2;
+                if(random(0,4) == 4)
+                {
+                    A_CHANGEVELOCITY(frandom(-1.8, 1.8),frandom(-1.8, 1.8), frandom(2.0,3.0));
+                } else 
+                {
+                    A_CHANGEVELOCITY(frandom(-0.5, 0.5),frandom(-0.5, 0.5), frandom(0.6,2.0));
+                }
+                A_SETPITCH(random(0,360));
+                frame = framenumber;
+            }
+            loop;   
+    }
+}
+
+
+class GrassParticle : SelacoParticle {
+
+    override void tick()
+    {
+        super.tick();
+        if(gravity <= 0.8)
+        {
+            gravity+=0.005;
+        }
+    }
+
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        gravity 0.23;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Translucent";
+        XScale 0.09;
+        Yscale 0.09;
+        Bouncefactor 0.5;
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        +SelacoParticle.LifeFade;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.LifespanMutliplier   0.6, 1.0, 1.0, 2.0, 4.0;
+        SelacoParticle.RandomLife 50, 80;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.RandomRollSpeed 2, 9;
+        SelacoParticle.BounceSound "bounce/plant";
+
+        // Fire args for emitter
+        SelacoParticle.BouncesRange 2, 2;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomPitch  -40, -140;
+        SelacoParticle.RandomSpeed 0.7, 7;
+        SelacoParticle.RandomScaleY 0.915, 4.567;
+        SelacoParticle.RandomScaleX 0.915, 4.467;
+    }
+
+    states {
+        Spawn:
+            PLTS ABC 0; 
+            PLTS A -1 {
+                Frame = random(0,2);                // Pick random graphic
+            }
+            stop;
+    }
+}
+
+class GrassParticleSliding : GrassParticle
+{
+    default
+    {
+        gravity 0.63;
+        SelacoParticle.RandomAngle -60, 60;
+        SelacoParticle.RandomSpeed 0.3, 2;
+    }
+}
+
+class GrassBladeParticle : GrassParticle {
+    int frameID;
+    override bool onDeath()
+    {
+        bNoStates = false;
+        setStateLabel("FlatMode");
+        return false;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(gravity <= 0.8)
+        {
+            gravity+=0.003;
+        }
+    }
+
+    default {
+        SelacoParticle.RandomPitch  -80, -100;
+        SelacoParticle.RandomSpeed 2.3, 6;
+        xscale 0.05;
+        yscale 0.05;
+    }
+
+    states {
+        Spawn:
+            GRBL ABCDE 0; 
+            GRBL A -1 {
+                frameID = random(0,5);
+                Frame = frameID;              // Pick random graphic
+            }
+            stop;
+        FlatMode:
+            GRBL A 35 {
+                bFlatSprite = true;
+                A_SETPITCH(0);
+                A_SETROLL(0);
+                frame = frameID;
+            }
+            GRBL AAAAAAAAAA 1
+            {
+                frame = frameID;
+                A_FADEout(0.1);
+            }
+            stop;
+    }
+}
+
+class GrassBladeParticleFootstep : GrassBladeParticle
+{
+    default {
+        SelacoParticle.BounceSound "bounce/plant";
+        SelacoParticle.RandomPitch  -50, -140;
+        SelacoParticle.RandomSpeed 1.3, 4;
+        SelacoParticle.RandomLife   35  , 50;
+        xscale 0.05;
+        yscale 0.05;
+    }
+}
+class GrassBladeParticleSliding : GrassBladeParticle
+{
+    default
+    {
+        SelacoParticle.RandomSpeed 0.3, 4;
+        SelacoParticle.RandomAngle -60, 60;
+        SelacoParticle.RandomPitch  0,-20;
+        SelacoParticle.RandomSpeed  1 , 3;
+        SelacoParticle.RandomLife   35  , 50;
+    }
+}
+
+
+class WoodParticleUpward : GrassParticle
+{
+    default
+    {
+        gravity 0.8;
+        SelacoParticle.LifespanMutliplier   0.5, 0.7, 1.0, 5.0, 10.0;
+        SelacoParticle.FadeLifeRange 0, 30;
+        SelacoParticle.RandomLife 45, 75;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomSpeed 3, 15;
+        SelacoParticle.RandomPitch  -60, -120;
+        SelacoParticle.RandomRoll -30, 30;
+        SelacoParticle.RandomRollSpeed -5, 5;
+        SelacoParticle.BounceSound "bounce/wood";
+        SelacoParticle.RandomScaleX 1.215, 4.967;
+        SelacoParticle.RandomScaleY 1.205, 4.987;
+    }
+
+    states {
+        Spawn:
+            WOOD A 0;       // Precache frames (Probably unecessary)
+            WOOD A -1 {
+                Frame = random(0,3);                // Pick random graphic
+                if(random(0,1) == 1) {bxflip = true;}
+            }
+            stop;
+    }
+}
+
+class BookPaperSinglePiece : paperDecalSingle
+{
+    default
+    {
+        PaperDecalSingle.PaperSprite "BKPG";
+    }
+    states
+    {
+        index:
+            BKPG A 0;
+    }
+
+    override void postbeginPlay() {
+        Super.postbeginPlay();
+        
+        steppableSpawns = 'bookPieceLow';
+    }
+}
+
+class waterSplashParticle : SelacoParticle
+{
+
+    override void postbeginPlay()
+    {
+        if(random(0,1) == 0)
+        {
+            bxflip = true;
+        }
+        if(random(0,1) == 0)
+        {
+            byflip = true;
+        }
+    }
+
+    default
+    {
+        radius  5;
+		height  5;
+        gravity 0.3;
+        +ROLLSPRITE;
+        RenderStyle "translucent";
+		Scale 0.24;
+
+        Bouncefactor 0;
+        -SelacoParticle.NoStates;
+        +SelacoParticle.KillStop;
+        -SelacoParticle.DirFromMomentum;
+        +SelacoParticle.VelocityFade;
+        +SelacoParticle.LifeFade;
+        SelacoParticle.LifespanMutliplier   0.5 , 0.8, 1.5, 1.7, 2.2;
+        SelacoParticle.FadeVelRange     0.2 , 3;
+        SelacoParticle.FadeLifeRange    0   , 30;
+        SelacoParticle.RandomLife       14  , 55; 
+        SelacoParticle.RandomScaleX 0.215, 0.967;
+        SelacoParticle.RandomScaleY 0.205, 0.987;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.BouncesRange 0, 0;
+        // Fire args for emitter
+        SelacoParticle.RandomRoll -360, 360;
+        SelacoParticle.RandomRollSpeed -3,3;
+        SelacoParticle.RandomAngle  0 , 360;
+        SelacoParticle.RandomPitch  -80 , -115;
+        SelacoParticle.RandomSpeed  1.4   , 6.5;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            WSPH ABCDDDDDDDD 4;
+            stop;
+        death:
+			TNT1 A 0 A_SETRENDERSTYLE(1.0, STYLE_Translucent);
+			RNDR BCDEFGH 3 A_FadeOut(0.15);
+            stop;
+    }   
+}
+
+class waterSplashParticleFootstep : waterSplashParticle
+{
+    default
+    {
+        Scale 0.16;
+        SelacoParticle.RandomPitch  -50 , -130;
+        SelacoParticle.RandomSpeed  0.3   , 2;
+    }
+}
+
+class waterSplashParticleWild : waterSplashParticle
+{
+    default
+    {
+        SelacoParticle.RandomSpeed  1, 4;
+        SelacoParticle.RandomPitch  -20 , -40;
+    }
+}
+
+
+class waterSplashParticlePuff : waterSplashParticle
+{
+    default
+    {
+        SelacoParticle.RandomSpeed  0.4   , 5;
+        SelacoParticle.RandomAngle -42, 42;
+        SelacoParticle.RandomPitch  -35 , -70;
+    }
+    states 
+    {
+        Spawn:
+            TNT1 A 0;
+            WSPH ABCDDDDDDDD 4;
+        death:
+            TNT1 A 0
+            {
+                if(!(pos.z ~== floorz))
+                    destroy();
+            }
+			TNT1 A 0 A_SETRENDERSTYLE(1.0, STYLE_Translucent);
+			RNDR BCDEFGH 3 A_FadeOut(0.15);
+            stop;
+    }
+}
+
+class waterSplashParticleFishTank : waterSplashParticle
+{
+    default
+    {
+        SelacoParticle.RandomSpeed  2, 4;
+        SelacoParticle.RandomAngle -15, 15;
+        SelacoParticle.RandomPitch  -10 , 10;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            WSPH ZABCDDDDDDDD 4;
+            stop;
+        death:
+			TNT1 A 0 A_SETRENDERSTYLE(1.0, STYLE_Translucent);
+			RNDR BCDEFGH 3 A_FadeOut(0.15);
+            stop;
+    }   
+}
+
+// Emit Test.
+class EmitTest : SelacoActor
+{
+    default
+    {
+        +NOINTERACTION;
+    }
+    States
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 1
+            {
+                EmitDefinition('SparkParticleDefinition', chance: 1.0, numTries: 100, angle:random(-55,55), pitch:frandom(-15, 15), speed:frandom(0.4,4.5), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)), flags:PE_IGNORE_CHANCE);	
+            }
+            loop;
+    }
+}
+
+class MetalChunkArmor : SelacoParticle
+{
+    default
+    {
+        gravity 0.6;
+        renderStyle "Normal";
+        scale 0.07;
+        +ROLLSPRITE
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        SelacoParticle.LifespanMutliplier   0.5, 0.7, 1.0, 5.0, 10.0;
+        SelacoParticle.FadeLifeRange 0, 250;
+        SelacoParticle.RandomLife 225, 270;
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomSpeed 0, 9;
+        SelacoParticle.RandomPitch  -10, -100;
+        SelacoParticle.RandomAngle -125, 125;
+        SelacoParticle.RandomRoll -30, 30;
+        SelacoParticle.RandomRollSpeed -65, 65;
+        SelacoParticle.BounceSound "bounce/wood";
+        SelacoParticle.RandomScaleX 1.215, 4.967;
+        SelacoParticle.RandomScaleY 1.205, 4.987;
+    }
+
+    states {
+        Spawn:
+            BRPT A 0;       // Precache frames (Probably unecessary)
+            BRPT A -1 {
+                Frame = random(0,3);                // Pick random graphic
+                if(random(0,1) == 1) {bxflip = true;}
+            }
+            stop;
+    }
+}
+
+class carpetPuff : SelacoParticle {
+    default {
+        speed 5;
+        radius 5;
+		height 5;
+        +INTERPOLATEANGLES;
+        +NOINTERACTION;
+        +ROLLSPRITE;
+        gravity 0.01;
+
+        RenderStyle "Translucent";
+        XScale 0.11;
+        Yscale 0.11;
+
+        +SelacoParticle.RollStop;
+        +SelacoParticle.SleepStop;
+        -SelacoParticle.LifeFade;
+        +SelacoParticle.LifeScale;
+        SelacoParticle.ScaleLifeRange 0, 1;
+        +SelacoParticle.NoStates;       // Since we only have one graphic state, don't tick the state machine
+        SelacoParticle.LifespanMutliplier   1, 1, 1, 1, 1;
+        SelacoParticle.RandomLife 20, 25;
+        SelacoParticle.StopSpeed 2;
+
+        SelacoParticle.Drag 0.1; 
+
+        // Fire args for emitter
+        SelacoParticle.RandomRoll 0,360;
+        SelacoParticle.RandomAngle -75, 75;
+        SelacoParticle.RandomPitch -30, -150;
+        SelacoParticle.RandomSpeed 1, 6;
+        SelacoParticle.RandomScaleY 1, 2;
+        SelacoParticle.RandomScaleX 1, 2;
+    }
+    states {
+        Spawn:
+            DUST ABCDE 0;       // Precache frames (Probably unecessary)
+            DUST A -1 {
+                Frame = random(0,4);                // Pick random graphic
+            }
+            stop;
+    }
+}
+
+class carpetPuffFastShort : carpetPuff {
+    default {
+        SelacoParticle.RandomSpeed 1, 12;    
+    }
+}
+
+class carpetBulletPuff : carpetPuff {
+    default {
+        gravity 0.02;
+        XScale 0.13;
+        Yscale 0.07;
+        // Fire args for emitter
+        SelacoParticle.Drag 0.085; 
+        SelacoParticle.RandomRoll 0, 360;
+        SelacoParticle.LifespanMutliplier   1, 1, 1, 1.3, 2;
+        SelacoParticle.RandomRollSpeed -15, 15;
+        SelacoParticle.RandomAngle -75, 75;
+        SelacoParticle.RandomPitch -40, -140;
+        SelacoParticle.RandomLife 45, 100;
+        SelacoParticle.RandomSpeed 1, 15;
+        SelacoParticle.RandomScaleY 1, 2;
+        SelacoParticle.RandomScaleX 1, 2;
+    }
+    states {
+        Spawn:
+            CARP ABCDE 0;       // Precache frames (Probably unecessary)
+            CARP A -1 {
+                Frame = random(0,6);                // Pick random graphic
+            }
+            stop;
+    }
+}
+
+class ClothPuffWall : carpetBulletPuff {
+    default {
+        XScale 0.10;
+        Yscale 0.05;
+        SelacoParticle.Drag 0.045; 
+        SelacoParticle.RandomAngle -45, 45;
+        SelacoParticle.RandomPitch -45, 45;
+        SelacoParticle.RandomSpeed 1, 6;
+    }
+}
+
+class carpetBulletPuffWild : carpetBulletPuff {
+    default {
+        SelacoParticle.RandomPitch -20, -160;
+    }
+}

@@ -1,0 +1,198 @@
+class EarthquakeHandler : EventHandler
+{
+
+	// Initialize the Earthquake based on ACS input
+	static void startEarthquake(int sourceTID, int intensity = 1, int duration = 35, int radius = 500)
+	{
+		// NOTHING FOR NOW
+	}
+	
+	static void launchEarthquake(int sourceTID, int intensity = 1, int duration = 35, int radius = 500) 
+	{
+		Array<SelacoActor> victims;
+		actor quakeSpawnSpot, quake;
+		ThinkerIterator it = ThinkerIterator.Create("actor");
+		Actor object = Actor(it.Next());
+
+		// No player is no shake
+		if(!players[consolePlayer].mo)
+		{
+			return;
+		}
+
+		// Find the source of the quake
+		for (; object; object = Actor(it.Next())) 
+		{
+			if(object.tid != sourceTID)
+				continue;
+			quakeSpawnSpot = object;
+		}
+
+		if(!quakeSpawnSpot)
+		{
+			return;
+		}
+
+		ThinkerIterator it2 = ThinkerIterator.Create("SelacoActor");
+		SelacoActor victim = SelacoActor(it2.Next());
+
+		// Find all victims that we want to shake around.
+		for (; victim; victim = SelacoActor(it2.Next())) 
+		{
+			if(victim.bDontThrust || victim.bNoBlockmap || victim.bNoInteraction || victim is "SelacoItem" || quakeSpawnSpot.Distance2DSquared(victim) >= radius*radius || victim.bStandStill || victim is "DecalLeader")
+				continue;
+
+			victims.push(victim);
+		}
+		
+		// Create an Earthquake instance and feed the information
+		quake = players[consolePlayer].mo.spawn("EarthquakeInstance", quakeSpawnSpot.pos);
+		if(quake)
+		{
+			quake.master = players[consolePlayer].mo;
+			console.printf("Going to shake %d actors", victims.size());
+			EarthquakeInstance quakeIns = EarthquakeInstance(quake);
+			if(quakeIns)
+			{
+				quakeIns.earthquakeDuration = duration;
+				quakeIns.earthquakeIntensity = intensity;
+				quakeIns.earthquakeRadius = radius;
+				quakeIns.victims.copy(victims);
+			}
+		}
+	}
+
+    static EarthquakeHandler Instance() {
+        return EarthquakeHandler(EventHandler.Find('EarthquakeHandler'));
+    }
+}
+
+class EarthquakeInstance : actor 
+{
+
+	const PUFF_CHANCE = 8; // Per earthquake Tick
+	const BREAK_CHANCE = 0.5; // Per earthquake Tick, only applies to small props with low HP
+
+	int maxDuration;
+	int earthquakeDuration;
+	int earthquakeIntensity;
+	int earthquakeRadius;
+	Array<SelacoActor> victims;
+
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		maxDuration = earthquakeDuration;
+	}
+
+	override void tick()
+	{
+		super.tick();
+		if (!earthquakeDuration)
+		{
+			destroy();
+			return;
+		}
+		if(master)
+		{
+			Warp(master, 0, 0, 0, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION );
+		}
+
+		A_SETANGLE(angle+random(20,25));
+
+		// Calculate scaling factor based on remaining duration
+		float scalingFactor = pow(float(earthquakeDuration) / float(maxDuration), 2);
+		float angleOffsetX = cos(angle);
+		float angleOffsetY = sin(angle);		
+		if(level.time % random(1,4) == 0 || earthquakeDuration == maxDuration)
+		{
+			// Shake all received actors
+			for (int x = 0; x < victims.size(); x++)
+			{
+				if (victims[x])
+				{
+					SelacoActor victim = victims[x];	
+					
+					// Hard to sleep during an earthquake.
+					victim.wake();
+
+					// Factor in actor mass to make heavy objects less shakey.
+					float massFactor = clamp(1.0 - float(victim.mass - 100) / 600.0, 0.1, 1.0);
+
+					float shakeStrength = earthquakeIntensity * scalingFactor;
+					shakeStrength *= massFactor;
+
+					float verticalStrength;
+					
+					// The first shake is special, because it does special thing!
+					if(earthquakeDuration == maxDuration)
+					{
+
+						// Bigger shake for the first one
+						verticalStrength*=shakeStrength*2;
+						victim.vel.z += frandom(0, verticalStrength);
+
+						// Force nearby enemies to stumble, if possible
+						if(victim.target && victim is "EnemySoldier" && !enemySoldier(victim).bNoPain && victim.health > 0)
+						{
+							let s = EnemySoldier(victim).findState('Pain.DoStumble');
+							if(s) { 
+								victim.setStateLabel('Pain.DoStumble');
+								victim.vel.x += frandom(-1 * shakeStrength*4, shakeStrength*4);
+								victim.vel.y += frandom(-1 * shakeStrength*4, shakeStrength*4);
+							}
+							continue;
+						}
+					}
+			
+
+					// Actors are very slidey by default, adding this to make them appear more weighty during a quake
+					victim.vel.x *= 0.1;
+					victim.vel.y *= 0.1;
+
+					if (random(0, 100) <= PUFF_CHANCE)
+					{
+						victim.A_SPAWNITEMEX("BodyImpactSmokeSmallDense");
+					}
+					if(victim.radius <= 10 && victim.health < 25 && victim is "DecorationObject" && frandom(0,100) <= BREAK_CHANCE)
+					{
+						victim.die(victim, victim);
+					}
+					victim.A_SETANGLE(victim.angle + (random(-1*shakeStrength, shakeStrength)*2));
+					victim.vel.x += frandom(-1 * shakeStrength, shakeStrength) * angleOffsetX;
+					victim.vel.y += frandom(-1 * shakeStrength, shakeStrength) * angleOffsetY;
+
+					// Slow down at the end to prevent awkward sliding
+					if (earthquakeDuration <= 3)
+					{
+						victim.vel.x *= 0.04;
+						victim.vel.y *= 0.04;
+					}
+				}
+			}
+		}
+		earthquakeDuration--;
+	}
+
+	// TIL: GZDoom has no Pow?
+	float pow(float base, float exponent) {
+		float result = 1.0;
+
+		for (int i = 0; i < exponent; ++i) {
+			result *= base;
+		}
+		return result;
+	}
+
+	default
+	{
+		+NOINTERACTION;
+	}
+
+	states
+	{
+		Spawn:
+			TNT1 A -1;
+			stop;
+	}
+}

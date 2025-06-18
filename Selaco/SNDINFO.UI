@@ -1,0 +1,157 @@
+$alias menu/advance menu/choose
+$volume menu/activate 0           // Block standard menu sound behaviour, using volume now instead because NOTASND would try to load every time a menu came up
+//menu/activate       NOTASND     // Block standard menu sound behaviour
+
+menu/frontfade      MENUFAD     // Played when fading from static non-game screen to menu
+menu/backfade       MENUBAK     // Played when returning to static non-game screen
+menu/activate2      "SOUNDS/UI/MENU/OpenMenu.ogg"     // Played when opening menu from in game
+
+impact/solidglass   GLASIMPA
+impact/pool1        POOLCLK1
+impact/pool2        POOLCLK2
+$random impact/pool { impact/pool1 impact/pool2 }
+
+impact/poolstick    POOLSTIK
+
+impact/funball      FUNBALL
+
+hockey/goal         HOCKGOAL
+ui/loadgame         loadgame
+ui/ugmopen 		    "SOUNDS/UI/WeaponsUpgrades/UGM_Open.ogg"
+ui/ugmdialogc 		"SOUNDS/UI/WeaponsUpgrades/UGM_DialogueCancel.ogg"
+ui/ugmdialogo 		"SOUNDS/UI/WeaponsUpgrades/UGM_DialogueOpen.ogg"
+ui/ugmhover1 		"SOUNDS/UI/WeaponsUpgrades/UGM_Hover_Middle.ogg"
+ui/ugmhover2 		"SOUNDS/UI/WeaponsUpgrades/UGM_Hover_Side.ogg"
+ui/ugmbuyammo 		"SOUNDS/UI/WeaponsUpgrades/UGM_PurchaseAmmo.ogg"
+ui/ugmbuyupgrade 	"SOUNDS/UI/WeaponsUpgrades/UGM_PurchaseUpgrade.ogg"
+ui/ugmweaponsel 	"SOUNDS/UI/WeaponsUpgrades/UGM_WpnSelect.ogg"
+
+ui/ugmAltOpn        "SOUNDS/UI/WeaponsUpgrades/UGM_AltFireDropdown.ogg"
+$volume ui/ugmAltOpn 0.8
+ui/ugmAltCan        "SOUNDS/UI/WeaponsUpgrades/UGM_AltFireCancel.ogg"
+ui/ugmAltSel        "SOUNDS/UI/WeaponsUpgrades/UGM_AltFireChange.ogg"
+
+ui/loadfade LOADFADE
+ui/oxygenwarning   OXYWARN
+UI/OXYGENPAIN   OXYHURT
+ui/getTutorialBig   "SOUNDS/UI/tutorialMessageIncoming.ogg"
+ui/openTutorialBig  "SOUNDS/UI/TutorialMessageBig.ogg" 
+ui/closeTutorialBig "SOUNDS/UI/TutorialBigConfirm.ogg"
+ui/hoverTutorialBig "SOUNDS/UI/menu/MouseOver.ogg"
+
+ui/choose2			"SOUNDS/UI/MENU/Choose.ogg"
+ui/cursor2			"SOUNDS/UI/MENU/MouseOver.ogg"
+ui/playhover        "SOUNDS/UI/PlayHover.ogg"
+
+ui/startgame        "SOUNDS/UI/Menu/GameStart.ogg"
+
+ui/openTutorialInvasion     "SOUNDS/UI/BadNews.ogg"
+ui/closeTutorialInvasion    "SOUNDS/UI/BadNewsOver.ogg"
+ui/superbadnews             "SOUNDS/UI/SuperBadNews.ogg"
+ui/stealthkill  SILEKILL
+UI/QUICKSAVE    QCKSAVE
+UI/DENYQUICKSAVE    QCKSDENY
+ui/gwyn/hover1  "SOUNDS/UI/GWYN/GWYNHOVER1.ogg"
+ui/gwyn/hover2  "SOUNDS/UI/GWYN/GWYNHOVER2.ogg"
+ui/gwyn/use	    "SOUNDS/UI/GWYN/GWYNENTER.ogg"
+ui/gwyn/leave	"SOUNDS/UI/GWYN/GWYNLEAVE.ogg"
+
+$attenuation ui/gwyn/use 0.6
+
+randomizer/rarekill RAREKILL
+randomizer/tierincrease TIERINCR
+ui/playstyle/click  	"SOUNDS/UI/Playstyle/PSCLICK.ogg"
+ui/playstyle/hover 	    "SOUNDS/UI/Playstyle/PSHOVER.ogg"
+ui/playstyle/select 	"SOUNDS/UI/Playstyle/PSSELECT.ogg"
+ui/playstyle/PSCHECK 	"SOUNDS/UI/Playstyle/PSCHECK.ogg"
+
+
+codex/open 	        "SOUNDS/UI/Codex/CodexOpen.ogg"
+codex/areaClick 	"SOUNDS/UI/Codex/CodexClick.ogg"
+codex/emailClick 	"SOUNDS/UI/Codex/CodexEmailClick.ogg"
+codex/areaHover 	"SOUNDS/UI/Codex/CodexAreaHover.ogg"
+codex/emailHover 	"SOUNDS/UI/Codex/CodexEmailHover.ogg"
+codex/close         "SOUNDS/UI/Codex/CodexClose.ogg"
+codex/closeWindow   "SOUNDS/UI/Codex/CodexCloseWindow.ogg"
+codex/tabClick      "SOUNDS/UI/Codex/CodexTabClick.ogg"
+codex/tabHover      "SOUNDS/UI/Codex/CodexTabHover.ogg"
+codex/text          "SOUNDS/UI/Codex/CodexTextLoop.ogg"
+codex/clearunread   "PSCHECK"
+
+ui/burgerflipper/flip   BURFLP01
+ui/burgerflipper/buy    BURFLP02
+ui/burgerflipper/upgrade        BBUPGRAD
+ui/burgerflipper/flash          VACCNSLP
+ui/burgerflipper/adfree         BBADFREE
+ui/burgerflipper/achievement    BBACHIEV
+ui/burgerflipper/buyskin        BBSKINBY
+ui/burgerflipper/gold           BBGOLD
+ui/burgerflipper/skin           BBSKIN
+ui/burgerflipper/tab            BBTAB
+ui/burgerflipper/tabclose       BBTABCLO
+
+weaponwheel/open		WPWHLOP
+weaponwheel/close		WPWHLCL
+weaponwheel/select		WPWHLSE
+weaponwheel/selection	WETFART
+weaponwheel/hover		WPWHLHV
+weaponwheel/cycle		WPNCYCL
+
+// TODO: Set to a proper sound effect
+ui/newweapon           WEAPNOTI
+
+UI/GASMASK/EQUIP    GASEQUIP
+
+// To be replaced
+achievement/complete   ACHIEVCP
+
+BURB BURP
+
+// SPACE BRO!
+bro/menu1       BROMENU1
+bro/menu2       BROMENU2
+bro/boost       BROBOOST
+bro/thrust      BROTHRST
+bro/laser       BROLASFR
+bro/laserhit    BROASLAS
+bro/respawn     BRORESPN
+bro/gameover    BROGMOVR
+bro/newgame     BROGMSTR
+bro/assexplode  BROASEX1
+bro/assexplode2 BROASEX2
+bro/asshitearth BROASERT
+bro/asshitass   BROASSAS
+bro/shiphit     BROHITSP
+bro/shipexplode BROASSHP
+bro/shutup      BROQUIET
+bro/music       BROMUSIC
+bro/alienfire   BROALFIR
+bro/button1     BROBUTT1
+bro/button2     BROBUTT2
+bro/button3     BROBUTT3
+bro/joy1        BROJOYS1
+bro/joy2        BROJOYS2
+bro/joy3        BROJOYS3
+bro/joy4        BROJOYS4
+bro/joy5        BROJOYS5
+bro/joy6        BROJOYS6
+bro/joy7        BROJOYS7
+
+$limit  ui/choose2          1
+$limit  ui/cursor2          1
+
+$volume ui/playhover        0.45
+$volume ui/ugmopen 		    0.7
+$volume ui/ugmdialogc 		0.7
+$volume ui/ugmdialogo 		0.7
+$volume ui/ugmhover1 		0.7
+$volume ui/ugmhover2 		0.7
+$volume ui/ugmbuyammo 		0.7
+$volume ui/ugmweaponsel 	0.7
+$volume ui/ugmbuyupgrade 	0.45
+$volume ui/startgame        0.8
+
+$volume ui/ugmAltSel        0.75
+
+$volume codex/close         1
+

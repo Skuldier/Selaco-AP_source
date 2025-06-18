@@ -1,0 +1,145 @@
+// SELACO BLUE - Used for headers.
+OMNIBLUE HI
+{
+	#000000 #b0c6f7
+
+Flat:
+	#b0c6f7
+}
+
+// SMF Purple - Used for headers.
+SMF
+{
+	#000000 #905EC7
+Flat:
+	#905EC7
+}
+
+// Narrative Green - Used for headers.
+SOFT
+{
+	#000000 #7CCCA5
+Flat:
+	#7CCCA5
+}
+
+// Blueprint Highlight
+HI2
+{
+	#000000 #77C7FD
+	
+Flat:
+	#77C7FD
+}
+
+// Gas mask highlight
+HI3
+{
+	#000000 #E6BA40
+
+Flat:
+		#E6BA40
+}
+
+// Destructive Red
+DEL
+{
+	#000000 #E34646
+Flat:
+	#E34646
+}
+
+// Warning Red
+WARNR
+{
+	#000000 #FF4747
+Flat:
+	#FF4747
+}
+
+INVASION {
+	#000000 #B60000
+Flat:
+	#B60000
+}
+
+INVASION2 {
+	#000000  #7E8287
+	//#F6BD60
+Flat:
+	#7E8287
+}
+
+// Accent colors for PDA text
+PDASUB1
+{
+	#000000 #B8BFD1
+
+	Flat:
+		#B8BFD1
+}
+
+// Map outline color
+MAPOUT
+{
+	#1f232f	#1f232f 0 63
+	#333333 #FFFFFF 64 255
+}
+
+// Menu Highlight
+MENUHIGHLIGHT
+{
+	#000000 #B4B4FF
+	Flat:
+		#B4B4FF
+}
+
+// Currency, Selver Gold/Yellow
+SELVER SLV
+{
+	#000000 #FAD364
+	Flat:
+		#FAD364
+}
+
+// GWYN Colors
+GWYNPINK PINK
+{
+	#00213f	#00213f	0 63
+	#b8629d #ffb7e8 64 255
+}
+
+GWYNBLUE SOFTBLUE
+{
+	#00213f	#00213f	0 63
+	#196d94 #60cdff 64 255
+}
+
+GWYNBLU2
+{
+	#000000 #BBFFE3
+	Flat:
+		#BBFFE3
+}
+
+GWYNBLU3
+{
+	#000000 #CCD6D2
+	Flat:
+		#CCD6D2
+}
+
+// Green Outline, White Text
+GRNWHT
+{
+	#009F48	#009F48	0 63
+	#FFFFFF #FFFFFF 64 255
+}
+
+// Paint Brush Action Color
+PAINT
+{
+	#000000 #FE328A
+	Flat:
+		#FE328A
+}

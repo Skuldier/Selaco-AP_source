@@ -1,0 +1,199 @@
+mixin class AI_StrafeNodeSystem {
+    actor strafeNode;
+    array<actor> strafeNodes;
+    bool nodeSuccess;
+
+    enum DIRECTION_CHECKS {
+        STF_RIGHT,
+        STF_LEFT,
+    }
+
+    // Kill all available Strafe Nodes since they are no longer needed. 
+	void killStrafeNodes() {
+        if(strafenodes.size() > 0) {
+            for(int x=0;x<strafeNodes.size();x++) {
+                if(strafeNodes[x]) {
+                    strafeNodes[x].destroy();
+                }
+            }
+    		strafeNodes.clear();
+        }
+	}
+
+    const NODE_X_SPACING = 40;
+    const NODE_Y_POSITION = 25;
+
+     // Create Node Network for strafing
+    void createStrafeNodes(DIRECTION_CHECKS direction, int amount = 5) {
+        killStrafeNodes();
+        for(int nodeIndex = 0; nodeIndex < amount; nodeIndex++) {
+            int positionIndex = nodeIndex;
+            if(direction == STF_RIGHT ) {
+                positionIndex = positionIndex*-1;
+            }
+
+            int nodeXPosition = NODE_X_SPACING * positionIndex;
+            [nodeSuccess, strafeNode] = A_SpawnItemEx("AI_StrafeNode", 0, NODE_X_SPACING*positionIndex, NODE_Y_POSITION);
+            AI_StrafeNode strafeNodeProperties = AI_StrafeNode(strafeNode);
+            strafeNodeProperties.master = self;
+            
+            // Stop this process if the strafenode is outside of the enemiy's view
+            if(!checkSight(strafenode))
+            {
+                strafenode.destroy();
+                break;
+            } else {
+                // Check position for strafe node, and remove it if it is inside something we cannot strafe through
+                if(!checkPosition(strafeNode.pos.xy, true)) {
+                    let bm = BlockingMobj;
+                    if(bm && bm.bSolid && bm.radius > 7 && bm.height > maxStepHeight && !bm.bPUSHABLE) {
+                        strafenode.destroy();
+                        break;
+                    }
+                }
+            }
+
+            // Ensure strafe node shares target with soldier
+            if(self.target) {
+                strafeNode.target = self.target;
+            }
+
+            // Add strafenode to Array so we can gain states
+            strafeNodes.push(strafeNode);
+        }
+    }
+
+
+    bool smartReloadCover() {
+        let soldier = EnemySoldier(self);
+        if(soldier)
+        {
+            return soldier.bAllowSmartReloading && currentAmmo < 10;
+        }
+        return false;
+    }
+
+    bool lowHealthCover() {
+        return health < 80;
+    }
+
+
+    const DISTANCE_TO_CHECK = 55; // How close must the AI be to the nodes to read its data?
+    
+    // Validate strafe. Return false when all strafe nodes are invalid.
+    bool validateStrafe() 
+    {
+        bool lowHealth = lowHealthCover();
+        bool smartReload = smartReloadCover();
+        
+        for (int i = 0; i < strafeNodes.size(); i++) 
+        {
+            let currentNode = AI_StrafeNode(strafeNodes[i]);
+            if (currentNode) 
+            {
+                float distance = Distance2D(currentNode);
+                if (distance < DISTANCE_TO_CHECK) 
+                {
+                    bool validNeighbor = false;
+                    
+                    if (i == strafeNodes.size()-1) 
+                    {
+                        // If it's the last node, check if it can see the player directly
+                        if (!currentNode.getTargetSpotted()) 
+                        {
+                            //SetStateLabel("ReloadWeapon");
+                            return false;
+                        }
+                    }
+                    else 
+                    {
+                        for (int j = i+1; j < strafeNodes.size(); j++) 
+                        {
+                            let neighborNode = AI_StrafeNode(strafeNodes[j]);
+                            
+                            // If the next node can see the player, the node is valid.
+                            if (neighborNode && neighborNode.getTargetSpotted()) 
+                            {
+                                validNeighbor = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!validNeighbor) 
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+
+    bool isNodeReachable(actor node1, actor node2)
+    {
+        if(node1.floorz - node2.floorz > maxStepHeight)
+        {
+            return false;
+        } 
+        return true;
+    }
+
+}
+
+
+
+class AI_StrafeNode : AINodes {
+    default
+    {
+        RenderStyle "normal";
+        radius 16;
+    }
+
+	int sequenceID; // Used to detect the order in which nodes are spawned.
+	actor master;
+	int ticks;
+	bool targetSpotted;
+
+	bool getTargetSpotted() {
+		return targetSpotted;
+	}
+
+    override void beginPlay()
+    {
+        super.beginPlay();
+		if(target && CheckSight(target)) {
+			targetSpotted = true;
+			frame = 3;
+		} else {
+			targetSpotted = false;
+			frame = 2;
+		}
+    }
+
+	override void tick() {
+		// Check if the StrafeNode can see the player. They are only valid is they can see them.
+        if(level.time % random(1,3) == 0)
+        {
+            if(CheckSight(target)) {
+                targetSpotted = true;
+                frame = 3;
+            } else {
+                targetSpotted = false;
+                frame = 2;
+            }
+        }
+		super.tick();
+	}
+
+	states {
+		indexer:
+			//DBGA A 0;
+            TNT1 A 0;
+		Spawn:
+            TNT1 A 90;
+		    //DBGA A 90;
+			stop;
+	}
+}

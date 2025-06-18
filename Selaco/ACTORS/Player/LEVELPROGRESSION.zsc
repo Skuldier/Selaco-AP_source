@@ -1,0 +1,13 @@
+// Dear modder or whoever might be reading this,
+//
+// Yes, we had to hardcode these values for the sake of this demo because we could not get it ready in time.
+// Dont blame us, blame Jerry. He uhh... He did it! This is all his fault.
+//
+// Thanks Jerry!
+
+class OM01SecretsFound      : Inventory     {default {  inventory.maxamount 21; }	   }
+class OM01DatapadsFound     : Inventory     {default {  inventory.maxamount 8;  }	   }
+class OM01TradingCardsFound : Inventory     {default {  inventory.maxamount 2;  }	   }
+class OM01UpgradesFound     : Inventory     {default {  inventory.maxamount 3;  }	   }
+class OM01CabinetCardsFound : Inventory     {default {  inventory.maxamount 3;  }	   }
+class OM01CabinetsUnlocked  : Inventory     {default {  inventory.maxamount 3;  }	   }

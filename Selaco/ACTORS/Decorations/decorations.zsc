@@ -1,0 +1,2384 @@
+class DrawingGenerator : actor {
+	static const String PatreonDrawing[] =
+		{
+			"Drawing1", "Drawing2", "Drawing3",
+			"Drawing4", "Drawing5", "Drawing6",
+            "Drawing7", "Drawing8", "Drawing9",
+            "Drawing10", "Drawing11", "Drawing12",
+            "Drawing13", "Drawing14", "Drawing15",
+            "Drawing16", "Drawing17", "Drawing18",
+            "Drawing19", "Drawing20", "Drawing21",
+            "Drawing22", "Drawing23", "Drawing24",
+            "Drawing25", "Drawing26", "Drawing27",
+            "Drawing28", "Drawing29", "Drawing30",
+            "Drawing31", "Drawing32", "Drawing33",
+            "Drawing34", "Drawing35", "Drawing36",
+            "Drawing37", "Drawing38", "Drawing39",
+            "Drawing40", "Drawing41", "Drawing42",
+            "Drawing43", "Drawing44", "Drawing45",
+            "Drawing46", "Drawing47", "Drawing48",
+            "Drawing49", "Drawing50", "Drawing51",
+            "Drawing52", "Drawing53", "Drawing54",
+            "Drawing55", "Drawing56", "Drawing57",
+            "Drawing58", "Drawing59", "Drawing60",
+            "Drawing61"
+	};	
+
+	string drawingToSpawn;
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		drawingToSpawn = PatreonDrawing[random(0, PatreonDrawing.size()-1)];
+        A_SPAWNITEMEX(DrawingToSpawn);
+	}
+
+    states {
+        spawn:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+class GrassPatch : Actor {
+    override void BeginPlay() {
+        frameID = random(0,3);
+        super.BeginPlay();
+    }
+
+    // Instead of using SelacoActor to check distances on grass, just sleep it forever.
+    override void Tick() {
+        Super.Tick();
+        SleepIndefinite();
+    }
+
+    int frameID;
+    default {
+        -FLATSPRITE
+        -WALLSPRITE
+        +NOINTERACTION
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            GRAS A -1 {
+                A_SetScale(frandom(1,1.2));
+                A_SetAngle(random(0,360));
+                frame = frameID;
+            }
+            stop;
+    }
+}
+
+class GrassCluster1 : GrassPatchNoRandom
+{
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        frameID = args[0];
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            GRAS A -1 {
+                frame = frameID;
+            }
+            stop;
+    }
+}
+
+
+class GrassCluster2 : GrassCluster1
+{
+
+}
+class GrassCluster3 : GrassCluster1
+{
+
+}
+class GrassCluster4: GrassCluster1
+{
+
+}
+class GrassCluster5: GrassCluster1
+{
+
+}
+class GrassPatchNoRandom : GrassPatch {
+    override void PostBeginPlay() {
+        frameID = random(0,3);
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            GRAS A -1 {
+                A_SetScale(frandom(1,1.2));
+                frame = frameID;
+            }
+            stop;
+    }
+}
+
+class GrassPatchTall : GrassPatch {
+    override void PostBeginPlay() {
+        A_SetAngle(angle + random(-20,20));
+        A_SetScale(frandom(0.7,1.1));
+        frameID = random(0,1);
+    }
+
+    states {
+        Spawn:
+            TLGR A -1 {
+                frame = frameID;
+            }
+            stop;
+    }
+}
+
+class PaperBinFull : Interactable {
+
+    const TOTAL_TRASH = 8;
+    int trashThrowTotal;
+    default {
+        tag "$OBJECT_PIECEOFTRASH";
+        +BloodSplatter;
+        +UseSpecial;
+        +Shootable;
+        +Pushable;
+        +SELACOACTOR.thruplayers;
+        +SelacoActor.AllowRandomizerReplacement;
+        +SOLID;
+        Painchance 255;
+        SelacoActor.UseTag "$INTERACT_REMOVE";
+        activation THINGSPEC_SWITCH;
+        height 17;
+        friction 0.3;
+    	Bloodtype "PaperChunk_UP", "PaperChunk_UP", "PaperChunk_UP";
+        scale 0.95;
+        -SelacoActor.WakeNearPlayer;
+        +SelacoActor.SleepWhenIdle;
+    }
+    states {
+        Precache:
+            PBIN A 0;
+            stop;
+        active:
+        inactive:
+            TNT1 A 0
+            {
+                trashThrowTotal++;
+                A_SPAWNITEMEX("junk4", 0, 0, 10, frandom(0.6,1.3), 0, 5, angle:random(0,360));
+                A_PlaySound("dest/PAPER", CHAN_AUTO, pitch:1.15);
+                if(trashThrowTotal == TOTAL_TRASH)
+                {
+                    A_SpawnItemEx("PaperBinEmpty");
+                    destroy();
+                }    
+            }
+        spawn:
+            TNT1 A 0;
+            PBIN A -1;
+            stop;
+        Death:
+        pain.shotgun:
+        Pain.SniperBullet:	
+        pain.explosiveimpact:
+        pain.MagnumBullet:
+		    TNT1 AAA 0 A_SpawnProjectile ("PaperDustEffect", frandom(5,15), 0, random (0, 10), 2, random (0, 10));
+		    TNT1 A 0 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6);
+            TNT1 AA 0 A_SpawnItemEx("PaperBinPiece1", frandom(-2, 2), frandom(-2, 2), frandom(2, 4), frandom(-2, 2), frandom(-2, 2), frandom(1, 4));
+            TNT1 AA 0 A_SpawnItemEx("PaperBinPiece2", frandom(-2, 2), frandom(-2, 2), frandom(2, 4)); 
+            stop;   
+        pain:
+		    TNT1 A 0 A_SpawnProjectile ("PAPERSMOKE", 5, 0, random (0, 10), 2, random (0, 10));
+            TNT1 AAAAA 0 A_SpawnItemEx("JUNK4", frandom(-0.4,0.4), frandom(-0.4,0.4), frandom(15,23), frandom(-2,2), frandom(-2,2), frandom(3,5));
+		    TNT1 A 0 A_PLAYSOUND("dest/paper", CHAN_AUTO, 0.6);
+            TNT1 A 0 A_SpawnItemEx("PaperBinBent");
+            stop;
+    }
+}
+
+class PaperBinEmpty : PaperBinFull {
+    default
+    {
+        activation THINGSPEC_DEFAULT;
+        -USESPECIAL;
+    	Bloodtype "BulletImpactEffectMetalSmall", "BulletImpactEffectMetalSmall", "BulletImpactEffectMetalSmall";
+    }
+    states {
+        spawn:
+            VOXE L -1;
+            stop;
+        pain.shotgun:
+        Pain.SniperBullet:	
+        pain.explosiveimpact:
+        pain.MagnumBullet: 
+        pain:
+            TNT1 A 0 A_SpawnItemEx("PaperBinBent");
+            stop;
+            
+    }
+}
+
+class PaperBinBent : PaperBinEmpty {
+    default {
+        BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+    }
+    states {
+        spawn:
+            PBIN A -1;
+            stop;
+        pain:
+            TNT1 AA 0 A_SpawnItemEx("PaperBinPiece1", frandom(-2, 2), frandom(-2, 2), frandom(2, 4), frandom(-2, 2), frandom(-2, 2), frandom(1, 4));
+            TNT1 AA 0 A_SpawnItemEx("PaperBinPiece2", frandom(-2, 2), frandom(-2, 2), frandom(2, 4)); 
+            stop;   
+    }
+}
+
+
+class TrashBin_Eyes : SelacoActor {
+    default {
+        scale 0.6;
+        +nogravity;
+    }
+    states {
+        spawn:
+            VOXE L 2 BRIGHT;
+            stop;
+    }
+}
+
+
+class TrashBin_close : DecorationObject {
+
+    const TORNADO_DURATION = 90*TICRATE;
+    int tornadoTicks;
+    int trashCount;
+    
+    actor trashActor;
+    bool trashSuccess;
+
+    default {
+        height 37;
+        +Bloodsplatter;
+        +solid;
+        -NOBLOOD;
+        +NOBLOODDECALS
+        friction 0.8;
+        scale 1.0;
+        mass 100;
+        SelacoActor.collisionSound "PUSH/BIN";
+    	BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        tag "$OBJECT_TRASHBIN";
+        SelacoActor.UseTag "$INTERACT_OPEN";
+    }
+    States {
+        spawn:
+            VOXE L 0;
+            VOXE L 1; //A_SpawnItemEx("TrashBin_Eyes");
+            loop;
+        Active:
+            TNT1 A 0 {
+                bSolid = false;
+                A_PLAYSOUND("trashbin/open");
+                [trashSuccess, trashActor] = A_SpawnItemEx("TrashBin_open");
+                if(trashActor) {
+                    TrashBin_open(trashActor).trashCount = trashCount;
+                }
+            }
+            stop;
+        Pain:
+        Death:
+            TNT1 A 0 {
+                bNoPain = true;
+                bSolid = false;
+                bUseSpecial = false;
+                activationType = THINGSPEC_DEFAULT;
+                A_PlaySound("BIN/DESTROY",CHAN_AUTO, 0.9, 0, 0.9, false, pitch:frandom(0.9,1.2));
+                A_SpawnItemEx("Trashbin_Broken", 6, 0, 0, 2);
+            }
+            TNT1 AAAA 1 
+            {
+                for(int x=0;x<12;x++)
+                {
+                    A_SPAWNITEMEX("JunkLauncher", frandom(-2,2), frandom(-2,2), frandom(30,49), frandom(1,3), frandom(1,3), frandom(1,2.5), random(0,360), 0, 180);
+                }
+            }
+            stop;
+        // A bug that we fixed, but Twitter really loved it, so I recreated it! 
+        TornadoStart:
+        // Initiate
+            VOXE L 45
+            {
+                bBuddha = true;
+                bUseSpecial = false;
+                activationType = THINGSPEC_DEFAULT;
+            }
+            TNT1 A 0
+            {
+                A_PLAYSOUND("weaponwheel/selection", CHAN_AUTO, 0.6, 0, 0.3, pitch:0.4);
+            }
+        // GO INSANEEEEEEEEEEEE!!!!
+        TornadoMode:
+            TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("JunkLauncher2", frandom(-2,2), frandom(-2,2), frandom(20,27), random(1,3), random(1,3), 2, random(0,360), 0, 180);
+            TNT1 A 0 A_CHANGEVELOCITY(frandom(-25,25), frandom(-19,19), frandom(-4,4), CVF_RELATIVE);
+            TNT1 A 0 A_SETANGLE(angle+random(-6,6));
+            VOXE L 1
+            {
+                tornadoTicks++;
+                if(tornadoTicks == 60)
+                {
+                    LevelEventHandler leh = LevelEventHandler.instance();
+                    leh.SetAchievement("GAME_TRASH");
+                }
+                if(tornadoTicks >= TORNADO_DURATION)
+                {
+                    A_SPAWNITEMEX("PrettyExplosionParticleRain");
+                    destroy();
+                }
+            }
+            loop;
+    }
+}
+
+class TrashBin_open : TrashBin_close {
+    default 
+    {
+        SelacoActor.UseTag "$INTERACT_CLOSE";
+        +SELACOACTOR.PreventSleep;  // Don't auto sleep, we still need to close when the time is up
+    }
+
+    States {
+        spawn:
+            TNT1 A 0;
+            VOXE LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 5 {
+                if (CheckProximity("ItemGotThrownIndumpster", 100)) {
+                    trashCount++;
+                    console.printf("Item received.");
+                    setStateLabel("ItemThrown");
+                }
+            }
+            TNT1 A 0 A_PlaySound("trashbin/beep");
+            VOXE L 60;
+        Active:
+            TNT1 A 0 {
+                bSolid = false;
+                A_PLAYSOUND("trashbin/close");
+                [trashSuccess, trashActor] = A_SpawnItemEx("TrashBin_close");
+                if(trashActor)
+                {
+                    TrashBin_close(trashActor).trashCount = trashCount;
+                }
+            }
+            stop;
+        ItemThrown:
+            VOXE L 10;
+            goto spawn;
+    }
+}
+
+
+class TrashBin_broken : TrashBin_close {
+    int leftorright;
+    int angleintensity;
+    default {
+        painchance 0;
+        pushfactor 0.3;
+        Activation THINGSPEC_ClearSpecial;
+        -SelacoActor.SlopeAlignment
+        +SelacoActor.DisallowGravityManipulation;   // We are dedders
+        +ROLLSPRITE;
+    }
+    States {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                 invoker.leftorright = random(0, 1);
+                 invoker.angleintensity = random(2, 20);
+            }
+            TNT1 A 0 A_SpawnItemEx("Trashbin_broken_top", 10, 0, 30);
+            TNT1 A 0 {
+                if (checkWallCollision()) {
+                    //A_PRINTBOLD("Wall collision.");
+                    SetStateLabel("IdleMode");
+                    mass = 100;
+                }
+            }
+        FallingOver:
+            VOXE LLLLLLL 1 {
+                A_SetPitch(pitch - 9);
+                if (invoker.leftorright == 1) {
+                    A_SetAngle(angle +Random(1,invoker.angleintensity));
+                } else {
+                    A_SetAngle(angle -Random(3,invoker.angleintensity));
+                }
+            }
+            VOXE LLL 1  A_SetPitch(pitch + 3);
+            VOXE LLL 1  A_SetPitch(pitch - 3);
+            VOXE LL 1  A_SetPitch(pitch + 2);
+            VOXE LL 1  A_SetPitch(pitch - 2);
+            VOXE L 0 {
+                A_SetSize(-1, 22);
+            }
+        Active:
+        Inactive:
+        IdleMode:
+            VOXE L 1 A_JumpIf (vel.x > 4 || vel.y > 4, "BeginMoving");
+			loop;
+		BeginMoving:
+			//VOXE L 0 A_PLAYSOUND("movers/chairride", CHAN_6, 1.0, 1);
+		Moving:
+			VOXE L 0 A_JumpIf (vel.x <= 2 && vel.y <= 2, "Stopmoving");
+			VOXE L 1 A_SetAngle(angle + random(3,5), SPF_INTERPOLATE);
+			loop; 
+        Stopmoving:
+            VOXE LLL 1 A_SetAngle(angle + random(2,3), SPF_INTERPOLATE);
+            VOXE L 1 A_SetAngle(angle + random(1,2), SPF_INTERPOLATE);
+            goto IdleMode;
+
+        // @Cockatrice
+        // This is copied but different from Trashbin_Closed
+        // Death is necessary in case the trash bin gets crushed
+        // Without this, an infinite amount of Traashbin_Broken gets spawned
+        // When the broken trashbin is crushed
+        Death:
+            TNT1 A 0 {
+                bNoPain = true;
+                bSolid = false;
+                A_PlaySound("impact/barrel",CHAN_AUTO, 1.0, 0, 1.0, false, 0.9);
+            }
+            TNT1 A 0
+            {
+                for(int x=0;x<15;x++)
+                {
+                    A_SPAWNITEMEX("JunkLauncher", frandom(-2,2), frandom(-2,2), frandom(30,49), random(1,3), random(1,3), 2, random(0,360), 0, 180);
+                }
+            }
+            stop;
+    }
+}
+
+class OfficeChair_enhanced : DecorationObject  {
+    default {
+        -NOBLOOD;
+        +PUSHABLE;
+        +DoomBounce;
+        Health 120;
+        PushFactor 0.7;
+        height 34;
+        scale 4.0;
+        yscale 4.6;
+        MaxStepHeight 10;
+        +BOUNCEONWALLS;
+        +BOUNCEONFLOORS;
+        +BLOODSPLATTER;
+        bouncefactor 0.1;
+        DamageFactor "Gridlock", 10000.0;
+        radius 11;
+        mass 120;
+        PainThreshold 5;
+        +USESPECIAL;
+        Activation THINGSPEC_Switch;
+        PainChance 255;
+        damage 30;
+        DamageType "Kick";
+        PainSound "impact/mechanical";
+        Bloodtype "LeatherChunk", "LeatherChunk", "LeatherChunk";
+    }
+	States {
+		Spawn:
+			TNT1 A 0 A_STOPSOUND(CHAN_6);
+			VOXE L 3 A_JumpIf (vel.x > 0 || vel.y > 0, "BeginMoving");
+			loop;
+		BeginMoving:
+			VOXE L 0 A_PLAYSOUND("movers/chairride", CHAN_6, 1.0, 1);
+		Moving:
+			VOXE L 0 A_JumpIf (vel.x == 0 && vel.y == 0, "StopMoving");
+			VOXE L 1 A_SetAngle(angle + 5, SPF_INTERPOLATE);
+			loop;
+		StopMoving:
+			VOXE LAA 1 A_SetAngle(angle + 2);
+			goto Spawn;
+		Pain:
+			VOXE L 1 A_PLAYSOUND("impact/mechanical", CHAN_AUTO, 0.5);
+			goto BeginMoving;
+		Death:
+			TNT1 A 1 A_JUMPIF(health <= 0, "SwitchToDestroy");
+			goto Spawn;
+		Pain.Gridlock:
+		Death.Gridlock:
+			TNT1 AAAAAA 0 A_SPAWNITEMEX("BigSmokes", frandom(-20,20), frandom(-20,20), frandom(0,10));
+			TNT1 A 0  A_SPAWNITEMEX("OfficeChair_Feet");
+			stop;
+		SwitchToDestroy:
+			TNT1 A 0 {
+                bSolid = false;
+            }
+			TNT1 AAAAAA 0 A_SPAWNITEMEX("BigSmokes", frandom(-20,20), frandom(-20,20), frandom(0,10));
+			TNT1 A 0 A_SPAWNITEMEX("OfficeChair_Damaged");
+			stop;
+	}
+}
+
+class WallDecorationBase  : Interactable {
+
+    string      frameSpriteActive;
+    int         frameID;
+    int lifecount;
+    bool positionSet;
+    bool launched;
+    double initialZPosition;
+    bool isGrabbed;
+    override void PostBeginPlay() {
+        initialZPosition = pos.z;
+        positionSet = true;
+    }
+
+    override void tick() {
+        super.tick();
+        if(health <= 0 && !launched) {
+            launched = true;
+            A_setSize(3, 3);
+            A_CHANGEVELOCITY(3, 0, 0, CVF_RELATIVE);
+        }
+
+        if(lifecount < 8) {
+            lifecount++;
+        }
+    }
+
+    bool CheckIfOverEdge() {
+		Vector3 floorLocation;
+		FLineTraceData RemoteRay;
+		LineTrace(angle,140, pitch ,offsetz: 2,offsetforward:25,data: RemoteRay);
+        floorLocation = (RemoteRay.HitLocation);
+
+        if(RemoteRay.HitType == TRACE_HitFloor && RemoteRay.Distance > 10) {
+            string hittex;
+            hittex = texman.GetName(RemoteRay.HitTexture);
+            friction = 0.4;
+            vel = (0,0,0);
+            A_ChangeVelocity(1.5,0,0.1, CVF_RELATIVE);
+            return true;
+        }
+
+        return false;
+    }
+
+    default {
+        //+FLATSPRITE;
+        +NOGRAVITY
+        +ROLLSPRITE
+        +WALLSPRITE;
+        +SHOOTABLE
+        +NOBLOODDECALS
+	    -BLOODSPLATTER
+	    +DONTTHRUST
+        +hitscanthru
+        +SelacoActor.EnemyProjectilePassthru
+        radius 3;
+        height 8;
+        MaxDropOffHeight 900;
+        Health 50;
+
+        -SELACOACTOR.WakeNearPlayer;
+        +SELACOACTOR.SleepWhenIdle;
+    }
+}
+
+class MetalSign : WallDecorationBase {
+    int angleSpeedOnDeath;
+    bool isDead;
+    int firstHit;
+    bool activated;
+    int pitchDelay;
+    override void postbeginPlay()
+    {
+        SetTag("$OBJECT_SIGN");
+        frameID = 11;
+    }
+
+    override void tick() 
+    {
+        super.tick();
+        if(activated) {
+            pitchDelay++;
+        }
+        if(pitchDelay >= 3 && isDead && pitch > -90) 
+        {
+            pitch-=6;
+        }
+    }
+
+    default
+    {
+        SelacoActor.UseTag "$INTERACT_REMOVE";
+        -NoPain;
+        radius 20;
+        height 20;
+        painchance 256;
+        +DONTTHRUST
+        -SelacoActor.SlopeAlignment;
+        +SelacoActor.DisallowGravityManipulation;
+        -hitscanthru;
+        +USESPECIAL
+        activation THINGSPEC_SWITCH;
+        Painsound "sign/pain";
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1
+            {
+                frame = frameID;
+            }
+        Pain:
+            VOXE L 1
+            {
+                frame = frameID;
+                A_PLAYSOUND("sign/pain", CHAN_AUTO, 0.3, pitch:frandom(1.0,1.2));
+                if(!firstHit)
+                {
+                    firstHit = true;
+                    A_SETROLL(frandom(-12,12));
+                }
+            }
+            goto Spawn;
+        Active:
+        Innactive:
+            TNT1 A 0
+            {
+                Stats.AddStat(STAT_SIGNS_REMOVED, 1, 0);  
+                frame = frameID;
+                activated = true;
+                A_DIE();
+            }
+            goto death;
+        Death.explosiveimpact:
+            TNT1 A 0
+            {
+                A_CHANGEVELOCITY(frandom(1,6), 0, 0, CVF_RELATIVE); 
+                angleSpeedOnDeath+=frandom(-19,19);
+            }
+		xdeath:
+		Death:
+            TNT1 A 0 
+            {
+                bUseSpecial = false;
+                activationtype = THINGSPEC_Default;
+                if(!activated)
+                {
+                   A_CHANGEVELOCITY(frandom(1,2), 0, 0, CVF_RELATIVE); 
+                   A_PLAYSOUND("sign/pain", CHAN_AUTO, 0.20, pitch:frandom(1.0,1.2));
+                } 
+                else
+                {
+                    A_CHANGEVELOCITY(frandom(0.4,1.2), 0, 0, CVF_RELATIVE); 
+                }
+                activated = true;
+                isDead = true;
+                angleSpeedOnDeath+=frandom(-4,4);
+                bNoclip = true;
+                A_SETSIZE(2,2);
+            }
+            VOXE LLLLLLLLLLLLLLLLLL 1 
+            {
+                frame = frameID;
+                A_SETANGLE(angle+angleSpeedOnDeath); 
+            }
+        ActuallyDeath:
+        WaitForImpact:
+            VOXE L 1 {
+                frame = frameID;
+                if(vel.z == 0) {
+                    A_SPAWNITEMEX("BulletImpactEffectMetalZpuff", -20, 0);
+                    A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+                    A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+                    A_SPAWNITEMEX("SpawnImpactSmokeSmallerSuperShortThick", frandom(-3,3), frandom(-3,3), 5);
+                    A_PLAYSOUND("sign/pain", CHAN_AUTO, 0.25, pitch:frandom(0.6,0.7));
+                    A_PLAYSOUND("impact/thinmetal", CHAN_AUTO, 0.75, 0, 0.9, pitch:1.2);
+                    setStateLabel("RealDeath");
+                }
+            }
+            loop;
+        RealDeath:
+            VOXE L 1 {
+                frame = frameID;
+                CheckIfOverEdge();
+				//scale.y = -1*scale.y;
+                Sleepindefinite();
+                A_SETSIZE(5);
+            }
+            loop;
+    }
+}
+
+class WallPaintingSpawner : actor {
+    default {
+        +NOINTERACTION
+    }
+    
+	static const String frameSprites[] =
+		{
+			"SquarePainting1", "SquarePainting2", "SquarePainting3", "SquarePainting4", "SquarePainting5", "SquarePainting6", "SquarePainting7", "SquarePainting8", "SquarePainting9", "SquarePainting10","SquarePainting11", "SquarePainting12", "SquarePainting13", "SquarePainting14", "SquarePainting15", "SquarePainting16", "SquarePainting17", "SquarePainting18", "SquarePainting19", "SquarePainting20", "SquarePainting21", "SquarePainting22", "SquarePainting23", "SquarePainting24", "SquarePainting25", "SquarePainting26", "SquarePainting27", "SquarePainting28", "SquarePainting29", "SquarePainting30", "SquarePainting31", "SquarePainting32", "SquarePainting33", "SquarePainting34", "SquarePainting35", "SquarePainting36", "SquarePainting37", "SquarePainting38", "SquarePainting39", "SquarePainting40", "SquarePainting41", "SquarePainting42", "SquarePainting43", "SquarePainting44", "SquarePainting45", "SquarePainting46", "SquarePainting47","SquarePainting48", "SquarePainting49", "SquarePainting50", "SquarePainting51", "SquarePainting52","SquarePainting53","SquarePainting54","SquarePainting55","SquarePainting56","SquarePainting57","SquarePainting58", "SquarePainting59", "SquarePainting60", "SquarePainting61", "SquarePainting62", "SquarePainting63",
+            "SquarePainting64", "SquarePainting65"
+		};
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                int spritenumber = random(0,frameSprites.size()-1);
+                actor painting;
+                bool paintingsuccess;
+                [paintingsuccess, painting] = A_SPAWNITEMEX(frameSprites[spritenumber],-5,0,0,0,0,0,0,SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+                if(paintingsuccess)
+                {
+                    painting.roll = roll;
+                    if(roll != 0)
+                    {
+                       painting.health = 2; 
+                    }
+                }
+            }
+            stop;
+    }
+        
+}
+
+
+
+class Painting : WallDecorationBase {
+    int         dice;
+    bool        isRecoiling;
+    int         hitsTaken;
+    bool telekReleased;
+
+    override void tick()
+    {
+        super.tick();
+        if(isRecoiling && vel.x == 0 && vel.y == 0)
+        {
+            isRecoiling = false;
+            bThruActors = false;
+        }
+    }
+
+    override void grabbedTelek() {
+        Super.grabbedTelek();
+        isGrabbed = true;
+        health = 100;
+        bNoGravity = false;
+        telekReleased = false;
+        bEnemyProjectilePassthru = false;
+
+        // Give the painting a little boost off the wall so it doesn't clip inside
+        //(Actor dest, double xofs = 0, double yofs = 0, double zofs = 0, double angle = 0, int flags = 0, double heightoffset = 0, double radiusoffset = 0, double pitch = 0)
+        Warp(self, max(16, radius * 0.25), 0, 0, flags: WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION );
+
+        A_SetRenderStyle(0.5, STYLE_Translucent);
+        setStateLabel("grabbed");
+    }
+
+    override void releaseTelek()
+    {
+        Super.releaseTelek();
+        isGrabbed = false;
+        telekReleased = true;
+        bNoGravity = true;
+        //health = 0;
+        A_SetRenderStyle(1.0, STYLE_NORMAL);
+        bAllowGravityManipulation = false;
+        setStateLabel("GrabbedRelease"); 
+    }
+
+    override void throwTelek()
+    {
+        Super.throwTelek();
+        bThruActors = false;
+        bIsTelekProjectile = true;
+        setStateLabel("gravityLaunch");
+    }
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+        if(source is 'PlayerPawn' && (!(damagetype == "MeleeImpactSplash") || !(damagetype == "ExplosiveImpact")))
+        {
+            hitsTaken++;
+            if(hitsTaken == 1) 
+            {
+                A_PlaySound("impact/lightglass",chan_auto, 0.5);
+                A_SETROLL(roll+frandom(-12,12));
+                bUseSpecial = true;
+                activationtype = THINGSPEC_Switch;
+                for(int i=0;i<25;i++) {
+                    A_SPAWNITEMEX("LargeGlassParticle1", frandom(-3, 3), frandom(-9, 9), frandom(3, 40), frandom(-4, 4), frandom(-4, 4), frandom(3, 6));
+                }
+                setStatelabel("Idle");
+            }
+            if(hitsTaken > 1) 
+            {
+                health = 0;
+                die(self,self);
+            }
+        }
+        return res;
+    }
+
+    default {
+        //$Category SelacoDecorations
+        -float;
+        +RELATIVETOFLOOR;
+        +ROLLSPRITE;
+        +CANPASS
+        +NOGRAVITY
+        +CANNOTPUSH
+        +SHOOTABLE;
+        +SELACOACTOR.AllowGravityManipulation;
+        -SELACOACTOR.SlopeAlignment;
+        +NODROPOFF;
+        +NOBLOODDECALS;
+        +DONTTHRUST
+        -BloodSplatter;
+        -Solid;
+        Activation THINGSPEC_Default;
+        SelacoActor.UseTag "$INTERACT_CORRECT";
+        //+NOCLIP;
+        tag "$OBJECT_PAINTING";
+        painchance 255;
+        scale 0.4;
+        maxStepHeight 5;
+        radius 25;
+        mass 100;
+        height 46;
+        health 80;
+        friction 0.85;
+        BloodType "BulletImpactEffectWoodShrapnel";
+        PainSound "impact/grass";
+
+        // This hurts a little because we have to load a LOT of paintings, but they are in almost every map so...
+        +PRECACHEALWAYS;
+    }
+
+    States {
+        Spawn:
+            VOXE L 0;
+            TNT1 A 0
+            {
+                bThruActors = true;
+                isRecoiling = true;
+            }
+            TNT1 A 0 A_Recoil(300);
+        Idle:
+            VOXE L -1;
+            loop;
+        PAIN:
+            TNT1 A 0 
+            {
+                if(isGrabbed)
+                {
+                    A_PLAYSOUND("impact/crate", CHAN_AUTO, 0.7);
+                    A_SETROLL(roll+random(-9,9));
+                    A_SpawnItemEx("BrownCloud", 5, random(-25,25), 5, 0, 0, 0, 0, 0);
+                    A_SpawnItemEx("BrownCloud", 5, random(-25,25), 5, 0, 0, 0, 0, 0);
+                    A_SpawnItemEx("BrownCloud", 5, random(-25,25), 5, 0, 0, 0, 0, 0);
+                    EmitDefinition('SawDustDefinition', chance: 1.0, numTries: 25,pitch: frandom(-10,10),speed:4, offset: (0, frandom(-5,5), frandom(-5,5)));
+                    A_RECOIL(7);
+                }
+            }
+            TNT1 A 0 A_PAIN();
+            goto idle;
+
+        grabbed:
+            VOXE L 1 {
+                if(telekReleased)
+                {
+                    health = 0;
+                    SetStateLabel("Death");
+                }
+            }
+            loop;
+
+        Pain.Shotgun:
+            TNT1 A 0 A_KILLCHILDREN();
+            VOXE L 1 {
+                A_SETROLL(roll + 1);
+            }
+            VOXE L 1 {
+                A_SETROLL(roll - 1);
+            }
+            goto Idle;
+        Active:
+            TNT1 A 0 A_PLAYSOUND("script/correctpainting", CHAN_AUTO, 0.5, 0, 1.0, 0, frandom(1.0,1.2));
+        LoopActive:
+            VOXE L 1 {
+                bUseSpecial = false;
+                activationtype = THINGSPEC_Default;
+                if(roll > 0) {
+                    A_SetRoll(roll - 1);
+                } 
+                if (roll < 0) {
+                     A_SetRoll(roll + 1);
+                }
+                if(roll == 0) {
+                    SetStateLabel("idle");
+                }
+            } 
+            loop;
+        gravityLaunch:
+            VOXE L 1;
+            VOXE L 1 
+            {
+                if(vel.x == 0 && vel.y == 0 && vel.z == 0)
+                {
+                    health = 0;
+                    setStateLabel("xdeath");
+                }
+            }
+            loop;
+        GrabbedRelease:
+            VOXE L 1;
+            goto Death;
+        Pain.MeleeImpactSplash:
+        Pain.explosiveimpact:
+            TNT1 A 0 A_DamageSelf(900);
+            TNT1 A 0 A_SetSize(9, 9);
+            TNT1 A 0 A_ChangeVelocity(frandom(10,20), 2, 0, CVF_RELATIVE);
+        Death.explosiveimpact:
+        Death.MeleeImpactSplash:
+        Death:
+            VOXE L 1 {
+                if(bIsTelekProjectile || isGrabbed)
+                {
+                    A_PlaySound("dest/crate", CHAN_AUTO, 0.7, pitch: 0.9);
+                    A_SpawnItemEx("BrownCloud", 15, random(-10,10), 5, 0, frandom(-1,1), frandom(-1,1), 0);
+                    EmitDefinition('SawDustDefinition', chance: 1.0, numTries: 700,pitch: frandom(-10,10),speed:2, offset: (0, frandom(-5,5), frandom(-5,5)));
+                    destroy();
+                    return;
+                }
+                A_SetRenderStyle(1.0, STYLE_NORMAL);
+                bSolid = false;
+                bThruActors = true;
+                bUseSpecial = false;
+                activationtype = THINGSPEC_Default;
+                A_SetSize(9, 9);
+                bNoGravity = false;
+            }
+        DeathLooper:
+            VOXE L 1 {
+                if(vel.z == 0)
+                {
+                    health = 0;
+                    setStateLabel("ActuallyDeath");
+                }
+            }
+            loop;
+        ActuallyDeath:
+            TNT1 A 0 A_ChangeVelocity(4, 2, 0, CVF_RELATIVE);
+            TNT1 A 0 {
+                EmitDefinition('WoodParticleSmallDefinition', chance: 1.0, numTries: 12, pitch: frandom(-10,10), offset: (frandom(0,20), frandom(0,20), 0));
+                for (int i = 0; i < 25; i++) {
+                    A_SpawnItemEx("LargeGlassParticleSpawner", 25, frandom(-5, 5), 2, 0, 0, 0, random(-45, 45), 0);
+                    A_SpawnItemEx("LargeGlassParticleSpawner", 25, frandom(-5, 5), 2, 0, 0, 0, random(-45, 45), 0);
+                    
+                }
+            }
+            TNT1 A 0 A_PLAYSOUND("destruction/glassbreak", CHAN_AUTO, 0.5);
+            TNT1 AAA 0 A_SpawnItemEx("BrownCloud", 15, random(-10,10), 5, 0, 0, 0, 0, 0);
+            TNT1 A 0 A_PlaySound("impact/lightwood", CHAN_AUTO, 0.5, 0, 1.0, pitch:frandom(1.1,1.2));    
+        Death_Idle:
+            TNT1 A 0 {
+                bThruActors = true;
+                invoker.dice = RANDOM(0,1);
+                if (dice == 1) {
+                   // bFLATSPRITE = true;
+                   // bWALLSPRITE = false;
+                    A_Recoil(2);
+                    A_SetAngle(angle + random(-20, 20));
+                }
+            }
+            VOXE LLLLLLLLL 1 {
+                A_SETPITCH(pitch+10);   
+            }
+            VOXE L -1 {
+                CheckIfOverEdge();
+                A_SETSIZE(45);
+            }
+            stop;
+    }
+}
+
+class SquarePainting1 : Painting {}
+class SquarePainting2 : Painting {}
+class SquarePainting3 : Painting {}
+class SquarePainting4 : Painting {}
+class SquarePainting5 : Painting {}
+class SquarePainting6 : Painting {}
+class SquarePainting7 : Painting {}
+class SquarePainting8 : Painting {}
+class SquarePainting9 : Painting {}
+class SquarePainting10 : Painting {}
+class SquarePainting11 : Painting {}
+class SquarePainting12 : Painting {}
+class SquarePainting13 : Painting {}
+class SquarePainting14 : Painting {}
+class SquarePainting15 : Painting {}
+class SquarePainting16 : Painting {}
+class SquarePainting17 : Painting {}
+class SquarePainting18 : Painting {}
+class SquarePainting19 : Painting {}
+class SquarePainting20 : Painting {}
+class SquarePainting21 : Painting {}
+class SquarePainting22 : Painting {}
+class SquarePainting23 : Painting {}
+class SquarePainting24 : Painting {}
+class SquarePainting25 : Painting {}
+class SquarePainting26 : Painting {}
+class SquarePainting27 : Painting {}
+class SquarePainting28 : Painting {}
+class SquarePainting29 : Painting {}
+class SquarePainting30 : Painting {}
+class SquarePainting31 : Painting {}
+class SquarePainting32 : Painting {}
+class SquarePainting33 : Painting {}
+class SquarePainting34 : Painting {}
+class SquarePainting35 : Painting {}
+class SquarePainting36 : Painting {}
+class SquarePainting37 : Painting {}
+class SquarePainting38 : Painting {}
+class SquarePainting39 : Painting {}
+class SquarePainting40 : Painting {}
+class SquarePainting41 : Painting {}
+class SquarePainting42 : Painting {}
+class SquarePainting43 : Painting {}
+class SquarePainting44 : Painting {}
+class SquarePainting45 : Painting {}
+class SquarePainting46 : Painting {}
+class SquarePainting47 : Painting {}
+class SquarePainting48 : Painting {}
+class SquarePainting49 : Painting {}
+class SquarePainting50 : Painting {}
+class SquarePainting51 : Painting {}
+class SquarePainting52 : Painting {}
+class SquarePainting53 : Painting {}
+class SquarePainting54 : Painting {}
+class SquarePainting55 : Painting {}
+class SquarePainting56 : Painting {}
+class SquarePainting57 : Painting {}
+class SquarePainting58 : Painting {}
+class SquarePainting59 : Painting {}
+class SquarePainting60 : Painting {}
+class SquarePainting61 : Painting {}
+class SquarePainting62 : Painting {}
+class SquarePainting63 : Painting {}
+class SquarePainting64 : Painting {}
+class SquarePainting65 : Painting {}
+
+class FamiliyPortrait1 : Painting {
+
+    default {
+        tag "$OBJECT_PORTRAIT";
+        scale 1;
+    }
+
+    States {
+        Spawn:
+            TNT1 A 0;
+            VOXE L 0;
+            TNT1 A 0 A_Recoil(300);
+        Idle:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class FamiliyPortrait2 : FamiliyPortrait1 {
+    
+}
+
+class FamiliyPortrait3 : FamiliyPortrait1 {
+
+}
+
+class FamiliyPortrait4 : FamiliyPortrait1 {
+
+}
+class FamiliyPortrait5 : FamiliyPortrait1 {
+
+}
+class FamiliyPortrait6 : FamiliyPortrait1 {
+
+}
+class FamiliyPortrait7 : FamiliyPortrait1 {
+
+}
+class FamiliyPortrait8 : FamiliyPortrait1 {
+
+}
+
+class plantPainting : Painting {
+    default
+    {
+        scale 1.0;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_Recoil(300);
+                SetStateLabel("Idle");
+            }
+        Idle:
+            VOXE L -1;
+            loop;
+    }   
+}
+
+class GWYN_SIMP : plantPainting {
+    default
+    {
+        tag "$OBJECT_SIMPAWARD";
+        scale 1.0;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_Recoil(300);
+                SetStateLabel("Idle");
+            }
+        Idle:
+            VOXE L -1;
+            loop;
+    }   
+}
+
+class PaintingTriple_1A : Painting {
+    default {
+        height 68;
+        scale 0.3;
+    }
+    States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_Recoil(300);
+                SetStateLabel("Idle");
+            }
+        PAIN:
+            TNT1 A 0 A_PlaySound("impact/grass", 21, 0.7);
+            TNT1 A 0 {
+                if(invoker.hitsTaken == 0) {
+                    invoker.hitsTaken++;
+                    for(int i=0;i<60;i++) {
+                        A_SPAWNITEMEX("LargeGlassParticle1", random(-3, 3), random(-9, 9), random(3, 70), random(-4, 4), random(-4, 4), random(3, 6));
+                    }
+                    setStatelabel("Idle");
+                }
+            }
+        Idle:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class PaintingTriple_1b : PaintingTriple_1A {
+}
+class PaintingTriple_1c : PaintingTriple_1A {
+}
+
+class PaintingTriple_2a : PaintingTriple_1A {
+}
+class PaintingTriple_2b : PaintingTriple_1A {
+}
+class PaintingTriple_2c : PaintingTriple_1A {
+}
+
+
+class PaintingTriple_3a : PaintingTriple_1A {
+}
+class PaintingTriple_3b : PaintingTriple_1A {
+}
+class PaintingTriple_3c : PaintingTriple_1A {
+}
+
+
+
+
+class PaintingSkewed : Painting {
+    States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SetPitch(-90);
+            TNT1 A 0 A_Recoil(300);
+            TNT1 A 0 A_SetRoll(7);
+            TNT1 A 0 {
+                invoker.FrameID = random(0, 5);
+                Sprite = GetSpriteIndex(invoker.frameSpriteActive);
+                frame = invoker.FrameID; 
+                SetStateLabel("Idle");
+            }
+    }
+}
+
+class EMPLOYEEDOG : Painting {
+    default {
+        scale 1.0;
+    }
+    states {
+		spawn:
+			VOXE L -1;
+			stop;
+	}
+} 
+
+
+class Pushpinboard : WallDecorationBase
+{
+    // If you want to add a new pushpinboard, add it in this list.
+    static const String boardSprite[] = {
+        "PUS1", "PUS2", "PUS3"
+    };
+
+    //$Category SelacoDecorations
+    int         totalHits;
+    int         spriteIndexNum;
+    string      pushPinSprite;
+    bool        isRecoiling;
+    string getPinSprite() {
+        return pushPinSprite;
+    }
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        scale.y*=1.1;
+        spriteIndexNum = random(0,boardSprite.size()-1);
+        pushPinSprite = boardSprite[spriteIndexNum];
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(isRecoiling && vel.x == 0 && vel.y == 0)
+        {
+            isRecoiling = false;
+            bThruActors = false;
+        }
+    }
+
+    void SpawnShatteredPiece() {
+        for (int i = 0; i < 4; i++) {
+            A_SpawnItemEx("BrownCloud", 10, frandom(-45,45), 5, 0, 0, 0, 0, 0);
+        }
+        if (pushPinSprite == "PUS1") {
+            A_SpawnItemEx("pushpinboard_shattered_1", 12, 0, 0, 0.1, frandom(-1,1), 0);
+        }
+        if (pushPinSprite == "PUS2") {
+            A_SpawnItemEx("pushpinboard_shattered_2", 12, 0, 0, 0.1, frandom(-1,1), 0);
+        }
+        if (pushPinSprite == "PUS3") {
+            A_SpawnItemEx("pushpinboard_shattered_3", 12, 0, 0, 0.1, frandom(-1,1), 0);
+        }          
+    }
+
+    default {
+        tag  "$OBJECT_PUSHPINBOARD";
+        painchance 255;
+        scale 0.6;
+        yscale 0.5;
+        radius 30;
+        DistanceCheck "r_ThingLOD";
+        DamageFactor "MagnumBullet", 3.0;
+        mass 350;
+        height 40;
+	    +DONTTHRUST
+        +WALLSPRITE;
+        -FLATSPRITE;
+        health 95;
+        BloodType "BulletImpactEffectWoodShrapnel";
+        PainSound "impact/grass";
+    }
+
+
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            PUS1 A 0;
+            PUS2 A 0;
+            PUS3 A 0;
+            TNT1 A 3 {
+                    bThruActors = true;
+                    isRecoiling = true;
+                    invoker.FrameID = 0;
+                    Sprite = GetSpriteIndex(pushPinSprite);
+                    A_RECOIL(30);
+                }
+            Idle:
+                TNT1 A 1 {
+                    frame =  invoker.FrameID; 
+                    SleepIndefinite();
+                }
+                stop;
+        Pain.ExplosiveImpact:
+        Pain.shotgun:
+        PAIN:
+            TNT1 A 0 {
+                A_PlaySound("impact/grass", 21, 1.0);
+                invoker.totalHits++;
+                if (invoker.totalHits == 1) {
+                    invoker.FrameID++;
+                    SpawnShatteredPiece();
+                }
+            }
+            TNT1 A 0 ThrustThing(angle*256/360+128, 4, 0, 0);
+            TNT1 AA 1 {
+                    frame =  invoker.FrameID; 
+                    A_SETROLL(roll+3);
+                }
+            TNT1 AA 1 {
+                    frame =  invoker.FrameID; 
+                    A_SETROLL(roll-3);
+                }
+            TNT1 A 0 A_SetRoll(0);
+            goto Idle;
+        Death.MagnumBullet:
+        Death.ExplosiveImpact:
+        Death.shotgun:
+        Death:
+            TNT1 A 1 {
+                frame =  1; 
+                bNoGravity = false;
+            }
+            TNT1 A 0 A_JumpIf((vel.z  == 0), "ActuallyDeath");
+            loop;
+        ActuallyDeath:
+            TNT1 A 0 {
+                for (int i = 0; i < 4; i++) {
+                    A_SpawnItemEx("BrownCloud", 10, frandom(-45,45), 5, 0, 0, 0, 0, 0);
+                }
+                EmitDefinition('WoodParticleSmallGreyDefinition', chance: 1.0, numTries: 50, pitch: frandom(-10,10), offset:rectOffset(20, 20));
+                EmitDefinition('SawDustDefinition', chance: 1.0, numTries: 25, pitch: frandom(-10,10), offset:rectOffset(70, 70));
+            }
+            TNT1 A 0 A_PlaySound("dest/crate", 21, 0.6);
+            TNT1 A 0 A_SetRoll(0);
+            TNT1 A 0 {
+                bFLATSPRITE = true;
+                bWALLSPRITE = false;
+                A_Recoil(-1);
+                A_SetAngle(angle + random(-20, 20));
+            }
+            TNT1 A 0 ThrustThing(angle*256/360, 1, 0, 0);
+            TNT1 A -1 {
+                sprite = GetSpriteIndex(pushPinSprite);
+                frame =  1; 
+            }
+            stop;
+    }
+}
+
+class pushpinboard_shattered_master : SelacoActor {
+    string shatterSprite;
+
+    void setShatterSprite(string sprite) { 
+        shatterSprite = sprite;
+    }
+
+    string getShatterSprite() {  
+        return shatterSprite;
+    }
+
+    default {
+        +FLATSPRITE;
+        scale 0.6;
+        yscale 0.5;
+    }
+
+    default {
+      +THRUACTORS
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                sprite = GetSpriteIndex(shatterSprite);
+            }
+        Looper:
+           TNT1 A 0;
+           TNT1 C 1;
+		   TNT1 A 0 A_JumpIf((vel.z  == 0), "ActuallyDeath");
+		   loop;
+	ActuallyDeath:
+            TNT1 A 0 {
+                for (int i = 0; i < 3; i++) {
+                    A_SpawnItemEx("BrownCloud", 25, -35, 5, 0, 0, 0, 0, 0);
+                }
+                EmitDefinition('WoodParticleSmallGreyDefinition', chance: 1.0, numTries: 50, pitch: frandom(-10,10), offset:rectOffset(20, 20));
+                EmitDefinition('SawDustDefinition', chance: 1.0, numTries: 25, pitch: frandom(-10,10), offset: (frandom(0,20), frandom(0,20), 0));
+            }
+		TNT1 A 0 A_PlaySound("dest/crate", 21, 0.6);
+        TNT1 A 0 A_SetRoll(0);
+        TNT1 A 0 A_RECOIL(-5);
+        TNT1 A 0 A_SetAngle(angle + frandom(-30, 30));
+        TNT1 C -1;
+        loop;
+    }
+}
+
+class pushpinboard_shattered_1 : pushpinboard_shattered_master {
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        shatterSprite = "PUS1";
+    }
+
+    default {
+        radius 5;
+        height 5;
+    }
+}
+
+class pushpinboard_shattered_2 : pushpinboard_shattered_master {
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        shatterSprite = "PUS2";
+    }
+
+}
+class pushpinboard_shattered_3 : pushpinboard_shattered_master {
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        shatterSprite = "PUS3";
+    }
+
+}
+
+class Fan_top : SelacoActor {
+    default {
+        +NOINTERACTION;
+        scale 0.7;
+        height 2;
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            PLAY A 0;
+            PLAY A 1 A_SPAWNITEMEX("Fan", 0, 0, 0);
+            PLAY A -1;
+            loop;
+    }
+}
+
+class fan : Interactable {
+
+    actor touchingActor;
+    bool rotating;
+    bool blocked;
+    bool spinOfDeath; // Fan broken, spins really fast until the floor is hit. It will gib people!
+
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        deactivate(self);
+    }
+
+    override void touch(actor toucher)
+    {
+        if(health <= 0)
+        {
+            return;
+        }
+
+        fanspeed = 0;
+        if(rotating && !touchingActor && (toucher is "Dawn" || toucher.bIsMonster))
+        {
+            A_Playsound("FAN/BONK", CHAN_5, 0.4,pitch:0.8);
+            touchingActor = toucher;
+            bInterpolateAngles = true;
+            setStateLabel("interuptedRotation");
+        }
+        if(toucher && spinOfDeath && toucher.bIsMonster)
+        {
+            toucher.setState(findState('Death.stomp'));
+        }
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(touchingActor)
+        {
+            obstructFan();
+        }
+    }
+
+    void obstructFan()
+    {
+        if(distance3D(touchingActor) >= (touchingActor.radius+touchingActor.height)-5)
+        {
+            bInterpolateAngles = false;
+            touchingActor = null;
+            if(rotating)
+            {
+                setStateLabel("Speedup");  
+            }
+            else
+            {
+
+                setStateLabel("idle");
+            }
+        }
+    }
+
+/*     // Runs for a few things on death. Aims for an enemy and gibs it.
+    void gibTargetsBelow()
+    {
+        String hittex;
+        FLineTraceData RemoteRay;
+        LineTrace(0, 17, 90,offsetz:0,data: RemoteRay);
+        if(RemoteRay.HitType == Trace_HitActor && RemoteRay.HitActor.bIsMonster)
+        {
+            A_PLAYSOUND("FAN/SLICE", CHAN_AUTO, 1.0, 0.8);
+            SelacoEnemy(remoteRay.HitActor).GibTarget();
+        }
+    }
+     */
+    // Turning on / off
+    void playFanClickSound()
+    {
+        if(level.time > 1)
+        {
+            A_PLAYSOUND("world/FANOFF", CHAN_AUTO);
+        }
+    }
+
+    float fanSpeed;
+    float maxFanSpeed;
+
+
+	Default {
+		Radius 22;
+		Height 15;
+        health 10;
+        +USESPECIAL
+        +SPECIAL
+        +BLOODSPLATTER
+        +NOBLOODDECALS
+        +INTERPOLATEANGLES
+        DamageType "FanBlades";
+        SelacoActor.SleepDistance 1024;
+        Activation THINGSPEC_Switch;
+        scale 4;
+        gravity 0.7;
+        Mass 400;
+        +Shootable;
+        BloodType "plasmapuff", "plasmapuff", "plasmapuff";
+		+NOGRAVITY;
+        +DONTTHRUST
+	}
+
+	States {
+        interuptedRotation:
+            PLAY A 19;
+            PLAY AAAAA 1
+            {
+                A_SETANGLE(angle - 8, SPF_INTERPOLATE);
+            }
+            TNT1 A 0
+            {
+                A_PLAYSOUND("FAN/INTERUPT", CHAN_5, 0.7);
+            }
+            PLAY A 1
+            {
+                A_SETANGLE(angle + 8*5, SPF_INTERPOLATE);
+            }
+            PLAY A 7;
+            loop;
+        Spawn:        
+            PLAY A -1;
+            loop;
+
+        rotate:
+            TNT1 A 0;
+            TNT1 A 0 {
+                invoker.maxFanSpeed = 16.0;
+                invoker.fanSpeed = invoker.maxFanSpeed;
+                A_PlaySound("world/ceilingfan", CHAN_5, 0.3, 1.0, 1.0);
+            }
+            PLAY A 1 
+            {
+                if(!invoker.blocked)
+                {
+                    A_SETANGLE(angle + invoker.fanSpeed, SPF_INTERPOLATE);
+                }
+            }
+			loop;
+        idle:
+            PLAY A -1;
+            loop;
+
+        // ENABLE FAN
+        inactive:
+            TNT1 A 0 playFanClickSound();
+            TNT1 A 0 A_STOPSOUND(CHAN_5);
+            TNT1 A 0
+            {
+                invoker.rotating = true;
+            }
+        Speedup:
+            PLAY A 0;
+            PLAY A 1 {
+                if(!invoker.touchingActor)
+                {
+                    A_SETANGLE(angle + invoker.Fanspeed, SPF_INTERPOLATE);
+                    invoker.fanspeed = invoker.fanspeed + 0.25;
+                    if(invoker.FanSpeed >= invoker.maxFanSpeed) 
+                    {
+                        setStateLabel("rotate");
+                    }
+                }
+                else
+                {
+                    setStateLabel("interuptedRotation");
+                }
+            }
+            loop;
+        
+        // DISABLE FAN
+        active:
+            TNT1 A 0
+            {
+                invoker.rotating = false;
+            }
+            TNT1 A 0 playFanClickSound();
+        Slowdown:
+            PLAY A 1 {
+                if(!invoker.touchingActor)
+                {
+                    A_SETANGLE(angle + invoker.Fanspeed, SPF_INTERPOLATE);
+                }
+                 invoker.fanspeed = invoker.fanspeed - 0.25;
+                 if(invoker.FanSpeed == 0) {
+                     setStateLabel("Idle");
+              }
+            }
+            loop;
+        Death:
+            TNT1 A 0 A_STOPSOUND(CHAN_5);
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO);
+            PLAY A 1 {
+                A_ChangeLinkFlags(0);
+                bSpecial = true;
+                bUseSpecial = false;
+                activationType = THINGSPEC_DEFAULT;
+                bNoGravity = false;
+                gravity = 0.5;
+                bInterpolateAngles = true;
+                bCeilingHugger = false;
+                if(rotating)
+                {
+                    A_PLAYSOUND("FAN/WOOSH", CHAN_5);
+                }
+            }
+            TNT1 AAAAA 0 A_SpawnProjectile ("plasmaEmber", 48, 0, random (0, 360), 2, random (0, 360));
+		    TNT1 AAA 0 A_SpawnProjectile ("BigplasmaEmber", 42, 0, random (0, 360), 2, random (0, 360));
+		    TNT1 A 0 A_SpawnProjectile ("SparkEmberUpward", 2, 0, random (0, 70), 2, random (0, 190));
+        Spinner:
+		    PLAY A 1 
+            {
+                if(rotating)
+                {
+                    spinOfDeath = true;
+                    A_SetAngle(angle + 38);
+                }
+                if(abs(floorz+pos.z) <= 4 || vel.length() == 0)
+                {
+                    setStateLabel("DeathStationary");
+                }
+                S_EXPLODE(damage:30,distance:20, damageType:"FanBlades");
+            }
+            loop;
+        DeathStationary:
+            TNT1 A 0
+            {
+                A_PLAYSOUND("FAN/IMPACT", CHAN_5);
+                spinOfDeath = false;
+                A_ChangeLinkFlags(1);
+            }
+            PLAY AAA 1 A_SETANGLE(angle+3);
+            PLAY A 10;
+		    PLAY AAAAAAAAAAAAAAA random(100, 150) {
+                A_SpawnProjectile ("SparkEmberUpward", 2, 0, random (0, 70), 2, random (0, 190));
+		    }
+            PLAY A -1;
+            stop;
+	}
+
+    void Rotate() {
+        angle += 7;
+    }
+}
+
+class desklamp_base : SwitchableDecoration {
+    default {
+        -SOLID;
+        scale 0.3;
+    	+canpass
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SpawnItemEx("desklamp_stand");
+        Looper:
+            DESL A 1;
+            loop;
+        Active:
+            DESL B 1;
+            loop;
+        Inactive:
+            DESL A 1;
+            loop;
+    }
+}
+
+
+class MetalBar : SelacoActor {
+    double initialZPosition;
+    bool positionSet;
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        initialZPosition = pos.z;
+        positionSet = true;
+        A_SetRoll(roll + frandom(-10,10));
+    }
+
+    override void tick() {
+        super.tick();
+        if(positionSet && health > 0 && vel.x == 0 && vel.y == 0) {
+            SetOrigin((pos.x, pos.y, initialZPosition), true);
+        }
+    }
+
+    default {
+        +NOGRAVITY
+        +Shootable
+        +solid;
+        +DONTTHRUST
+        -PUSHABLE
+        +NOBLOODDECALS
+        +NODAMAGETHRUST
+
+        mass 400;
+        radius 10;
+        height 11;
+        health 15;
+
+        +SELACOACTOR.SleepWhenIdle;
+        -SELACOACTOR.WakeNearPlayer;
+
+        damagefactor "ExplosiveImpact", 0.01;
+        painchance "ExplosiveImpact", 0;
+	    BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/hardmetal";
+    }
+    states {
+        Precache:
+            MTBA A 0;
+            stop;
+        Spawn:
+            TNT1 A 0;
+            MTBA A 1;
+            loop;
+        Death:
+            TNT1 A 0
+            {
+                A_SETSIZE(2,2);
+            }
+            TNT1 A 0 A_SPawnItemEx("MetalBarProjectile", 0, 0, 0, frandom(1,6));
+            stop;
+    }
+}
+
+class MetalBarProjectile : MetalBar {
+    
+    default {
+        -NOGRAVITY;
+        +Shootable;
+        -solid;
+        speed 40;
+        +missile
+        +Doombounce;
+        +NOBLOODDECALS;
+        +thruactors;
+        +USEBOUNCESTATE;
+        BounceFactor 0.3;
+        BounceCount 3;
+        mass 400;
+        gravity 0.8;
+        radius 2;
+        height 2;
+        health 0;
+	    BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/hardmetal";
+
+        -SELACOACTOR.WakeNearPlayer;
+        -SELACOACTOR.WakeOnTouch;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            MTBA A 1 {
+                A_SetPitch(15);
+                A_SETangle(angle + frandom(-40,40));
+                bNoGravity = false;
+            }
+        DeathLooper:
+            MTBA A 2 {
+                A_SetPitch(pitch  + 35);
+            }
+            loop;
+        Bounce:
+			TNT1 A 0 {
+				EmitDefinition('SparkParticleWilderDefinition', chance: 1.0, numTries: 8, angle:random(-65,65), speed:3, offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)));
+			}
+            TNT1 A 0 A_PlaySound("impact/fanslam",CHAN_AUTO, 0.85, 0, 1.0, false, 0.75);
+            goto DeathLooper;
+        Death:
+            MTBA A 1 {
+                A_SetPitch(-90);
+                A_SETangle(angle + frandom(-40,40));
+            }
+            MTBA A 2;
+            MTBA A 1 {
+                bNoInteraction = true;
+                SleepIndefinite();
+            }
+            MTBA A -1;
+            stop;
+    }
+}
+
+
+class desklamp_stand : desklamp_base {
+    default {
+        +THRUACTORS;
+        scale 0.3;
+        +USESPECIAL;
+        Activation THINGSPEC_Switch;
+    }
+
+    states {
+        Spawn:
+            DESL A 1;
+            TNT1 A 0 A_SpawnItemEx("desklamp_basic_LED_OFF");
+            TNT1 A 0 A_SpawnItemEx("desklamp_led_off");
+            loop;
+        Active:
+            TNT1 A 0 A_SpawnItemEx("desklamp_basic_LED");
+            TNT1 A 0 A_SpawnItemEx("desklamp_led_on");
+            DESL B 1;
+            loop;
+        Inactive:
+            DESL A 1;
+            TNT1 A 0 A_SpawnItemEx("desklamp_led_off");
+            loop;
+    }
+}
+
+class desklamp_basic_LED : SelacoActor {
+    default {
+        -solid;
+        scale 0.3;
+    }
+    States {
+        Spawn:
+            DESL A 2 BRIGHT;
+            stop;
+    }
+}
+
+class desklamp_led_on : SelacoActor {
+    default {
+        -solid;
+        scale 0.15;
+    }
+    States {
+        Spawn:
+            DESL A 2 BRIGHT;
+            stop;
+    }
+}
+class desklamp_led_off : SelacoActor {
+    default {
+        -solid;
+        scale 0.15;
+    }
+    States {
+        Spawn:
+            DESL A 2 BRIGHT;
+            stop;
+    }
+}
+class desklamp_basic_LED_OFF : SelacoActor {
+    default {
+        -solid;
+        scale 0.3;
+    }
+    States {
+        Spawn:
+            DESL A 2 BRIGHT;
+            stop;
+    }
+}
+
+
+class PinSpawner : SelacoActor {
+    default {
+        -solid;
+        scale 0.18;
+        +Nogravity;
+        mass 250;
+        +NoInteraction;
+        +ROLLSPRITE;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                A_SetAngle(angle + (random(-12,12)));
+                A_SetPitch(pitch + (random(-30,30)));
+                A_SetRoll(roll + (random(0, 360)));
+            }
+            VOXE A -1 {
+                frame = random(0, 3);
+                SleepIndefinite(); 
+            }
+            stop;
+    }
+}
+
+// Just in case this is referenced somewhere
+class Pin1 : PinSpawner {
+    /*int pinFrame;
+
+    default {
+        -solid;
+        scale 0.18;
+        +Nogravity;
+        mass 250;
+        +NoInteraction;
+        +ROLLSPRITE;
+    }
+    states {
+        Precache:
+            PINA A 0;
+            stop;
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 {
+                invoker.pinFrame = random(0,2);
+                A_SetAngle(angle + (random(-12,12)));
+                A_SetPitch(pitch + (random(-30,30)));
+                A_SetRoll(roll + (random(0, 360)));
+            }
+            PINA A 1 {
+                SleepIndefinite();
+                //sprite = GetSpriteIndex("PINA");
+                //frame =  3;
+            }
+            stop;
+    }*/
+}
+
+class Pin2 : pin1 {}
+class Pin3 : pin1 {}
+class Pin4 : pin1 {}
+
+class BRICK_FULL : PickupableDecoration {
+    
+	override bool Slam(Actor victim) 
+    {
+        bool res = super.slam(victim);
+        if(victim.bIsMonster && mass >= 250) {
+            A_SpawnItemEx("MeleeImpactEffect");
+        }   
+        return res;
+    }
+
+    default
+    {
+        tag "$OBJECT_BRICK";
+        +SELACOACTOR.thruplayers;
+        +SELACOACTOR.DecorativeActor;
+        +SELACOACTOR.smallWaterSplash
+        +SHOOTABLE;
+        -NOBLOOD;
+        Painchance 255;
+        Painchance "Fire", 0;
+        DamageFactor "DecorationImpact", 10;
+        bloodtype "BulletImpactEffectConcreteSmaller", "BulletImpactEffectConcreteSmaller", "BulletImpactEffectConcreteSmaller";
+        radius 8;
+        height 8;
+        mass 500;
+        health 35;
+        PickupableDecoration.grabSound "PICKUP/BRICK";
+        PickupableDecoration.landingSound "bounce/brick";
+    }
+
+    override void PostBeginPlay() 
+    {
+        super.PostBeginPlay();
+        if(random(0,1) == 1) 
+        {
+            bxflip = true;
+        }
+        if(random(0,1) == 1) 
+        {
+            byflip = true;
+        }
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            loop;
+        Pain:
+            TNT1 A 0
+            {
+                A_PLAYSOUND("bounce/brick", CHAN_AUTO, 0.45);
+            }
+            TNT1 A 0 A_SETANGLE(angle+frandom(5,5));
+            goto spawn;
+        Death:
+            TNT1 A 0
+            {
+                A_SPAWNITEMEX("SmokeScatteredCloud");
+                EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 1.0, numTries: 50, angle:random(0,259), speed:-4, velocity:(frandom(0.1,0.3), frandom(0.1,0.3), frandom(1,2)));
+                A_PLAYSOUND("SLAM/BRICK", chan_auto, 0.34);
+                A_SPAWNITEMEX("BRICK_PIECE_1", frandom(-10,-11), 0, 0, xvel:frandom(-0.3,-0.6), zvel:1, flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+                A_SPAWNITEMEX("BRICK_PIECE_2", frandom(-10,-11), 0, xvel:frandom(-0.3,-0.6),zvel:1, angle:-180,flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+            }
+            stop;
+        Death.DecorationImpact:
+        Death.slam:
+            TNT1 A 0
+            {
+                A_SPAWNITEMEX("SmokeScatteredCloud");
+                EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 1.0, numTries: 50, angle:random(0,259), speed:-4, velocity:(frandom(0.1,0.3), frandom(0.1,0.3), frandom(1,2)));
+                A_PLAYSOUND("SLAM/BRICK", chan_auto, 0.3);
+                int velocity = 2;
+                A_SPAWNITEMEX("BRICK_PIECE_1_THROWN", 0, 0, 0, velocity, velocity, velocity+1,flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+                A_SPAWNITEMEX("BRICK_PIECE_2_THROWN", 0, 0, 0, velocity, -1*velocity, velocity+1,flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+            }
+            stop;
+        Death.ExplosiveImpact:
+            TNT1 A 0
+            {
+                A_SPAWNITEMEX("SmokeScatteredCloud");
+                EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 1.0, numTries: 7, angle:random(0,259), speed:-4, velocity:(frandom(0.1,0.3), frandom(0.1,0.3), frandom(1,2)));
+                A_SPAWNITEMEX("BRICK_PIECE_1_THROWN", 10, 0, 10, frandom(2,8), frandom(2,8), frandom(2,8), angle:random(0,360),flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+                A_SPAWNITEMEX("BRICK_PIECE_2_THROWN", -10, 0, 10, frandom(2,8), frandom(2,8), frandom(2,8), angle:random(0,360),flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+            }
+            stop;
+    }
+}
+
+class CITYBRICK : BRICK_FULL
+{
+    default
+    {
+        +NOINTERACTION
+    }
+}
+
+class BRICK_PIECE_1 : BRICK_FULL {
+    default
+    {
+        mass 245;
+        radius 4;
+    }
+    states
+    {
+        Death.DecorationImpact:
+        Death.slam:
+        death.ExplosiveImpact:
+        death:
+            TNT1 A 0
+            {
+                A_SPAWNITEMEX("SmokeScatteredCloud");
+                EmitDefinition('DebrisChunkParticleUpwardDefintion', chance: 1.0, numTries: 50, angle:random(0,259), speed:-4, velocity:(frandom(0.1,0.3), frandom(0.1,0.3), frandom(1,2)));
+                A_PLAYSOUND("SLAM/BRICK", chan_auto, 0.4);
+            }
+            stop;
+    }
+}
+
+class BRICK_PIECE_2 : BRICK_PIECE_1 {
+
+}
+
+class BRICK_PIECE_1_THROWN : SelacoActorDecorationMissile
+{
+
+    // Executes while falling
+    override void loopingEffects()
+    {
+        A_SPAWNITEMEX("SpawnImpactSmokeTinySuperShortThin");
+    }
+
+    override void bounceEffects()
+    {
+        for(int x=0;x<=3;x++) {
+            A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+        }
+        EmitDefinition('DebrisChunkParticleDefinition', chance: 1.0, numTries: 15, angle:random(0,259), pitch:frandom(-25, -15), speed:frandom(1.4,2.5), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)), velocity:(frandom(0.4,1), frandom(0.4,1), frandom(1,4)));
+        A_PlaySound("bounce/brick",CHAN_AUTO, 0.75, 0, 1.0, false, 1.75);
+    }
+
+    default
+    {
+        Seesound "";
+    }
+
+    states
+    {
+        death:
+            TNT1 A 0 A_SPAWNITEMEX("BRICK_PIECE_1",flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+            stop;
+    }
+}
+class BRICK_PIECE_2_THROWN : BRICK_PIECE_1_THROWN
+{
+    states
+    {
+        death:
+            TNT1 A 0 A_SPAWNITEMEX("BRICK_PIECE_2",flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288, tid:tid);
+            stop;
+    }
+}
+
+class graffitibase : SelacoActor {
+    int ticks;
+	override void tick() {
+		super.tick();
+		if(ticks > 20) {
+            SleepIndefinite();
+        }
+        ticks++;
+	}
+    default {
+        +WALLSPRITE;
+        +DONTTHRUST
+        +NOGRAVITY;
+        +ROLLSPRITE;
+        RenderStyle "Translucent";
+    }
+}
+
+class BUCKET : PickupableDecoration
+{
+    actor brokenBucket;
+
+    override void BeginPlay()
+    {
+        super.BeginPlay();
+        frameNum = args[0];
+        if(args[0] == 0)
+        {
+            frameNum = random(1,3);
+        }
+    }
+
+    default
+    {
+        SelacoActor.CollisionSound "PUSH/SMALLPROP";
+        PickupableDecoration.landingSound "OBJECT/DROP/BUCKET";
+        +SELACOACTOR.DecorativeActor;
+        +SELACOACTOR.thruplayers;
+		+SelacoActor.AllowRandomizerReplacement
+        PickupableDecoration.grabSound "OBJECT/PICKUP/BUCKET";
+        +SHOOTABLE
+        -NOBLOOD;
+        health 5;
+        height 18;
+        radius 12;
+        mass 200;
+        DamageFactor "BulletAlien", 5.0;
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+        PainSound "impact/breakable";
+    }
+
+    states 
+    {
+        Spawn:
+            TNT1 A 0;
+            VOXE A -1 
+            {
+                frame = frameNum;
+            }
+            stop;
+        Death:
+            TNT1 A 0 
+            {
+                A_PLAYSOUND("bucket/destroy", CHAN_AUTO, 0.7, 0, 0.7);
+                brokenBucket = A_SpawnProjectile("BUCKET_DMG", 5, angle:-180);
+                if(brokenBucket)
+                {
+                    let brokenBucketActor = BUCKET_DMG(brokenBucket);
+                    brokenBucketActor.frameID = frameNum;
+                }
+            }
+            stop;
+    }
+}
+
+class BUCKET_DMG : SelacoActor
+{
+    int frameID;
+
+    default
+    {
+        SelacoActor.CollisionSound "PUSH/SMALLPROP";
+        +MISSILE
+        +DOOMBOUNCE
+        +USEBOUNCESTATE
+        BounceFactor 0.5;
+        BounceCount 3;
+        speed 7;
+        radius 3;
+        SeeSound "bucket/bounce";
+    }
+
+    states 
+    {
+        Spawn:
+            VOXE A 0;
+            TNT1 A 0 {
+                A_CHANGEVELOCITY(0,0,frandom(3,10));
+            }
+        Looper:
+            VOXE A 2 
+            {
+                frame = frameID;
+                A_SETPITCH(pitch+35);
+                if(vel.z ==0)
+                {
+                    setStateLabel("Death");
+                }
+            }
+            loop;
+        Bounce:
+            TNT1 A 0 {
+                A_SpawnItemEx("SmokeScatteredCloudFast");
+            }
+            goto looper;
+        Death:
+            VOXE A -1
+            {
+                frame = frameID;
+                A_SETPITCH(0);
+                angle+=random(-20,20);
+            }
+            stop;
+    }
+}
+
+class NapkinWhite : SelacoActorStatic
+{
+    default
+    {
+        +SHOOTABLE
+        +hitscanthru;
+        +NOBLOOD;
+        +SelacoActor.EnemyProjectilePassThru;
+        health 5;
+        deathsound "dest/paper";
+        Bloodtype "PaperDustEffect", "PaperDustEffect", "PaperDustEffect";
+    }
+    states
+    {
+        Precache:
+            NAPK A 0;
+            NAPK B 0;
+            stop;
+        spawn:
+            NAPK A -1;
+            stop;
+        Death:
+            TNT1 AA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(-8,8), frandom(-8,8), random(0,10));
+            stop;
+    }
+}
+
+class NapkinBrown : NapkinWhite
+{
+    states
+    {
+        spawn:
+            NAPK B -1;
+            stop;
+    }
+}
+
+class MineralExpoFlyer : MAGAZINE_DAWN
+{
+    default
+    {
+        height 4;
+        +SelacoActor.thruplayers;
+        +SelacoActor.ThruDecorations;
+        tag "$OBJECT_MINERAL_FLYER";
+        health 5;
+        deathsound "dest/paper";
+        Bloodtype "PaperDustEffect", "PaperDustEffect", "PaperDustEffect";
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class OldPlanetFeasts_menu_SMALL : MineralExpoFlyer {
+    default
+    {
+        tag "$OBJECT_OLDPLANETFEASTS_MENU";
+        height 45;
+    }
+}
+
+class ColorfulCureFlyer : MineralExpoFlyer
+{
+    default
+    {
+        tag "$OBJECT_COLORFULCURE_FLYER";
+    }
+}
+class BurgerJunkieFlyer : MineralExpoFlyer
+{
+    default
+    {
+        tag "$OBJECT_BURGERJUNKIE_FLYER";
+    }
+}
+
+class EARTH_MEMORIALDAY_FLYER : MineralExpoFlyer 
+{
+    default
+    {
+        tag "$OBJECT_EARTHMEMORIALFLYER";
+    }
+}
+
+class EARTH_MEMORIALDAY_FLYER_2 : EARTH_MEMORIALDAY_FLYER 
+{
+
+}

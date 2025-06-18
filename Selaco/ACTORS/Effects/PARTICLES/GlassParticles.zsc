@@ -1,0 +1,311 @@
+
+class BlueGlassDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "LIGHTBLUE";
+        particle.alpha = 0.7;
+    }
+}
+
+class GlassParticleSteppable : Actor {
+    mixin Steppable;
+
+    default {
+        RenderRadius -1;
+        +NoInteraction;
+        +NoBlockMap;
+        +NoGravity;
+        +MoveWithSector;
+    }
+
+    states 
+    {
+        Spawn:
+            TNT1 A 10;
+            stop;
+    }
+
+    override void BeginPlay(){
+        super.BeginPlay(); 
+        passiveStepSound = "step/wglas";
+    }
+}
+
+class GlassParticleDefinition : ParticleDefinition
+{
+    GlassHandler curGlassHandler;
+    int fart;
+
+    override void Init()
+    {
+        super.Init();
+
+        SetGravity(0.5);
+        DefaultRenderStyle = Style_Translucent;
+        SetBaseScaleXY(0.4, 0.34);
+        BounceFactor(0.6);
+        SetDefaultParticleFlag(DPF_FLAT);
+        SetFlag(PDF_ROLLSTOP);
+        SetFlag(PDF_SLEEPSTOP);
+        SetFlag(PDF_LIFEFADE);
+        BounceFudge = 0.7;
+        SetLifespanMultipliers(0.5, 0.7, 1.0, 1.0, 10.0);
+        RandomLife(350, 650);
+        FadeLifeRange(0, 30);
+        StopSpeed = 2;
+        BounceSound = "bounce/glass";
+
+        RandomAngle(-25, 25);      // Not used when spawning from glass handler
+        RandomPitch(-35, 35);      // Not used when spawning from glass handler
+        RandomSpeed(3, 13);
+        RandomScaleX(0.78, 1.2);
+        RandomScaleY(0.78, 2.6);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        if(!curGlassHandler) {
+            curGlassHandler = GlassHandler.Instance();
+        }
+
+        // Add rotational velocity from glass handler
+        if(random(0,1) == 1) { particle.scale.x *= -1; }
+        particle.PitchStep = curGlassHandler.tempGlassVals.x;
+        particle.RollStep = curGlassHandler.tempGlassVals.y;
+        particle.Texture = SelectRandomFrame("GLSD", "ABCDEFGHHIJKLMNOPQRSTUVWXYZ");
+        particle.roll = random(0, 360);
+        particle.pitch = 90;
+        particle.flags |= DPF_ROLL;
+    }
+
+    //override void ThinkParticle(in out ParticleData particle);
+    override void OnParticleBounce(in out ParticleData p) {
+        if(p.vel.length() < 2) {
+            p.pitch = p.pitch > 180 ? 180 : 0;
+            p.roll = 0;
+            p.pitchStep *= 0.5;
+            if(p.pitchStep < 0.5) p.pitchStep = 0;
+        } else {
+            p.pitchStep = frandom(-30, 30);
+        }
+        Super.OnParticleBounce(p);
+    }
+
+    override void OnParticleSleep(in out ParticleData p) {
+        Super.OnParticleSleep(p);
+        p.pitch = p.pitch > 180 ? 180 : 0;
+
+        // Randomly distribute some steppables to make noise when walking over
+        if(p.life > 15 && random(0, 100) > 90) {
+            let steppable = GlassParticleSteppable(Actor.Spawn("GlassParticleSteppable", p.pos));
+            steppable.becomeSteppable(12, 2);
+            steppable.sleep(p.life);
+        }
+    }
+}
+
+
+class GlassParticleSmallWallDefintion : GlassParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.25);
+        self.SetLifespanMultipliers(0.25, 1, 1.25, 1.5, 3.0);
+        self.RandomSpeed(1,9);
+        self.RandomLife(150, 250);
+        self.RandomRollSpeed(-40,40);
+        self.RandomPitch(-45,25);
+        self.randomAngle(-27,27);
+        self.RandomScaleX(1.0,1.5);
+        self.RandomScaleY(1.0,1.5);
+        self.SetFlag(DPF_FLAT);
+    }
+    
+    override void OnParticleSleep(in out ParticleData particle) {
+        particle.pitch = 0;
+        particle.SetFlag(DPF_FLAT);
+    }
+
+}
+
+class GlassParticleSmallFloorDefintion : GlassParticleDefinition {
+    override void init() {
+        super.init();
+        SetBaseScale(0.17);
+        self.SetLifespanMultipliers(0.25, 1, 1.25, 1.8, 5);
+        self.RandomLife(45, 105);
+        self.StopSpeed = 1;
+        self.RandomSpeed(2,9);
+        self.RandomPitch(-60,-120);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-35,35);
+        self.randomAngle(0,360);
+    }
+}
+
+class GlassPartParticleDefinition : GlassParticleSmallWallDefintion {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.1);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("BPRT", "AB");
+    }
+
+    override bool OnParticleDeath(in out ParticleData particle) {
+        particle.pitch = 90;
+        return 1;
+    }
+
+}
+
+class GlassParticleSmallFloorDefinition : GlassParticleSmallWallDefintion {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.14);
+        self.SetLifespanMultipliers(0.25, 1, 1, 1, 1);
+        self.randomLife(45,75);
+        self.StopSpeed = 1;
+        self.RandomSpeed(2,9);
+        self.RandomPitch(-60,-120);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-35,35);
+        self.RandomAngle(0,360);
+    }
+}
+
+class GlassBeadParticleDefinition : ParticleDefinition {
+    TextureID tex[2];
+
+    override void Init() {
+        super.Init();
+
+        BounceFactor(0.48);
+        Speed = 2;
+        SetBaseScale(0.28);
+        BouncesRange(3, 5);
+        SetGravity(0.6);
+        DefaultRenderStyle = Style_Translucent;
+        SetFlag(PDF_ROLLSTOP);
+        SetFlag(PDF_SLEEPSTOP);
+        SetFlag(PDF_LIFEFADE);
+        SetFlag(PDF_FADEATBOUNCELIMIT);
+        StopSpeed = 0.6;
+        RandomLife(63, 128);
+        RollDampingBounce = 0.75;
+        RandomSpeed(2, 4);
+        BounceFudge = 0.7;
+        RandomScaleX(0.8, 1.2);
+        RandomScaleY(0.8, 1.2);
+        RandomRoll(0, 360);
+        SetQualityChances(0, 0.5, 0.75, 1.0, 2.5);
+        SetLifespanMultipliers(1,1,1,1,2);
+        tex[0] = TexMan.CheckForTexture("BPRTA0", TexMan.TYPE_ANY);
+        tex[1] = TexMan.CheckForTexture("BPRTB0", TexMan.TYPE_ANY);
+    }
+    
+    override void OnCreateParticle(in out ParticleData p, Actor refActor)
+    {
+        p.alpha = 0.7;
+        p.rollStep = frandom(-60, 60);
+        p.texture = tex[random(0,1)];
+    }
+}
+
+class GlassPart_ImpactDefinition : GlassParticleSmallWallDefintion {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.1);
+    }
+}
+
+
+class GlassBead360Definition : GlassPartParticleDefinition {
+    override void Init() {
+        super.Init();
+        self.SetBaseScale(0.11);
+        self.SetLifespanMultipliers(0.25, 1, 1, 1, 1);
+        self.RandomLife(45,75);
+        self.StopSpeed = 1;
+        self.RandomSpeed(1, 11);
+        self.RandomPitch(-75,-105);
+        self.RandomRoll(-30,30);
+        self.RandomRollSpeed(-80, 80);
+        self.RandomAngle(0,360);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        super.OnCreateParticle(particle, refActor);
+        particle.Alpha = 0.6;
+    }
+
+}
+
+class GlassParticleSmallFloorShortDefinition : GlassParticleSmallWallDefintion {
+    override void init() {
+        super.init();
+        self.SetGravity(0.3);
+        self.SetBaseScale(0.19);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ScaleLifeRange(0, 1);
+        self.SetLifespanMultipliers(0, 1, 1, 1, 1);
+        self.randomLife(6,7);
+        self.StopSpeed = 1;
+        self.RandomSpeed(2,10);
+        self.RandomPitch(-60,-120);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-35,35);
+        self.RandomAngle(0,360);
+    }
+}
+
+class GlassParticleSmall360Definition : GlassParticleDefinition {
+    override void init() {
+        super.init();
+        Self.SetBaseScale(0.25);
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-60,60);
+        self.RandomAngle(0,360);
+        self.randomPitch(-95, -120);
+        self.RandomSpeed(2,6);
+    }
+}
+
+class GlassParticleIceShatterDefinition : GlassParticleSmall360Definition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.5);
+        self.RandomLife(85,175);
+        self.RandomRollSpeed(-25,25);
+        self.RandomSpeed(2,9);
+        self.RandomScaleX(0.2,1.2);
+        self.RandomScaleY(0.2,1.2);
+        self.SetBaseScale(0.33);
+    }
+}
+
+class GlassParticleSmall360BriefDefinition : GlassParticleSmall360Definition {
+    override void init() {
+        super.init();
+        Self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_LIFESCALE);
+        self.RandomLife(20,26);
+        self.RandomSpeed(2,9);
+        self.ScaleLifeRange(0, 1);
+        self.ScaleRangeX(1.0,0.05);
+        self.scaleRangeY(1,0.05);
+        self.RandomPitch(-75,-115);
+        self.SetLifespanMultipliers(0.6, 1, 1, 1, 1);
+    }
+}
+
+// NEEDS ``ONBEGINREST`` to be instantly destroyed
+class GlassParticleLargeDefinition : GlassParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.45);
+    }
+}

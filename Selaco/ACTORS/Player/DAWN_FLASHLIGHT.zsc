@@ -1,0 +1,336 @@
+class FlashlightMeter: Inventory
+{
+	default {
+		inventory.maxAmount 135; 
+	}
+}
+
+// To easilly detect flashlight uses for different actors
+class FlashLightOn : Inventory {
+	default {
+		inventory.maxAmount 1; 
+	}
+}
+
+class FlashlightItem : Inventory {
+
+	// Flashlight stuff
+	bool flashlightActive;
+	actor flashLightInnerBeam;
+	bool flashlightBeamSuccess;
+
+	actor flashLightOuterBeam;
+	bool flashLightOuterBeamSuccess;
+	bool energyDepleted;
+	string flashlightSound;
+
+	override void tick() {
+		super.tick();
+
+		// Light is on, drain the battery
+		if(flashlightActive && level.time % 15 == 0) {
+			owner.takeInventory("FlashlightMeter", 1);
+		}
+
+		// Light is off, charge the battery
+		if(!flashLightActive && owner.countinv("FlashlightMeter") < 135) {
+			owner.giveInventory("FlashLightMeter", 2);
+		}
+
+		// Flip energyDepleted when energy depleted, so players cannot activate it again until a certain charge is reached.
+		if(owner.countinv("FlashlightMeter") == 0 && !energyDepleted) {
+			energyDepleted = true;
+			flashlightActive = false;
+			A_PLAYSOUND("flashlight/deplete", CHAN_AUTO);
+			deactivateLight();
+		}
+
+	}
+
+	override void PreTravelled() {
+		Super.PreTravelled();
+		if(flashLightInnerBeam) {
+			flashLightInnerBeam.destroy();
+		}
+		if(flashLightOuterBeam) {
+			flashLightOuterBeam.destroy();
+		}	
+	}
+
+
+	override void Travelled() {
+		Super.Travelled();
+		if(flashLightActive) {
+			activateLight();
+		}
+	}
+
+	void ToggleFlashlight() {
+		if(owner.health > 0) {
+			// Check to see if the energy got depleted earlier so it can only be turned on when a threshold is hit.
+			if(owner.countinv("FlashlightMeter") > 10 && energyDepleted) {
+				energyDepleted = false;
+				flashlightActive = true;
+			} else {
+				// Everything OK, toggle the light.
+				flashlightActive =! flashlightActive;
+			}
+			
+			// Activate flashlight.
+			if(flashlightActive && !energyDepleted) {
+				owner.giveInventory("FlashLightOn", 1);
+				owner.A_PlaySound("flashlight/on", CHAN_AUTO);
+				activateLight();
+			}
+
+			//Deactivate flashlight
+			if(!flashlightActive & !energyDepleted) {
+				deactivateLight();
+			}
+		}
+	}
+
+
+	void activateLight() {
+
+		// In case the player flickers back and forth fast, destroy old beam before making new one
+		if(flashLightInnerBeam) {
+			flashLightInnerBeam.destroy();
+		}
+		if(flashLightOuterBeam) {
+			flashLightOuterBeam.destroy();
+		}	
+		if(!flashLightInnerBeam) {
+			[flashlightBeamSuccess, flashLightInnerBeam] = owner.A_SpawnItemEx("FlashlightProjectileInner", 0, 0, 0, flags:SXF_SETMASTER);
+			if(getCvar("lightingquality") >= 3)
+			{
+				[flashLightOuterBeamSuccess, flashLightOuterBeam] = owner.A_SpawnItemEx("FlashlightProjectileOuter", 0, 0, 0, flags:SXF_SETMASTER);
+			}
+		}
+	}
+
+	void deactivateLight() {
+		owner.takeInventory("FlashLightOn", 1);
+		owner.A_PlaySound("flashlight/off", CHAN_AUTO);
+
+		// allow usage of flashlight beam Functions
+		let PlayerFlashLightInner = PlayerFlashLight(flashLightInnerBeam);
+		let PlayerFlashLightOuter = PlayerFlashLight(flashLightOuterBeam);
+
+		// Mark for death
+		if(flashLightInnerBeam) {
+			PlayerFlashLightInner.killLight = true;
+		}
+		if(flashLightOuterBeam) {
+			PlayerFlashLightOuter.killLight = true;
+		}	
+	}
+}
+
+class PlayerFlashlight : Spotlight {
+	private int playerLightFlags;
+	int lightRadius;
+	int lightIntensity;
+	int newIntensity;
+	int intensityIncrement;
+	int intensityTicks;
+	int innerAngle;
+	bool killLight;
+	vector3 warpPosition; // Both the outer and inner code use slightly different positions. We define the warp per actor
+
+	property lightIntensity : lightIntensity; // Brightness of the light
+	property IntensityTicks : intensityTicks; // How many ticks until animation is finished
+	property LightRadius : lightRadius; // Reach of the light. Higher values cover more ground.
+	flagdef AllowShadowCasting : playerLightFlags, 1;
+
+	default {
+		+DYNAMICLIGHT.NoShadowMap;
+		+DYNAMICLIGHT.attenuate;
+		PlayerFlashlight.intensityTicks 3;
+		dynamiclight.SpotOuterAngle 26;
+		dynamiclight.SpotInnerAngle 17;
+	}
+
+	override void BeginPlay() {
+		super.BeginPlay();
+		args[3] = lightRadius;
+		intensityIncrement = lightIntensity / intensityTicks;
+		checkShadowSetting();
+	}
+
+	void checkShadowSetting()
+	{
+		if(getCvar("r_flashlightShadows") == 1)
+		{
+			warpPosition = (-5, 8, 0);
+			bNoShadowMap = false;
+		}
+		else
+		{
+			warpPosition = (-5, 4, 0);
+			bNoShadowMap = true;
+		}		
+	}
+
+	override void tick() {
+		super.tick();
+
+		// Check the 'Flashlight Shadow' setting
+		if(bAllowShadowCasting) 
+		{
+			if(level.time % 10 == 0) 
+			{
+				checkShadowSetting();
+			}
+		}
+
+		// Increase the intensity of the light.
+		if(newIntensity < lightIntensity) {
+			// Increment the color intensity
+			newIntensity=newIntensity + intensityIncrement;
+
+			// Apply color intensity
+			args[0]=newIntensity;
+			args[1]=newIntensity;
+			args[2]=newIntensity+90;
+		}
+
+		if(killLight) {
+			// Honestly just doing random non-sense here until it looks good.
+			args[0]-=35;
+			args[1]-=35;
+			args[2]-=45;
+			SpotOuterAngle-=0.3;
+			SpotInnerAngle-=0.3;
+			// Light fully dimmed, die!
+			if(args[0] <= 0) {
+				destroy();
+			}
+		}
+		// Stick light to player
+		//master.A_SPAWNITEMEX("BaseEmberWhite", frandom(5,70), frandom(-30,30), frandom(10,90), frandom(0.2,0.5), frandom(0.1,0.4), frandom(0.1,0.3), failchance:30);
+		A_Warp(AAPTR_MASTER, warpPosition.x, warpPosition.y, warpPosition.z + master.height, 3, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE|WARPF_COPYPITCH|WARPF_WARPINTERPOLATION|WARPF_COPYINTERPOLATION );
+	}
+
+	default {
+		+INTERPOLATEANGLES;
+		+NOINTERACTION
+	}
+
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A -1;
+			stop;
+	}	
+}
+
+class FlashlightProjectileInner: PlayerFlashlight
+{
+	default {
+		+PlayerFlashlight.AllowShadowCasting
+		PlayerFlashlight.lightIntensity 180;
+		PlayerFlashLight.lightRadius 350;
+		PlayerFlashlight.intensityTicks 5;
+		dynamiclight.SpotOuterAngle 32;
+		dynamiclight.SpotInnerAngle 27;
+	}
+
+	override void BeginPlay() {
+		super.BeginPlay();
+		//warpPosition = (-5, 2, 0);
+		intensityIncrement = lightIntensity / intensityTicks;
+	}
+
+	override void tick() {
+		super.tick();
+
+		// Flashlight alerting because our previous system was hacked together. 
+		// This should consider Line of Sight in a slightly less hacky way. It's far from flawless but its "good enough" for such a niche feature.
+		// Special tanks to Blackmore1014 
+		if(level.time % 15 == 0) {
+			// The range of which we interate the blockmap
+			BlockThingsIterator it = BlockThingsIterator.Create(self, lightRadius*2);
+
+			// Get beam info that is accurate to the current Spot Angle and Light Radius (range)
+			double cosBeamAngle = cos(self.SpotOuterAngle);
+			double distanceToWake = self.lightRadius+900 / sqrt(1.0 - cosBeamAngle);
+			Vector3 vectorBeamDirection =(cos(self.angle), sin(self.angle), sin( - self.pitch)).unit();
+
+			while (it.Next()) {
+				// Allow us to use our own AI functions.
+				Actor mo = it.thing;
+				let monsterProps = EnemySoldier(mo);
+				
+				//only consider unalerted aliens
+				if (mo is "EnemySoldier" && !monsterProps.getSeenPlayer()) {
+					Vector3 vectorToMonster = self.Vec3To(mo).unit();
+						
+					//dot product is cos of angle between the vectors. We need this to check with the angle of the player beam.
+					double cosAngleMonsterBeam = vectorToMonster dot vectorBeamDirection;
+						
+					//Check sight
+					if ((cosAngleMonsterBeam >= cosBeamAngle) && (self.distance3DSquared(mo) <= distanceToWake*distanceToWake) && self.CheckSight(mo))
+					{
+						monsterProps.SPOTPLAYER_Flashlight(); // Notify the soldier to play the 'Flashlight!' voice line.
+						mo.lastheard = master; // Alert AI that the player should be their target.
+					}
+				}
+			}
+		}
+	}
+
+}
+
+class FlashlightProjectileOuter : FlashlightProjectileInner {
+
+	int outerAngleTarget;
+	default {
+		-PlayerFlashLight.AllowShadowCasting;
+		+DYNAMICLIGHT.NoShadowMap;
+		PlayerFlashlight.lightIntensity 180;
+		PlayerFlashLight.lightRadius 150;
+		PlayerFlashlight.intensityTicks 12;
+	}
+
+	override void BeginPlay() {
+		super.BeginPlay();
+		SpotInnerAngle = 35;
+		SpotOuterAngle = 35;
+		outerAngleTarget = 39;
+		//warpPosition = (-1, warpPosition.y, warpPosition.z);
+		checkShadowSetting();
+	}
+
+	void checkShadowSetting()
+	{
+		if(getCvar("r_flashlightShadows") == 1)
+		{
+			warpPosition = (-5, 8, 0);
+		}
+		else
+		{
+			warpPosition = (-5, 4, 0);
+		}		
+	}
+
+	override void tick() {
+		super.tick();
+		if(SpotOuterAngle < outerAngleTarget) {
+			SpotOuterAngle+=1;
+		}
+		if(level.time % 10 == 0) 
+		{
+			checkShadowSetting();
+		}
+		if(level.time % 35 == 0)
+		{
+			if(getCvar("lightingquality") <= 2)
+			{
+				destroy();
+			}
+		}
+	}
+
+
+}

@@ -1,0 +1,1063 @@
+// @COCKATRICE - These objects are unused, but had to be added back into this file because
+// it would break savegames if they are not present.
+//*******************************************************
+class gotBunnyTutorial : Inventory
+{
+     default {
+        inventory.maxamount 1;
+    }   
+}
+
+class powerCellTutorial : inventory
+{
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class hasTradingcardTutorial  : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class ArmorTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+//**********************************************************
+
+class AltfireGrenadeBounce : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class UnlockedAcidGrenades : Inventory
+{
+    default {
+        inventory.maxamount 1;
+    }
+}
+
+class UnlockedIceGrenades : Inventory
+{
+    default {
+        inventory.maxamount 1;
+    }
+}
+
+class GwynCounter : inventory
+{
+	default
+	{
+		inventory.maxAmount 21;
+	}
+}
+
+class BombTimer06 : inventory
+{
+	default
+	{
+		inventory.maxAmount 999;
+	}
+}
+
+
+class gotRangeTutorial : Inventory
+{
+     default {
+        inventory.maxamount 1;
+    }   
+}
+class gotTrainTutorial : Inventory
+{
+     default {
+        inventory.maxamount 1;
+    }   
+}
+
+class isCrouching : inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class inspectedRoaringCricket : Inventory {
+	default {
+		inventory.maxAmount 1;
+	}
+}
+
+class UpgradeGrenadeImpactgrenade : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class MegaPowderAmount : Inventory
+{
+	default
+	{
+		inventory.maxAmount 12;
+	}
+}
+
+// Used for music transition.
+class insideSafeRoomItem : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class techModuleTutorial : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}		
+}
+
+// Used for music transition.
+class outsideSafeRoomItem : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+// Achievement for entering a Safe Room for the first time
+class SaferoomAchievement : Inventory
+{
+	default
+	{
+		inventory.maxAmount 1;
+	}
+}
+
+class firstSafeRoom : Inventory
+{
+	default
+	{
+		inventory.maxAmount 1;
+	}	
+}
+
+class isSafeRoom  : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class weaponLoweredItem : Inventory
+{
+	default 
+	{
+		inventory.maxAmount 1;
+	}
+}
+
+// Remembers where Dawn came from so we can move the wall textures into the correct direction
+class FBFFloorHelper : Inventory
+{
+	default 
+	{
+		inventory.maxamount 3;
+	}	
+}
+
+
+// MUTATORS
+class MUTATOR_TEDDY11 : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class VACBOTPetTutorial : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class TychusChallengeBeaten : Inventory
+{
+	default
+	{
+		inventory.maxamount 1;
+	}
+}
+
+class HasCodex : Inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+// Cooldown - Modify these to increase or reduce the cooldown of an ability.
+class CooldownSliding : Inventory {
+	default {
+		inventory.maxamount 175;
+	}
+}
+
+// Bunny Hop
+class BunnyHopDuration : Inventory
+{
+	default
+	{
+		inventory.maxAmount 650;
+	}
+}
+
+class InIntro : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+// Dirty hack to approve Z velocity for a dash since ACS cannot check for 3D floors (I think?)
+class CheckZVelocityDash : inventory  {
+	default {
+		inventory.maxamount 40;
+	}
+}
+
+class CooldownDashing : Inventory {
+	default {
+		inventory.maxamount 50;
+	}
+}
+
+class CooldownStunned  : Inventory {
+	default {
+		inventory.maxamount 180;
+	}
+}
+
+class CensoredMode : inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class SlidingCeilingCollisionCheck : Inventory  {
+	default {
+		inventory.maxamount 2;
+	}
+}
+
+// The 'Welcome To Selaco' datapads are given in a specific order. This is used to keep track of that and apply the correct datapad despite order of pickups.
+class WelcomeToSelacoSeries : Inventory
+{
+	default
+	{
+		inventory.maxAmount 12;
+	}
+}
+
+class dummyItem : inventory
+{
+	default
+	{
+		inventory.maxAmount 1;
+	}
+}
+
+/* class InvasionTier : Inventory {
+	default {
+		inventory.maxamount 999;
+	}
+} */
+
+
+class AmbientMode : Inventory {
+	default {
+		inventory.maxamount 9;
+	}
+}
+
+class EarthquakeActive : inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class CampaignProgress : inventory {
+	default {
+		inventory.maxamount 998;
+	}	
+}
+
+// ALIEN UPGRADES
+class EnemiesCanDeployShields : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+class EnemiesCanDeployTurrets : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class NewWeaponCooldown : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+// TUTORIALS
+class hasCrackTutorial : Inventory {
+	default {
+		inventory.maxamount 1000;
+	}
+}
+
+class hasCoverTutorial : Inventory {
+	default {
+		inventory.maxamount 1000;
+	}
+}
+
+
+class totalDangerStates : Inventory {
+	default {
+		inventory.maxamount 1000;
+	}
+}
+
+class isDashing : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class GrenadeTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class hasSMGTutorial : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class swimmingTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+// Used for something very secret
+class totalTrashBinsSearched : inventory
+{
+	default
+	{
+		inventory.maxAmount 1;
+	}
+}
+
+class medkitTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class cleartip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class goreWarning : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+// USED TO CONTROL STARLIGHT SPAWNING AND OTHER EVENTS IN STARLIGHT. BEATING A LEVEL GIVES THE RESPECTIVE INVENTORY ITEM
+class StarlightCompletion : Inventory {
+	int order;		// What order did we complete this section in? Automatically set when picked up
+
+	override void AttachToOwner(Actor other)
+	{
+		Super.AttachToOwner(other);
+
+		// Note: This code will not do anything if this is a second copy of the pickup item, since the item will be destroyed
+		// Determine what order we completed in
+		if(!(self is 'StarlightGreenCompleted')) 	order += min(1, other.countInv("StarlightGreenCompleted"));
+		if(!(self is 'StarlightRedCompleted')) 		order += min(1, other.countInv("StarlightRedCompleted"));
+		if(!(self is 'StarlightPurpleCompleted')) 	order += min(1, other.countInv("StarlightPurpleCompleted"));
+		if(!(self is 'StarlightBlueCompleted')) 	order += min(1, other.countInv("StarlightBlueCompleted"));
+	}
+
+
+	default 
+	{
+		inventory.maxamount 2;
+	}
+}
+
+class StarlightGreenCompleted : StarlightCompletion 
+{
+	
+}
+
+class StarlightRedCompleted : StarlightCompletion 
+{
+	
+}
+
+class StarlightPurpleCompleted : StarlightCompletion 
+{
+	
+}
+
+class StarlightBlueCompleted : StarlightCompletion 
+{
+	
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class antitoxinTutorial : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class SlimeyFootstep : Inventory {
+	default {
+		inventory.maxamount 10;
+	}
+}
+
+class BloodyFootstep : Inventory {
+	default {
+		inventory.maxamount 10;
+	}
+}
+
+class antitoxinActive : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class HasDemolitionCharges : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class ARMORPICKEDUP : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class ARMORLOSING : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class HEALTHPICKEDUP : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class HEALTHLOSING : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class antitoxinFull : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class antitoxinDepleted : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class antitoxinAbility : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class antitoxinAmount : Inventory {
+	default {
+		inventory.maxamount 100;
+	}
+}
+
+
+// @Cockatrice - These should be removed because we should no longer use inventory items
+// to determine when a tutorial has been seen, but I am leaving them for now because main.acs references
+// some, and we use the grenade tips in weird ways to determine if one has been picked up before so
+// removing them right now causes more problems than it solves
+class cabinetTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class weaponkitTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class IceGrenadeTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class PulseMineTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class SquadExplosiveTip : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class PlayerIsDead : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class PlayerSlides : Inventory
+{	
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class SlideScriptActive : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class SlideUpgradeActual : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class HardcoreMode : inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class slideTiltActive : inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class DashCharges : Inventory
+{
+	default {
+		inventory.maxamount 3;
+	}
+}
+
+
+class SlidingIsActive : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class PlentyOfAmmo : Inventory 
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class hasLowAmmo : Inventory 
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class MedkitIdle : Inventory 
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class RegenTics : Inventory {
+	default {
+		inventory.maxamount 140;
+	}
+}
+
+class RegenActive : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class SlowDawnDown : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class MedkitUsing : Inventory 
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class HasLowHealth : Inventory 
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class MedkitEmpty : Inventory 
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class AbilityNotFull : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class FirstLaunch : inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+
+class HasAbility : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class Grabbing_A_Ledge : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class ShowBorder : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class HudOpacity1 : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+class HudOpacity2 : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class HudOpacity3 : Inventory
+{
+	default {
+		Inventory.maxamount 3;
+	}
+}
+
+class noPhysics : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class ClusterUnlocked: Inventory { 
+	
+	default {
+		inventory.maxAmount 1; 
+	}
+}
+class TurretUnlocked: Inventory {
+	default {
+		inventory.maxAmount 1; 
+	} 
+}
+class ClusterEquipped: Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class TurretEquipped: Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class abilityMeter: inventory
+{
+	default {
+		inventory.maxAmount 12; 
+	}
+}
+
+class ShowFlashLightMeter: Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class DoGrenade : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class DoMine : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class NoDawnArmor : Inventory {
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+// TO-DO: Zscript medkit code, at some point?
+class PortableMedkitHealAmount : Inventory
+{
+	default
+	{
+		inventory.maxAmount 50;
+	}
+}
+
+class DawnArmor : SelacoItem {
+	bool giveCricket;
+	override void beginPlay() {
+		super.beginPlay();
+		giveCricket = true;
+		RandomizerHandler randomizer = RandomizerHandler.instance();
+		if(randomizer && randomizer.hasRandomizer && randomizer.weaponSpawningStyle == 2) {
+			setTag(string.format("%s", stringTable.localize("$DAWN_LOADOUT_THING_RANDOMIZER")));
+			giveCricket = false;
+		}
+	}
+
+	default {
+		scale 0.50;
+		xscale 0.54;
+		height 70;
+		radius 20;
+		tag "$DAWN_LOADOUT_THING";
+		+NOGRAVITY;
+		+SelacoItem.Essential;
+	}
+	states {
+		spawn:
+			SUDA A -1 BRIGHT;
+			stop;
+		Pickup:
+			TNT1 A 1;
+			TNT1 A 0
+			{
+				A_Playsound("ITEM/WPNFIND", CHAN_AUTO, 1.0, 0, 0);
+				A_TakeInventory("NoDawnArmor", 1);
+				if(invoker.giveCricket)
+				{
+					A_TakeInventory("inspectedRoaringCricket", 1);
+					A_GiveInventory("ROARINGCRICKET_PICKUP", 1);
+				}
+				StatDatabase.SetAchievement("GAME_REPORTINGFORDUTY", 1);
+			}
+		stop;
+	}
+}
+
+class HasGasmask : Inventory
+{
+	default
+	{
+		inventory.maxAmount 1;
+	}
+}
+
+class IsPlayer : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class GoSpecial : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+
+class IsJumping : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+class RifleStart : Inventory {
+	default { inventory.maxamount 1; }
+}
+
+// mutators
+class MutatorTeddy11 : Inventory
+{
+	default {
+		inventory.maxamount 1;
+	}
+}
+
+// Decorate
+class WaterSplashSoundEffect : actor {
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_playsound("script/watersplash", CHAN_AUTO, 0.5, 0, 0);
+			TNT1 A 35;
+			stop;
+	}
+}
+
+class PlayRegenSound : actor {
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_PlaySound("player/regen/tick", CHAN_5, 0.7, 0, 0);
+			stop;
+	}
+}
+
+class PlayFinishedRegenSound : actor {
+	states {
+		Spawn:
+			TNT1 A 0 A_PlaySound("player/regen/complete", CHAN_AUTO, 0.7, 0, 0);
+			stop;
+	}
+}
+
+
+
+// TO-DO
+// LAZY DAY. Put this in a different file
+
+class AmbientSoundEffectSpawner : actor {
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("AmbientSoundEffect", 300, 0, 0, 30 , 0, 0, frandom(0,360));
+			stop;
+	}
+}
+
+class FactoryAmbientSoundEffectSpawner : actor {
+	states {
+		spawn: 
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("FactoryAmbientSoundEffect", 0, 0, 0, frandom(20, 30), frandom(20, 30), 0, frandom(0,360));
+			stop;
+	}
+}
+
+class WarzoneAmbientSoundEffectSpawner : actor {
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("WarzoneAmbientSoundEffect", 0, 0, 0, frandom(20, 30), frandom(20, 30), 0, frandom(0,360));
+			stop;
+	}
+}
+
+class ExplosionAmbientSoundEffectSpawner : actor
+{
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("ExplosionAmbientSoundEffect", 0, 0, 0, frandom(20, 50), frandom(20, 30), 0, frandom(0,360));
+			stop;
+	}
+}
+
+class OminousAmbientSoundEffectSpawner : actor {
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("OminousAmbientSoundEffect", 0, 0, 0, frandom(20, 30), frandom(20, 30), 0, frandom(0,360));
+			stop;
+	}
+}
+
+class FBFAmbientSoundEffectSpawner : actor {
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItemEx("FBFAmbientSoundEffect", 0, 0, 0, frandom(20, 30), frandom(20, 30), 0, frandom(0,360));
+			stop;
+	}
+}
+
+
+class AmbientSoundEffect : actor {
+	default {
+		+NOINTERACTION
+	}
+	States {
+		Spawn:
+			TNT1 A 35;
+			TNT1 A 0
+			{
+				vel = (0,0,0);
+			}
+			TNT1 A 0 A_PlaySound("ambient/distant", CHAN_AUTO, 0.65, 0, 0.78);
+			stop;
+	}
+}
+
+class FactoryAmbientSoundEffect : actor {
+	default {
+		+NOINTERACTION
+	}
+	States {
+		Spawn:
+			TNT1 A 35;
+			TNT1 A 0 A_PlaySound("ambient/factoryambient", CHAN_AUTO, 0.3);
+			stop;
+	}
+}
+
+class OminousAmbientSoundEffect : actor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 35;
+			TNT1 A 0 A_PLAYSOUND("ambient/ominousAmbient", CHAN_AUTO, 0.9);
+			stop;
+	}
+}
+
+class ExplosionAmbientSoundEffect : actor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 35;
+            TNT1 A 0 A_PLAYSOUND("EXPLOSION/DISTANT", CHAN_AUTO, 0.6);
+            TNT1 A 0 A_Playsound("Destruction/explosion", CHAN_AUTO, 0.6, 0, 0.8, pitch:frandom(0.85,1.0));
+			stop;
+	}	
+}
+
+class FBFAmbientSoundEffect : OminousAmbientSoundEffect
+{
+	states
+	{
+		Spawn:
+			TNT1 A 35;
+			TNT1 A 0 A_PLAYSOUND("AMBIENT/FBF", CHAN_AUTO, 0.9);
+			stop;
+	}
+}
+
+class WarzoneAmbientSoundEffect : actor {
+	default {
+		+NOINTERACTION
+	}
+	States {
+		Spawn:
+			TNT1 A 35;
+			TNT1 A 0 A_PlaySound("ambient/warzoneambient", CHAN_AUTO, 0.8, 0, 0.8, 0, frandom(0.7,1.0));
+			stop;
+	}
+}
+
+class WarzoneAmbientSoundEffectWithPassby : actor {
+	
+	static const string soundLists[] = {"ambient/warzoneambient", "ambient/passbyambient", "ambient/warzoneambient"};
+	default {
+		+NOINTERACTION
+	}
+	States {
+		Spawn:
+			TNT1 A 35;
+			TNT1 A 0 A_PlaySound(soundLists[random(0,soundLists.size()-1)], CHAN_AUTO, 0.95, 0, 1.0, 0, frandom(0.7,1.0));
+			stop;
+	}
+}

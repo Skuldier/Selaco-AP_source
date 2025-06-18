@@ -1,0 +1,837 @@
+// HOW TO: Make Dawns visor dirty:
+// ACS: ScriptCall("Dawn", "MakeDirty", level); Where Level is 1-10 (stacks with existing dirty) and the player is the activator
+// ZScript: Dawn(player).AddDirt(level); Where level is 1-10
+// DECORATE in ZScript, on DAWN: TNT1 A 0 AddDirt(level); Where level is 1-10
+
+// HOW TO: Clear Dawn's dirty visor:
+// ACS: ScriptCall("Dawn", "ClearDirty");
+// ZScript: Dawn(player).ClearDirt();
+// DECORATE in ZScript, on DAWN: TNT1 A 0 ClearDirt();
+
+// HOW TO: Show a healing effect after picking up health
+// ACS: ScriptCall("Dawn", "HUDHealTick", ticks); Where ticks is how many ticks to keep heal effect running
+// ZScript: Dawn(player).HealTick(ticks);
+
+
+extend class Dawn {
+	uint ticks, dangerTicks, dangerTime, dodgeTime;
+	uint8 dodgeDirection;
+	int8 dash;
+	int gasmaskTicks;		// Used to animate gasmask effects
+
+	//int visorState, 
+	int healing, splatCounter;
+	bool isDangerState;
+
+	float shakeForceX, shakeForceY, weaponShakeForceX, weaponShakeForceY;
+
+	double headRoll, headRollDelta;
+	double headPitch, headPitchDelta;
+
+	int deltaHealth;
+	int dirty, steamy, icy;
+	bool wet;
+
+	double weaponShiftMultiplier;
+	double weaponShakeTMU;
+	Vector2 scMoment, scMomentDelta, rota, rotDelta, weaponShift, weaponShiftDelta, weaponLower, weaponLowerDelta, weaponShake, weaponStrafe, weaponStrafeDelta;
+	Vector3 deltaVel;
+
+	bool weaponShiftEnabled, weaponShakeEnabled, armorHitThisFrame, adsEnabled, swayEnabled;
+
+	int hitAccumulator;					// Keep track of how many times we got hit, to reduce spawning too many "reportplayerhit"s
+
+	uint reservesTime;					// TotalTime when we ran out of reserves, used for HUD warnings
+	int strafeMode;						// Used for strafe tilting
+
+	SFX dangerSound;
+	NotificationItem notifItem;
+	PerlinNoise noise;
+
+	// Note: The random can't be done automatically  with SNDINFO because we need the individual sound lengths to loop properly
+	static const Sound dangerSounds[] = { "dawn/dangerstate1", "dawn/dangerstate2", "dawn/dangerstate3", "dawn/dangerstate4" "dawn/dangerstate5", "dawn/dangerstate7", "dawn/dangerstate8", "dawn/dangerstate9", "dawn/dangerstate11", "dawn/dangerstate12"};
+
+	const shakeForceMax = 10.0;
+	const dangerStateHealth = 25;
+	const dangerStateRecoverHealth = 35;
+	const maxDirty = 60;
+	const dirtyLevels = 3;
+	const maxSteamy = 100;
+	const maxWet = 3;
+	const dirtTicks = 25;				// Ticks per level of dirtyness
+	const dangerSoundDelayTicks = 45;	// Delay from start of danger state until pain sounds start playing
+
+	// Weapon bobbing
+	const maxBobWeap = 11;
+	const minBobWeap = -1;
+
+	// Weapon shift
+	const maxWeaponShift = 15.0;		// Max total horizontal shift
+	const maxWeaponShiftFrame = 5.0;	// Max horizontatl shift in one frame
+	const maxWeaponShiftVertical = 8.0;	// Max offset vertically
+	const weaponShiftDecay = 0.8;		// Restoration multiplier
+	const weaponShiftMod = 0.4;			// Delta movement multiplier
+	const weaponShiftVertMod = 0.32;		// Vertical multiplier to add from horizontal
+
+	// Strafe Tilting
+	const STRAFE_TILT_AMOUNT = 1.55;
+	const STRAFE_TILT_AMOUNT_REDUCED = 1.1;
+	const STRAFE_TILT_AMOUNT_PER_FRAME = (STRAFE_TILT_AMOUNT / 5.0);
+	const STRAFE_TILT_AMOUNT_PER_FRAME_REDUCED = (STRAFE_TILT_AMOUNT_REDUCED / 4.0);
+	const GASMASK_ROTATE_TICKS = 25;
+	const GASMASK_WEAPON_TICKS = 38;
+	const GASMASK_WEAPON_RESTORE_TICKS = 72;
+
+	int GetDirtLevel() {
+		return floor((dirty / float(maxDirty)) * dirtyLevels);
+	}
+
+	// These sounds will definitely cause a hiccup even with the background loader
+	// because we get the length of the sound in ZScript, which often loads the sound
+	// just to get the length.
+	// TODO: Add a function that allows us to background load sounds at low priority before we actually need them
+	override void MarkPrecacheSounds() {
+		Super.MarkPrecacheSounds();
+		
+		for(int x = 0; x < dangerSounds.Size(); x++) {
+			MarkSound(dangerSounds[x]);
+		}
+	}
+
+
+	void HudTick() {
+		shakeForceX = MAX(0.0, shakeForceX - 0.7);
+		shakeForceY = MAX(0.0, shakeForceY - 0.7);
+		weaponShakeForceX -= 0.15;
+		weaponShakeForceY -= 0.15;
+		dirty = MAX(0, dirty - 1);
+		steamy = MAX(0, steamy - 1);
+
+		if(level.totalTime % 38) {
+			adsEnabled = getCvar("g_ironsights") == 1;
+			swayEnabled = GetCVar("g_weaponsway") > 0;
+			weaponShakeEnabled = getCvar("g_screenshake") > 0;
+		}
+
+		if(!player) return;
+
+		if(health > 0 && health < dangerStateHealth && !isDangerState && deltaHealth >= dangerStateHealth) {
+			StartDangerState();
+		} else if(health <= 0 && isDangerState) {
+			// Manually end danger state and stop sounds (because we are dead)
+			isDangerState = false;
+			dangerSound.id = 0; 		// Invalidate danger sound
+			A_StopSound(CHAN_VOICE);	// This is probably redundant, but just in case
+			TakeInventory("DangerStateActive", 1);
+		} else if(isDangerState && Health >= dangerStateRecoverHealth) {
+			EndDangerState();
+		} else if(isDangerState) {
+			// Continue (or start) danger state sounds if necessary
+			bool hardcore = FindInventory("HardcoreMode") != null || Level.MapName == "SE_06C" || hasNoLifeRegenMutator;
+			let tmSinceLast = level.totalTime - dangerTime;
+			if(dangerTicks >= 0 && dangerTicks > dangerSoundDelayTicks && (!dangerSound.IsValid() || dangerSound.IsFinished(ticks))) {
+				// No constant sounds in hardcore mode, only play once
+				// Only play if we aren't repeatedly in danger state
+				if((dangerSound.startTic == 0 || !hardcore) && (dangerTime == 0 || tmSinceLast > TICRATE * 7)) {	
+					A_StopSound(CHAN_VOICE);
+					SoundUtil.APlaySoundFX(self, dangerSound, ticks, dangerSounds[random(0,dangerSounds.size() - 1)], CHAN_VOICE, volume:0.8);
+				}
+			}
+
+			if(dangerTicks >= 0) dangerTicks++;
+			if(dangerTicks % 35 == 0 && !hardcore) {
+				S_StartSound("player/lowhp", CHAN_UI, 0, 0.6);
+			}
+		}
+
+		deltaHealth = Health;
+		healing = healing <= 0 ? 0 : healing - 1;
+
+		dash = -1;
+
+		// Calculate screen momentum
+		scMomentDelta = scMoment;
+		scMoment += (0, vel.z);		// Add momentum from player force
+		scMoment *= 0.71;			// Dampen 0.4
+
+		// Calculate weapon shift from view rotation
+		rotDelta = rota;
+		rota.x = angle;
+		rota.y = pitch;
+		weaponShiftDelta = weaponShift;
+		weaponLowerDelta = weaponLower;
+
+		// Add weapon lower if picking up an object
+		if((curLadder && !(player.ReadyWeapon is 'RoaringCricket')) || waterLevel >= 3) {
+			if(player.ReadyWeapon is 'Fists')  {
+				weaponLower.x *= 0.55;
+				weaponLower.y = weaponLower.y + ((100.0 - weaponLower.y) * 0.3);
+			} else {
+				weaponLower.x = weaponLower.x + ((45.0 - weaponLower.x) * 0.2);
+				weaponLower.y = weaponLower.y + ((100.0 - weaponLower.y) * 0.3);
+			}
+		} else if(holdingObject){//|| (gasmaskTicks != 0 && level.totalTime - abs(gasmaskTicks) < GASMASK_WEAPON_TICKS)) {
+			if(player.ReadyWeapon is 'Fists')  {
+				weaponLower.x *= 0.8;
+				weaponLower.y = weaponLower.y + ((75.0 - weaponLower.y) * 0.4);
+			} else {
+				weaponLower.x = weaponLower.x + ((45.0 - weaponLower.x) * 0.3);
+				weaponLower.y = weaponLower.y + ((50.0 - weaponLower.y) * 0.4);
+			}
+		} else {
+			if(player.crouchfactor < 0.95 && weaponShiftEnabled && !(SelacoWeapon(player.ReadyWeapon) && adsEnabled && SelacoWeapon(player.ReadyWeapon).isZooming)) {
+				double fac = UIMath.EaseInQuadF(clamp((1.0 - player.crouchfactor) * 2.0, 0.0, 1.0)) * weaponShiftMultiplier;
+				weaponLower.y = weaponLower.y + (((fac * 7.0) - weaponLower.y) * 0.1);
+				weaponLower.x = weaponLower.y + (((fac * 2.2) - weaponLower.y) * 0.1);
+			} else {
+				weaponLower *= 0.55;
+			}
+		}
+
+		// Lower weapon for scripted level sequences from ACS
+		if(countinv("weaponLoweredItem") == 1)
+		{
+			weaponLower.y = weaponLower.y + ((100.0 - weaponLower.y) * 0.1);
+			weaponLower.x = weaponLower.x + ((100.0 - weaponLower.x) * 0.1);
+		}
+
+		// Calculate weapon shake
+		if(weaponShakeEnabled) {
+			let sfx = weaponShakeForceX >= 0 ? -(MIN(weaponShakeForceX, 20.0) / 20.0) * 20.0 : 0;
+			let sfy = weaponShakeForceY >= 0 ? (MIN(weaponShakeForceY, 20.0) / 20.0) * 20.0 : 0;
+
+			let ff = double(MSTime()) / 100.0;
+			weaponShake = ( noise.noise3D(1.0, ff, 1.0) * sfx * 8.0, 
+							noise.noise3D(ff, 1.0, 1.0) * sfy * 8.0);
+			
+			if(weaponShakeForceX > 0.0001 || weaponShakeForceY > 0.0001) {
+				weaponShakeTMU = MIN(1.0, weaponShakeTMU + 0.15);
+			} else {
+				weaponShakeTMU = 0;
+			}
+
+			weaponShake.y += sfy * 5 * weaponShakeTMU;
+			weaponShake.x += sfy * 3 * weaponShakeTMU;
+			weaponShake.y = clamp(weaponShake.y, -2, 100);
+		} else {
+			weaponShake = (0,0);
+		}
+
+		// Add weapon shift from momentum
+		weaponStrafeDelta = weaponStrafe;
+		if(weaponShiftEnabled && swayEnabled) {
+			SelacoWeapon w = SelacoWeapon(player.ReadyWeapon);
+			weaponShift.x *= weaponShiftDecay * weaponShiftMultiplier;
+			double xShift = weaponShiftMultiplier * clamp((rota.x - rotDelta.x) * weaponShiftMod, -maxWeaponShiftFrame, maxWeaponShiftFrame);
+			weaponShift.x = clamp(weaponShift.x + xShift, -maxWeaponShift, maxWeaponShift);
+			weaponShift.y = player.ReadyWeapon is 'PlasmaRifle' || (adsEnabled && w && w.supportsADS) ? 0 : clamp(rota.y * -0.25 * weaponShiftMultiplier, 0, 15);
+			weaponShift.y *= UIMath.EaseOutCubicf(weaponShift.y / 15.0);
+			weaponShift.y += abs(weaponShift.x * weaponShiftVertMod) * weaponShiftMultiplier;
+
+
+			double yvel = vel.x * sin(angle) - vel.y * cos(angle);
+			
+			weaponStrafe *= 0.65;
+			double mdy = clamp(yvel, -7.0, 7.0);
+
+			weaponStrafe.x += (mdy * 0.5) * UIMath.EaseOutQuartf(1.0 - (abs(mdy) / 7.0)) * weaponShiftMultiplier;
+		} else {
+			weaponShift *= weaponShiftDecay;
+		}
+
+		// Add strafe tilting
+		headRollDelta = headRoll;
+		if(level.time % 38 == 0) strafeMode = getCVar('g_cameramotion');
+
+		if(strafeMode > 0 && health > 0 && !menuActive) {
+			let tiltStrength = 1.0;
+
+			double crouchMul =  (player.cmd.buttons & BT_CROUCH) ? 0.4 : 1.0;
+
+			if(!player || player.cmd.sidemove == 0 || Speed == 0) {
+				double tiltPerFrame = tiltStrength * crouchMul * (strafeMode == 1 ? STRAFE_TILT_AMOUNT_PER_FRAME : STRAFE_TILT_AMOUNT_PER_FRAME_REDUCED);
+				headRoll += clamp(0 - headRoll, -(tiltPerFrame), tiltPerFrame);
+			} else {
+				double tiltAmount = tiltStrength * crouchMul * (strafeMode == 1 ? STRAFE_TILT_AMOUNT : STRAFE_TILT_AMOUNT_REDUCED);
+				double tiltPerFrame = tiltStrength * crouchMul * (strafeMode == 1 ? STRAFE_TILT_AMOUNT_PER_FRAME : STRAFE_TILT_AMOUNT_PER_FRAME_REDUCED);
+
+				// Keep more mechanical movement, to reduce motion based on constant changes in velocity
+				double sideMove = player.cmd.sideMove / (gameinfo.normsidemove[1]*256);
+				double fwdMove = clamp(abs(player.cmd.forwardMove / (gameinfo.normforwardmove[1]*256)), 0.0, 1.0) * (sideMove > 0 ? 0.75 : -0.75);
+				double strafeAmount = pos.z <= floorZ + MaxStepHeight + 1 ? clamp(sideMove - fwdMove, -1.0, 1.0) : 0;
+				double targetRoll = (strafeAmount * tiltAmount);
+				// Speed up recovery, this is dumb TODO: do it better
+				if(!(headRoll ~== 0) && int(targetRoll * 100) ^ int(headRoll * 100) < 0) tiltPerFrame *= 2.0;
+				
+				tiltPerFrame *= abs(sideMove);
+
+				// Move headroll towards the desired value
+				headRoll += clamp(targetRoll - headRoll, -(tiltPerFrame), tiltPerFrame);
+			}
+		} else {
+			headRoll = 0;
+		}
+
+
+		// Add camera animation for GASMASK being put on / taken off
+		headPitchDelta = headPitch;
+		if(gasmaskTicks != 0) {
+			// Play equip/unequip sound
+			if(level.totalTime - gasmaskTicks == 0) {
+				S_StartSound("UI/GASMASK/EQUIP", CHAN_AUTO);	// Equip Sound
+			} else if(level.totalTime + gasmaskTicks == 1) {
+				S_StartSound("UI/GASMASK/EQUIP", CHAN_AUTO);	// Unequip Sound
+			}
+
+			let gasTime = level.totalTime - abs(gasmaskTicks);
+			if(gasTime <= GASMASK_ROTATE_TICKS) {
+				let si = sin(gasTime * (180.0 / GASMASK_ROTATE_TICKS));
+				si *= si;
+				headPitch = si * -3.5;
+				headRoll = sin(gasTime * (180.0 / (GASMASK_ROTATE_TICKS - 10))) * (gasmaskTicks > 0 ? -1.1 : 1.1);
+				weaponLower.y -= (headPitch * 0.8);
+				//weaponLower.y += sin(gasTime * (180.0 / 25.0)) * 20;
+				weaponLower.x -= headPitch * 0.5;
+			} else headPitch = 0;
+		}
+
+
+		deltaVel = vel;
+		ticks++;
+		hitAccumulator = 0;
+		armorHitThisFrame = false;
+	}
+
+	void enableWeaponShift(bool enable = true, bool reset = false, double multiplier = 1.0) {
+		weaponShiftEnabled = enable;
+		weaponShiftMultiplier = multiplier;
+
+		if(reset) { weaponShift = (0,0); }
+	}
+	
+	override Vector2 BobWeapon(double ticfrac) {
+		// Add momentum movement to bob
+		Vector2 bob = player.cheats & CF_FLY || bFlyCheat || player.cheats & CF_TOTALLYFROZEN ? (0,0) : Super.BobWeapon(ticfrac);
+
+		Vector2 fmoment = UIMath.LerpV(scMomentDelta, scMoment, ticfrac);// * 1.6;
+		fmoment.y = clamp(fmoment.y, -1, maxBobWeap);
+
+		// TODO: This is pure hackery but it works. Clean this shit up.
+		float t = UIMath.EaseOutCubicf((fmoment.y - minBobWeap) / (maxBobWeap - minBobWeap));
+		
+		bob += fmoment * t;
+
+		// Add weapon shift and lower
+		bob += UIMath.LerpV(weaponShiftDelta, weaponShift, ticfrac);
+		bob += UIMath.LerpV(weaponLowerDelta, weaponLower, ticfrac);
+		bob += weaponShake;
+		bob += UIMath.LerpV(weaponStrafeDelta, weaponStrafe, ticFrac);
+		bob.y += 1;	// On some resolutions the weapon will peek up a pixel and we can't have that
+
+		return bob;
+	}
+
+	override Vector3, Vector3 CameraOffsets(double ticfrac) {
+		let aroll = UIMath.LerpD(headRollDelta, headRoll, ticfrac);
+		let apitch = UIMath.LerpD(headPitchDelta, headPitch, ticfrac);
+		return (0, apitch, aroll), (0,0,0);
+	}
+
+	// When taking damage...
+	override int TakeSpecialDamage(Actor inflictor, Actor source, int damage, Name damagetype) {
+		int armorBeforeHit;
+		int armorAfterHit;
+
+		if(inflictor && inflictor is "explodingEnemyTrait") {
+			return 0;
+		}
+
+		if(saveProtectionActive || invulnerableInMenu) {
+			damage = 0;
+		}
+
+		// Do nothing if negative
+		if((inflictor && inflictor is "LaserSightProjectile") || damage == -1)
+		{
+			return 0;
+		}
+
+		// Do armor stuff, if applicable
+		Inventory actorArmor = FindInventory("SelacoArmor");
+		if(actorArmor && actorArmor is "SelacoArmor" && damage > 0)
+		{
+			armorBeforeHit = actorArmor.amount;
+			// Handle Armor Damage
+			if(inflictor && damagetype != "FallDamage")
+			{
+				actor damageDealer = null;
+				if(source)
+				{
+					damageDealer = source;
+				}
+				if(developer) console.printf("DAMAGE: %d", damage);
+				damage = SelacoArmor(actorArmor).applyArmorAbsorption(self, inflictor, damageDealer, damage, damageType);
+				if(developer) console.printf("DAMAGE ADJUSTED: %d", damage);
+			}
+			armorAfterHit = actorArmor.amount;
+		}
+
+		if(armorBeforeHit > 0 && armorAfterHit <= 0 && level.MapTime > 2 && damagetype != "FallDamage") {
+			Notification.QueueOrUpdateUnimportant("ArmorNotification", slot: NotificationItem.SLOT_BOT_MID, tag: "AN");
+
+			// Callout broken armor
+			BattleOverseer overseer = BattleOverseer.instance();
+			overseer.assignCalloutToSquadmate(SOLDIER_ARMORCUT, urgent:true);
+
+			S_StartSound("impact/armorbreak", CHAN_UI, volume: 0.46);
+		}
+
+
+		if(damageType == "Falling" && damage >= 5)
+		{
+			A_PLAYSOUND("player/mediumPainGuaranteed", CHAN_VOICE, 1.0);
+			A_PLAYSOUND("dawn/bonebreak", CHAN_AUTO, 0.4, pitch:1.25);
+			A_GiveInventory("ShatteredWindow", 1);
+			if(getCvar("g_screenshake") >= 1)
+			{
+				A_QuakeEx(4, 3, 0, 8, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 1, 0, 8);
+			}
+		}
+
+		if(damage > 15)
+		{
+			shakeWeapon(3,3);
+		}
+
+		if(damageType == "Fire")
+		{
+			// Play fire sound if we ain't burning yet.
+			if(!burnTimer || abs(burnTimer - BURN_DAMAGE_DURATION) > 3)
+			{
+				TutorialHandler.TutorialMessage("TUT_FIRE", 1);
+				a_playsound("fire/ignite", CHAN_AUTO, 1.0);
+				A_PLAYSOUND("fire/loop", CHAN_7, 0.8, 1); // TODO: I think using CHAN_7 will cause problems. We may want to use a warping actor that plays the fire sound.
+			}
+			burnTimer = BURN_DAMAGE_DURATION;
+		}
+
+		// Target is hit by a bullet, add splatter
+		if(inflictor && (inflictor is "EnemyTracer" && countInv("SelacoArmor") <= 0))
+		{
+			for(int x=0;x<=3;x++)
+			{
+				inflictor.A_SPAWNITEMEX("BloodSplatterEffectPlayerCamera", 0, 0, 0, frandom(-1.4,-2.7), frandom(-1,1), frandom(-0.5,0.5));
+			}
+		}
+
+		// More blood for Sawdrones!
+		// Target is hit by a bullet, add splatter
+		if(source && source is "Sawdrone")
+		{
+			if(getCvar("g_screenshake") >= 1)
+			{
+				A_QuakeEx(1, 2, 0, 3, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 1, 0, 8);
+			}
+			A_SETANGLE(angle+random(-1,1)); // Potentially awful.
+			A_SETPITCH(pitch+random(-2,2)); // Potentially awful.
+			for(int x=0;x<=9;x++)
+			{
+				inflictor.A_Face(self);
+				inflictor.A_SPAWNITEMEX("BloodSplatterEffectPlayerCamera", 5, 0, 0, frandom(-1.4,-2.7), frandom(-2,2), frandom(-0.9,0.9));
+			}
+		}
+
+		int newHealth = health - damage;
+
+		if(level.MapName != "SE_06C" && !hasNoLifeRegenMutator)
+		{
+			ACS_execute(1111, 0);
+		}
+
+		if(damageType == "Treeclaw")
+		{
+			zombieScratchEffects();
+		}
+
+		if(hitAccumulator <= 0 && newHealth <=  dangerStateRecoverHealth) {
+			
+			// Inform enemy of weakened player if the enemy is a soldier
+			if(source is "EnemySoldier")
+			{
+				let soldier = EnemySoldier(source);
+				soldier.talk(SOLDIER_TARGETHIT);
+			}
+
+			hitAccumulator++;
+		}
+
+		// 50% to avoid damage while sliding
+		if(isSliding && inflictor is "SelacoTracer" && random(0,100) <= SLIDE_DODGE_CHANCE)
+		{
+			dodgeTime = level.totalTime;
+			damage  = 0;
+		}
+
+		if (inflictor is "ThrownGrenade1" && countinv("UpgradeGrenadeSelfDamage"))
+		{
+			damage*=0.2;
+		}
+
+		// Enforcer stun for Invasion Tier 9
+		if(inflictor is "EnforcerBullet" && (source is "EnemySoldier" && EnemySoldier(source).checkInvasionTier(INVTIER_CONCUSSIVEROUNDS)) && countinv("SelacoArmor") <= 0 && countinv("CooldownStunned") <= 10)
+		{
+			A_GiveInventory("CooldownStunned", 10);
+		}
+
+		// Increase bullet damage by 10% for invasion tier
+		if(inflictor is "SelacoTracer" && source is "EnemySoldier" && EnemySoldier(source).checkInvasionTier(INVTIER_BASESTATS1))
+		{
+			damage*=1.1;
+		}
+
+		if(countinv("SelacoArmor") > 0 && !armorHitThisFrame && damage > 0 && damageType != "FallDamage") {
+			S_StartSound("impact/hitarmor", CHAN_UI, volume: 0.8, pitch:frandom(0.9,1.1));
+			armorHitThisFrame = true;
+		}
+
+		// Louder splat when shot by Enforcer tracers, and a bit of recoil because fuck it.
+		if((inflictor) && inflictor is "EnforcerBullet")
+		{
+			A_RECOIL(1);
+			A_PLAYSOUND("DAWN/PAIN/ENFORCER", CHAN_AUTO, 0.7, pitch:1.2);
+		}
+
+		// Reduce self damage
+		if(source is "dawn") {
+			damage *=0.25;
+		}
+
+		SelacoWeapon grenadeLauncherInstance = SelacoWeapon(FindInventory("GrenadeLauncher"));
+		if (inflictor is "GrenadeLauncherBombBase")
+		{
+			if(grenadeLauncherInstance && grenadeLauncherInstance.hasUpgradeClass("UpgradeGrenadeLauncherSelfDamage"))
+			{
+				damage*=0.5;
+			}
+			else
+			{
+				damage*=2.5;
+			}
+		}
+
+		// Check if we grant mercy to the player
+		int mercyHealth = health - damage;
+		bool isSelacoEnemy = (source && source is "SelacoEnemy");
+		bool meetsMercyCondition = (!mercyCooldown && mercyHealth <= 0 && mercyHealth >= MERCY_DAMAGE_THRESHOLD) && !countInv("HardcoreMode");
+		bool withinMercyTimeLimit = (abs(mercyTime - level.totalTime) <= MERCY_TIME);
+		if (isSelacoEnemy && (meetsMercyCondition || withinMercyTimeLimit)) {
+			if (!mercyCooldown) {
+				mercyTime = level.totalTime;
+				mercyCooldown = MERCY_DAMAGE_COOLDOWN;
+			}
+			damage = 0;
+			A_SETHEALTH(1);
+			A_PAIN();
+		}
+
+		return Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+	}
+
+	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
+		// Do nothing if negative
+		if((inflictor && inflictor is "LaserSightProjectile") || damage == -1)
+		{
+			return 0;
+		}		
+		
+		// Add reflection to gas mask if we got hit by an explosion. You might not even see this.
+		if(damage > 5 && (mod == 'ExplosiveImpact' || mod == 'Explosion') && countInv('GasMask')) {
+			flashReflection(10);
+		}
+
+		int dmg = Super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+		return dmg;
+	}
+
+	override bool OnGiveSecret(bool printmsg, bool playsound) {
+
+		// Check if player is in HalfLike mode
+		bool isHalfLikeMode = g_halflikemode;
+		if(isHalfLikeMode)
+		{
+			return false;
+		}
+
+		// Add icon to Minimap
+		A_SPAWNITEMEX("SECRETFOUNDICON");
+
+		// Stop default secret message from displaying
+		S_StartSound("DSECRET", CHAN_UI, CHANF_UI);
+		return false;
+	}
+
+
+	void StartDangerState() {
+		let cv = CVar.FindCVar("g_dangerstates");
+		if(cv && cv.GetInt() != 1) {
+			isDangerState = false;
+			return; 
+		}
+
+		A_StopSound(CHAN_VOICE);
+
+		bool hardcoreMode = FindInventory("HardcoreMode") != null || Level.MapName == "SE_06C" || hasNoLifeRegenMutator;
+		
+		if(!hardcoreMode && countinv("TotalDangerStates") < 3) {
+			if(!isDangerState) {
+				Notification.QueueNew("LowHealthNotification", slot: NotificationItem.SLOT_BOT_MID, props: countinv("MedKitCount"), tag: "LOWHP", important: true);
+			} else {
+				Notification.UpdateOnly("LowHealthNotification", props: countinv("MedKitCount"), tag: "LOWHP");
+			}
+		}
+
+		if(!isDangerState) {
+			dangerTicks = 0;
+
+			// Inform enemy of weakened player
+			BattleOverseer overseer = BattleOverseer.instance();
+			overseer.assignCalloutToSquadmate(SOLDIER_TARGETHIT);
+
+			let tmSinceLast = level.totalTime - dangerTime;
+			if(dangerTime == 0 || tmSinceLast > TICRATE * 7) {
+				S_StartSound("player/EnterDanger", CHAN_VOICE, CHANF_UI, 1.0);
+			}
+			
+			S_StartSound("script/lowhpwarning", CHAN_AUTO, CHANF_UI, 0.700000);
+			GiveInventory("TotalDangerStates", 1);
+		}
+
+		isDangerState = true;
+		GiveInventory("DangerStateActive", 1);
+		
+		if(!hardcoreMode) {
+			//ACS_NamedExecuteWithResult("SetEax", 4047);
+		}
+	}
+
+
+	void EndDangerState() {
+		/*let cv = CVar.FindCVar("g_dangerstates");
+		if(cv && cv.GetInt() != 1) {
+			isDangerState = false;
+			return;
+		}*/
+
+		if(isDangerState) {
+			A_StopSound(CHAN_VOICE);
+
+			if(health > 0) {	
+				A_StartSound("dawn/OutOfDanger", CHAN_VOICE, volume: 0.75);
+			}
+
+			// Danger time always represents when we last exited danger state
+			dangerTime = level.totalTime;
+		}
+
+		isDangerState = false;
+		dangerSound.id = 0; 		// Invalidate danger sound
+		dangerSound.startTic = 0;	// Reset startTic is necessary for Hardcore Mode to play the danger state again
+		TakeInventory("DangerStateActive", 1);
+		
+		/*if(!FindInventory("HardcoreMode")) {
+			ACS_NamedExecuteWithResult("SetEax", 4999); // Restores the last rejected or entered Reverb preset
+		}*/
+
+		// End any lowhp notifications
+		Notification.Remove("LOWHP");
+	}
+
+	void HUDShake(float intensityX, float intensityY) {
+		shakeForceX = MIN(intensityX, shakeForceMax);
+		shakeForceY = MIN(intensityY, shakeForceMax);
+	}
+
+	// Typical 1-10 values
+	void HUDWeaponShake(float intensityX, float intensityY) {
+		if(getCvar("g_screenshake") > 0) {
+			weaponShakeForceX = MIN(intensityX * 0.35, shakeForceMax * 0.35);
+			weaponShakeForceY = MIN(intensityY * 0.35, shakeForceMax * 0.35);
+		}
+	}
+
+	void AddDirt(int amount = 1) {	// Simplified as 1-10
+		dirty = MIN(maxDirty, dirty + (float(amount) * (maxDirty / 10.0)));
+	}
+
+	void ClearDirt() {
+		dirty = 0;
+	}
+
+	void AddSteam(int amount = 1, int maxAmount = 10) {
+		float desiredAdd = (float(amount) * float(maxSteamy / 10.0));
+		float maxAmount = float(maxAmount) * float(maxSteamy / 10.0);
+
+		if(steamy > maxAmount) { return; }
+
+		steamy = MIN(maxAmount, steamy + int(desiredAdd));
+	}
+
+	void ClearSteam() {
+		steamy = 0;
+	}
+
+	void SetWet(bool shouldWet) {
+		wet = shouldWet;
+	}
+
+	void AddSplat(int numSplats = 1) {
+		splatCounter += numSplats;
+	}
+
+	void SetIsFrozen(bool shouldFreeze = true) {
+		icy = shouldFreeze ? 1 : 0;
+	}
+
+	//void SetVisorState(int state) {
+	//	visorState = state;
+	//}
+
+	void HealTick(int ticks = 3) {
+		healing = ticks;
+	}
+
+	// 0 = left, 1 = right, 2 = back
+	void AddDash(int direction = 2) {
+		dash = direction;
+		dodgeDirection = direction;
+	}
+
+	override void BeginPlay() {
+		Super.BeginPlay();
+
+		//visorState = 1;
+		dash = -1;
+		weaponShiftEnabled = true;
+		weaponShiftMultiplier = 1.0;
+		
+		notifItem = NotificationItem(FindInventory("NotificationItem"));
+        if(notifItem == null) {
+            // Create the item
+            notifItem = NotificationItem(Spawn("NotificationItem"));
+			notifItem.BecomeItem();
+			AddInventory(notifItem);
+		}
+
+		deltaVel = vel;
+
+		adsEnabled = getCvar("g_ironsights") == 1;
+		swayEnabled = GetCVar("g_weaponsway") > 0;
+	}
+
+	// Check if Dawn is playing her danger state grunt
+	bool isDSGrunting() {
+		return dangerSound.IsValid() && !dangerSound.IsFinished(ticks);
+	}
+
+	// Static funcs for ACS! ======================
+	static void HUDShakeAdd(Actor activator, int intensityX, int intensityY) {	// 1-10 for simplicity!
+		if(activator && activator.player) {
+			Dawn d = Dawn(activator);
+			if(d) {
+				float mx = (shakeForceMax / 10.0);
+				d.HUDShake(float(intensityX) * mx, float(intensityY) * mx);
+			}
+		}
+	}
+	
+	static void MakeDirty(Actor activator, int numDirt = 1) {	// The value is simplified from 1-10 here for simplicity
+		if(activator && activator.player) {
+			Dawn d = Dawn(activator);
+			if(d) {
+				d.AddDirt(numDirt);
+			}
+		}
+	}
+
+	static void MakeSteamy(Actor activator, int numSteam = 1, int maxSteamy = 10) {	// The value is simplified from 1-10 here for simplicity
+		if(activator && activator.player) {
+			Dawn d = Dawn(activator);
+			if(d) {
+				d.AddSteam(numSteam, maxSteamy);
+			}
+		}
+	}
+
+	static void MakeSplat(Actor activator, int numSplats = 1) {
+		if(activator && activator.player) {
+			Dawn d = Dawn(activator);
+			if(d) {
+				d.AddSplat(numSplats);
+			}
+		}
+	}
+
+	static void ClearDirty(Actor activator) {
+		if(activator && activator.player) {
+			Dawn d = Dawn(activator);
+			if(d) {
+				d.ClearDirt();
+			}
+		}
+	}
+
+	static void ShakeWeapon(float x, float y) {
+		Dawn d = Dawn(players[consolePlayer].mo);
+		if(d) {
+			d.HUDWeaponShake(x, y);
+		}
+	}
+
+	// Notify HUD that the player has healed on this tick
+	// For a continuous heal effect, call this function every tick
+	static void HUDHealTick(Actor activator, int ticks = 3) {
+		if(activator && activator.player) {
+			Dawn d = Dawn(activator);
+			if(d) {
+				d.HealTick(ticks);
+			}
+		}
+	}
+
+	// 0 = left, 1 = right, 2 = back
+	static void DashEffect(int direction = 2) {
+		Dawn d = Dawn(players[consolePlayer].mo);
+		if(d) {
+			d.dash = direction;
+			d.dodgeDirection = direction;
+		}
+	}
+
+	static void MakeFrozen() {
+		Dawn d = Dawn(players[consolePlayer].mo);
+		if(d) {
+			d.SetIsFrozen();
+		}
+	}
+
+	static void ClearFrozen() {
+		Dawn d = Dawn(players[consolePlayer].mo);
+		if(d) {
+			d.SetIsFrozen(false);
+		}
+	}
+
+	// For ACS access
+	static void SetWorldTilt(int tiltDeg, int dir = 0) {
+		level.tilt = tiltDeg;
+		level.tiltAngle = dir;
+	}
+}
+
+
+class DangerStateActive : inventory {
+	default {
+		inventory.maxamount 1;
+	}	
+}
+

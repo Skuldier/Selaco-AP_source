@@ -1,0 +1,21 @@
+Class SodaMachine : Actor {
+	Default {
+		Radius 24;
+		Height 7;
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	}
+
+	States {
+		Spawn:
+			PLAY A -1;
+			Stop;
+	}
+}

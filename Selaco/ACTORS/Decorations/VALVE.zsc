@@ -1,0 +1,257 @@
+class VALVE : Interactable {
+    
+    bool startSpinning;
+    actor valveLight;
+    const rollLimit = 235;//117;
+    const rollIntervals = 3;
+    //const yscaleIncrease = 0.0030; // Desperate attempt to combat the oval shape
+    
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+
+        bool success;
+        [success, valveLight] = A_SpawnItemeX("VALVE_LIGHT", 1, 0, 0, flags:SXF_SETMASTER);
+        sleepIndefinite();
+    }
+
+    override void Activate(Actor activator) {
+        wake();
+        startSpinning = true;
+        if(valvelight) VALVE_LIGHT(valvelight).fadeAway();
+        A_PLAYSOUND("Switch/valveturn", CHAN_AUTO, 0.6);
+        ActivationType = THINGSPEC_Default;
+    }
+
+    override void tick() {
+        super.tick();
+        if(startSpinning && roll < rollLimit) {
+            if(valveLight) {
+                valveLight.A_Warp(AAPTR_Master, 0, 0, 0, flags:WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION ); // No reason to use Warp when nothing happens.
+                //valveLight.scale  = (scale.x, scale.y+yscaleIncrease);
+                valveLight.A_setRoll(roll+rollIntervals);
+            }
+            //scale = (scale.x, scale.y+yscaleIncrease);
+            A_SETROLL(roll+rollIntervals);
+        }
+
+        if(startSpinning && roll >= rollLimit) {
+            roll = rollLimit;
+            startSpinning = false;  // Prevent this from running again
+            if(valvelight) VALVE_LIGHT(valvelight).fadeAway();
+            ACS_ExecuteAlways(args[0], 0);
+            sleepIndefinite(); // Your job is done, now piss off and go to sleep!
+        }
+    }
+
+    default {
+        tag "$OBJECT_VALVE";
+        SelacoActor.UseTag "$INTERACT_TURN";
+        activation THINGSPEC_Activate;
+        +NOGRAVITY;
+        +buddha;
+        //+INTERPOLATEANGLES
+        +usespecial;
+        radius 10;
+        height 15;
+        BLoodType "Stacked_Sparks_Lite";
+    }
+    states {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class VALVE_LIGHT : SELACOACTOR {
+    bool fadingAway;
+    default {
+        renderStyle "Translucent";
+    }
+    override void tick() {
+        super.tick();
+        if(fadingAway) {
+            alpha-=0.025;
+            if(alpha <=0) {
+                destroy(); 
+            }
+        }
+    }
+
+    void fadeAway() {
+        fadingAway = true; 
+    }
+
+    default {
+        +NOINTERACTION;
+    }
+    states {
+        Spawn:
+            VOXE L -1 BRIGHT;
+    }
+}
+
+// "I looooooooove Steam... Pipes!"
+class VALVE_DESTRUCTIBLE : Interactable
+{
+    vector3 originalPos;
+    bool boobytrapped;
+    bool detonated;
+    int originalAngle;
+    LookExParams boobyTrapRange;
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        originalPos = pos;
+        originalAngle = angle;
+        BoobyTrapRange.minDist = 0;
+        BoobyTrapRange.MaxDist = 200;
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(boobyTrapped && level.time % 5 == 0 && LookForEnemies(true, boobyTrapRange) && !detonated)
+        {
+            setStateLabel("death");
+        }
+    }
+
+    default
+    {
+        SelacoActor.UseTag "$INTERACT_BOOBYTRAP";
+        tag "$OBJECT_BROKENVALVE";
+        DamageFactor "ExplosiveImpact", 0.05;
+		PainChance "MeleeImpact", 0;
+		DamageFactor "MagnumBullet", 8.0;
+		DamageFactor "MeleeImpact", 0.0;
+		DamageFactor "MeleeImpactSplash", 0;
+		DamageFactor "shotgun", 8.0;
+        damageType "Fire";
+        +SelacoActor.IgnoreEnemyProjectiles;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        SelfLighting "252525";
+        +SHOOTABLE;
+        +DONTTHRUST;
+        +NOGRAVITY;
+        +SHOOTABLE
+        +USESPECIAL
+        Activation THINGSPEC_Activate;
+        radius 25;
+        height 25;
+        health 10;
+    }
+
+    states
+    {
+        spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                A_PlaySound("Steam/Loop", CHAN_AUTO, 1.0, 1);
+            }
+        Looper:
+            VOXE L 1
+            {   
+                if(!boobyTrapped)
+                {
+                    A_SETPITCH(frandom(-4,4));
+                    A_SETANGLE(originalAngle+frandom(-3,3));
+                    A_SpawnItemEx("SteamParticle", 0, 0, 3, 2.6, 2, frandom(-0.8,0.8));
+                }
+
+                if(!boobyTrapped && random(0,50) == 0)
+                {
+                    for(int x=0;x<3;x++)
+                    {
+                        A_SpawnItemEx("SteamParticle", 0, 0, 2, 1.6, frandom(-0.5,-1.2), frandom(0.7,1.2));
+                    }
+            }
+            
+                // Spawn some extra steam sticks when boobytrapped
+                if(boobyTrapped && random(0,25) == 0)
+                {
+                    A_PlaySound("AIRHISS", CHAN_5);
+                    for(int x=0;x<3;x++)
+                    {
+                        A_SpawnItemEx("SteamParticle", 0, 0, 2, 0.3, frandom(-0.5,-1.2), frandom(0.7,1.2));
+                    }
+                    for(int x=0;x<3;x++)
+                    {
+                        A_SpawnItemEx("SteamParticle", 0, 0, 0, 0.3, frandom(0.5,1.2), frandom(-0.7,-1.2));
+                    }
+                }     
+            }
+            loop;
+        Active:
+            TNT1 A 0
+            {
+                sleepDist = 0;
+                bFriendly = true;
+                bUseSpecial = false;
+                activationType = THINGSPEC_DEFAULT;
+                A_PLAYSOUND("BOOBYTRAP/Prepare", CHAN_AUTO);
+                A_SETPITCH(0);
+                A_SETROLL(0);
+                A_SETANGLE(originalAngle);
+            }
+            VOXE L 20;
+            TNT1 A 0 {
+                boobytrapped = true;
+                A_PLAYSOUND("BOOBYTRAP/RIG", CHAN_AUTO);
+            }
+            goto spawn;
+        death:
+            TNT1 A 0
+            {
+                if(!detonated)
+                {
+                    bPreventSleep = true;
+                    detonated = true;
+                    A_PLAYSOUND("VALVEXP", CHAN_AUTO, 0.6);
+                    A_PlaySound("dest/grensmok", CHAN_AUTO, 1.0, 0, 0.6, 0, pitch:0.8);
+                    bShootable = false;
+                    bNOGRAVITY = true;
+                    // Fire Effects
+                    for(int i=0;i<35;i++) {
+                        A_SpawnDefinedParticle("FlameParticleDefinition",frandom(-10,10), frandom(-10,10), 10, frandom(3,6), 0, frandom(-3,3), angle:random(-45,45));
+                    }
+                    for(int x=0;x<16;x++) {
+                        A_SPAWNITEMEX("LargeExplosionSmokeSlow", frandom(0,25), frandom(-10,10), frandom(-15,15), frandom(0.5,5.2), frandom(-1.5,1.5),frandom(-1.0,1.0));
+                    }
+                    A_SPAWNITEMEX("PropaneExplosion");
+                    A_SPAWNITEMEX("propaneExplosionLight");
+                    A_SPAWNITEMEX("ValveExplosion");
+                    A_SPAWNITEMEX("VALVE_MISSILE", 0, 0, 0, 8, 0, 3);                    
+                }
+            }
+            // BLOW off some Steam, Bennet
+        SteamBlower:
+            TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1
+            {
+                bUseSpecial = false;
+                activationType = THINGSPEC_Default;
+                setOrigin(originalPos, false);
+                A_SpawnItemEx("SteamParticleLarger", 0, 0, 3, 2.6, frandom(-0.5,-1.2), frandom(0.7,1.2));
+                A_SpawnItemEx("SteamParticleLarger", 0, 0, 3, 2.6, frandom(0.2,1.7), frandom(0.7,1.2));
+                A_SpawnItemEx("SteamParticleLarger", 0, 0, 3, 2.6, frandom(0.5,1.2), frandom(-0.5,-1.1));
+                A_SpawnItemEx("SteamParticleLarger", 0, 0, 3, 2.9, 0, frandom(0.7,1.2));
+                //A_SpawnItemEx("SteamParticleLarger", 0, 0, 42, 2.6, frandom(-0.5,-1.7), frandom(1.2,1.6));
+            }
+            stop;
+    }
+}
+
+
+class VALVE_MISSILE : SelacoActorDecorationMissile
+{
+    default
+    {
+        speed 10;
+    }
+    states
+    {
+        death:
+            TNT1 A 0 A_SETPITCH(-90);
+            VOXE L -1;
+    }
+}

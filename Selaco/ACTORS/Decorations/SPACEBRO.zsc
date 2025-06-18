@@ -1,0 +1,113 @@
+class SPACEBRO_CABINET : Purchasable  {
+	protected int spaceBroTime;
+	mixin IconSpawner;
+
+	// A SPACE BRO game was finished that started at this cabinet
+	void gameFinished() {
+		playTunes();
+	}
+
+	// The payment was used to start a game, no longer is paid for
+	void gameStarted() {
+		spaceBroTime = 0;
+	}
+
+    override void approvedPurchase(actor purchaser) {
+		spaceBroTime = Level.time;
+		stopTunes();
+
+        // Do purchase things
+		//LevelEventHandler.Instance().StartSpaceBro(self);
+    }
+
+	// Play the Space Bro menu theme.
+	void playTunes() {
+		A_PLAYSOUND("AMBIENT/SPCEBRO", CHAN_5, 0.8, 1, 2);
+	}
+
+	// Stop the Space Bro menu theme.
+	void stopTunes() {
+		A_StopSound(CHAN_5);
+	}
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		iconName = "SPACEBROMARKER";
+		SearchParams.fov = 100;
+		SearchParams.minDist = 0;
+		SearchParams.maxDist = 700;
+		SearchParams.maxHearDist = 1024;
+		playTunes();
+	}
+
+	override void Activate (Actor activator) {
+		// Check if we still have time (.5 minute) on this machine to play without paying
+		let d = Dawn(activator);
+		if(spaceBroTime != 0 && d && Level.time - spaceBroTime < TICKRATE * 30) {
+			if(Level.time - spaceBroTime > 10) {
+				stopTunes();
+				LevelEventHandler.Instance().StartSpaceBro(self);
+			}
+
+			return;
+		}
+
+		Super.Activate(activator);
+	}
+
+	override string GetUsePrompt(string highCol) {
+		if(spaceBroTime != 0 && Level.time - spaceBroTime < TICKRATE * 30) {
+        	return String.Format("\c%sPlay Again", highCol);
+		}
+
+		return Super.GetUsePrompt(highCol);
+    }
+
+	override void tick() {
+		Super.tick();	
+		if(spaceBroTime != 0 && Level.time - spaceBroTime == 10) {
+			LevelEventHandler.Instance().StartSpaceBro(self);
+		}
+		ScanForPlayer();
+	}
+
+    default {
+		Tag "$OBJECT_SPACEBRO";
+		Purchasable.price 2;
+        +SOLID;
+        +usespecial;
+        Activation THINGSPEC_Switch;
+		SelacoActor.UseTag "$INTERACT_PLAY";
+        height 52;
+        radius 24;
+        scale 1.0;
+        mass 800;
+    }
+
+	states {
+		Spawn:
+			VOXE L 0;
+			VOXE L 0 A_SPAWNITEMEX("SPACEBRO_FRAMES", 13, 0, 30);
+			VOXE L -1;
+			stop;
+	}
+}
+
+class SPACEBRO_FRAMES : actor {
+    default {
+        +NOGRAVITY
+        +FLATSPRITE
+        +NOINTERACTION
+
+        xscale 0.41;
+        yscale -0.33;
+        mass 800;
+    }
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SETPITCH(75);
+			SCBA A -1;
+			stop;
+	}
+}

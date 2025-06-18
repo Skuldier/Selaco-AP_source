@@ -1,0 +1,143 @@
+Model junk1
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk1.md3"    
+   Skin 0 "junk1.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk2
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk2.md3"    
+   Skin 0 "junk2.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk3
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk3.md3"    
+   Skin 0 "junk3.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk4
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk4.md3"    
+   Skin 0 "junk4.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk5
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk5.md3"    
+   Skin 0 "junk5.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk6
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk6.md3"    
+   Skin 0 "junk6.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk7
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk7.md3"    
+   Skin 0 "junk7.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk8
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk8.md3"    
+   Skin 0 "junk8.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk9
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk9.md3"    
+   Skin 0 "junk9.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk10
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk10.md3"    
+   Skin 0 "junk10.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk11
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk11.md3"    
+   Skin 0 "junk11.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk12
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk12.md3"    
+   Skin 0 "junk12.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}
+Model junk13
+{
+   USEACTORPITCH
+   UseactorRoll
+   Path "MD/junk"
+   noperpixellighting   
+   Model 0 "junk13.md3"    
+   Skin 0 "junk13.png"
+   Scale 1.0 1.0 1.0
+   FrameIndex JUNK A 0 0
+}

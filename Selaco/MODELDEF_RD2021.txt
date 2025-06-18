@@ -1,0 +1,354 @@
+Model CEILING_COLLAPSE_TILE_1    
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling1.md3"    
+   Skin 0 "Ceiling1.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model VOXELDOORCRASH 
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXEL.md3"    
+   Skin 0 "DOORVOXEL.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+
+Model VOXELDOORIDLE
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXEL.md3"    
+   Skin 0 "DOORVOXEL.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+Model VOXELDOORKICKABLE
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXEL.md3"    
+   Skin 0 "DOORVOXELKICKER.png"
+   ZOffset 0
+   Scale 1.05 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+Model VOXELDOORKICKABLEFLYING
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXEL.md3"    
+   Skin 0 "DOORVOXEL.png"
+   ZOffset 0
+   Scale 1.05 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+
+Model VOXELDOORKICKABLEFAST
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXELKICKERFAST.md3"    
+   Skin 0 "DOORVOXELKICKERFAST.png"
+   AngleOffset 90
+   ZOffset 0
+   Scale 1.05 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+Model VOXELDOORKICKABLEHIGHVELOCITY
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXELKICKERFAST.md3"    
+   Skin 0 "DOORVOXELKICKERFAST.png"
+   AngleOffset 90
+   ZOffset 0
+   Scale 1.05 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+Model VOXELDOORKICKABLEFLYINGHIGHVELOCITY
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXEL.md3"    
+   Skin 0 "DOORVOXEL.png"
+   ZOffset 0
+   Scale 1.05 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+Model VOXELDOORKICKABLEFLYINGFAST
+{
+   UseActorPITCH
+   Path "MD/EFFECTS"   
+   Model 0 "DOORVOXEL.md3"    
+   Skin 0 "DOORVOXEL.png"
+   ZOffset 0
+   Scale 2.55 1.0 1.0
+   FrameIndex VOXE L 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_2
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling2.md3"    
+   Skin 0 "Ceiling2.png"
+   ZOffset 0
+   Scale 0.5 0.5 0.5
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_3
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling3.md3"    
+   Skin 0 "Ceiling3.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_4
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling4.md3"    
+   Skin 0 "Ceiling4.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_5
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling5.md3"    
+   Skin 0 "ceiling5.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_6
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling6.md3"    
+   Skin 0 "ceiling6.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_7
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling7.md3"    
+   Skin 0 "ceiling7.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model WALL_COLLAPSE_1
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "WALL1.md3"    
+   Skin 0 "WALL1.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+
+Model CEILING_COLLAPSE_TILE_8
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling8.md3"    
+   Skin 0 "ceiling8.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_9
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling9.md3"    
+   Skin 0 "ceiling9.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+Model CEILING_COLLAPSE_TILE_10
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling10.md3"    
+   Skin 0 "ceiling10.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+Model CEILING_COLLAPSE_TILE_11
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling11.md3"    
+   Skin 0 "ceiling11.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+Model CEILING_COLLAPSE_TILE_14
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling12.obj"    
+   Skin 0 "ceiling12.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+Model CEILING_COLLAPSE_TILE_16
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling16.obj"    
+   Skin 0 "ceiling16.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+Model CEILING_COLLAPSE_TILE_FBF
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "ceiling11.md3"    
+   Skin 0 "ceiling11.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_1_performance  
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling1.md3"    
+   Skin 0 "Ceiling1.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_2_performance
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling2.md3"    
+   Skin 0 "Ceiling2.png"
+   ZOffset 0
+   Scale 0.5 0.5 0.5
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_3_performance
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling3.md3"    
+   Skin 0 "Ceiling3.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+
+Model CeilingCollapser
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "LITEOFF.md3"    
+   Skin 0 "LITEOFF.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+
+Model CEILING_COLLAPSE_TILE_4_performance
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "Ceiling4.md3"    
+   Skin 0 "Ceiling4.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+
+Model CEILING_COLLAPSE_TILE_5_performance
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "LITEOFF.md3"    
+   Skin 0 "LITEOFF.png"
+   ZOffset 0
+   Scale 1.0 1.0 1.0
+   FrameIndex CEIL A 0 0
+}
+Model CEILING_COLLAPSE_TILE_12
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "GRATEMESH2.md3"    
+   Skin 0 "GRATEMESH2.png"
+   ZOffset 0
+   Scale 2 2 2
+   FrameIndex CEIL A 0 0
+}
+Model CEILING_COLLAPSE_TILE_13
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "GRATEMESH1.md3"    
+   Skin 0 "GRATEMESH1.png"
+   ZOffset 0
+   Scale 2 2 2
+   FrameIndex CEIL A 0 0
+}
+
+Model GrateFloorPiece1
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "GRATEMESH2.md3"    
+   Skin 0 "GRATEMESH2.png"
+   ZOffset 0
+   Scale 2 2 2
+   FrameIndex CEIL A 0 0
+}
+Model GrateFloorPiece2
+{
+   UseActorPitch
+   Path "MD/RD2021Effects"   
+   Model 0 "GRATEMESH1.md3"    
+   Skin 0 "GRATEMESH1.png"
+   ZOffset 0
+   Scale 2 2 2
+   FrameIndex CEIL A 0 0
+}

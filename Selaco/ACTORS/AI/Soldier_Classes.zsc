@@ -1,0 +1,467 @@
+// The Soldier Defender stays in the backline, has a lower rate of fire, fires more accurately and doesnt strafe / dodge as much.
+class Soldier_Defender : SOLDIER
+{
+	override void PostBeginPlay() {
+		RateOfFire = 6;
+		if(skill <= 1) {
+			strafeChance = 80;
+		}
+		evadeChance = 5;
+		combatdistance +=random(50,500);
+		super.PostBeginPlay();
+	}
+
+	default {
+		speed 5;
+		SelacoEnemy.role "$ROLE_DEFENDER";
+		SelacoEnemy.flankingChance 0;
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.crouchedShotChance 255;
+		EnemySoldier.AccurateShotChance 255;
+		EnemySoldier.CombatDistance 700;
+		EnemySoldier.Aggressiveness 35;
+		EnemySoldier.StrafeChance 195;
+		EnemySoldier.EvadeChance 255;
+		+EnemySoldier.KeepDistance;
+	}
+
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_Look();
+			}
+			POSS B 1;
+			goto stand;
+ 		MissileForward:
+			RFFR A 1;
+			goto Prepare_ShootWeapon1;
+		MissileBackward:
+			TNT1 A 0 {
+				if(hasHeightAdvantage(70)) {
+					setStateLabel("Prepare_ShootWeapon1");
+				}
+				Sprite = GetSpriteIndex(SPRITE_Hipfiring);
+			}
+			RFFR AA 2 {
+				A_FACETARGET();
+				//spawnAttackIndicator("YellowFlare3", 40);
+			}
+			TNT1 A 0 {
+				prepareRifle();
+				Sprite = GetSpriteIndex(SPRITE_HipWalking);
+				if(isDawnNear(needSight: false)) {
+					talk(SOLDIER_RETREAT);
+				}
+			}
+			TNT1 A 0 A_Jump(4, "MoveBackward");
+			TNT1 A 0 {
+				defaultEverything();
+			}
+			TNT1 DCBADCBADCBA 7
+			{
+				A_SetTics(invoker.weapon_rateoffire - 2);
+				A_FACETARGET();
+				IncrementStateTic();
+				if(stateTic % 3 == 0) {
+					playFootstepSound();
+				}
+				ThrustThing(angle*256/360+128, 3, 0, 0);
+				if (!hasEnoughAmmo()) {
+					setStateLabel("ReloadWeapon");
+				}
+				// Not checking for firing solution here, might as well do the whole action before cutting off fire
+				if (isTargetVisible() && getStateTic() >= 8	) {
+					FireWeapon(4, 9, 36, 5, 4);
+				}
+				if (!CheckClear(4)) 
+				{ 
+					invoker.ShouldItShoot = 2;
+					if (CheckClear(1)) { SetStateLabel("MissileLeft");}
+					if (CheckClear(2)) { SetStateLabel("MissileRight");}
+				}
+			}
+			Goto SeeContinue;
+	}
+}
+class Soldier_Defender_Longrange : SOLDIER_DEFENDER {
+
+	default {
+		speed 5;
+		EnemySoldier.CombatDistance 1350;
+	}
+}
+// The Soldier Attacker uses similar tactics as a SOLDIER_DEFENDER, whereas they also keep their distance and stop chasing after a while. However, theyre chasing distance is much lower which allows them to get closer to the player than a Defender.
+class Soldier_Attacker : SOLDIER_DEFENDER
+{
+
+	override void PostBeginPlay() {
+		combatdistance+=random(50,100);
+		if(skill <= 2) {
+			strafeChance*=0.75;
+		}
+		super.PostBeginPlay();
+	}
+
+	default {
+		SelacoEnemy.role "$ROLE_ATTACKER";
+		+SelacoEnemy.AlwaysTryFlanking
+		speed 6;
+		EnemySoldier.CombatDistance 400;
+		EnemySoldier.aggressiveness 225;
+		EnemySoldier.crouchedShotChance 80;
+		EnemySoldier.AccurateShotChance 80;
+		EnemySoldier.strafeChance 190;
+		EnemySoldier.evadeChance 5;
+	}
+
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_Look();
+			}
+			POSS B 1;
+		goto Stand;
+	}
+}
+
+// The Soldier Aggressor will always try to move forward and keep pressure on the player
+class Soldier_aggressor : SOLDIER
+{
+
+	default {
+		speed 6;
+		SelacoEnemy.role "$ROLE_PUSHER";
+		SelacoEnemy.flankingChance 25;
+		EnemySoldier.sprayShotChance 15;
+		EnemySoldier.accurateShotChance 0;
+		EnemySoldier.crouchedShotChance 20;
+		EnemySoldier.strafeChance 25;
+		EnemySoldier.combatDistance 75;
+		EnemySoldier.aggressiveness 255;
+		-EnemySoldier.KeepDistance;
+		+JUMPDOWN
+	}
+
+	override void PostBeginPlay() {
+		if(Skill == SKILL_ENSIGN) {
+			aggressiveness = aggressiveness * 0.75;
+		}
+		super.PostBeginPlay();
+	}
+
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				A_Look();
+			}
+			POSS B 1;
+		goto Stand;
+	}
+}
+
+// Strafes and dodges all the time while shooting. His aim sucks.
+class SOLDIER_STRAFER : SOLDIER
+{
+
+	override void BeginPlay() {
+		super.BeginPlay();
+		if(skill <= 2) {
+			strafeChance = 200;
+		}
+	}
+
+	default {
+		SelacoEnemy.role "$ROLE_STRAFER";
+		SelacoEnemy.flankingChance 75;
+		EnemySoldier.strafeChance 256;
+		EnemySoldier.Aggressiveness 60;
+		EnemySoldier.evadeChance 0;
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.AccurateShotChance 0;
+		EnemySoldier.CrouchedShotChance 0;
+	}
+
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+
+				A_Look();
+			}
+		goto Stand;
+
+	}
+}
+
+// Buffs nearby allies
+class SOLDIER_SQUADLEADER : SOLDIER
+{
+	Array<Actor> buffList; // Contains the list of all buffed teammates
+	int aliveTime;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		ENEMY_IdentifierTag = "SquadLeader";
+		A_SPAWNITEMEX("SquadLeaderAura", flags:SXF_SETMASTER);
+		A_SPAWNITEMEX("SquadLeaderIcon", flags:SXF_SETMASTER);
+	}
+
+	const BUFFRANGE = 1900;
+	override void tick() {
+		super.tick();
+		aliveTime++;
+		if(aliveTime == 5) {
+		 	handleSquadBuff();
+		}
+		if(getSeenPlayer() && level.time % 35 == 0)
+		{
+			A_SPAWNITEMEX("SquadLeaderMapIcon");
+		}
+	}
+
+	// Check around for nearby soldiers. Everybody close to the Squad Leader will be assigned as a Squad Member
+	void handleSquadBuff() {
+		ThinkerIterator it = ThinkerIterator.Create("EnemySoldier");
+		EnemySoldier soldierActor = EnemySoldier(it.Next());
+
+		// Find all EnemySoldiers and check if we have to buff.
+		for (; soldierActor; soldierActor = EnemySoldier(it.Next())) {
+			if(validateSquadBuff(soldierActor))
+			{
+				buffList.push(soldierActor);
+			}
+		}
+
+
+		// Apply buffs to all added soldiers.
+		for(int x=0;x<buffList.size();x++) {
+			let soldierActor = EnemySoldier(buffList[x]);
+			if (soldierActor && soldierActor.getClassName() != "SOLDIER_SQUADLEADER" && !soldierActor.squadLeaderBuff) {
+				soldierActor.spawnSquadMemberRing();
+				soldierActor.squadLeaderBuff = true;
+			}
+		}
+	}
+
+
+	bool validateSquadBuff(EnemySoldier soldierActor)
+	{
+		// Does it exist?
+		if(!soldierActor) {
+			return false;
+		}
+
+		// Cant Squad Buff yourself
+		if(soldierActor == self)
+		{
+			return false;
+		}
+
+		// Is the guy alive?
+		if(soldierActor.health <= 0)
+		{
+			return false;
+		}
+
+		// Soldier is eligable for buffs
+		if(!soldierActor.bAllowSquadleaderBuffs)
+		{
+			return false;
+		}
+
+		// Soldier does not have a Lonewolf parameter
+		if(soldierActor.user_nosquad)
+		{
+			return false;
+		}
+
+		// Soldier within range?
+		if(Distance2D(soldierActor) > BUFFRANGE)
+		{
+			return false;
+		}
+		return true;	
+	}
+
+	// TO-DO: Have an ally call out their lost squad member
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+
+		// Squadleader down. Remove all buffs from allies
+		for(int x=0;x<buffList.size();x++) {
+			let soldierActor = EnemySoldier(buffList[x]);
+			if (soldierActor) {
+				// Remove buffs
+				soldierActor.squadLeaderBuff = false;
+
+				// Remove icons
+				if(soldierActor.squadMemberRingSuccess) {
+					soldierActor.squadMemberRingSuccess = false;
+					soldierActor.squadMemberRing.destroy();
+				}
+				if(soldierActor.squadMemberIconSuccess) {
+					soldierActor.squadMemberIconSuccess = false;
+					soldierActor.squadMemberIcon.destroy();
+				}
+			}
+		}
+
+		// And spawn some money. Good job player!
+		A_SPAWNITEMEX("CreditsbagSmall");
+
+		// TO-DO: CockUI'fy this. This displays the ''Squad leader killed'' message.
+		ACS_NamedExecuteWithResult("SquadLeaderKilled", 0);
+
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+	default {
+		+EnemySoldier.KeepDistance;
+		+EnemySoldier.SquadLeader;
+		EnemySoldier.strafeChance 180;
+		SelacoEnemy.RandomizerSpawnChance 12.5;
+		EnemySoldier.DisplayName "$CHARACTER_SQUADLEADER";
+		SelacoEnemy.role "$ROLE_SQUADLEADER";
+		EnemySoldier.evadeChance 190;
+		EnemySoldier.combatDistance 450;
+		SelacoEnemy.grenadeChance 50;
+		SelacoEnemy.smokeChance 255;
+		SelfLighting "b83b2a";
+		PainChance 50;
+		health 200;
+		PainChance "ExplosiveImpact", 255;
+		damagefactor "ExplosiveImpact", 0.5;
+	}
+
+	states
+	{
+		grenade:
+			goto Smokegrenade;
+	}
+}
+
+// Camps around the area he spawns in. Doesn't leave that place unless preassured by their target
+// NVM - NO longer needed ebcause of Sentry
+class SOLDIER_CAMPER : SOLDIER
+{
+	default
+	{
+		SelacoEnemy.role "$ROLE_DEFENDER";
+	}
+}
+
+// VR TYPES
+mixin class SOLDIERVR {
+	static const string regularDeathAnimations[] = {""};
+	static const string headshotDeathAnimations[] = {""};
+	static const string wallSmashDeathAnimations[] = {""};
+	static const string nailgunDeathAnimation[] = {""};
+	static const string shotgunDeathAnimations[] = {""}; 	// We need more of these ASAP.
+	static const string sittingDeathAnimation[] = {""};
+	static const string gibbingAnimation[] = {""};
+	
+	const particleEffects = 500; // Cute little particles after picking up a weapon.
+	
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		if(getClassname() != "SIEGERVR") {
+			setStateLabel("VaporizePixels");
+		}
+		ACS_NamedExecuteAlways("removeSimulant", 0);
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+	override void PostbeginPlay() {
+		super.PostbeginPlay();
+		
+		// Apply VR colors
+		A_SetTranslation("VR_ENEMY");
+		
+		// Siegers should not spawn without a sky above them. Also increase the Z-height so they are up in the air!
+		if(getClassName() == "SIEGERVR") {
+			string hittex;
+			FLineTraceData RemoteRay;
+			LineTrace(0,5000, -90,offsetz: height,offsetforward:0, data: RemoteRay);
+			if (RemoteRay.HitType == TRACE_HitCeiling) {
+				hittex = texman.GetName(RemoteRay.HitTexture);
+				if(hittex == "F_SKY1") {
+					SetOrigin((pos.x, pos.y, pos.z+350), true);
+				} else {
+					destroy();
+				}
+			}
+		}
+	}
+
+	override void beginPlay() {
+		super.beginPlay();
+	}
+	
+	default 
+	{
+		SelacoEnemy.RandomizerSpawnChance 0;
+		SelacoEnemy.weapon AWPN_VRRIFLE;
+		selflighting "FFFFFFF";
+		BloodType "RedPlasmaPuff", "RedPlasmaPuff", "RedPlasmaPuff";
+	}	
+
+	states {
+		Death.head:
+		Death.meleeimpact:
+		Death.meleeimpactsplash:
+		death.stomp:
+		VaporizePIxels:
+			TNT1 A 0 {
+				for(int i = 0; i <=particleEffects;i++) {
+					A_SpawnParticle("#ff66ff", SPF_FULLBRIGHT, 45, frandom(2,9), frandom(0,360), frandom(-25,25), frandom(-25,25), frandom(0,70), frandom(-2,2), frandom(-2,2), frandom(-2,2));
+				}
+				A_PLaysound("destruction/glassbreak", CHAN_AUTO, 1.0, 0, 0.6, pitch:1.2);
+				destroy();
+			}
+			stop;
+	}
+}
+class SOLDIERVR_DEFENDER : SOLDIER_DEFENDER {
+	default
+	{
+		SelacoEnemy.RandomizerSpawnChance 0;
+	}
+	mixin SOLDIERVR;
+}
+class SOLDIERVR_ATTACKER : SOLDIER_ATTACKER {
+	default
+	{
+		SelacoEnemy.RandomizerSpawnChance 0;
+	}
+	mixin SOLDIERVR;
+}
+class SOLDIERVR_AGGRESSOR : SOLDIER_AGGRESSOR {
+	default
+	{
+		SelacoEnemy.RandomizerSpawnChance 0;
+	}
+	mixin SOLDIERVR;
+}
+class SOLDIERVR_STRAFER : SOLDIER_STRAFER {
+	default
+	{
+		SelacoEnemy.RandomizerSpawnChance 0;
+	}
+	mixin SOLDIERVR;
+}
+class ENGINEERVR_AGGRESSOR : ENGINEER_AGGRESSOR {
+	default
+	{
+		SelacoEnemy.RandomizerSpawnChance 0;
+	}
+	mixin SOLDIERVR;
+}
+
+
+class SIEGERVR : SIEGER {
+	default
+	{
+		SelacoEnemy.RandomizerSpawnChance 0;
+	}
+	mixin SOLDIERVR;
+}

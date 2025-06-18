@@ -1,0 +1,3259 @@
+#include "ACTORS/Player/LookAtTracer.zs"
+#include "ACTORS/Player/DAWN_EXTRA.zsc"
+#include "ACTORS/Player/DAWN_MOVE.zsc"
+#include "ACTORS/Player/DAWN_LADDER.zsc"
+#include "ACTORS/Player/DAWN_FLASHLIGHT.zsc"
+#include "ACTORS/PLAYER/DAWN_INVENTORY.zsc"
+#include "ACTORS/Player/DAWN_WEAPONS.zsc"
+#include "ACTORS/Player/DAWN_MEDKIT.zsc"
+
+enum DIALOG_SETTING
+{
+	DIALOG_ALL = 0,
+	DIALOG_STORY = 1,
+	DIALOG_NONE = 2
+};
+
+enum DAWN_SLOTS
+{
+	CHAN_SLIDE		 	= CHAN_5,
+	CHAN_SLIDE_START 	= CHAN_6,
+	CHAN_UNDERWATER		= CHAN_6,
+	CHAN_IMPACT			= CHAN_ITEM,
+	CHAN_DEATH			= CHAN_VOICE
+};
+
+class Dawn : PlayerPawn Replaces DoomPlayer
+{
+	mixin ParticleEmitter;
+	mixin ParticleDefinitionEmitter;
+	mixin Footsteps;
+	mixin SmokeEmitter;
+	const SWIM_SPEED = 2.0;		// Vertical swimming speed
+	const CROUCHSPEED = 0.05;
+	const SLIDEJUMP_SPEED_MULTIPLIER = 24;
+	const BURN_DAMAGE_RATE  = 14;    // Amount of ticks before we apply damage
+	const BURN_DAMAGE_DURATION = 8; // How many times do we 'hurt' the player when burning?
+	const BURN_DAMAGE = 1; 		// Howm much damage per burn tick?
+
+	const DODGE_IFRAMES = 16; // Amount of ticks Dawn dodges bullets after dodging.
+
+	const MERCY_DAMAGE_THRESHOLD = -15; // If player HP is higher than this number for the killing blow, dont kill the player, give them a second chance instead.
+	const MERCY_DAMAGE_COOLDOWN = TICRATE*45; // How many ticks after Mercy got activated until we allow it again?
+	const MERCY_TIME = 9; 			// How many seconds in ticks do we make the player invulnerable
+
+	const SUIT_DRIP_MAX = 105;
+	int suitDripRemaining; // Amount of dripping effects to play when resurfacing from submerging. Surely there's a better name for this.
+
+	// Save Validator
+    const SAVEVALIDATION_THRESHOLD = TICRATE*15;  // How many ticks before the player is allowed to save after not being seen?
+	int seenByEnemySaveValidation;
+
+	mixin UIInputHandlerAccess;
+	bool playsSelacoCraft; 
+	bool hasBottomLessMags;
+
+	bool hardcore_hasIgnoreweaponLimits;
+
+	bool weaponLowered;					// Used to remove Dawn's weapon during sequences.
+	bool hasNoLifeRegenMutator;
+	bool invulnerableInMenu;			// Set when opening a menu to keep Dawn invulnerable to enemy fire until closed
+	
+	int burnTimer;
+
+	int reloadTime;							// level.totalTime when reload was last pressed
+	double ladderLastHeight;				// Keeps track of step height for sounds etc
+	double ladderLastXYDist;				// Ditto for horizontal movement
+	double ladderJumpAngle;					// Angle we jumped off the last ladder from
+	double ladderGrabAngle;					// Angle when we engaged the ladder
+	const LADDER_CLIMB_SPEED = 2.1;
+	const LADDER_SLIDE_SPEED = 7.35; //5.25;
+	const LADDER_CLIMB_SIDE_SPEED = 1.5;
+	const LADDER_TURN_TICKS = 10;					// Ticks to turn the player back towards the ladder over
+	const LADDER_TURN_INPUT_TIMEOUT_TICKS = 35;		// Dulls mouse/gamepad turn speed non-linearly during this time after entering a ladder from the top
+
+	const SLIDE_DODGE_CHANCE = 75; //	Chance to dodge EnemyProjectile while sliding
+	const PUSH_SOUND_THRESHOLD = 25;
+	const FROST_MAX_TIMER = 35*5;
+
+	string destinationLevel;  // Stores where the player last came from. Used for the Transit System or the Safe Room Extension elevator
+	bool usesSaferoomElevator; // Used to tell SE_SAFE that the player is using an elevator
+    
+	const RECALL_TIME_MAX = 105; // Amount of time Slide Cooldown is disabled after a Recall kill 
+	int recallTimer;
+	int pushSoundThreshold;
+
+	const SAVE_PROTECTION_TIME = 2*TICRATE;
+	int saveProtection;
+	bool saveProtectionActive;
+
+	int mercyCooldown;
+	int mercyTime;
+	SelacoActor specialPushObject;
+	SelacoAmmo equippedThrowable;
+	
+	// on Autosave
+	void prepareSaveProtection() {
+		saveProtection = SAVE_PROTECTION_TIME;
+	}
+
+	// on Load Game
+	void activateSaveProtection() {
+		if(saveProtection > 0) {
+			saveProtectionActive = true;
+		}
+	}
+
+	void handleSaveProtection() {
+		if(saveProtection > 0) {
+			saveProtection--;
+			if(saveProtection == 0) {
+				saveProtectionActive = false;
+			}
+		}
+	}	
+
+	override void CheatGive(String name, int amount) {
+		super.CheatGive(name, amount);
+		if(name ~== "all") {
+			GiveInventory("FlashlightItem", 1);
+		}
+	}
+
+	bool isPushingObject;
+	override bool CanCollideWith(Actor other, bool passive) {
+		int res = Super.CanCollideWith(other, passive);
+
+		if(invulnerableInMenu && other.bMissile) return false;
+		
+		// HNGGGG sounds if pushing a heavy object
+		if(other is "SelacoActor" && SelacoActor(other).bIsHeavy && SelacoActor(other).isMoving()) {
+			if(random(0,100) <= 50) {
+				if(getCvar("g_Screenshake") >= 2) {
+					A_QuakeEx(0.1, 0.1, 0.1, 3, 0, 1, sfx:"", rollIntensity:0.1, rollWave:0.1);
+				}
+			}
+			if(pushSoundThreshold == 10 && !isPushingObject) {
+				isPushingObject = true;
+				A_PLAYSOUND("DAWN/PUSH", CHAN_VOICE, 1.0);
+			}
+			if(pushSoundThreshold <= PUSH_SOUND_THRESHOLD) {
+				pushSoundThreshold+=2;
+			}
+			if(developer) Console.Printf("PUSH THRESHOLD: %d", pushSoundThreshold);
+		} else {
+			isPushingObject = false;
+		}
+
+		if(other is "Cockroach" && GetVelocity() > 1 && other.health > 0)
+		{
+			other.die(other, other);
+		} 
+
+		// Wake sleepy actors
+		SelacoActor sa = SelacoActor(other);
+		if(sa && sa.bWakeOnTouch) {
+			sa.wake();
+		}
+
+		if(sa && other.vel.length() == 0 && vel.length() > 2 && sa.collisionSFXCD <= 0 && (sa.bPushable || sa.bSpecialPushable))
+		{
+			sa.collidingWithPlayer(self);
+		}
+
+		// TODO: Flag that makes it so that only the player and aliens go through objects.
+        if((sa) && ((sa.bthruplayers) || ((player.ReadyWeapon) && !sa.ballowSlideCollision && SelacoWeapon(player.ReadyWeapon).activeSlideState))) {
+			return false;
+		}
+
+		// Check for special push
+		if(sa && sa != holdingObject && (sa.bSpecialPushable || sa.bSpecialPushable2)) {
+			bool onGroundEnough = (player.onground || pos.z < floorZ + 10 || bOnMObj) && pos.z < sa.pos.z + (sa.height * 0.5);
+
+			if(sa.bSpecialPushable && onGroundEnough) {
+				//if(sa.bSpecialPushable2 && distance2D(sa) > radius + sa.radius) { return false; }
+
+				bool zeroVel = vel.xy ~== (0,0);
+				let velDir = vel.xy.unit();
+				let contactDir = (pos.xy - other.pos.xy);
+				let contactNorm = contactDir ~== (0,0) ? (0,0) : contactDir.unit();
+				let velDot = zeroVel ? 0 : velDir dot contactNorm;
+
+				// SpecialPushDirectionFix tries to help the player push in the desired direction
+				if(velDot < 0 && sa.bSpecialPushDirectionFix && !(contactNorm ~== (0,0)) && !zeroVel) {
+					// Move contact norm between the real one and the player velocity
+					// Ease the difference between desired normal and contact normal
+					double easeDot = velDot * velDot;
+					contactNorm = (contactNorm + (((-velDir) - contactNorm) * easeDot)).unit();
+
+					// Readjust velDot
+					velDot = vel.xy ~== (0,0) ? 0 : velDir dot contactNorm;
+				}
+				
+				let penetration = abs(sa.Distance2D(self) - (radius + other.radius));
+				bool tooClose = penetration > radius * 0.75;
+
+				// Push object away from player
+				if(velDot < 0) {
+					other.vel.xy = contactNorm * min( (vel.xy.length() * velDot) /** sa.specialPushFactor*/, tooClose && !sa.bSpecialPushable2 ? -2.0 : 0.0);
+
+					// Push player away by specialPushFactor
+					//vel.xy -= contactNorm * (vel.xy.length() * velDot) * (1.0 - sa.specialPushFactor);
+					vel.xy -= contactNorm * (vel.xy.length() * velDot) * (1.0 - sa.specialPushFactor);
+
+					// Readjust pos outside of the object bounds
+					if(sa.bSpecialPushable2  && !(contactDir ~== (0,0))) {
+						specialPushObject = sa;
+						//specialPushPrePos = sa.pos.xy;
+						//specialPushStart = contactDir;
+						//return true;
+					}
+				} else {
+					// If the object is moving towards us, stop
+					sa.vel.xy = (0,0);
+				}
+
+				return false;
+			} else {
+				// Since we are probably going to mantle this object, slow it down
+				sa.vel.xy *= 0.75;
+
+				// Don't collide with the object until we start coming down
+				if(vel.z > 1.0) return false;
+			}
+		}
+
+		return res;
+	}
+
+
+	virtual void applyMutators() {
+		hasNoLifeRegenMutator = getCvar("g_nohealthregeneration");
+		hasBottomLessMags = getCvar("g_bottomlessmags");
+		hardcore_hasIgnoreweaponLimits = getCvar("g_hardcoremode_ignoreWeaponLimits") && getCvar("g_hardcoreMode");
+		console.printf("hardcore_hasIgnoreweaponLimits: %d", hardcore_hasIgnoreweaponLimits);
+		if(getCvar("g_burgerflipperStart")) {
+			A_GiveInventory("bbitem", 1);
+		}
+		if(getCvar("g_burgerflipperStart")) {
+			A_GiveInventory("bbitem", 1);
+		}
+	}
+
+	void HandleSpecialPush() {
+
+	}
+
+
+	int DefaultViewheight;
+	int DefaultPlayerHeight;
+	int DefaultStepHeight;
+
+	bool enteredNewLevel;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		playsSelacoCraft = false;
+		equippedThrowable = SelacoAmmo(FindInventory("HandGrenadeAmmo"));
+		DefaultViewheight = ViewHeight;
+		DefaultPlayerHeight = height;
+		DefaultStepHeight = maxStepHeight;
+		if(level.levelnum == 9999) 
+			bINVULNERABLE = true;
+
+		hasNoLifeRegenMutator = false;
+		applyMutators();
+	
+
+		Stats.AddStat(STAT_UPGRADES_BOUGHT, 0, 0); // Otherwise the Stat screen's layout goes way out of wack
+
+		if(getCvar("g_Hardboiled") || getCvar("randomizer_maxOutTechModules"))
+		{
+			A_GiveInventory("WorkshopTierItem", 99);
+			stats.AddStat(STAT_SAFEROOM_TIER, countinv("WorkshopTierItem"), countinv("WorkshopTierItem"));
+		}
+
+		// Spawn Dawn with unloaded UC-36
+		if(skill == SKILL_SMF)
+		{
+			A_TakeInventory("RifleAmmo", 999);
+			A_TakeInventory("RifleReserve", 999);
+		}
+
+		// Give Gravity manipulator if player number 6
+		if(level.levelGroup > 6 && countinv("AltFirePlasmaRifleGravityManipulatorTraditional") == 0)
+		{
+			A_GiveInventory("AltFirePlasmaRifleGravityManipulatorTraditional");
+		}
+
+		if(!(level.mapName ~== "TITLEMAP")) {
+			WeaponUpgrade.SetUpgradeEnabled('UpgradeDMRBipod', consolePlayer, true);
+		}
+
+		if(Level.MapName == "SE_S01")
+		{
+			gravity = 0.75;
+			maxStepHeight = 4;
+			height = height*0.5;
+			attackzoffset = 9;
+			A_TakeInventory("SlideUpgradeActual", 1); // No sliding in this map!
+			playsSelacoCraft = true;
+			A_PRINTBOLD("You are playing Selaco Craft");
+			viewHeight = 25;
+			player.viewheight = 25;
+			A_SETSIZE(radius*0.5, 25);
+		}
+
+
+		// Give upgrades that we have unlocked globally
+		// Find each altfire class and check the global vars
+		if(getCvar("g_freshStart") <= 0) {
+			int numClasses = AllActorClasses.size();
+			for(int x = 0; x < numClasses; x++) {
+				if(AllActorClasses[x] is 'WeaponUpgrade' || AllActorClasses[x] is 'WeaponAltFire') {
+					class<WeaponUpgrade> cls = (class<WeaponUpgrade>)(AllActorClasses[x]);
+					string key = cls.getClassName();
+					key = key.MakeLower();
+
+					
+					if(Globals.GetInt(key) > 0 && countInv(cls) == 0 && cls != 'AltFireScarabMode') {
+						if(developer) Console.Printf("\c[BLUE]Starting Dawn with Alt Fire: %s", key);
+						GiveInventory(cls, 1);
+					}
+				}
+			}
+		}
+	}
+
+
+	void givePlaytestItems()
+	{
+		if(level.levelGroup == 1)
+		{
+			return;
+		}
+		A_GiveInventory("Shot_gun");
+		A_GiveInventory("SMG");
+		A_GiveInventory("GrenadeLauncher");
+		A_GiveInventory("Nailgun");
+		A_GiveInventory("WorkshopTierItem", 2);
+		A_GiveInventory("WeaponParts", 750);
+		A_GiveInventory("CreditsCount", 200);
+		A_GiveInventory("SelacoArmor", random(10,35));
+		A_GiveInventory("ClearanceLevel", 3);
+		if(level.levelGroup >= 3)
+		{
+			A_GiveInventory("AltFireCricketDoubleTap", 1);
+			A_GiveInventory("AltFireSMGControlledShots", 1);
+			A_GiveInventory("AltFireRifleBurst", 1);
+		}
+		if(level.levelGroup >= 4)
+		{
+			A_GiveInventory("AltFireGrenadeImpact", 1);
+			A_GiveInventory("AltFireGrenadeSticky", 1);
+			A_GiveInventory("bbitem", 1);
+		}
+		if(level.levelgroup >= 5)
+		{
+			A_GiveInventory("ClearanceLevel", 1);
+			A_GiveInventory("WeaponParts", 250);
+			A_GiveInventory("WorkshopTierItem");
+			A_GiveInventory("DMR");
+		}
+		if(level.levelGroup >= 6)
+		{
+			A_GiveInventory("AltFireShotgunDoubleBarrel", 1);
+			A_GiveInventory("AltFireCricketTripleTap", 1);
+			A_GiveInventory("AltFireSMGShockDart", 1);
+			A_GiveInventory("AltfireGrenadeLauncherRocket", 1);
+		}
+	}
+
+
+	static const String deathSounds[] = {"dawn/death1", "dawn/death2", "dawn/death3", "dawn/death4", "dawn/death5", "dawn/death6", "dawn/death7", "dawn/death8", "dawn/death9"};
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		// Cleanup any UI interactions that are going on
+		KeypadGlobalHandler.Cancel();
+		friction = 1.0;
+		deathSource = source;
+		deathSourceName = source ? source.getClassName() : 'None';
+		deathMeans = MeansOfDeath;
+
+		if(developer) console.printf("girlCaptainDown.deathSource: %s  meansofdeath: %s", deathSourceName, meansofdeath);
+
+		// Stop music
+		MusicHandler handler = musicHandler.Instance();
+		handler.newTrack = "Nothing";
+		handler.fadeOverride = 0.02;
+
+		A_STOPSOUND(CHAN_WEAPON);
+		
+		// Do a callout about the target being dead.
+		if(source && EnemySoldier(source) && EnemySoldier(source).squad && EnemySoldier(source).squad.members.size())
+		{
+			enemySoldier(source).talk(SOLDIER_KILL, urgent:true, delay:25);
+		}
+
+		// Cancel firing sound
+		if(player.ReadyWeapon && (selacoWeapon(player.ReadyWeapon).isFiring))
+		{
+			SelacoWeapon(player.ReadyWeapon).cancelFiringLoop(); 
+		}
+
+		A_GiveInventory("PlayerIsDead", 1);
+		
+		A_SETPITCH(80);
+
+		super.die(source, inflictor, dmgflags, MeansOfDeath);
+
+		player.respawn_time = Level.maptime + (TICRATE * 1.5);	// Prevent instant respawn by applying a timeout
+		
+		StopSlideSounds();
+
+		if(MeansOfDeath == 'FallDamage' || MeansOfDeath == 'Falling') {
+			A_STOPSOUND(CHAN_VOICE);
+		} else {
+			PlayDeathSound();
+		}
+	}
+
+	void StopSlideSounds() {
+		A_STOPSOUND(CHAN_SLIDE);
+		A_STOPSOUND(CHAN_SLIDE_START);
+	}
+
+	void PlayDeathSound() {
+		int deathSoundPointer = random(0,deathSounds.size()-1);
+		A_STOPSOUND(CHAN_VOICE);	// No other voice sounds
+		A_PLAYSOUND(deathSounds[deathSoundPointer], CHAN_AUTO, 1.0, 0, 0.0);
+		//A_PLAYSOUND(deathSounds[deathSoundPointer], CHAN_5, 0.1, 0, 0.0);
+	}
+
+	SelacoWeapon getPlayerWeapon() {
+		return SelacoWeapon(player.readyWeapon);
+	}
+
+
+	int climbCooldown;
+
+	bool isUnderWater;
+    bool climbing;
+	bool mantle;
+
+	bool blockMovement; 
+	bool holdingJump;		// Has not yet let go of the jump key
+
+	string currentStance;
+	bool isCrouching;
+	bool isFireAnimation;
+	bool isSliding;
+	bool hasBunnyHop;
+	bool hasGrenadeBandolier;
+	bool slideRecovering; 	// Player finished sliding and has recovered
+	bool beginSaveValidation;	// If true, check to see if an autosave is possible every [QUICKSAVE_DELAY_TIMER] seconds
+	int quicksaveTimerCurrent;
+	
+	const QUICKSAVE_DELAY_TIMER = TICRATE*2;
+
+	int lastCrouchDir;
+
+	// Because GZDoom's method of jumping is a little rough, we're adding a short window of time for the player to react to a jump.
+	// This should make our platform sections less annoying.
+	bool hasJumped; //Prevent players from jumping twice
+	int coyoteTimer;
+	const COYOTE_TICKS = 7;
+
+	int slideAngle;
+	int storedHeight;
+    int maxLedgeHeight;
+    int climbSpeed;
+	int tickingslides;
+
+	// Water System
+	int timeSpendUnderwater;
+	bool standingOnWater;
+
+	// Use System
+	LookAtTracer lookTracer;
+
+	// Pickup system
+	Actor holdingObject;
+
+	// Death, mostly used for death menu
+	Actor deathSource;
+	string deathSourceName;
+	Name deathMeans;
+
+    property MaxLedgeHeight: maxLedgeHeight;
+    property ClimbSpeed: climbSpeed;
+	const CLIMB_SPEED = 3;
+	const MANTLE_SPEED = 1;
+	const CLIMB_COOLDOWN_TIME = 25;
+    const CLIMB_REACH = 8;
+    const THRUST_SPEED = 2;
+	const LADDER_STEP_HEIGHT = 32;
+
+	// This is almost identical to P_ActivateThingSpecial
+	bool DawnUseActor(Actor thing) {
+		bool res = false;
+
+		// Target switching mechanism
+		if (thing.activationtype & THINGSPEC_ThingTargets)		thing.target = self;
+		if (thing.activationtype & THINGSPEC_TriggerTargets)	self.target = thing;
+
+		// State change mechanism. The thing needs to be not dead and to have at least one of the relevant flags
+		if ((thing.activationtype & (THINGSPEC_Activate | THINGSPEC_Deactivate | THINGSPEC_Switch)))
+		{
+			// If a switchable thing does not know whether it should be activated
+			// or deactivated, the default is to activate it.
+			if ((thing.activationtype & THINGSPEC_Switch)
+				&& !(thing.activationtype & (THINGSPEC_Activate | THINGSPEC_Deactivate)))
+			{
+				thing.activationtype |= THINGSPEC_Activate;
+			}
+			// Can it be activated?
+			if (thing.activationtype & THINGSPEC_Activate)
+			{
+				thing.activationtype &= ~THINGSPEC_Activate; // Clear flag
+				if (thing.activationtype & THINGSPEC_Switch) // Set other flag if switching
+					thing.activationtype |= THINGSPEC_Deactivate;
+				thing.Activate(self);
+				res = true;
+			}
+			// If not, can it be deactivated?
+			else if (thing.activationtype & THINGSPEC_Deactivate)
+			{
+				thing.activationtype &= ~THINGSPEC_Deactivate; // Clear flag
+				if (thing.activationtype & THINGSPEC_Switch)	// Set other flag if switching
+					thing.activationtype |= THINGSPEC_Activate;
+				thing.Deactivate(self);
+				res = true;
+			}
+		}
+
+		if(thing.special) {
+			res = Level.ExecuteSpecial(thing.special, thing, null, false, thing.Args[0], thing.Args[1], thing.Args[2], thing.Args[3], thing.Args[4]);
+
+			// Clears the special if it was run on thing's death or if flag is set.
+			if (thing.activationtype & THINGSPEC_ClearSpecial && res) thing.special = 0;
+		}
+
+		// Returns the result
+		return res;
+	}
+
+	int humped;
+	uint humpTime;
+
+	// Replaces CheckUse()
+	virtual bool DawnCheckUse() {
+		let player = self.player;	// In case the result of USE() changes the player in this Pawn
+		bool shouldReload = false;
+		
+		if(player.cmd.buttons & BT_USE || player.cmd.buttons & BT_USER1) {
+			// Make sure there is no active tutorial
+			if(player.cmd.buttons & BT_USER1) {
+				shouldReload = player.ReadyWeapon && player.ReadyWeapon.ammo1 && player.ReadyWeapon.ammo1.Amount > 0 && player.ReadyWeapon.ammo2 && player.ReadyWeapon.ammo2.Amount < player.ReadyWeapon.ammo2.MaxAmount;
+			}
+
+			if(!player.usedown) {
+				player.usedown = true;
+
+				// Check to see if we are holding something first, and drop or throw it
+				if(holdingObject) {
+					// TODO: Hold button over time to throw farther or tap to drop. For now we just throw
+					dropObject();
+					return true;
+				}
+
+				// Use custom linetrace to detect a usable linedef or actor
+				if(!lookTracer) lookTracer = new("LookAtTracer");
+
+				Vector3 dir = LookAtTracer.VecFromAngle(Angle, Pitch);
+				Vector3 ppos = pos;
+				ppos.z = player.viewz;
+				
+				lookTracer.secondaryHit = null;
+				lookTracer.Results.HitLine = NULL;	// Ensure validity
+
+				bool hasHit = lookTracer.Trace(ppos, CurSector, dir, self.UseRange, TRACE_NoSky);
+				
+				// This hack is necessary because P_TRACE does NOT DO CALLBACKS FOR FLOOR/CEILING HITS IN SOME CASES!? What is that shit.
+            	if((lookTracer.Results.HitType == TRACE_HitFloor || lookTracer.Results.HitType == TRACE_HitCeiling) && lookTracer.secondaryHit) hasHit = false;
+				
+				if(hasHit) {
+					switch(lookTracer.Results.HitType) {
+						case TRACE_HitActor:
+							humped = 0;
+
+							Actor a = lookTracer.Results.HitActor;
+
+							// Test for actor.usespecial
+							if(a.bUseSpecial) {
+								if(DawnUseActor(a)) {
+									LookAt.Instance().resetTimer();
+									return true;
+								}
+							}
+
+							if(a.Used(self)) {
+								LookAt.Instance().resetTimer();
+								return true;
+							}
+							break;
+
+						case TRACE_HitWall:				
+							if(lookTracer.Results.HitLine.Activate(self, lookTracer.Results.Side, SPAC_Use)) {
+								LookAt.Instance().resetTimer();
+								humped = 0;
+								return true;
+							}
+
+							// Let sector take this activation, maybe
+							Sector sec = CurSector;
+							if(sec.SecActTarget && sec.TriggerSectorActions(self, SectorAction.SECSPAC_Use)) {
+								LookAt.Instance().resetTimer();
+								humped = 0;
+								return true;
+							}
+
+							sec = lookTracer.Results.Side == Line.front ? lookTracer.Results.HitLine.frontsector : lookTracer.Results.HitLine.backsector;
+
+							if(sec && sec.SecActTarget && sec.TriggerSectorActions(self, SectorAction.SECSPAC_UseWall)) {
+								LookAt.Instance().resetTimer();
+								humped = 0;
+								return true;
+							}
+
+							break;
+						default:
+							humped = 0;
+							break;
+					}
+				} else if(lookTracer.secondaryHit) {
+					// If we hit a secondary priority target (Mostly ladders so far)
+					Actor a = lookTracer.secondaryHit;
+
+					if(a.bUseSpecial) {
+						if(DawnUseActor(a)) {
+							LookAt.Instance().resetTimer();
+							return true;
+						}
+					}
+
+					if(a.Used(self)) {
+						LookAt.Instance().resetTimer();
+						return true; 
+					}
+				} else if(lookTracer.Results.HitLine && (lookTracer.Results.HitLine.flags & Line.ML_BLOCKING || lookTracer.Results.Tier != TIER_Middle)) {
+					if(player && !shouldReload) {
+						Stats.AddStat(STAT_WALLHUMPS, 1, 0);
+						if(humped > 40) {
+							A_StartSound("player/use/special", CHAN_VOICE, attenuation: ATTN_IDLE);
+							Notification.Subtitle("$CHARACTER_DAWN", "$HUMP_ABUSE", 3.0);
+							humpTime = level.totalTime;
+							humped = 0;
+						} else if(level.totalTime - humpTime > TICRATE * 2) {
+							A_StartSound("player/usefail", CHAN_VOICE, attenuation: ATTN_IDLE);
+							humpTime = 0;
+							humped++;
+						}
+					}
+				} else {
+					humped = 0;
+				}
+
+				if(shouldReload) {
+					// Don't reload if a tutorial is open, otherwise you might be throwing away ammo in HC when not desired
+					if(!TutorialHandler.GetHandler().isActive()) {
+						requestReload();
+					}
+				}
+			}
+		} else {
+			player.usedown = false;
+		}
+
+		return false;
+	}
+
+
+	virtual void CheckThrow() {
+		if(holdingObject && player.cmd.buttons & BT_ATTACK && !player.attackdown) {
+			player.attackdown = true;
+
+			let pd = PickupableDecoration(holdingObject);
+			if(pd && !pd.doHoldActionStart()) {
+				throwObject();
+			}
+		} else if(holdingObject && player.cmd.buttons & BT_ALTATTACK && !altAttackDown) {
+			altAttackDown = true;
+			dropObject();
+		} else if(holdingObject && !(player.cmd.buttons & BT_ATTACK) && player.attackdown) {
+			// If we are holding an object still, it probably used a custom action
+			// Call the "let go" function on the object and reset attackdown
+			let pd = PickupableDecoration(holdingObject);
+			if(pd) {
+				if(pd.doHoldActionEnd()) holdingObject = null;
+			}
+			player.attackdown = false;
+		} else if(!(player.cmd.buttons & BT_ATTACK) && !(player.cmd.buttons & BT_ALTATTACK)) {
+			player.attackdown = false;
+		}
+	}
+
+
+	virtual void requestReload() {
+		//ACS_ExecuteAlways(303, 0);
+		reloadTime = level.totalTime;
+		giveInventory("Reloading", 1);	// TODO: Remove dependence on inventory object and just use reloadIsRequested eventually
+	}
+
+	virtual bool reloadIsRequested() {
+		return countInv("Reloading") || (reloadTime != 0 && Level.totalTime - reloadTime < 15);
+	}
+
+	// TODO: Remove reloading inventory item
+	// ok i will. but not today.					
+	bool reloadPressed;
+
+	virtual void checkReload() {
+		if (player.cmd.buttons & BT_RELOAD) {
+			if (!reloadPressed) {
+				giveInventory("Reloading", 1);
+				reloadTime = level.totalTime;
+				reloadPressed = true;
+			}
+
+		} else {
+			if (Level.totalTime - reloadTime >= 15) {
+				reloadPressed = false;
+				takeInventory("Reloading", 999);
+			}
+		}
+	}
+
+
+	int slidingTicks;
+	bool isSlidingOnFloor() {
+		if(pos.z <= floorZ + 30) {
+			return true;
+		}
+		return false;
+	}
+
+	bool slideAngleSet;
+	const ATTACK_Z_OFFSET = 5;
+	const SLIDE_VIEWHEIGHT = 15;
+	const SLIDE_ACTOR_HEIGHT = 12;
+	void slideHandler() 
+	{
+		int xVelocity = (Sin(angle) * (vel.y)) + (Cos(angle) * (vel.x)); // Forward Momentum.
+		bool didCorrection;
+		bool ceilingHit = false;
+		if(isSliding && level.time) {
+			slideRecovering = true;
+			A_GiveInventory("CooldownSliding", 4);
+			if(viewHeight >= SLIDE_VIEWHEIGHT)
+			{
+				viewheight-=5;
+			}
+			A_SETSIZE(-1, SLIDE_ACTOR_HEIGHT);
+
+			// To ensure projectiles line up properly with the camera
+			attackzoffset = ATTACK_Z_OFFSET;
+
+			// The start of a slide. Use this to initialize everything
+			if(!slideAngleSet) { 
+				prepareSlide();
+			}
+
+			// Only play sliding sounds when the floor is touched
+			if(!isSlidingOnFloor()) {
+				A_STOPSOUND(CHAN_SLIDE);
+			}
+			
+			// No more speed? Stop sliding.
+			if(xVelocity <= 0.1)
+			{
+				isSliding = false;
+				ACS_NamedExecute("CancelSlide", 0); // Ugh more ACS.
+			}
+
+			// Floor is touched, spawn sparks!
+			if(isSlidingOnFloor() && slidingTicks > 15) {
+				spawnSlideSparks();
+			}
+
+			// Check if the player hits a wall.
+			FLineTraceData RemoteRay;
+			LineTrace(slideAngle,35, 0,offsetz: 10,offsetforward:0, data: RemoteRay);
+			if (RemoteRay.HitType == TRACE_HitWall)	{
+				ACS_NamedExecute("CancelSlide", 0); // Ugh more ACS.
+			}
+			
+			slidingTicks++;
+
+		// Player not sliding
+		} else {
+			if(slideRecovering)
+			{
+				recoverSlide();
+			} else {
+				recoverIfStuck();
+			}
+		}
+	}
+
+    double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+	// Reset to normal properties after a slide
+	void recoverSlide()
+	{
+		stuckAndRecovering = false;
+
+		CrouchMove(1);
+		// Restore correct player height
+		if(player.viewHeight < DefaultViewheight)
+		{
+			viewheight+=4;
+		} 
+		if(height == SLIDE_ACTOR_HEIGHT)
+		{
+			A_SETSIZE(-1, height);
+		}
+		if(player.viewHeight >= DefaultViewheight)
+		{
+			slideRecovering = false;
+			viewHeight = DefaultViewheight;
+			A_SETSIZE(-1, DefaultPlayerHeight);
+		}
+		
+		// Restore the rest
+		attackzoffset = 22;
+		takeinventory("SlidingCeilingCollisionCheck", 1);
+		slideAngleSet = false;
+	}
+
+	bool stuckAndRecovering;
+	void recoverIfStuck() {
+		if(isSliding) {
+			stuckandRecovering = false;
+			return;
+		}
+
+		let headTop = pos.z + height;
+		let secHeight = ceilingZ - floorZ;
+		let crouchHeight = player.crouchFactor * DefaultPlayerHeight;	// Don't consider stuck if we can crouch
+
+		// If we are already recovering, keep doing so if the ceiling is too low
+		if(stuckandRecovering && headTop >= ceilingZ - 1) {
+			return;	// Stay the course
+		} else if(pos.z <= floorz + 1 && secHeight < height) {
+			let unstuckHeight = ceilingZ - floorZ - 0.5;
+			if(unstuckHeight >= 4) {
+				if(secHeight < crouchHeight) {
+					// Only change size if we can't crouch out of this state
+					A_SetSize(-1, min(height, unstuckHeight));
+				}
+				stuckAndRecovering = true;	// Will force crouch per tick
+				if(developer) A_PRINTBOLD(String.Format("Stuck at height: %f", unstuckHeight));
+			} else {
+				if(developer) A_PRINTBOLD("You are permastuck");
+			}
+		} else if(stuckAndRecovering && pos.z + DefaultPlayerHeight < ceilingZ) {
+			// Crouch code will take care of restoring view height
+			A_SetSize(-1, DefaultPlayerHeight);
+			stuckAndRecovering = false;
+			if(developer) A_PRINTBOLD("Recovering from stuck state");
+		}
+	}
+
+	// First tick of the slide
+	void prepareSlide()
+	{
+		slidingTicks = 0;
+		slideAngleSet = true;
+		A_Playsound("impact/slidestart", CHAN_SLIDE_START, 0.6, pitch:Frandom(0.95,1.05));
+		A_Playsound("impact/slide", CHAN_SLIDE, 0.6, 1, pitch:Frandom(0.95,1.05));
+		slideAngle = angle;
+		if(hasBunnyHop)
+		{
+			A_CHANGEVELOCITY(7, 0, 0, CVF_RELATIVE);
+		}
+	}
+
+
+	const DEFAULT_PARTICLE_CHANCE = 1.0;
+	const DEFAULT_SLIDE_PARTICLE = "DroppedSparkSliding";
+	void spawnSlideSparks()
+	{
+		FLineTraceData trace;
+		uint soundType = MaterialIndexer.Instance().getFloorMaterialType(floorpic);
+	
+		// Determine particle type based on floor material
+		string slideParticle;
+		switch (soundType)
+		{
+			case FM_Wood:
+				slideParticle = "woodParticleSliding";
+				break;
+			case FM_Grass:
+				slideParticle = "GrassBladeParticleSliding";
+				break;
+			default:
+				slideParticle = DEFAULT_SLIDE_PARTICLE;
+				break;
+		}
+		
+		// Calculate slide momentum
+		float slideMomentum = abs(vel.x) + abs(vel.y);
+		
+		// Emit particles
+		emit(slideParticle, chance: DEFAULT_PARTICLE_CHANCE, numTries: slideMomentum, angle: -160, pitch: frandom(-16, 0), speed: frandom(1.4, 3.5), offset: (-30, 0, 0), velocity: (frandom(4, 5), 2, frandom(0, 2)), flags: PE_ABSOLUTE_PITCH);
+		emit(slideParticle, chance: DEFAULT_PARTICLE_CHANCE - 0.3, numTries: slideMomentum / 2, angle: 160, pitch: frandom(-16, 0), speed: frandom(1.4, 3.5), offset: (-30, 0, 0), velocity: (5, 2, frandom(0, 2)), flags: PE_ABSOLUTE_PITCH);
+	}
+
+	// Temp hack for demo
+	// Shoot a bunch of rays above Dawn, in the middle and in front of the player character to detect a ceiling
+	// DO NOT KEEP THIS.
+	bool check3DCeiling() {
+		int checkAccuracy = 1;
+		FLineTraceData RemoteRay;
+		for(int x=-15;x<=15;x+=checkAccuracy) 
+		{
+			for(int y=-5;y<=5;y+=checkAccuracy) 
+			{
+				LineTrace(0,40, -90,offsetz: 1,offsetforward:x, offsetside: y,data: RemoteRay);
+				if (RemoteRay.HitType == TRACE_HitCeiling )	
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	override void tick() {
+		if(player) {
+			// Store crouch info in case we transition levels
+			// This can't be done in Pre-Travel because those values get cleared before PreTravel() is called
+			travelCrouch = player.crouching;
+			travelCrouchButt = (player.cmd.buttons & BT_CROUCH) != 0;
+			travelCrouchFactor = player.crouchFactor;
+			travelCrouchOffset = player.crouchOffset;
+			travelCrouchDir = player.crouchDir;
+		}
+		
+		Super.tick();
+
+		HandleSpecialPush();
+		HudTick();
+		HandleLadder();
+
+		if(invulnerableInMenu && !menuActive) {
+			invulnerableInMenu = false;
+		}
+	}
+
+/* 	bool allowSlideState()
+	{
+		let player = self.player;
+		let weapon = player.ReadyWeapon;
+		// Check for fire. Some weapons do not auto fire.
+		if (player.WeaponState & WF_BLOCKSLIDESTATE) {
+			A_PRINTBOLD("FALSE.");
+			return false;
+		}
+		A_PRINTBOLD("TRUE.");
+		return true;
+	} */
+
+	virtual bool playerHasWeaponReady(int strict = 0)
+	{
+		let player = self.player;
+		let weapon = player.ReadyWeapon;
+		// When strict, we add more conditions 
+		if(strict && (isSliding || player.FindPSprite(PSP_OFFHAND) || player.FindPSprite(PSP_LEGS)))
+		{
+			return false;
+		}
+
+		if (weapon == NULL)
+			return false;
+
+		// Check for fire. Some weapons do not auto fire.
+		if (player.WeaponState & WF_WEAPONREADY) {
+			return true;
+		}
+		return false;
+	}
+
+	virtual void taserRecharge()
+	{
+		// Handle SMG Recharge
+		if(countinv("SmgTaserCharge") > 0)
+		{
+			int rechargePerTick = 1;
+			SelacoWeapon hasSMG = SelacoWeapon(FindInventory('SMG'));
+            if(SelacoWeapon(player.ReadyWeapon) && hasSMG && hasSMG.hasUpgradeClass("UpgradeSMGUnderVolt"))
+			{
+				rechargePerTick+=3;
+			}
+			if(isSliding && SelacoWeapon(player.ReadyWeapon) && hasSMG && hasSMG.hasUpgradeClass("UpgradeSMGStaticDischarge"))
+			{
+				rechargePerTick+=4;
+			}
+			A_TakeInventory("SmgTaserCharge", rechargePerTick);
+		}
+	}
+
+	virtual void shockDartCharge()
+	{
+		if(countinv("ShockChargeCooldown") > 0)
+		{
+			A_TakeInventory("ShockChargeCooldown", 1);
+		}
+	}
+
+	virtual void handleBunnyhop()
+	{
+		// Should we?
+		hasBunnyHop = countInv("BunnyHopDuration") > 0 ? true : false;
+
+		// We should!
+		if(hasBunnyHop)
+		{
+			// Decrease Duration
+			A_TakeInventory("BunnyHopDuration", 1);
+
+			// Adjust FOV
+			let playerWeapon = SelacoWeapon(player.readyweapon);
+			if(playerWeapon && countinv("BunnyHopDuration") > 0 && !playerWeapon.isZooming)
+			{
+				playerWeapon.FOVScale = 1.15;
+			}
+
+			// Bunnyhop depleted, inform player.
+			if(countInv("BunnyHopDuration") == 0)
+			{
+				A_PlaySound("DRINK/BUNNYHOPEND", CHAN_AUTO, 0.75);
+			}
+		}
+	}
+
+	virtual void handleSlideCooldown()
+	{
+		// Reduce cooldown
+		if(countinv("CooldownSliding") > 0 && !isSliding)
+		{
+			A_TakeInventory("CooldownSliding", 2);
+			if(hasBunnyHop)
+			{
+				TakeInventory("CooldownSliding", 9);
+			}
+		}
+	}
+
+	void handleSaferoomMusicTransition()
+	{
+		if(countinv("outsideSafeRoomItem") == 1)
+		{
+			MusicHandler handler = musicHandler.Instance();
+			A_TakeInventory("insideSafeRoomItem", 1);
+			handler.fadeToNewTrack(handler.previousTrack,"outsideSafeRoomItem", false);
+		}
+
+		if(countinv("insideSafeRoomItem") == 1)
+		{
+			MusicHandler handler = musicHandler.Instance();
+			A_TakeInventory("outsideSafeRoomItem", 1);
+			handler.fadeToNewTrack("SAFEROOM", "insideSafeRoomItem", true);
+		}
+	}
+
+	virtual void handleBurns()
+	{
+		if(burnTimer > 0 && health > 0)
+		{
+			// Reduce Burntimer when dashing.
+			inventory dashCooldown = FindInventory("CooldownDashing");
+			if(dashCooldown && dashCooldown.amount == dashCooldown.maxAmount)
+			{
+				burnTimer -= 1;
+			}
+
+			// Can't burn when under water
+			if(waterlevel >= 2)
+			{
+				burnTimer = 0;
+				A_PLAYSOUND("fire/stop", CHAN_7, 0.9);
+				return;
+			} else if(waterLevel >= 1 && level.time % 4 == 0) {
+				burnTimer -= 1;	// A little bonus for splashing around
+			}
+
+			// Hurt props
+			if(level.time % 5 == 0)
+			{
+				A_EXPLODE(7, 25, 0, false, 0, 0, 0, null, damagetype:"fire");
+			}
+
+			// Effects
+			//for(int x=0;x<1;x++)
+			//{
+				A_SpawnDefinedParticle("FlameParticleDefinition", frandom(5,25), frandom(-15,15), frandom(5, height-5), frandom(0.04,0.1), frandom(-1,1), frandom(0.4,0.8));
+			//}
+
+			// Apply damage
+			if(level.time % BURN_DAMAGE_RATE == 0)
+			{
+				a_playsound("UI/BURNPAIN", CHAN_AUTO, 0.3, pitch:1.4);
+				burnTimer--;
+				// Mitigate burning damage while slidng.
+				if(!isSliding)
+				{
+					A_SetHealth(health-BURN_DAMAGE);
+				}
+				if(burnTimer <= 0)
+				{
+					A_STOPSOUND(CHAN_7);
+					A_PLAYSOUND("fire/stop", CHAN_7, 0.9);
+				}
+			}
+		}
+	}
+
+	virtual void healPlayer(int healAmount = 1) {
+		A_SetHealth(health+healAmount);
+		if(health > getMaxHealth()) {
+			A_SetHealth(getMaxHealth());
+		}		
+	}
+
+	// Overwatc -- I mean, grants the player another chance at living when the killing blow is not severe enough.
+	virtual void handleMercy()
+	{
+		if(!mercyCooldown) {
+			return;
+		}
+		if (!mercyCooldown || !--mercyCooldown) mercyTime = 0;
+	}
+
+	virtual void handleRecall()
+	{
+		if(recallTimer > 0)
+		{
+			recallTimer--;
+			TakeInventory("CooldownSliding", 900);
+		}
+	}
+
+	float musicVolume;
+	override void PlayerThink() {
+		isSliding = countInv("SlideScriptActive");
+		handleBunnyhop();
+		handleBreadCrumb();
+		handleSlideCooldown();
+		handleMedkitHealing();
+		handleSaferoomMusicTransition();
+		handleBurns();
+		handleMercy();
+		handleRecall();
+		handleSaveProtection();
+		//SpawnSmoke("SMK7", smokeSize: 0.3, offsets:(35,0,10), velocity:(frandom(1,3),frandom(-1,1), frandom(-1,1)), smokeAlpha:0.9, flags: SMK_IGNOREDISTANCECHECKS);
+		if(waitforRelief)
+		{
+			reliefTicks++;
+			if(reliefTicks == RELIEF_DELAY)
+			{
+				reliefTicks = 0;
+				waitForRelief = 0;
+				doHealthRelief();
+			}
+		}
+		if(!isPushingObject && pushSoundThreshold > 0) {
+			pushSoundThreshold--;
+		}
+		if(seenByEnemySaveValidation)
+		{
+			seenByEnemySaveValidation--;
+		}
+
+		// Check for autosave every couple of ticks when the quicksave button has been hit
+		if(quicksaveTimerCurrent) {
+			quicksaveTimerCurrent--;
+		}
+
+		// In case of an error, check if Health Regen still applies
+		if(level.time % 35 == 0 && level.MapName != "SE_06C" && !hasNoLifeRegenMutator)
+		{
+			ACS_execute(1111, 0);
+		}
+
+		if(playsSelacoCraft)
+		{
+			maxstepheight = 12;
+		}
+
+		// Update weapon info for currently selected weapon
+		if(player.ReadyWeapon && selacoWeapon(player.ReadyWeapon))
+		{
+			selacoWeapon(player.ReadyWeapon).doWeaponHandling();
+		}
+
+		// For the sake of the demo, we have to apply Z velocity while dashing here just to prevent players from getting stuck.
+		// Dont make slidings using ACS, kids. 
+		if(countInv("CheckZVelocityDash") == 1 && !check3DCeiling()) {
+			vel.z = 0.5;
+			TakeInventory("CheckZVelocityDash", 1);
+		}
+
+
+		taserRecharge();
+		shockDartCharge();
+
+		// Footstep stuff when there's movement
+		doFootstep(FSF_PLAYERONLY);
+
+		if (climbCooldown <= CLIMB_COOLDOWN_TIME) {
+			climbCooldown++;
+		}
+		if(countinv("CooldownDashing") > 0) {
+			TakeInventory("CooldownDashing", 1);
+			if(hasBunnyHop)
+			{
+				TakeInventory("CooldownDashing", 3);
+			}
+		}
+
+		if(countinv("CooldownStunned") > 0) {
+			TakeInventory("CooldownStunned", 1);
+		}
+
+		// Controls the sliding code
+		if(!playsSelacoCraft && level.time > 0)
+		{
+			slideHandler();
+		}
+
+		checkWaterStates();
+		//Super.PlayerThink();
+		// Because checkUse() isn't virtual, we have to copy and paste all of PlayerThink into this block here
+		// This is a nightmare for readability but it is what it is
+		let player = self.player;
+		UserCmd cmd = player.cmd;
+		
+		CheckFOV();
+
+		if (player.inventorytics) player.inventorytics--;
+		CheckCheats();
+
+		if (bJustAttacked) {
+			cmd.yaw = 0;
+			cmd.forwardmove = 0xc800/2;
+			cmd.sidemove = 0;
+			bJustAttacked = false;
+		}
+
+		bool totallyfrozen = CheckFrozen();
+
+		// Handle crouching
+		if(!isSliding)
+		{
+			CheckCrouch(totallyfrozen);
+		}
+		
+		CheckMusicChange();
+
+		if (player.playerstate == PST_DEAD) {
+			DeathThink ();
+			return;
+		}
+
+		if (player.jumpTics != 0 && player.onground) {
+			player.jumpTics--;
+			if (player.jumpTics < 0) {
+				player.jumpTics = 0;
+			}
+		}
+
+		if (player.morphTics && !(player.cheats & CF_PREDICTING)) {
+			MorphPlayerThink ();
+		}
+		
+		CheckPitch();
+		HandleMovement();
+		CalcHeight ();
+		checkReload();
+
+		if (!(player.cheats & CF_PREDICTING)) {
+			CheckEnvironment();
+			// Note that after this point the PlayerPawn may have changed due to getting unmorphed or getting its skull popped so 'self' is no longer safe to use.
+			// This also must not read mo into a local variable because several functions in this block can change the attached PlayerPawn.
+			//player.mo.CheckUse();
+			Dawn(player.mo).DawnCheckUse();	// Ignore GZDooms default use function in favour of a more accurate one
+			player.mo.CheckUndoMorph();
+
+			Dawn(player.mo).CheckThrow();	// Check fire button for throwing current pickup object
+
+			// Cycle psprites.
+			player.mo.TickPSprites();
+			// Other Counters
+			if (player.damagecount)	player.damagecount--;
+			if (player.bonuscount) player.bonuscount--;
+
+			if (player.hazardcount) {
+				player.hazardcount--;
+				if (player.hazardinterval <= 0)
+					player.hazardinterval = 32; // repair invalid hazardinterval
+				if (!(Level.maptime % player.hazardinterval) && player.hazardcount > 16*TICRATE)
+					player.mo.DamageMobj (NULL, NULL, 5, player.hazardtype);
+			}
+
+			player.mo.CheckAirSupply();
+		}
+	}
+
+	bool isWet;
+
+	// Pickup system =================
+	bool canPickupObject(Actor obj) {
+		let p = PlasmaRifle(player.readyWeapon);
+		if(p && p.telekTarget) {
+			return false;
+		}
+		
+		return !holdingObject && !curLadder;
+	}
+
+	bool pickupObject(Actor obj, bool force = false) {
+		if(holdingObject && !force) return false;
+		if(holdingObject) dropObject();
+
+		// Make sure we aren't using the gravity manipulator
+		let p = PlasmaRifle(player.readyWeapon);
+		if(p && p.telekTarget) {
+			return false;
+		}
+
+		if(obj is "PickupableDecoration") {
+			holdingObject = obj;
+			PickupableDecoration(holdingObject).pickup(self);
+			// TODO: Grunt sound?
+			return true;
+		}
+
+		return false;
+	}
+
+	Vector2 lastCrumbPosition;
+	array<breadCrumb> crumbs;
+	const MAX_CRUMB_AMOUNT = 150;
+	void handleBreadCrumb()
+	{
+		Vector2 positionDifference = (pos.x, pos.y) - lastCrumbPosition;
+
+		// Calculate the difference between pos.x and pos.y
+		float difference = positionDifference.Length();
+
+		// Check if the difference is higher than 40
+		if (difference > 40)
+		{
+			lastCrumbPosition.x = pos.x;
+			lastCrumbPosition.y = pos.y;
+
+			// Spawn breadcrumb at player location
+			if(getCvar("g_breadcrumbs"))
+			{
+				spawnBreadCrumb(pos);
+			}
+			// If the setting is off, kill instead.
+			else
+			{
+				removeAllBreadCrumbs();
+			}
+		}
+	}
+
+	virtual void spawnBreadCrumb(vector3 spawnPosition)
+	{
+		actor crumbActor;
+		int crumbCount = crumbs.size();
+
+		// Spawn crumb
+		crumbActor = spawn("breadCrumb", (spawnPosition.x, spawnPosition.y, 0));
+
+		// Add crumb to the list
+		if(crumbActor)
+		{
+			crumbs.push(breadCrumb(crumbActor));
+		}
+
+		// Kill oldest dot when threshold is reached
+		if(crumbCount + 1 > MAX_CRUMB_AMOUNT)
+		{
+			if(crumbs[0]) crumbs[0].setStateLabel("FadeAway");
+			crumbs.delete(0);
+		}
+	}
+
+	// Wipes all bread crumbs. Useful when switching levels.
+	virtual void removeAllBreadCrumbs()
+	{
+		for (int x = crumbs.size()-1;x>=0;x--)
+		{
+			if (crumbs[x])
+			{
+				crumbs[x].destroy();
+				crumbs.delete(x);
+			}
+		}
+	}
+
+	virtual void dropObject() {
+		let pd = PickupableDecoration(holdingObject);
+		if(holdingObject && pd) {
+			pd.drop();
+		}
+		holdingObject = null;
+	}
+
+	virtual void throwObject() {	// TODO: Add throw force?
+		let pd = PickupableDecoration(holdingObject);
+		if(holdingObject && pd) {
+			pd.throw();
+			// TODO: Grunt sound?
+		}
+		holdingObject = null;
+	}
+
+	virtual void puntObject() {
+		let pd = PickupableDecoration(holdingObject);
+		if(holdingObject && pd) {
+			pd.A_StartSound("impact/melee", CHAN_AUTO, 0, 0.7);
+			pd.punt(self);
+		}
+		holdingObject = null;
+	}
+
+	// Called before we travel to a new map
+	// Main purpose here is to check for an item being picked up
+	// If we have a picked up object, let's make it travel to the next map if possible
+	int travelFlags;
+
+	flagdef DidTravelWithOffset: travelFlags, 1;
+
+	//bool didTravelWithOffset;
+	Vector3 travelOffset;
+	double travelAngle, travelPitch, travelFOV, travelRefAngle;
+	int travelCrouch, travelCrouchDir, travelCrouchButt, travelCrouchButtTime;
+	double travelCrouchFactor, travelCrouchOffset;
+	Vector3 travelVel;
+
+	override void PreTravelled() {
+		Super.PreTravelled();	// Normally this is empty but might need to be called
+
+		bool dropObjectForTravel = false;
+		
+		bDidTravelWithOffset = false;
+		travelAngle = angle;
+		travelPitch = pitch;
+		travelVel = vel;
+		travelFOV = player.FOV;
+		invulnerableInMenu = false;
+
+
+		// ButtTime simulates the crouch button being pressed for X ticks after a transition
+		// This is a hack to keep the player crouched for the transition but unfortunately inputs are going to be reset
+		// So a hold-to-crouch user is always going to uncrouch after the transition :( :( :(
+		// But at least we can make it less jarring
+		travelCrouchButtTime = travelCrouchButt != 0 ? 60 : 0;
+		
+
+		ClearInterpolation();
+
+		// Stop all voice on the player since this will often end up stuck in the level the next time we return
+		A_StopSound(CHAN_VOICE);
+
+		// Check for positioning object so we can position ourselves after travel relative to it
+		// TODO: There could be multiples, find the one we are closest to in the center
+		DawnLevelTransitioner transitioner;
+		BlockThingsIterator it = BlockThingsIterator.Create(self, 1024);
+		while (it.Next()) {
+			let mo = DawnLevelTransitioner(it.thing); // Get the Actor it's currently on
+			if(mo) {
+				// Check size of thing, and make sure we are inside of the size defined by the thing
+				// TODO: Check height
+				if(	mo.posInside(pos.xy) ) {
+					bDidTravelWithOffset = true;
+					travelRefAngle = mo.angle;
+					travelOffset = pos - mo.pos;
+					dropObjectForTravel = mo.args[2] > 0;
+
+					if(developer > 0) {
+						Console.Printf("Travel Offset: %.2f  %.2f  %.2f   Pos: %.2f  %.2f  %.2f    TransitionerPos: %.2f  %.2f  %.2f", travelOffset.x, travelOffset.y, travelOffset.z, pos.x, pos.y, pos.z, mo.pos.x, mo.pos.y, mo.pos.z);
+					}
+
+					transitioner = mo;
+					break;
+				}
+			}
+		}
+
+		if(player.crouching < -1) {
+			GiveInventory("IsCrouching", 1);
+		}
+
+		// Wipe all breadcrumbs
+		removeAllBreadCrumbs();
+
+		if(holdingObject) {
+			let pd = PickupableDecoration(holdingObject);
+			if(pd) {
+				if(!pd.bTravelAllowed || dropObjectForTravel) {
+					// Drop the object
+					dropObject();
+				} else {
+					// Prepare object for travel
+					pd.prepareForTravel(transitioner);
+				}
+			} else {
+				dropObject();
+				holdingObject = null;
+			}
+		}
+
+		// Do special sector travel for objects that are allowed to transition
+		if(transitioner) {
+			transitioner.travelTaggedSectors();
+		}
+	}
+
+	// So we've made it to a new map, if we have a pickup object we need
+	// to warp it into the correct position in front of the player
+	override void Travelled() {
+		Super.Travelled();
+		enteredNewLevel = true;
+		invulnerableInMenu = false;
+
+		if(player) {
+			// This is required to stop a weird pitch shift on the first render frame! 
+			// Do not remove
+			player.MinPitch = -maxviewpitch;
+			player.MaxPitch = maxviewpitch;
+
+			// Adjust fov
+			player.FOV = player.deltaFOV = travelFOV;
+			player.crouching = travelCrouch;
+			player.crouchFactor = travelCrouchFactor;
+			player.crouchOffset = travelCrouchOffset;
+			player.crouchDir = travelCrouchDir;
+			player.crouchviewdelta = travelCrouchOffset;
+			if(travelCrouchButt < 0) player.cmd.buttons |= BT_CROUCH;
+			if(developer) Console.Printf("Travel crouch: %d %d %f %f %d %f", travelCrouch, travelCrouchDir, travelCrouchFactor, player.crouchOffset, player.crouchDir, player.crouchviewdelta);
+		}
+
+		angle = travelAngle;
+		pitch = travelPitch;
+		
+
+		// Offset our position based on the last travel offset
+		DawnLevelTransitioner transitioner;
+		if(bDidTravelWithOffset) {
+			// Find a close by transition object
+			BlockThingsIterator it = BlockThingsIterator.Create(self, 750);
+			while (it.Next()) {
+				DawnLevelTransitioner mo = DawnLevelTransitioner(it.thing); // Get the Actor it's currently on
+				if(mo) {
+					// Check size of thing, and make sure we are inside of the size defined by the thing
+					// TODO: Check height
+					if(	pos.x > mo.pos.x - mo.radius &&
+						pos.x < mo.pos.x + mo.radius &&
+						pos.y > mo.pos.y - mo.radius && 
+						pos.y < mo.pos.y + mo.radius ) {
+						
+						vel = travelVel;
+						
+						// Offset us to the new position and rotation
+						// TODO: Use angle offset
+						travelOffset.xy = Actor.RotateVector(travelOffset.xy, mo.angle - travelRefAngle);
+						vel.xy = Actor.RotateVector(vel.xy, mo.angle - travelRefAngle);
+						Vector3 newPos = mo.pos + travelOffset;
+						angle -= travelRefAngle - mo.angle;
+						
+						
+						Vector3 lastPos = pos;
+						
+						// Special case for 07Z, one transitioner is accidentally set not to use verification and you can escape into the void
+						// So lets force it on
+						if(mo.args[4] == 1 && !(level.mapName ~== "SE_07Z")) {
+							// Just accept the position blindly with no collision check, caution should be used with this one
+							lastPos = newPos;
+						} else {
+							// Temporarily increase step height, it's fine if we were able to walk up on things
+							// we just don't want to get stuck inside of walls
+							let lastStepHeight = MaxStepHeight;
+							MaxStepHeight = 128;
+
+							// Special case, the 07B spawn point is slightly inside the wall, so it doesn't work
+							// Make our start position the transitioner instead
+							if(level.mapName ~== "SE_07B") {
+								SetOrigin(mo.pos, false);
+								lastPos = pos;
+							}
+
+							// Try moving from spawn point to the new position, and stop if we hit something
+							double travelDist = (newPos - pos).length();
+							Vector3 dir = (newPos - pos).unit();
+							int numChecks = clamp(travelDist / radius, 1, 100);
+							FCheckPosition fchecker;
+							double unit = travelDist / double(numChecks);
+
+							for(int x = 0; x < numChecks; x++) {
+								Vector3 nextPos = lastPos + (dir * unit);
+
+								if(!checkMove(nextPos.xy, PCM_NOACTORS, fchecker)) {
+									if(developer) Console.Printf("%d Offset pos (%.2f  %.2f) is invalid!", x, nextPos.x, nextPos.y);
+									break;
+								} else {
+									//nextPos.z = fchecker.floorz;
+									lastPos = nextPos;
+								}
+							}
+
+							// Restore step height
+							MaxStepHeight = lastStepHeight;
+						}
+						
+						
+						SetOrigin(lastPos, false);
+
+						vel = (0,0,0);
+
+						transitioner = mo;
+
+						if(developer > 0) {
+							let toffset2 = lastPos - mo.pos;
+							Console.Printf("Travel Arrival Offset: %.2f  %.2f  %.2f   Pos: %.2f  %.2f  %.2f  TransitionerPos: %.2f  %.2f  %.2f  LastPos: %.2f  %.2f  %.2f", toffset2.x, toffset2.y, toffset2.z, pos.x, pos.y, pos.z, mo.pos.x, mo.pos.y, mo.pos.z, lastPos.x, lastPos.y, lastPos.z);
+						}
+					}
+				}
+			}
+		}
+
+		if(holdingObject) {
+			let pd = PickupableDecoration(holdingObject);
+			if(pd) {
+				pd.finishedTravel(self, transitioner);
+			}
+		}
+
+		// Notify the level transition handler that it's time to finish other travelling objects
+		LevelTransitionHandler.Instance().finishTravelling(self, transitioner);
+	}
+
+	// Called by the LevelEventHandler once the world is fully loaded
+	// Sometimes necessary for setup order
+	virtual void fullyTravelled() {
+		if(bDidTravelWithOffset) {
+			bDidTravelWithOffset = false;
+			FindFloorCeiling();
+		}
+	}
+
+
+	bool bIsInPain() {
+		State PainState = FindState('Pain');
+		if (PainState != NULL && InStateSequence(CurState, PainState))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	double GetVelocity() {
+		return abs(self.vel.x + self.vel.y);
+	}
+
+	// Applies a Stun effect to the player.
+	void applyStun(int damageAmount)
+	{
+		A_GiveInventory("CooldownStunned", damageAmount);
+	}
+
+	const MOVEMENT_SPEED_REDUCTION_FACTOR = 0.79; // Base
+	const MOVEMENT_SPEED_REDUCTION_FACTOR_SECRETLEVEL = 0.7; 	// No idea, weird. Why is this here? Oh well.
+	const MOVEMENT_SPEED_REDUCTION_FACTOR_STUNNED = 0.75; 		// Movement speed reduction when stunned. Although I dont think we'll keep using this
+	const MOVEMENT_SPEED_REDUCTION_FACTOR_ZOOMED = 0.15;		// Movement Speed multiplyer when zooming a weapon
+	const MOVEMENT_SPEED_REDUCTION_FACTOR_BLOCKED = 0.01; 		// Movement speed during short scripts, like scanning your arm for a Panel
+	const MOVEMENT_SPEED_REDUCTION_FACTOR_WATER = 0.92; 		// Movement Speed multiplier for walking on waterlevel 2 or higher.
+	const MOVEMENT_SPEED_REDUCTION_FACTOR_HEAVYOBJECT = 0.77;	// Movement speed multiplyer when holding something heavy, like a Honeycomb Case
+	const MOVEMENT_SPEED_REDUCTION_FACTOR_MINIMUM = 0.65; 		// Movement speed is never allowed to go below this
+
+	float movementSpeedReduction;
+	virtual void SelacoMove() {
+		movementSpeedReduction+= MOVEMENT_SPEED_REDUCTION_FACTOR;
+		if(waterLevel == 3) {
+			return;
+		}
+		// Carrying a heavy object
+		if(holdingObject is "PickupableDecoration" && PickupableDecoration(holdingObject).bSlowDownPlayer)
+		{
+			movementSpeedReduction*=0.94;
+		}
+
+		// Stun
+		if(countinv("CooldownStunned") > 0)
+		{
+			movementSpeedReduction*=MOVEMENT_SPEED_REDUCTION_FACTOR_STUNNED;
+		}
+
+		// Prevent movement from getting below a threshold
+		if(movementSpeedReduction < MOVEMENT_SPEED_REDUCTION_FACTOR_MINIMUM)
+		{
+			movementSpeedReduction = MOVEMENT_SPEED_REDUCTION_FACTOR_MINIMUM;
+		}
+
+		// Slow down in Water
+		if(waterLevel == 2)
+		{
+			movementSpeedReduction*=MOVEMENT_SPEED_REDUCTION_FACTOR_WATER;
+		}
+
+		if(playsSelacoCraft)
+		{
+			movementSpeedReduction = MOVEMENT_SPEED_REDUCTION_FACTOR_SECRETLEVEL;
+		}
+
+		if (isOnGroundOrInWater()) 
+		{
+			resetCoyoteStuff();
+			adjustMovementSpeed();
+
+			// kill coyote timer if we are in water, this prevents some strange "free" jumps out of water
+			if(waterLevel > 1) coyoteTimer = 999999;
+
+			if (!bIsInPain())
+			{
+				deceleratePlayer();
+			}
+			
+			adjustViewBobbing();
+		}
+
+		incrementCoyoteTimerIfFalling();
+		movementSpeedReduction = 0;
+	}
+
+	void adjustMovementSpeed() 
+	{	
+		if (SelacoWeapon(player.ReadyWeapon) && SelacoWeapon(player.ReadyWeapon).isZooming) 
+		{
+			movementSpeedReduction -= MOVEMENT_SPEED_REDUCTION_FACTOR_ZOOMED;
+		}
+		
+		if (blockMovement) 
+		{
+			movementSpeedReduction = MOVEMENT_SPEED_REDUCTION_FACTOR_BLOCKED;
+		}
+		
+		
+		double s = 2.0 + (1.0 - movementSpeedReduction);
+		A_SetSpeed(s * 2);
+	}
+
+	void deceleratePlayer() 
+	{
+		if (waterLevel >= 2) {
+			movementSpeedReduction = MOVEMENT_SPEED_REDUCTION_FACTOR_WATER;
+		}
+
+		vel.x *= movementSpeedReduction;
+		vel.y *= movementSpeedReduction;
+
+		if (waterLevel >= 2) {
+			vel.z *= movementSpeedReduction;
+		}
+	}
+
+
+	void resetCoyoteStuff() 
+	{
+		hasJumped = false;
+		coyoteTimer = 0;
+	}
+
+	bool isOnGroundOrInWater() 
+	{
+		return ((player.onground || bOnMobj) && (!isSliding || waterLevel >= 2));
+	}
+
+	void adjustViewBobbing() 
+	{
+		float viewBobbing = movementSpeedReduction;
+
+		if (waterLevel >= 3 || climbing || mantle || curLadder) 
+		{
+			viewBobbing = 0;
+		}
+
+		ViewBob = viewBobbing;
+	}
+
+	void incrementCoyoteTimerIfFalling() 
+	{
+		if (!player.onground && waterlevel == 0 && vel.z < 0) {
+			coyoteTimer++;
+		}
+	}
+
+	int height_;
+	void checkWaterStates() {
+		// Player stands on shallow water
+		if (waterlevel == 1) {
+			if (!standingOnWater) {
+				ShaderHandler.LevelSetRain(amount: 100);
+				A_SpawnItemEx("WaterSplashSoundEffect", 0, 0, 1);
+				actor waterFoamActor;
+				bool waterFoamSuccess;
+				[waterFoamSuccess, waterFoamActor] = A_SpawnItemEx("WaterFoamSlower");
+				if(waterFoamActor)
+				{
+				waterfoamActor.A_SETSCALE(scale.x + 0.3);
+					SelacoActor(waterFoamActor).moveToWaterSurface();
+				}
+				for(int x=0;x<10;x++) {
+					A_SpawnDefinedParticle("waterParticleXDefinition", random(-30, 30), random(-20, 20), frandom(1,24), frandom(-1,1), frandom(-1,1), frandom(1,4));
+				}
+			}
+
+			standingOnWater = true;
+		}
+		
+		// Create foam, either from walking in shallow water or being partially submerged
+		// Or just every 9 ticks
+		if(level.time % 3 == 0 && ((waterlevel == 1 && level.time % 9 == 0) || (waterlevel == 1 && (vel.x > 1 || vel.y > 1)) || (waterlevel == 2 && level.time % 6 == 0)))
+		{
+			actor waterFoamActor;
+			bool waterFoamSuccess;
+			if(vel.x != 0 || vel.y != 0)
+			{
+				[waterFoamSuccess, waterFoamActor] = A_SpawnItemEx("WaterFoamActorMovement");
+			}
+			else
+			{
+				[waterFoamSuccess, waterFoamActor] = A_SpawnItemEx("WaterFoamSlow");
+			}
+			if(waterFoamActor)
+			{
+				SelacoActor(waterFoamActor).moveToWaterSurface();
+				waterfoamActor.A_SETSCALE(scale.x + 0.1);
+			}
+		}
+
+		
+		// Player is completely submerged
+		if (waterlevel == 3) {
+			if (!isUnderWater) {
+				int splashCount;
+				ACS_NamedExecute("swimmingTutorial", 0);
+				splashCount = 50;
+				GiveInventory("UnderDirtyWater", 1);
+				A_PlaySound("script/surf", CHAN_AUTO, 0.3);
+				A_SpawnItemEx("WaterSplashSoundEffect", -3);
+				
+				// Spawn bubbles around the Dawn
+				for(int i=0;i<360;i+=5)
+				{
+					A_SPAWNITEMEX("UnderwaterWaterBubble", frandom(20,45), 0, frandom(-60,60), 0, frandom(-0.5,0.5), frandom(1,3), angle:i);
+				}
+			}
+			underwaterEffects();
+			isUnderWater = true;
+			timeSpendUnderwater++;
+		}
+		if (waterlevel < 3 && isUnderWater) {
+			dawnResurfacing();
+		}
+		if (waterlevel == 0 && standingOnWater) {
+			standingOnWater = false;
+			A_PlaySound("script/surf", CHAN_AUTO, 0.4);
+		}
+		if(waterLevel == 0 && suitDripRemaining > 0) {
+			suitDripRemaining--;
+			if(level.time % 5 == 0) {
+				A_PLAYSOUND("DAWN/SUITDRIP", CHAN_AUTO, 0.4, pitch:Frandom(0.9, 1.2));
+			}
+			A_SpawnDefinedParticle("waterParticleSmallXDefinition", frandom(1, 16), 0, frandom(5,player.ViewHeight*0.85), 0, 0, angle:random(0,360), scale:0.25);
+		}
+		GiveInventory("RestorePowerup", 1);
+	}
+
+	void dawnResurfacing (void) {
+		isUnderWater = false;
+		A_StopSound(CHAN_UNDERWATER);
+		if(player.readyWeapon) {
+			SelacoWeapon(player.ReadyWeapon).SetWeaponState("Equip");
+		}
+		if (timeSpendUnderwater > 5) {
+			ShaderHandler.LevelSetRain(amount: 255);
+			A_SpawnItemEx("WaterSplashSoundEffect", -3);
+			A_PlaySound("script/surf", CHAN_AUTO, 0.3);
+		}
+		for(int x; x <40;x++) {
+			A_SpawnDefinedParticle("waterParticleXDefinition", random(35, 60), frandom(-10,10), frandom(5,30), frandom(1,1.5), frandom(-0.5,0.5), frandom(1,2), angle:random(0,360));
+		}
+		if (timeSpendUnderwater > 90 && timeSpendUnderwater < 400) {
+			a_playsound("dawn/surfaceshort", CHAN_VOICE);
+		}
+		if (timeSpendUnderwater >= 400) {
+			a_playsound("dawn/surfacelong", CHAN_VOICE);
+		}
+		timeSpendUnderwater = 0;
+	}
+
+
+
+	// Makes the underwater experience all the more epic!
+	void underwaterEffects (void) {
+		int splashCount = 10;
+		GiveInventory("UnderDirtyWater", 1);
+		A_StartSound("script/underwater", CHAN_UNDERWATER, CHANF_LOOPING, 0.9);
+
+		for(int x; x < splashCount;x++) {
+			A_SpawnDefinedParticle("UnderWaterParticle", random(90, 400), frandom(-200,200), frandom(-160,160), frandom(-0.4,-0.7), 0, frandom(-0.1,0.1), flags:SXF_ABSOLUTEVELOCITY);
+		}
+		if(level.time % random(4,6) == 0)
+		{
+			for(int i=0;i<360;i+=80)
+			{
+				A_SPAWNITEMEX("UnderwaterWaterBubble", frandom(50,110), frandom(-40,40), frandom(-100,100), 0, frandom(-0.5,0.5), frandom(0.5,1), angle:i+random(-15,15));
+			}
+		}
+
+		if(suitDripRemaining <= SUIT_DRIP_MAX) {
+			suitDripRemaining+=5;
+		}
+	}
+
+	// CROUCHING
+	int lastCrouchFactor;
+	bool isCrouchTransitioning;
+	override void CheckCrouch(bool totallyfrozen)
+	{
+		// Force crouch sometimes after travel if the player was holding crouch before travel
+		if(travelCrouchButtTime > 0) {
+			travelCrouchButtTime--;
+			player.cmd.buttons |= BT_CROUCH;
+		} else if(stuckAndRecovering) {
+			player.cmd.buttons |= BT_CROUCH;	// Force crouch if we are stuck and recovering
+		}
+
+		let player = self.player;
+		UserCmd cmd = player.cmd;
+		A_TakeInventory("isCrouching", 1); // TO-DO: Used to detect crouching in ACS. Kill it when we rewrite slides in Zscript
+		if (cmd.buttons & BT_JUMP)
+		{
+			cmd.buttons &= ~BT_CROUCH;
+		}
+
+		if (CanCrouch() && player.health > 0 && allowCrouching()) {
+			if (!totallyfrozen) {
+				int crouchdir = player.crouching;
+				//bool canStand = abs(pos.z - ceilingz) <= fullheight; // Returns true if the ceiling is higher than player height
+				bool shouldCrouch = (((cmd.buttons & BT_CROUCH) && (player.crouching || waterLevel < 1 || player.onground) || waterLevel >= 3));
+
+				// Decide crouch stance
+				if (crouchdir == 0)
+				{
+					player.crouching = 0;
+					lastCrouchDir = crouchDir;
+					crouchdir = (shouldCrouch) ? -1 : 1;
+				}
+				else if (shouldCrouch)
+				{
+					player.crouching = 0;
+					lastCrouchDir = crouchDir;
+				}
+
+				// Stand up from crouching
+				if (crouchdir == 1 && player.crouchfactor < 1) {
+/* 					if (player.crouchfactor <= 0.5 && !canStand) {
+						// Not enough room to stand, abort.
+						return;
+					} */
+
+					// Play sound when we standing up
+					if (!isCrouchTransitioning && !countInv("NoDawnArmor")) {
+						A_PlaySound("player/crouch/armored",CHAN_AUTO, 0.5, pitch:frandom(1.1,1.25));
+						isCrouchTransitioning = true;
+					}
+
+					CrouchMove(1);
+
+					// We no longer transition
+					if (player.crouchfactor >= 1.0) {
+						isCrouchTransitioning = false;
+					}
+				}
+
+				// Crouch down from standing
+				else if (crouchdir == -1 && player.crouchfactor > 0.5)
+				{
+					A_GiveInventory("IsCrouching", 1);
+
+					// Play sound when we begin crouching
+					if (!isCrouchTransitioning && !countInv("NoDawnArmor")) {
+						A_PlaySound("player/crouch/armored", CHAN_AUTO, 0.5, pitch:frandom(1.1,1.25));
+						isCrouchTransitioning = true;
+					}
+
+					CrouchMove(-1);
+
+					// We no longer transition
+					if (player.crouchfactor <= 0.5) {
+						isCrouchTransitioning = false;
+					}
+				} else {
+					// Not transitoning, bring flag back to false
+					isCrouchTransitioning = false;
+				}
+			}
+		} else {
+			player.Uncrouch();
+			isCrouchTransitioning = false;
+		}
+		player.crouchoffset = -(ViewHeight) * (1 - player.crouchfactor);
+	}
+
+
+	bool allowCrouching()
+	{
+		if(level.IsCrouchingAllowed() && !slideRecovering && !curLadder)
+		{
+			return true;
+		}
+		return false;
+	}
+
+
+	override void PlayerLandedMakeGruntSound(actor onmobj) {
+		bool grunted;
+		
+		if (self.health > 0 && self.player.morphTics == 0) {
+			// Don't play landing voice lines during danger state, to prevent overlap with pain sounds
+			if(!isDangerState) {
+				if (self.Vel.Z < -GruntSpeed) {
+					A_StartSound("dawn/landingLong", CHAN_VOICE);
+				} else {
+					A_StartSound("dawn/land", CHAN_VOICE);
+				}
+			}
+			
+
+			bool isliquid = (pos.Z <= floorz) && HitFloor ();
+			if (onmobj != NULL || !isliquid) {
+				applyLandingDamage();
+				if (self.Vel.Z < -GruntSpeed) {
+					A_StartSound("dawn/landingimpactlong", CHAN_AUTO);
+					// Add screenshake
+					if(getCvar("g_Screenshake") >= 1) {
+						A_QuakeEx(0, 0, 1, 7, 0, 40, 0, 0, 0, 0, 0, 0, 1, 0.3, 1);
+					}
+				} else {
+					A_StartSound("dawn/landingimpactshort", CHAN_AUTO);
+				}
+			}
+		}
+
+		// Only add controller vibration if this is the active player object
+		if(players[consoleplayer].mo == self) {
+			float mul = clamp(24.0 / -self.Vel.Z, 0.0, 1.0);
+			InputHandler.Instance().AddWorldFeedback2(
+				(0.5, 0.3) * mul, 
+				(0.7, 0.5) * mul,
+				(1.0, 0.8) * mul
+			);
+		}
+
+		
+	}
+	
+	// Damage surroundings after a hard landing.
+	void applyLandingDamage()
+	{
+		if(abs(vel.z)> 12)
+		{
+			// Apply damage based on velocity
+			int damageAmount = abs(vel.z) *3;
+			A_Explode(damageAmount, 35, 0, 0, 0, 0, 0, "", "FallSplashDamage");
+
+			// Spawn smoke around a circle
+			for(int x=0;x<360;x+=20)
+			{
+				actor smokePuff;
+				bool suc;
+				[suc, smokePuff] = A_SPAWNITEMEX("BodyImpactSmokeTiny", 5, 0, 0, 2, 0, 0.1, angle:x);
+				if(smokePuff)
+				{
+					smokePuff.bFlatSprite = true;
+					SelacoSmoke(smokePuff).fadingSpeed = 0.04;
+				}
+			}
+		}
+	}
+
+	override void CrouchMove(int direction)
+	{
+		let player = self.player;
+		
+		double defaultheight = FullHeight;
+		double savedheight = Height;
+		double crouchspeed = direction * 0.055;
+		double oldheight = player.viewheight;
+
+		// Slower viewheight drop when under water
+		if(waterLevel >= 3) {
+			crouchspeed*=0.25;
+		}
+
+
+		player.crouchdir = direction;
+		player.crouchfactor += crouchspeed;
+
+		// Prevent player from Crouch movement while in menus
+		if(menuActive == Menu.Off) {
+			// check whether the move is ok
+			Height = stuckandRecovering ? min(defaultheight * player.crouchfactor, height) : defaultheight * player.crouchfactor;
+
+			if (!TryMove(Pos.XY, false, NULL))
+			{
+				Height = savedheight;
+				if (direction > 0)
+				{
+					// doesn't fit
+					player.crouchfactor -= crouchspeed;
+					return;
+				}
+			}
+			Height = savedheight;
+		}
+
+		player.crouchfactor = clamp(player.crouchfactor, 0.1, 1.);
+		player.viewheight = ViewHeight * player.crouchfactor;
+		player.crouchviewdelta = player.viewheight - ViewHeight;
+
+		// Check for eyes going above/below fake floor due to crouching motion.
+		CheckFakeFloorTriggers(pos.Z + oldheight, true);
+	}
+
+	// Check if Dawn should talk or not. Keeps track of all settings that may be important.
+	void dawnTalk(string voiceLine, string voiceSubtitle = "", float subtitleTime = 2, int settingRequirementMin = DIALOG_ALL)
+	{
+		// Preperations
+		int silentDawnSetting = getCvar("snd_silentDawn");
+		float dialogVolume = getCvar("snd_dialogVolume");
+		bool showSubtitle = (voiceSubtitle != "");
+		
+		// Cancel if the player does not want any sounds.
+		if((silentDawnSetting > settingRequirementMin) || health <= 0)
+		{
+			return;
+		}
+
+		// Show subtitle, is given.
+		if(showSubtitle)
+		{
+			Notification.Subtitle("$CHARACTER_DAWN", voiceSubtitle,  subtitleTime);
+		}
+
+		// Play sound file
+		A_PLAYSOUND(voiceLine, CHAN_VOICE, dialogVolume);
+	}
+
+	const RELIEF_CHANCE = 25;
+	const RELIEF_DELAY = 25;
+	int reliefTicks;
+	bool waitForRelief;
+
+	// Check if Dawn should play the relief sound. She must be safe, and heal out of a danger state.
+	void validateHealthRelief()
+	{
+		SafetyHandler handler = SafetyHandler.instance();
+		if(random(0,100) <= RELIEF_CHANCE && handler.checkIfSafe(500, false))
+		{
+			waitForRelief = true;
+			isDangerState = false;
+			EndDangerState();
+		}
+	}
+
+	void zombieScratchEffects()
+	{
+		if(countinv("SelacoArmor") <= 0)
+		{
+			for(int x=0;x<4;x++)
+			{
+				A_SPAWNITEMEX("BloodSplatterEffect", frandom(4,5), frandom(-7,7), frandom(height-5,height-14), frandom(2.4, 3.7), frandom(-2,2), frandom(-1,1));
+			}
+		}
+       	if(getCvar("g_screenshake") > 0)
+       	{
+       	    A_QuakeEx(5, 5, 5, 9, 0, 500, "");
+       	}
+		A_SETANGLE(angle+random(-5,5)); // Potentially awful.
+		A_SETPITCH(pitch+random(-2,2)); // Potentially awful.
+		A_RECOIL(7);
+	}
+
+	// Show some appreciation for modern medicine.
+	void doHealthRelief()
+	{
+		dawnTalk("DAWN/HEAL1", "$DIALOG_RELIEF_DAWN", 2.0, DIALOG_ALL);
+	}
+
+
+	double findLedgeHeightForClimb() {
+		vector3 oldPos = pos;
+		double ledgeHeight;
+		SetXyz(pos + (0, 0, maxLedgeHeight));   // Account for thin 3D floors
+		ledgeHeight = GetZAt(radius + CLIMB_REACH, 0) - oldPos.z;
+		SetXyz(oldPos);
+		return ledgeHeight;
+	}
+
+
+    override void CheckJump()
+    {
+		bool isInDangerstate = countinv("DangerStateActive");
+		bool jumpingSoundsEnabled = GetCVAR("g_jumpingsounds");
+        let player = self.player;
+        double ledgeHeight;
+        
+		if(curLadder) {
+			ledgeHeight = (curLadder.pos.z + curLadder.height) - pos.z;
+		} else {
+            vector3 oldPos = pos;
+
+            SetXyz(pos + (0, 0, maxLedgeHeight));   // Account for thin 3D floors
+            ledgeHeight = GetZAt(radius + CLIMB_REACH, 0) - oldPos.z;
+            SetXyz(oldPos);
+        }
+
+        bool jump = player.cmd.buttons & BT_JUMP;
+        double clearance = GetZAt(radius + CLIMB_REACH, 0, 0, GZF_CEILING) - GetZAt(radius + CLIMB_REACH, 0);
+
+        // Start/stop climbing
+        if (climbing || mantle)
+        {
+			ACS_NamedExecute("RemoveHand", 0);
+            if (ledgeHeight <= maxStepHeight)  {// Hold onto ledge at top, if player can't get on it
+                vel = (0, 0, 0);
+            }
+			else { // Climb ledge
+				vel.z = climbing ? CLIMB_SPEED : MANTLE_SPEED;
+				gravity = 5.5;
+			}
+        }
+
+        if (!climbing && !mantle)
+        {
+            if ((jump || getCvar("g_autoclimb")) && ledgeHeight > maxStepHeight && ledgeHeight <= maxLedgeHeight && !playsSelacoCraft && hasJumpingSpace() && player.viewheight >= 40 && !(holdingObject is 'PowerCell' || holdingObject is "YellowBarrel"))
+            {
+
+				if (ledgeHeight < 30) {
+					mantle = true;
+				} 
+				else {
+					climbing = true;
+				}
+				StopSlideSounds();
+				A_GiveInventory("CancelAnimation");
+                A_PlaySound("action/climb", CHAN_AUTO, 0.45);
+				A_GiveInventory("StopSliding", 1);
+				if(!isInDangerstate) {
+					A_PlaySound("dawn/ledge", CHAN_7, 0.3);
+				}
+				climbCooldown = 0.0;
+            }
+		}
+        else
+        {
+            if (ledgeHeight > maxLedgeHeight)  // Drop down/get knocked down from ledge
+            {
+                climbing = false;
+				mantle = false;
+            }
+            else if (ledgeHeight <= maxStepHeight && clearance >= 0.5 * height)    // Reach top of ledge
+            {
+                climbing = false;
+				mantle = false;
+                // Crouch, so player can fit into small spaces
+                player.crouchFactor = 0.5;
+                SetOrigin(pos + (0, 0, 0.5 * fullHeight), false);   // Keep view from jerking
+                player.viewHeight *= 0.5;
+
+                VelFromAngle(curLadder ? 4 : THRUST_SPEED, angle);  // Thrust player onto ledge
+            }
+
+            if (!climbing && !mantle)  // Exit climbing state
+            {
+				FindFloorCeiling();
+                ACS_NamedExecute("AddHand", 0);
+				gravity = 0.9;
+                player.jumpTics = -1;
+
+				// Disconnect from ladder
+				if(curLadder) {
+					cancelLadder(8);
+				}
+            }
+        }
+
+		SelacoMove();
+
+
+		// Jump the player upward
+		if (player.cmd.buttons & BT_JUMP)
+		{
+			// Dont jump if we're close to a ceiling
+			if(abs(pos.z - ceilingz) <= fullHeight) {
+				return;
+			}
+			int jumpCheckOffset = 0;
+			// Check if sliding to adjust the jump check.
+			if(isSliding) {
+				jumpCheckOffset = 35; 
+			}
+			if (player.crouchoffset != 0 && waterLevel <= 2)
+			{
+				// Jumping while crouching will force an un-crouch but not jump
+				jumpCheckOffset = 36;
+				player.crouching = 1;
+			}
+			else if (waterlevel >= 2 && !curLadder)
+			{
+				double submerged = min(waterdepth, height) / height;
+				if(submerged < 0.5) submerged = 0;
+				Vel.Z = MAX(Vel.Z, MIN(Vel.Z + submerged, SWIM_SPEED));
+			}
+			else if (bNoGravity && !curLadder)
+			{
+				Vel.Z = 3.;
+			}
+			else if(curLadder && !holdingJump /*&& player.cmd.forwardMove <= 0*/)
+			{
+				// Jump off ladder
+				coyoteTimer = 999999;
+				
+				if(abs(player.cmd.forwardMove) < 1800) Vel.Z = -1.;
+				else Vel.Z = 3.;
+				
+				ladderJumpAngle = curLadder.angle + 180;
+
+				// If we are facing away from the ladder, jump where the player is facing
+				if(abs(deltaAngle(ladderJumpAngle, angle)) <= 115) {
+					ladderJumpAngle = angle;
+				}
+
+				let backVec = AngleToVector(ladderJumpAngle, 3);
+				vel.xy = backVec;
+
+				// Sound
+				if(!isInDangerstate && jumpingSoundsEnabled) {
+					A_Playsound("dawn/jump", CHAN_7, 0.8);	
+				}
+
+				if (!(player.cheats & CF_PREDICTING)) A_StartSound("*jump", CHAN_BODY);
+
+				cancelLadder(8);
+			} else if(ladderTime != 0 && level.totalTime - ladderTime <= 5 && holdingJump && !player.onground) {
+				let backVec = AngleToVector(ladderJumpAngle, 1.2);
+				vel.xy += backVec;
+			}
+
+			// Jump approved
+			else if (curLadder == null && (player.onground || (!player.onground && coyoteTimer < COYOTE_TICKS)) && player.jumpTics == 0 && !hasJumped && !climbing && !mantle && hasJumpingSpace() && countinv("SlidingCeilingCollisionCheck") == 0 && !(holdingObject is "YellowBarrel"))
+			{
+
+				// If player holds a Power Cell, reduce Jumping height
+
+				double jumpvelz = JumpZ * 35 / TICRATE;
+				double jumpfac = 0;
+				coyoteTimer = 0;
+				hasJumped = true;
+
+				if(holdingObject is 'PowerCell')
+				{
+					jumpVelz*=0.75;
+				}
+				if(holdingObject is "YellowBarrel")
+				{
+					jumpvelz*=0.5;
+				}
+				if(playsSelacoCraft)
+				{
+					jumpVelz*=0.6;
+				}
+				// Jump is a coyote jump
+				if(!player.onground && waterlevel == 0) {
+					vel.z = 0; // Reset z velocity so it doesn't interfere with jumping velocity
+				}
+				
+				// Player makes a jumping sound
+				if(!isInDangerstate && jumpingSoundsEnabled) {
+					A_Playsound("dawn/jump", CHAN_7, 0.8);
+				}
+
+				Stats.AddStat(STAT_JUMPCOUNTER, 1, 0);
+
+				// Check for Slide Jumps
+				if (isSliding) {
+					stats.addstat(STAT_SLIDE_JUMP, 1, 0);
+					A_Playsound("impact/slideend", CHAN_SLIDE_START, 0.8);
+					A_TakeInventory("SlideScriptActive", 1);
+					Giveinventory("CooldownSliding", 999);
+					A_STOPSOUND(CHAN_SLIDE);
+
+					//Execute a Slide Jump
+					jumpVelz*1.25;
+					CrouchMove(1);
+					Vel3DFromAngle(SLIDEJUMP_SPEED_MULTIPLIER, angle, 0);
+					SetstateLabel("StopSliding");
+				}
+
+				if (!(player.cheats & CF_PREDICTING)) A_StartSound("*jump", CHAN_BODY);
+
+				for (let p = Inv; p != null; p = p.Inv)
+				{
+					let pp = PowerHighJump(p);
+					if (pp)
+					{
+						double f = pp.Strength;
+						if (f > jumpfac) jumpfac = f;
+					}
+				}
+				if (jumpfac > 0) jumpvelz *= jumpfac;
+
+				Vel.Z += jumpvelz;
+				bOnMobj = false;
+				player.jumpTics = 5;
+			}
+
+			holdingJump = true;
+		} else {
+			holdingJump = false;
+		}
+
+    }
+
+	void setWetScreen(int wetAmount = 5)
+	{
+		ShaderHandler.LevelSetRain(amount: wetAmount);
+	}
+
+	void addWetScreen(int wetAmount = 5)
+	{
+		ShaderHandler.LevelAddRain(amount: wetAmount);
+	}
+
+	bool hasJumpingSpace(int offset = 0) {
+		// In order to fully approve the jump, we need to ensure all sides of Dawn are not obstructed.
+		FLineTraceData RemoteRay;
+		for(int x = 0; x<=360;x+=45)
+		{
+			for(int j=0;j<radius/2;j+=10)
+			{
+				LineTrace(x,35, -90,offsetz: 5,offsetforward:radius/2, data: RemoteRay);
+				if (RemoteRay.HitType == TRACE_HitCeiling || RemoteRay.HitType == TRACE_HitFloor)	{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	default {
+		friction 0.1;
+		Speed 10;
+		Health 100;
+		Radius 15;
+		Height 54;
+		Mass 1500;
+		Player.SideMove 1.05, 1.05;
+		player.viewheight 51;
+		player.attackzoffset 22;
+		Player.GruntSpeed 12;
+		+CASTSPRITESHADOW
+		MaxStepHeight 22;
+		Alpha 1.0;
+		GibHealth 20;
+		gravity 0.9;
+		yscale 0.24;
+		xscale 0.35;
+		PainChance 255;
+		DamageFactor "FallSplashDamage", 0;
+		DamageFactor "EnvironmentalExplosion", 0;
+		RenderStyle "Translucent";
+		DamageFactor "NailDamage", 0.08;
+		DamageFactor "SawDroneProjectile", 0.35;
+		DamageFactor "fire", 0;
+		DamageFactor "acid", 0.25;
+		DamageFactor "DecorationImpact", 0;
+		DamageFactor "MeleeImpactSplash", 0;
+		DamageFactor "BarrelExplosion", 0.5;
+		DamageFactor "FanBlades", 0;
+		DamageFactor "SiegerKaboom", 0.3;
+		damageFactor "EnemySniper", 0.4;
+		DamageFactor "FriendBullet", 0;
+		DamageFactor "ExplosiveImpact", 0.75;
+		damageFactor "StunningShock", 0;
+		damageFactor "AssaultRifleBullet", 0;
+		PainChance "Ice", 255;
+		PainChance "Heal", 0;
+		PainChance "BulletAlien", 255;
+		Painchance "Bullet", 255;
+		PainChance "fire", 0;
+	    Dawn.MaxLedgeHeight 40;
+        Dawn.ClimbSpeed 3;
+		+SOLID;
+		//+THRUSPECIES
+		+THRUGHOST;
+		-BLOCKEDBYSOLIDACTORS;
+		//WEAPON SLOTS FOR THIS PLAYER CLASS
+		Player.StartItem "Fists";
+		Player.StartItem "inspectedRoaringCricket";
+		Player.Startitem "UpgradeDMRBipod", 3;
+		Player.StartItem "InvasionTierItem", 1;
+		Player.StartItem "IsPlaying", 1;
+		Player.StartItem "AltfireShotgunZoom", 3;
+		Player.StartItem "AltFireCricketZoom", 3;
+		Player.StartItem "AltFireSMGZoom", 3;
+		//Player.StartItem "AltFirePlasmaRifleZoom", 3;
+		Player.StartItem 'AltfireGrenadeLauncherTraditional';
+		Player.StartItem 'AltFireNailZoom', 1;
+		Player.StartItem "HasCodex";
+		Player.StartItem "Rifle";
+		Player.StartItem "RoaringCricket";
+		Player.StartItem "FlashlightItem";
+		Player.StartItem "GLFragAmmo", 5;
+		Player.StartItem "FistsAmmo", 1000;
+		Player.StartItem "RifleReserve", 60;
+		Player.StartItem "RifleAmmo", 30;
+		Player.StartItem "ShotgunAmmo", 6;
+		Player.StartItem "ShotgunReserve", 0;
+		Player.StartItem "FlashlightMeter", 500;
+		Player.StartItem "PlasmaRifleAmmo", 25;
+		Player.StartItem "PistolAmmo", 9;
+		Player.StartItem "NailgunAmmo", 60;
+		Player.STartItem "SlideUpgrade", 1;
+		Player.StartItem "NailgunReserve", 40;
+		Player.StartItem "IsPlayer", 1;
+		Player.StartItem "AltFireRifleZoom", 3;
+		Player.StartItem "HandGrenadeWeapon", 1;
+		
+		Player.WeaponSlot 8, "Rail_Gun";
+		Player.StartItem "RailgunAmmo", 5;
+        Player.StartItem "SMGAmmo", 50;
+        //Player.StartItem "AltFirePlasmaRifleZoom", 1;
+        Player.StartItem "AltfireDMRZoomTraditional", 1;
+        Player.StartItem "AltFireGrenadeTraditional", 1;
+		//Player.StartItem "AltFireMinuturretTraditional", 1;
+        Player.StartItem "AltFireMineTraditional";
+        //Player.StartItem "WorkshopTierItem", 1;
+        Player.StartItem "HandGrenadeWeapon", 1;
+
+		Player.StartItem "HandGrenadeAmmo", 0;
+		Player.StartItem "SafeRoomItem", 1;
+		Player.JumpZ 8.5;
+		Player.DisplayName "Dawn";
+		Bloodtype "	";
+		Player.CrouchSprite "DAWC";
+		//Player.CrouchSprite "PLYC";
+	}
+
+	States
+	{
+
+
+
+	Precache:
+		DAWN ABCDEF 0;
+		DAWM ABCDEFGHIJ 0;
+		DAWR ABCD 0;
+		DAWF ABCDEF 0;
+		stop;	// This must exist!
+    Spawn:
+		DAWN A 1;
+		DAWN A 1;
+	StandStill:	
+		DAWN A 0;
+		TNT1 A 0
+		{
+			isFireAnimation = false;
+		}
+	StandStillLoop:
+		DAWN A 1;
+		TNT1 A 0 {
+/* 			if (countinv("CooldownSliding") > 1) {
+				SetStateLabel("SlidingGoto");
+			} */
+			if(height < 40) {
+				isCrouching = false;
+				SetStateLabel("CrouchGoto");
+			}
+			isFireAnimation = false;
+		}
+        DAWN AAAAABBBBBBCCCCCDDDDDEEEEEFFFFFFFFFEEEEEDDDDDCCCCCBBBBB 1 {
+/* 			if (countinv("CooldownSliding") > 1) {
+				SetStateLabel("SlidingGoto");
+			} */
+			
+			if(height < 54) {
+				isCrouching = false;
+				SetStateLabel("CrouchGoto");
+			}
+			if(vel.z > 0.2)
+			{
+				setStateLabel("Jump");
+			}
+		}
+		Loop;
+	Jump:
+		DAW2 BDE 3;
+	JumpWaitForFloor:
+		DAW2 F 1
+		{
+			if(vel.z == 0)
+			{
+				setStateLabel("JumpLand");
+			}
+		}
+		loop;
+	JumpLand:
+		DAW2 HIKL 3;
+		goto StandStillLoop;
+	CrouchGoto:
+		TNT1 A 0 {
+			if (isCrouching == true) {
+				SetStateLabel("CrouchingStill");
+			}
+		}
+		DAWC ABCD 3;
+		TNT1 A 0 {
+			isCrouching = true;
+		}
+		loop;
+	CrouchingStill:
+		DAWC EEEEEFFFFFGGGGGHHHHHHHHHHGGGGGFFFFFEEEEEE 1 {
+			if(height > 32) {
+				SetStateLabel("CrouchLeave");
+			}	
+			if(vel.xy.length() > 0.4)
+			{
+				SetStateLabel("CroucHWalk");
+			}
+		}
+		loop;
+	MeleeAttack:
+		DAWM BCDEFGHI 3;
+		goto spawn;
+	CrouchLeave:
+		DAWC DCBA 2;
+		TNT1 A 0 {
+			isCrouching = false;
+			SetStateLabel("StandStill");
+		}
+		loop;	
+
+	SlidingGoto:
+		DAWS ABCDEF 2;
+		DAWS G -1;
+		stop;
+
+	See:
+		DAWR AAAAABBBBBCCCCCDDDDD 1
+		{
+			if(height < 40 && !isCrouching)
+			{
+				setStateLabel("CrouchGoto");
+			}
+ 			if(height < 40 && isCrouching) {
+				SetStateLabel("CroucHWalk");
+			} 
+			if(vel.z > 0.2)
+			{
+				setStateLabel("Jump");
+			}
+		}
+		loop;
+	CroucHWalk:
+		DACW AAAAABBBBBCCCCCDDDDD 1
+		{
+			if(height > 40)
+			{
+				setStateLabel("CrouchLeave");
+			}
+			if(vel.xy.length() <= 0.4)
+			{
+				SetStateLabel("CrouchingStill");
+			}
+		}
+		loop;
+	FireWeapon:
+		TNT1 A 0
+		{
+			if(isFireAnimation)
+			{
+				setStateLabel("FireLoop");
+				return;
+			}
+			isFireAnimation = true;
+		}
+		DAWF ABC 2;
+	FireLoop:
+		TNT1 A 0
+		{
+			//A_SPAWNITEMEX("DawnMuzzleFlash", 24, 0, 48);
+		}
+		DAWF DEFCBA 2;
+		goto standstill;
+
+	Pain.Ice:
+		DAWN A 0 ACS_NamedExecuteWithResult("DawnIsFrozen", 0);
+	Pain.EnemySniper:
+	Pain.Plasma:
+	Pain.BulletAlien:
+		TNT1 A 0 {
+			if(getCvar("g_screenshake") == 2) {
+				A_QuakeEx(frandom(1.5, 1.55), frandom(0.3, 0.35), frandom(0.25, 0.25), 8, 0, 20, 0, 0, 10, 10, 1000, 600, frandom(0.6, 0.6), frandom(0.6, 0.6));
+			}
+			if(getCvar("g_screenshake") == 1) {
+				A_QuakeEx(frandom(0.7, 0.8), frandom(0.3, 0.35), frandom(0.25, 0.25), 3, 0, 20, 0, 0, 10, 10, 1000, 600, frandom(0.4, 0.4), frandom(0.4, 0.4));
+			}
+		}
+		TNT1 A 0 A_PlaySound("impact/flesh", CHAN_IMPACT, 0.6);
+		TNT1 A 0 HUDShake(7, 7);
+	Pain.shotgun:
+	Pain.TreeClaw:
+	Pain:
+		DAWN A 0;
+		DAWN A 0;
+        NULL A 0 A_DawnPain;
+		Goto See;
+	
+	Pain.Bullet:
+		DAWN A 0;
+        NULL A 0 A_DawnPain;
+		goto See;
+	PainWfist:
+		DAWN A 0;
+        DAWN B 0 A_JumpIfInventory("GoSpecial", 1, "SpecialCheckerMoving");
+		PLA1 G 5;
+		NULL A 0 A_PlaySound("PAIN1", 2);
+		Goto StandStill;
+	
+
+    Pain.Blast:
+	Pain.Explosive:
+        NULL A 0 ACS_Execute(531, 0, 0, 0, 0);
+		Goto Pain;
+
+
+
+	Pain.Rip:
+        Goto Pain;
+		
+	Pain.Freeze:
+	DAWN A 0 A_JumpIfHealthLower(14, "FreezePlayer");
+	DAWN G 3;
+	Goto See;
+
+	FreezePlayer:
+	DAWN A 0 Thing_Stop(0);
+	DAWN A 0 ACS_Execute(477, 0, 0, 0, 0);
+	DAWN A 0 A_PlaySound ("DSBOTTLE");
+	
+	Goto See;
+	
+	Death.Frost:
+	Death.Freeze:
+		DAWN A 0 A_NoBlocking;
+		DAWN A 0 A_PlaySound ("DSBOTTLE");
+		FZD1 C -1;
+		Stop;
+		
+	Sliding:
+		DAWN A 0 A_SetSize(-1, SLIDE_ACTOR_HEIGHT);
+		goto See;
+		
+		
+	StopSliding:
+		DAWN A 0 A_SetSize(-1, DefaultPlayerHeight);
+		goto See;
+
+	Death.Electricity:
+		TNT1 A 0 A_PRINTBOLD("SHOCK.");
+	Death.Bullet:
+	Death.BulletAlien:
+	Death:
+		TNT1 A 0 {
+			A_PLAYSOUND("dawn/deathsnap", CHAN_AUTO, 0.6, 0, 0);
+			pitch = -35;
+			A_QuakeEx(4, 4, 1, 50, 0, 7000, 0, 0, 0, 0, 0, 0, 2, 2, 4);
+		}
+		DAWN I 0 A_PlayerScream;
+		DAWN J 0 A_NoBlocking;
+		DAWN KLM 0;
+		DAD1 Z -1;
+	DeathLooper:
+		DAWN NNNNNNNNNNNNNNNNNNNNN 1 {
+			A_SetRoll(roll+1, SPF_INTERPOLATE, 0);
+		}
+		TNT1 A 0 {
+			A_PLAYSOUND("corpse/impact");
+		}
+		DAWN NNNN 1 {
+			A_SetRoll(roll+1, SPF_INTERPOLATE, 0);
+		}
+		DAWN N -1;
+		stop;
+
+	Death.Cheating:
+		TNT1 A 0 A_DAMAGESELF(9000);
+	Death.railattack:
+		DAWN A 0 A_GiveInventory("PlayerIsDead", 2);
+		NULL A 0 A_JumpIfCloser(345, "Death.Blast");
+		NULL A 0 A_Jump (160, 3);
+        NULL AAA 0;
+		DAWN H 10;
+		DAWN I 10 A_PlayerScream;
+		DAWN J 10 A_NoBlocking;
+		DAWN KLM 10;
+		DAWN N -1;
+		
+    Death.Explosives:
+	XDeath:
+		DAWN A 0 A_GiveInventory("PlayerIsDead", 1);
+        
+		NULL A 0 ThrustThingZ(0,60,0,1);
+		TNT1 A -1;
+		Stop;
+		
+
+	Death.Fire:
+    Death.flames:
+		DAWN A 0 A_GiveInventory("PlayerIsDead", 1);
+        NULL A 0;
+        NULL A 0 A_Scream;
+        NULL A 0 A_NoBlocking;
+        NULL A 1;
+        NULL A -1;
+		Stop;
+		
+   Death.Desintegrate:
+		DAWN A 0 A_GiveInventory("PlayerIsDead", 1);
+        NULL A 0 A_Scream;
+        NULL A 0 A_NoBlocking;
+		NULL A 1;
+        NULL A -1;
+        Stop;
+		
+	 Death.Blackhole:
+		DAWN A 0 A_GiveInventory("PlayerIsDead", 1);
+        NULL A 0 A_Scream;
+        NULL A 0 A_NoBlocking;
+		NULL A 1;
+        NULL A -1;
+        Stop;
+	  
+    Death.Stomp:
+		DAWN A 0 A_GiveInventory("PlayerIsDead", 1);
+		NULL A 1 A_XScream;
+		NULL A 1 A_NoBlocking;
+		NULL A -1;
+		Stop;
+	
+    Crush:
+		TNT1 A 0
+		{
+			A_SETROLL(65);
+			A_SETPITCH(-45);
+			A_PlaySound("dawn/death/crush", CHAN_AUTO, 0.8, pitch:frandom(0.8,0.95));
+		}
+		TNT1 A -1;
+        Stop;
+
+	
+		
+	}
+}
+
+// Long, strong, dirt
+class PlayerShaker1 : actor {
+	default {
+		+NOINTERACTION
+	}
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(2, 2, 2, 35, 0, 600, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 0, 0, 0, 0, 3);
+                }
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 8, 8, 35);
+				ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 12);
+			}
+			stop;
+	}
+}
+
+// Short, strong.
+class PlayerShaker2 : PlayerShaker1 {
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(2, 2, 1, 12, 0, 450, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 0, 0, 0, 1, 0, 2);
+                }
+			}
+			stop;
+	}
+}
+
+// Average, short
+class PlayerShaker3 : PlayerShaker1 {
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(1, 2, 2, 8, 0, 250, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 1, 1, 0, 0, 1, 0, 2);
+                }
+			}
+			stop;
+	}
+}
+
+// Short, Dirt, Weak
+class PlayerShaker4 : PlayerShaker1 {
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(1, 1, 1, 7, 0, 450, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 0, 0, 250, 0, 0, 0.2);
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 3, 3, 15);
+					ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 6);
+					Dawn.ShakeWeapon(3,3);
+                }
+			}
+			stop;
+	}
+}
+
+class PlayerShaker5 : PlayerShaker1 {
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(1, 1, 1, 5, 0, 450, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 0, 0, 250, 0, 0, 0);
+                }
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 5, 5, 6);
+				Dawn.ShakeWeapon(5,5);
+			}
+			stop;
+	}
+}
+
+// Intense
+class PlayerShaker6 : actor {
+	default {
+		+NOINTERACTION
+	}
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(3, 3, 3, 25, 0, 900, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 8, 0, 5);
+                }
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 8, 8, 35);
+				Dawn.ShakeWeapon(8,8);
+			}
+			stop;
+	}
+}
+
+// Super Shake, this one is mandatory and ignores screenshake settings
+class PlayerShaker7 : actor {
+	default {
+		+NOINTERACTION
+	}
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 
+			{
+                A_QuakeEx(7, 7, 7, 35, 0, 7000, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 0, 0, 0, 3, 3, 6);
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 8, 8, 35);
+				Dawn.ShakeWeapon(8,8);
+			}
+			stop;
+	}
+}
+
+
+class PlayerShaker8 : actor {
+	default {
+		+NOINTERACTION
+	}
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(2, 2, 2, 7, 0, 7000, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 0, 0, 0, 1, 2, 2);
+                }
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 8, 8, 35);
+				ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 6);
+				Dawn.ShakeWeapon(3,3);
+			}
+			stop;
+	}
+}
+
+class PlayerShakerStrongShortDust : PlayerShaker1 {
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+                    A_QuakeEx(1, 1, 1, 17, 0, 450, 0, 0, 0, 0, 0, 250, 0, 0, 0);
+                }
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 3, 3, 15);
+				ACS_NamedExecuteAlways("SpawnDirtScreen", 0, 1);
+			}
+			stop;
+	}
+}
+
+
+class TrainShaker : PlayerShaker1 {
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") >= 1) {
+					Dawn.ShakeWeapon(1,1);
+                    A_QuakeEx(0, 1, 0, 15, 0, 7000, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 0, 0, 0, 0);
+                }
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 1, 1, 15);
+			}
+			stop;
+	}
+}
+
+
+class dashShakes : actor {
+	default {
+		+NOINTERACTION
+	}
+	states {
+		spawn:
+			TNT1 A 1;
+			TNT1 A 35 {
+                if(getCvar("g_Screenshake") == 2) {
+                    A_QuakeEx(1, 1, 1, 4, 0, 7000, 0, 0, 0, 0, 0, 0, frandom(0.6,0.6), 0.6, 0.6);
+                }
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 3, 3, 2);
+			}
+			stop;
+	}
+}
+
+class PlayerIcon : MapMarker {
+	Actor d;
+	override void BeginPlay() {
+		super.BeginPlay();
+		//PlayerPawn pawn=players[0].mo;
+		//d = Dawn(pawn);
+	}
+
+	override void tick() {
+		super.tick();
+		roll = roll+5;
+		angle = angle+5;
+		pitch = pitch+5;
+	}
+
+	default {
+
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			PLYR Z 1 {
+				roll = roll+5;
+				angle = angle+5;
+				pitch = pitch+5;
+				//A_Warp(AAPTR_Master, 0, 0, 0, d.angle, flags:WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+			}
+			loop;
+	}
+}
+
+class WetScreenMaker : Actor
+{
+	default
+	{
+		+NOINTERACTION;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				ShaderHandler.LevelSetRain(amount: 255);
+			}
+			stop;
+	}
+}
+/* class LightActor : FastProjectile {
+	int scriptID;
+	int lightRadius;
+	property ScriptID : scriptID;
+	property LightRadius : lightRadius;
+	default {
+		LightActor.scriptID 25;
+		LightActor.lightRadius 450;
+	}
+}
+
+// Spawns for a tick when the player activates a light switch, used to detect nearby enemies who might see the light.
+class LightSwitch : LightActor {
+	default {
+		LightActor.scriptID 26;
+		LightActor.lightRadius 600;
+	}
+}
+
+// Flashlight
+class FlashlightProjectile: LightActor
+{
+	default {
+		Radius 36;
+		Height 36;
+		Speed 0;
+		Damage 0;
+		Mass 0;
+		+NOINTERACTION
+		+DONTSPLASH
+		+NOTIMEFREEZE
+		-ACTIVATEIMPACT
+		-ACTIVATEPCROSS
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Go:
+		TNT1 A 1;
+		stop;
+
+    Death:
+	XDeath:
+	    TNT2 A 1;
+		Stop;
+	}
+} */
+
+class LockdownActiveCheck : Inventory {
+	default {
+		inventory.maxAmount 1;
+	}	
+}
+
+// This spawns when the player interacts with a Shutter Button.
+// We use an actor so the sound is positional rather than local on the player.
+class ShutterSoundEffect : actor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_CHANGEVELOCITY(1, 0 ,0, CVF_RELATIVE);
+			TNT1 A -1;
+		PlaySound:
+			TNT1 A 0 A_PLAYSOUND("UISHUTER", CHAN_AUTO, 0.6);
+			stop;
+	}
+}
+
+class AOS_CLEARANCE_DENIED_SPAWNER : actor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states 
+	{
+		Spawn:
+			TNT1 A 0;
+			stop;
+	}
+}
+class AOS_CLEARANCE_GRANTED_SPAWNER : actor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states 
+	{
+		Spawn:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class AOS_CLEARANCE_DENIED : actor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states 
+	{
+		Spawn:
+			TNT1 A 10;
+			stop;
+	}
+}
+
+
+class AOS_CLEARANCE_GRANTED : actor
+{
+	default
+	{
+		+NOINTERACTION
+	}
+	states 
+	{
+		Spawn:
+			TNT1 A 10;
+			stop;
+	}
+}

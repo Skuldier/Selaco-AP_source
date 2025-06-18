@@ -1,0 +1,45 @@
+Class RJSkyViewpoint : SkyViewpoint
+{
+	/*
+	args
+	0 = dumb default viewpoint value that does nothing discernible
+	1 = TID of in level reference point
+	2 = scale applied to movement. Multiplied by 0.01, ie 50 = 0.5.
+	*/
+	Dawn player;
+	Vector3 initialviewpos;
+	Vector3 initiallevelpos;
+	float movescale;
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		
+		//get the level reference point
+		actoriterator spots = Level.CreateActorIterator(args[1]);
+		actor spot;
+		While(spot = spots.Next())
+		{
+			If(MapSpot(spot))
+			{
+				initiallevelpos = spot.pos;
+				movescale = args[2] * 0.01;
+			}
+		}
+		
+		//get the player
+		initialviewpos = self.pos;
+		PlayerInfo playeri = players[ConsolePlayer];
+		player = Dawn(playeri.mo);
+	}
+	
+	override void Tick()
+	{
+		super.tick();
+		if(!player) player = Dawn(players[ConsolePlayer].mo);
+		if(player) {
+			SetOrigin(initialviewpos + 
+					(((player.pos + (0.0,0.0,player.player.viewz - player.pos.z)) - initiallevelpos) * movescale), true);
+		}
+	}
+}

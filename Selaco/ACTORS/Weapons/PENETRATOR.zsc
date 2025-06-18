@@ -1,0 +1,1609 @@
+class NAILGUNSTATIONARY : WeaponPickup {
+	default {
+		SelacoItem.randomizerSpawnChance 0;
+		+MOVEWITHSECTOR
+		scale 0.40;
+		Alpha 0.0;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_PLAYSOUND("item/tpitem");
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SpawnParticle("#3399ff", SPF_FULLBRIGHT, 20, 2, 0, frandom(-9,9), frandom(-9,9), frandom(20,40), frandom(-2,2), frandom(-2,2), frandom(-2,2));
+			NAIA AAAAAAAAAA 1 A_FADEIN(0.1);
+			TNT1 A 0 {
+				A_SetRenderStyle(1.0, STYLE_NORMAL);
+			}
+			//NAIA AAAAAAAAAAA 1 BRIGHT A_FADEIN(0.1);
+			NAIA A -1 BRIGHT;
+			loop;
+	}
+}
+
+class UpgradeSpikeradius : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	1;
+		WeaponUpgrade.DamageMod				6;
+		WeaponUpgrade.UpgradeImage 			'UPGRD18';
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PEN_SPIKERAD", "$UPGRADE_PEN_SPIKERAD_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PEN_SPIKERAD_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	385, 380;
+		WeaponUpgrade.UpgradePosition			480, 470;
+	}	
+}
+/* class UpgradeNailgunArmorPiercing : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	2;
+		WeaponUpgrade.UpgradeImage 			'UPGRD9';
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PIERCING", "$UPGRADE_PIERCING_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PIERCING_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	240, 310;
+		WeaponUpgrade.UpgradePosition			120, 395;
+	}	
+} */
+
+class UpgradeNailgunFireNails : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradeImage 			'UPGRD34';
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PEN_FURY", "$UPGRADE_PEN_FURY";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PEN_FURY_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	245, 290;
+		WeaponUpgrade.UpgradePosition			120, 385;
+	}	
+}
+
+class UpgradeNailgunROF : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeImage 			'UPGRD23';
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PEN_ROF", "$UPGRADE_PEN_ROF_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PEN_ROF_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	570, 30;
+		WeaponUpgrade.UpgradePosition			690, -115;
+	}	
+}
+
+class UpgradeNailgunMelee : WeaponUpgrade {
+	override void onEnabled() {
+		// @Cockatrice - We can NOT give the melee upgrade item here, because it points to this object! 
+		// The object has to remain in the player inventory so we don't have to buy the upgrade every time
+		// we want to enable it.
+		// Replace countinv(meleeUpgradeName) with hasUpgradeClass(meleeUpgradeName) from now on
+		//let r = nailgun(getWeapon("nailgun"));
+		//owner.A_GiveInventory(r.meleeUpgradeName, 1);
+		Super.onEnabled();
+	}
+	override void onDisabled() {
+		// @Cockatrice - We can NOT give the melee upgrade item here, because it points to this object! 
+		// The object has to remain in the player inventory so we don't have to buy the upgrade every time
+		// we want to enable it.
+		// Replace countinv(meleeUpgradeName) with hasUpgradeClass(meleeUpgradeName) from now on
+		//let r = nailgun(getWeapon("nailgun"));
+		//owner.A_TakeInventory(r.meleeUpgradeName, 1);
+		Super.onDisabled();
+	}
+	default {
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeImage			'UPGRD17';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_MLE", "$UPGRADE_MLE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_MLE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	90, 55;
+		WeaponUpgrade.UpgradePosition			160, -45;
+	}	
+}
+class UpgradeNailgunStabilizer : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradeImage 			'UPGRD5';
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PEN_STABILIZER", "$UPGRADE_PEN_STABILIZER";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PEN_STABILIZER_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	515, 20;
+		WeaponUpgrade.UpgradePosition			515, -145;
+		WeaponUpgrade.StabilizationMod 		0.03;
+	}	
+}
+
+class UpgradeNailgunTwinBarrel : WeaponUpgrade {
+	default {
+		WeaponUpgrade.FireRateMod 2;
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradeImage			"UPGRD42";
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PEN_TWIN", "$UPGRADE_PEN_TWIN";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PEN_TWIN_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	280, 25;
+		WeaponUpgrade.UpgradePosition			350, -80;
+	}	
+}
+
+
+class UpgradeNailgunShrapnel : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	5;
+		WeaponUpgrade.UpgradeImage			"UPGRD26";
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PEN_SHRAPNEL", "$UPGRADE_PEN_SHRAPNEL_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PEN_SHRAPNEL_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	455, 285;
+		WeaponUpgrade.UpgradePosition			645, 380;
+	}	
+}
+
+class UpgradeNailgunExpandedAmmo : WeaponUpgrade {
+	default {
+		WeaponUpgrade.TechModuleRequirement 	4;
+		WeaponUpgrade.UpgradeImage 			'UPGRD1';
+		WeaponUpgrade.MagazineSizeMod 			20;
+		WeaponUpgrade.Weapon 				'nailgun';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PEN_EXPANDEDAMMO", "$UPGRADE_PEN_EXPANDEDAMMO_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PEN_EXPANDEDAMMO_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	680, 50;
+		WeaponUpgrade.UpgradePosition			855, -45;
+	}	
+}
+
+class AltfireNailZoom : WeaponAltFire {
+	default {
+		WeaponAltFire.WorkshopOrder			-1;		// Zoom should always be first
+		WeaponUpgrade.Weapon 'nailgun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_ZOOM", "$ALTFIRE_ZOOM";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_PEN_ZOOM";
+	}	
+}
+
+class AltfireNailBomb : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'nailgun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_PEN_NAILBOMB", "$ALTFIRE_PEN_NAILBOMB";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_PEN_NAILBOMB_DESC";
+	}	
+}
+
+class AltfireNailTurret : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'nailgun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_PEN_NAILTURRET", "$ALTFIRE_PEN_NAILTURRET";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_PEN_NAILTURRET_DESC";
+	}	
+}
+
+class AltfireNailShotgun : WeaponAltFire {
+	default {
+		WeaponUpgrade.Weapon 'nailgun';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_PEN_NAILSHOTGUN", "$ALTFIRE_PEN_NAILSHOTGUN";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_PEN_NAILSHOTGUN_DESC";
+	}	
+}
+
+class NAILGUN : SelacoWeapon
+{	
+
+	static const string firingAnimations[] = {"NAF1", "NAF2"};
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		
+		setCrosshair('NailgunCrosshair');
+	}
+
+	/* action void checkAmmoUpgrade()
+	{
+		let loadedAmmo = FindInventory(invoker.ammoType2);
+		if (upgradeCheck("UpgradeNailgunExpandedAmmo") == 1) {
+			loadedAmmo.maxamount = invoker.magazineSize+20;
+		} else {
+			loadedAmmo.maxamount = invoker.magazineSize;
+		}		
+	} */
+
+	action void fireNail() {
+		actor nailgunProjectile;
+		int totalShots = 1;
+
+		if(invoker.hasUpgradeClass("UpgradeNailgunTwinBarrel") && !checkIfZooming()) {
+			totalShots++;
+			invoker.adjustedSpread*=0.95;
+			invoker.TakeWeaponAmmo();
+		}
+
+		for(int x=1;x<=totalShots;x++) {
+			nailgunProjectile = FireProjectile("Nailguntracer", frandom(-1*(invoker.adjustedSpread+0.8),invoker.adjustedSpread+0.8), 0, 5, 0, FPF_NOAUTOAIM , pitch:frandom(-1*invoker.adjustedSpread+0.4,invoker.adjustedSpread-0.4));
+			if(countInv("NailgunAmmo") == 0) {
+				break;
+			}
+			if(nailgunProjectile) {
+				let nailgunProps = NailgunTracer(nailgunProjectile);
+				nailgunProps.SetDamage(invoker.adjustedDamage + random(2,8));
+
+				// only applies this to the first shot in case of a Twin Barrel attack
+				if(x == 1) {
+					if(invoker.hasUpgradeClass("UpgradeSpikeradius")) {
+						nailgunProps.A_SetSize(nailgunProps.radius*1.5);
+						nailgunProps.scale*=1.75;
+					}
+	
+					// Enable shrapnel mode, causing the nail to hop to a different target.
+					if(invoker.hasUpgradeClass("UpgradeNailgunShrapnel")) {
+						nailgunProps.allowShrapnel = true;
+					}
+	
+					if(invoker.hasUpgradeClass("UpgradeNailgunFireNails")) {
+						nailgunProps.allowIronFury = true;
+					}
+				}
+
+				// Speed up projectile by 50% when zooming
+				if(checkIfZooming()) {
+					nailgunProps.A_ScaleVelocity(2.0);
+				}
+			}
+
+			A_FireProjectile("EmptyNailCaseSpawn",5,0,2,10, 0, 34);
+		}
+	}
+
+	bool rofUpgrade;
+	int rofThreshold;
+	float angleShake;
+	float audioPitch;
+	float pitchShake;
+
+	string altFireProjectile;
+
+	int flashSpriteNailgun;
+	int ROF;
+	int refireTimer;
+
+	bool magRemoved;
+
+	string soundType;
+	string shootingSpriteIndex;
+	string spikeType;
+	const NAILGUN_ZOOMFACTOR = 1.5;
+
+	default {
+		WeaponBase.SelectionOrder 1300;
+		WeaponBase.AmmoUse1 0;
+		WeaponBase.AmmoUse2 0;
+
+		SelacoWeapon.weaponProjectileSpeed 135;
+		WeaponBase.AmmoGive1 4;
+        WeaponBase.SlotNumber 6;
+
+		SelacoWeapon.weaponSpread 4.25;
+		SelacoWeapon.weaponSpreadReductionSpeed 1; // Per tick
+		SelacoWeapon.weaponStabilizationSpeed 0.1; // Per shot
+		SelacoWeapon.WeaponSpreadMinimum 0.9;
+		SelacoWeapon.weaponFireRate 3;
+		SelacoWeapon.weaponRecoil 0.50;
+		SelacoWeapon.weaponDamage 33;
+		SelacoWeapon.lowAmmoPitchSound "nailgun/pitch";
+		SelacoWeapon.WeaponOffsetIncrement 5;
+		SelacoWeapon.lowAmmoThreshold 15;
+		SelacoWeapon.DryFireSound "NAILGUN/DRYFIRE";
+		SelacoWeapon.SlidingSprite "NAIX";
+		SelacoWeapon.MeleeSprite "NAIM";
+		SelacoWeapon.MeleeUpgradeName "UpgradeNailgunMelee";
+		SelacoWeapon.ReadySound "nailgun/NAILPICK";
+		SelacoWeapon.interactionSprite "NAOF";
+		SelacoWeapon.weaponSound "nailgun/fire";
+		WeaponBase.AmmoGive2 0;
+		SelacoWeapon.weaponStatistic	STAT_NAILGUN;
+		WeaponBase.AmmoType1 "NailgunReserve";
+		WeaponBase.AmmoType2 "NailgunAmmo";
+		SelacoWeapon.ImagePrefix "nailgun";
+		SelacoWeapon.VoxelDecorationModel "NailgunModel";
+		SelacoWeapon.magazineSize 60;
+
+		SelacoWeapon.AmmoColor "90 F8 FA";
+
+		//Inventory.PickupSound "";
+		Inventory.Icon "WPNNAILS";
+		AttackSound "None";
+		Tag "$WEAPON_NAILGUN";
+		+FLOORCLIP;
+		+FLOAT;
+		+NOGRAVITY;
+		+RollSprite;
+		+DONTGIB;
+		Scale 0.7;
+	}
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_SPAWNITEMEX("NAILGUN_PICKUP");
+			Stop;
+		Precache:
+			NAF1 ABC 0;
+			NAF2 ABC 0;
+			NFLA ABCDWXYZ 0;
+			NAOF ABCDEF 0;		// interaction
+			NARE ABC 0;			// First few selection frames should be enough
+			NAI2 AB 0;			// Zoom frames
+			NAFI ABC 0;			// Fire frames
+			NAI3 ABC 0;			// Zoom fire frames
+			NAR1 ABD 0;			// Reload frames
+			NAIM ABCDE 0;		// Melee frames
+			Stop;
+        Unequip:
+			TNT1 A 0 {
+				setZoomStatus(false);
+				invoker.weaponIsReady = false;
+				A_UNEQUIPWEAPON();
+			}
+			TNT1 A 0 A_PlaySound("dawn/deselect", CHAN_AUTO);
+            NARE NMKJIHGFEDCBA 1;
+    		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		    TNT1 A 1;
+		    TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+		    TNT1 A 1;
+		    Wait;
+
+		Ready3:
+        Equip:
+			TNT1 A 0 {
+				setZoomStatus(false);
+				invoker.adjustedWeaponOffset = invoker.weaponOffsetIncrement;
+				S_ZOOMFACTOR(1.0);
+				invoker.checkLowAmmo();
+				invoker.adjustedSpread = invoker.weaponSpread;
+			}
+			TNT1 A 0 A_SETTICS(invoker.WEAPON_SWAP_SPEED);
+			TNT1 A 0 A_EquipNewWeapon();
+           	NARE ABCDEFGHJKMN 1;
+            Goto Ready2;
+            Ready3:
+            NAIL A 1;
+            Ready2:
+				TNT1 A 0 {
+					invoker.adjustedWeaponOffset = invoker.weaponOffsetIncrement;
+				}
+        ReallyReady:
+			TNT1 A 0 {
+				invoker.rofThreshold = 0;
+				invoker.adjustedWeaponOffset = invoker.weaponOffsetIncrement;
+				A_SetCrosshair(59);
+			}
+            TNT1 A 0 A_JumpIfInventory("SlidingIsActive", 1, "ReallySliding");
+            TNT1 A 0 A_JumpIfInventory("PlayerSlides", 1, "Sliding");
+            TNT1 A 0 A_TakeInventory("CancelAnimation", 1);
+            TNT1 A 0 A_JumpIfInventory("DoGrenade", 1, "ThrowGrenade");
+            TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+            TNT1 A 0 A_JumpIfInventory("PushButtonNow", 1, "PushButton");
+            TNT1 A 0 A_JumpIfInventory("ShieldEyes", 1, "doShieldEyes");
+            TNT1 A 0 A_JumpIfInventory("UseGadget", 1, "ThrowEquipment");
+            TNT1 A 0 A_JumpIfInventory("MeleeButton", 1, "MeleeAttack");
+			TNT1 A 0 
+			{
+				// Check zoom stuff
+				if(invoker.hasUpgradeClass("AltFireNailZoom") && checkIfZooming())
+				{
+					SetWeaponState("ZoomedReady");
+				}
+				else
+				{
+					invoker.isZooming = false;
+				}
+			}
+		RegularReady:
+            NAIL A 1
+                {
+					A_SetCrosshair(59);
+					breathWobble("NAIL", 20);
+					A_EnableWeaponShift();
+                    S_WeaponReady(WRF_ALLOWRELOAD);
+					CheckPlayerStates();
+                    S_WeaponOffset();
+                }
+            Loop;
+		ZoomedReady:
+			NAI2 D 1
+                {
+					invoker.adjustedSpread = invoker.weaponSpread * 0.2;
+					A_SetCrosshair(59);
+					A_EnableWeaponShift(false);
+					S_ZOOMFACTOR(NAILGUN_ZOOMFACTOR);
+					CheckUnZoom();
+                    S_WeaponReady(WRF_ALLOWRELOAD);
+					CheckPlayerStates(1);
+                    S_WeaponOffset();
+					//CheckUnZoom();
+                }
+            goto ReallyReady;
+
+		WeaponZoomOut:
+			TNT1 A 0 A_PLAYSOUND("nailgun/zoomout");
+			NAI2 C 1 {
+				S_ZOOMFACTOR(1.0);
+			}
+			NAI2 BA 1 {
+				if(!isAttackInput())
+				{
+					S_WeaponReady();
+				}
+				S_ZOOMFACTOR(1.0);
+			}
+			goto ReallyReady;
+
+		WeaponZoomIn:
+			TNT1 A 0 {
+				A_PLAYSOUND("nailgun/zoomin");
+			}
+			NAI2 A 1 {
+				S_ZOOMFACTOR(2.0);
+				invoker.adjustedSpread = invoker.weaponSpread * 0.75;	
+			}
+			// Must be done every frame to avoid jitters during zoom
+			NAI2 B 1 { 
+				if(!isAttackInput())
+				{
+					S_WeaponReady();
+				}
+				invoker.adjustedSpread = invoker.weaponSpread * 0.75; 
+			}
+			NAI2 C 1 { 
+				invoker.adjustedSpread = invoker.weaponSpread * 0.75; 
+				if(!isAttackInput())
+				{
+					S_WeaponReady();
+				}
+			}
+			goto ReallyReady;
+
+	Flash1:
+		NFLA A 1 BRIGHT;
+		stop;
+
+	Flash2:
+		NFLA B 1 BRIGHT;
+		stop;
+
+	Flash3:
+		NFLA C 1 BRIGHT;
+		stop;
+
+	Flash4:
+		NFLA D 1 BRIGHT;
+		stop;
+
+	Flash5:
+		NFLA W 1 BRIGHT;
+		stop;
+
+	Flash6:
+		NFLA X 1 BRIGHT;
+		stop;
+
+	Flash7:
+		NFLA Y 1 BRIGHT;
+		stop;
+
+	Flash8:
+		NFLA Z 1 BRIGHT;
+		stop;
+
+	StoppedSliding:
+		TNT1 A 0 A_TakeInventory("StopSliding", 1);
+		TNT1 A 0 A_TakeInventory("SlidingIsActive", 1);
+		TNT1 A 0 A_TakeInventory("PlayerSlides", 1);
+		NAIX D 1 S_ZOOMFACTOR(0.94);
+		NAIX C 1 S_ZOOMFACTOR(0.94);
+		NAIX B 1 S_ZOOMFACTOR(0.94);
+		NAIX A 1 S_ZOOMFACTOR(0.98);
+		Goto ReallyReady;
+
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+		NAI7 AABBCCDD 1  {
+				A_SetPitch(pitch + 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		NAI7 E 14  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		NAI7 DDCCBBAA 1  {
+				A_SetPitch(pitch - 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+	MoveGunDown:
+		NAI9 ABCD 1  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		NAI9 E 25  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		NAI9 DCBA 2  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+
+        Fire:
+			NAI3 A 0;
+			NAFI A 0 {
+				invoker.TakeWeaponAmmo();
+				if (upgradeCheck("upgradenailgunrof") == 1) {
+					invoker.rofThreshold++;
+				}
+				if (checkIfZooming()) {
+					invoker.flashYOffset = 3;
+					invoker.weaponSprite = "NAI3";
+				} else {
+					invoker.weaponSprite = invoker.firingAnimations[random(0,invoker.firingAnimations.size()-1)];
+				}
+
+				// Prepare pitch/angle offsets
+				invoker.angleShake = 0.9;
+				invoker.pitchShake = 0.4; 
+
+				// Reduce offset animation per shot to make it more stable
+				invoker.adjustedWeaponOffset -=invoker.weaponStabilizationSpeed - 0.04;
+				invoker.weaponFrame = 0;
+				invoker.currentZoomFactor = checkIfZooming() ? NAILGUN_ZOOMFACTOR : 1.0;
+			}
+			TNT1 A 0 A_AlertMonsters();
+            TNT1 A 0 {
+				invoker.flashSpriteNailgun = random(0,1);
+			    invoker.xPos = frandom(-4.1, 3.1);
+			    invoker.yPos = frandom(-3.1, 3.1);
+				invoker.playerIsFiring();
+				A_FireProjectile("muzzleFlashSpawnerPenetrator",0,0,0,5);
+
+				A_SetAngle(angle + frandom(invoker.angleShake*-1, invoker.angleShake));
+				A_SetPitch(pitch + frandom(invoker.pitchShake*-1, 0));
+
+				fireNail();
+
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 4);
+				switch(getCvar("g_screenshake")) {
+					case 1:
+						ACS_NamedExecuteAlways("SpawnHudShake", 0, 2, 2, 3);
+						A_QuakeEx( 1, 1, 1, 3, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 2, 2, 2, 2, 0, 0);
+						break;
+					case 2:
+						ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 2);
+						A_QuakeEx(1, 1, 1, 4, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY,1, 1, 1, 3, 0, 1);
+				}
+				A_PLAYSOUND("nailgun/impact", CHAN_AUTO, 1.5, pitch:Frandom(0.8,0.9));
+                A_PlaySound(invoker.weaponSound,CHAN_AUTO, getWeaponVolume(0.02)-0.33, 0, 1.0, false, frandom(1, 1.2));
+				A_PLAYSOUND("NAILGUN/FLAVOR1", CHAN_AUTO, getWeaponVolume(-0.06)-0.7, pitch:frandom(0.9,1.1));
+            }
+
+            TNT1 A 1 {
+				A_WeaponReady(WRF_NOPRIMARY);
+				X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+				if (invoker.flashSpriteNailgun == 0 ) {
+					invoker.flashNumber = 0;
+				} else {
+					invoker.flashNumber = 4;
+				}
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.05, yoffset:invoker.flashYOffset);
+				S_ZOOMFACTOR(invoker.currentZoomFactor-0.006);
+				S_WeaponOffset(frandom(2,2.9), frandom(-1*invoker.adjustedWeaponOffset, invoker.adjustedWeaponOffset));
+			}
+			TNT1 A 0 {
+				invoker.weaponFrame++;
+			}
+            TNT1 B 1 {
+				A_WeaponReady(WRF_NOPRIMARY);
+				X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+				if (invoker.flashSpriteNailgun == 0 ) {
+					invoker.flashNumber = 1;
+				} else {
+					invoker.flashNumber = 5;
+				}
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.05, yoffset:invoker.flashYOffset);
+				S_ZOOMFACTOR(invoker.currentZoomFactor+0.003);
+				S_WeaponOffset(frandom(5.0,5.9), frandom(-1*invoker.adjustedWeaponOffset, invoker.adjustedWeaponOffset));
+			}
+			TNT1 A 0 {
+				invoker.weaponFrame++;
+			}
+            TNT1 C 1 {
+				A_WeaponReady(WRF_NOPRIMARY);
+				if(invoker.rofThreshold > 15)
+				{
+					if(countinv("NailgunAmmo") == 0)
+					{
+						A_PLAYSOUND("nailgun/deplete", CHAN_AUTO, 0.8);
+					}
+					A_RECOIL(1.5);
+					A_REFIRE();
+				}
+				X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+				if (invoker.flashSpriteNailgun == 0 ) {
+					invoker.flashNumber = 2;
+				} else {
+					invoker.flashNumber = 6;
+				}
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.05, yoffset:invoker.flashYOffset);
+				S_WeaponOffset(frandom(3,3.9), frandom(-1*invoker.adjustedWeaponOffset, invoker.adjustedWeaponOffset));
+			}
+			TNT1 A 0 {
+				if(random(0,100) <= 15)
+				{
+					A_PLAYSOUND("NAILGUN/CLICK", CHAN_AUTO, 0.6, pitch:frandom(1.2,1.9));
+				}
+				invoker.currentZoomFactor = checkIfZooming() ? NAILGUN_ZOOMFACTOR : 1.0;
+				if(countinv("NailgunAmmo") == 0)
+				{
+					A_PLAYSOUND("nailgun/deplete", CHAN_AUTO, 0.8);
+				}
+				if(!checkIfZooming()) {
+					if(invoker.hasUpgradeClass("UpgradeNailgunTwinBarrel")) {
+						setWeaponState("TwinBarrelDelay");
+						return;
+					}
+					A_REFIRE();
+				}
+			}
+			TNT1 A 0 {
+				invoker.weaponFrame++;
+			}
+            TNT1 D 1 {
+				A_WeaponReady(WRF_NOPRIMARY);
+				// Play deletion sound.
+				X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.05);
+				S_WeaponOffset(2, frandom(-1*invoker.adjustedWeaponOffset, invoker.adjustedWeaponOffset));
+			}
+			TNT1 A 0 {
+				if(!CheckIfZooming() && !invoker.hasUpgradeClass("UpgradeNailgunTwinBarrel")) {
+					SetWeaponState("ready2");
+				}
+				A_REFIRE();
+			}
+			TNT1 D 1 {
+				X_SetOverlaySprite(1, invoker.weaponSprite, 0);
+			}
+/* 			TNT1 A 0 {
+				invoker.weaponFrame++;
+			}
+			TNT1 E 1 {
+				X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+				if(checkIfZooming()) {
+				}
+			}
+			TNT1 E 1 {
+				X_SetOverlaySprite(1, invoker.weaponSprite, invoker.weaponFrame);
+				if(checkIfZooming()) {
+				}
+				if(invoker.rofUpgrade) {
+					S_WeaponReady();
+				}
+			} */
+			TNT1 A 0 {
+				A_REFIRE();
+			}
+            goto Ready2;
+
+		TwinBarrelDelay:
+			TNT1 A 2 {
+				X_SetOverlaySprite(1, invoker.weaponSprite, 3);
+			}
+			TNT1 A 0 A_REFIRE();
+			goto ready2;
+
+        AltFire:
+			TNT1 A 0;
+			TNT1 A 0 {
+				if (invoker.hasUpgradeClass("altfireNailShotgun")) 
+				{
+					SetWeaponState("FireAltFireNailShotgun");
+				}
+				if (invoker.hasUpgradeClass("altfireNailBomb")) 
+				{
+					invoker.altFireProjectile = "Nailbomb";
+					SetWeaponState("FireAltFireProjectile");
+				}
+				if (invoker.hasUpgradeClass("altfireNailTurret")) 
+				{
+					invoker.altFireProjectile = "NailTurret";
+					SetWeaponState("FireAltFireProjectile");
+				}
+				if(invoker.hasUpgradeClass("AltFireNailZoom"))
+				{
+					SetWeaponState("SwapZoom");
+				}
+			}
+			goto reallyready;
+		SwapZoom:
+		AltFireNailZoom:
+			TNT1 A 0 {
+				toggleZoomStatus();
+				if (checkIfZooming()) {
+					SetWeaponState("WeaponZoomIn");
+				} else{
+					invoker.adjustedSpread = invoker.weaponSpread;
+					SetWeaponState("WeaponZoomOut");
+				}
+			}
+			goto ReallyReady;
+
+		FireAltFireNailShotgun:
+			TNT1 A 0
+			{
+				A_AlertMonsters();
+				invoker.TakeWeaponAmmo(6);
+				invoker.flashNumber = 4;
+			}
+			TNT1 A 0 A_PlaySound("weapons/sg", chan_Auto, 0.9, pitch:frandom(1.2,1.3));
+			TNT1 AAAAA 0 A_FireProjectile("GunFireSmokeMassive", 0, 0, 0, 0, 0, 0);
+			TNT1 AAAAA 0 BRIGHT A_FireProjectile("ShotgunParticles", random(-17,17), 0, -1, random(-17,17));
+			NASH A 1 
+			{
+				A_FireProjectile("muzzleFlashSpawnerPenetrator",0,0,0,5);
+				A_FireProjectile("YellowFlareSpawn",0,0,random(invoker.xPos, invoker.yPos),0);
+				A_FireProjectile("YellowFlareSpawn",0,0,random(invoker.xPos, invoker.yPos),0);
+				ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 4);
+				invoker.adjustedSpread*=1.25;
+				switch(getCvar("g_screenshake")) {
+				case 2:
+					A_QuakeEx(1, 1, 2 , 10, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.300000, 0.350000), frandom(0.300000, 0.350000));
+					break;
+				case 1:
+					A_QuakeEx(invoker.adjustedSpread / 2, invoker.adjustedSpread / 2, frandom(0.500000, 0.60000) , 16, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.300000, 0.350000), frandom(0.250000, 0.250000));
+					break;
+				}
+				A_RECOIL(4);
+				// Fire 6 projectiles scattered
+				for(int x=0;x<6;x++)
+				{
+					actor nailgunProjectile;
+					nailgunProjectile = FireProjectile("Nailguntracer", frandom(-1*invoker.adjustedSpread+0.3,invoker.adjustedSpread+0.3), 0, 5, 0, FPF_AIMATANGLE, pitch:frandom(-1*invoker.adjustedSpread+0.4,invoker.adjustedSpread-0.4));
+					if(nailgunProjectile)
+					{
+						let nailgunProps = NailgunTracer(nailgunProjectile);
+						nailgunProps.SetDamage(invoker.weaponDamage + random(2,8));
+
+						if(invoker.hasUpgradeClass("UpgradeSpikeradius"))
+						{
+							nailgunProps.A_SetSize(nailgunProps.radius*1.5);
+							nailgunProps.A_SetScale(nailgunProps.scale.x*0.3);
+						}
+
+						// Enable shrapnel mode, causing the nail to hop to a different target.
+						if(invoker.hasUpgradeClass("UpgradeNailgunShrapnel"))
+						{
+							nailgunProps.allowShrapnel = true;
+						}
+						
+					}
+
+					FireProjectile("EmptyNailCaseSpawn",5,0,7,7, 0, 34);
+					
+				}
+				invoker.playerIsFiring();
+				S_ZOOMFACTOR(0.990);
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.25, yoffset:invoker.flashYOffset);
+				invoker.flashNumber++;
+				S_WeaponOffset(2);
+			}
+			NASH B 1 
+			{
+				S_ZOOMFACTOR(0.985);
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.25, yoffset:invoker.flashYOffset);
+				invoker.flashNumber++;
+				S_WeaponOffset(3);
+			}
+			NASH C 1 
+			{
+				S_ZOOMFACTOR(0.975);
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.25, yoffset:invoker.flashYOffset);
+				invoker.flashNumber++;
+				S_WeaponOffset(6);
+			}
+			NASH D 1 
+			{
+				S_ZOOMFACTOR(0.990);
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.25, yoffset:invoker.flashYOffset);
+				invoker.flashNumber++;
+				S_WeaponOffset(3);
+			}
+			NASH E 1 
+			{
+				S_ZOOMFACTOR(0.995);
+				S_SelacoMuzzleFlash("NFLA", invoker.flashNumber, 0.25, yoffset:invoker.flashYOffset);
+				invoker.flashNumber++;
+				S_WeaponOffset(1);
+			}
+			NASH HLP 2; 
+			TNT1 A 0
+			{
+				A_REFIRE();
+			}
+			goto reallyready;
+
+		FireAltFireProjectile:
+			TNT1 A 0 {
+				invoker.TakeWeaponAmmo(15);
+			}
+			TNT1 A 0 {
+				if (getCVAR("g_screenshake") == 2) {
+					A_QuakeEx(1, 1, 1 , 16, 0, 20, 0, 0, 10, 10, 10, 6, frandom(0.7, 0.7), frandom(0.7, 0.7));
+				}
+			}
+			TNT1 A 0 A_PLAYSOUND("nailgun/altfire", CHAN_AUTO);
+			TNT1 A 0 FireProjectile(invoker.altFireProjectile, 0, 0, 6, 0);
+            NAGR AA 1 {
+				A_AlertMonsters();
+				if (invoker.flashSpriteNailgun == 0 ) {
+					A_Overlay(-217, "flash1");
+				} else {
+					A_Overlay(-217, "flash5");
+				}
+				S_WeaponOffset(5);
+				//A_FireProjectile("EmptyNailCaseSpawn",5,0,7,7, 0, 34);
+			}
+            NAGR BB 1 {
+				if (invoker.flashSpriteNailgun == 0 ) {
+					A_Overlay(-217, "flash2");
+				} else {
+					A_Overlay(-217, "flash6");
+				}
+				S_WeaponOffset(6);
+			}
+            NAGR CC 1 {
+				if (invoker.flashSpriteNailgun == 0 ) {
+					A_Overlay(-217, "flash3");
+				} else {
+					A_Overlay(-217, "flash7");
+				}
+				S_WeaponOffset(7);
+			}
+            NAGR DD 1 {
+				if (invoker.flashSpriteNailgun == 0 ) {
+					A_Overlay(-217, "flash4");
+				} else {
+					A_Overlay(-217, "flash8");
+				}
+				S_WeaponOffset(5);
+			}
+			NAGR FFGGHHIIJJKK 1 S_WeaponOffset(2);
+			goto Ready2;
+
+		ReloadWeapon:
+			TNT1 A 0 {
+				// This is no longer needed, upgrades handle magazine size changes themselves
+				//checkAmmoUpgrade();
+				doWeaponReload();
+				A_SetCrosshair(58);
+				if (invoker.magRemoved) {
+					SetWeaponState("ReloadMagRemoved");
+				}
+			}
+			NAR1 AABB 1 {
+				invoker.breathingFrame = 0;
+				CheckReloadCancelling();
+				S_WeaponReady(WRF_NOFIRE);
+				S_WeaponOffset();
+			}
+			NAR1 D 1 {
+				A_PLAYSOUND("nailgun/reload4", CHAN_AUTO,  0.5);
+				CheckReloadCancelling();
+				S_WeaponReady(WRF_NOFIRE);
+				S_WeaponOffset();
+			}
+			NAR1 DFFJJKKLLMMNNOOPPQQRRSSTTWWY 1 {
+				CheckReloadCancelling();
+				S_WeaponReady(WRF_NOFIRE);
+				S_WeaponOffset();
+			}
+			NAR1 Y 1 {
+				CheckReloadCancelling();
+				A_PLAYSOUND("nailgun/reload1", CHAN_WEAPON, 0.7);
+				//console.printf("%d", countinv("NailgunReserve"));
+				if(countinv("NailgunAmmo") == 0 || countinv("HardcoreMode") == 1) {
+					A_FireProjectile("EmptyNailgunDrumSpawn",0,0,30,-4);
+				}
+				removeCurrentAmmo();
+				invoker.magRemoved = true;
+				S_WeaponOffset();
+			}
+		ReloadMagRemoved:
+			NAR2 AABBCCDDEEFFGG 1 {
+				CheckReloadCancelling();
+				S_WeaponOffset();
+			}
+			NAR2 H 1 {
+				CheckReloadCancelling();
+				A_PLAYSOUND("nailgun/reload2", CHAN_AUTO,  0.8);
+				A_PLAYSOUND("nailgun/reload3", CHAN_AUTO, 0.9);
+				S_WeaponOffset();
+			}
+			NAR2 H 1 {
+				CheckReloadCancelling();	
+				S_WeaponOffset();
+			}						
+			NAR2 IIJJKK 1 {
+				CheckReloadCancelling();
+				S_WeaponOffset();
+			}
+			TNT1 A 0 {
+				insertNewAmmo();
+				invoker.magRemoved = false;
+			}
+			NAR2 LLNNPPQQRRSSTT 1 {
+				S_WeaponReady(WRF_NOFIRE);
+				CheckReloadCancelling();
+				S_WeaponOffset();
+			}
+			goto Ready2;
+    }
+}
+
+class Nailbomb : SelacoActor {
+	mixin DangerIndicatorHandler;
+	int beepCount;
+	default {
+		+SelacoActor.PreventSleep
+		scale 0.4;
+		+ROLLSPRITE;
+		radius 3;
+		gravity 0.6;
+		+DOOMBOUNCE
+		BounceFactor 0.2;
+		Wallbouncefactor 0.2;
+		SeeSound "nailgun/bombbounce";
+		speed 30;
+		+MISSILE;
+	}
+	states {
+		Spawn:
+			TNT1 A 0 {
+				invoker.BeepCount = 0;
+			}
+			NAGR Z 1;
+			TNT1 AAAAAAAAAAAAAAA 0 A_SpawnParticle("WHITE", SPF_FULLBRIGHT, 20, 2, 0, frandom(1,9), frandom(-9,9), frandom(-9,9));
+			loop;
+		Death:
+			NAGR Z 16 A_PLAYSOUND("nailgun/bombprime", CHAN_AUTO, 1.0, 0, 0.6);
+			TNT1 A 0 A_PLAYSOUND("nailgun/nailbeep", CHAN_WEAPON, 1.0, 0, 0.6);
+		Looper:
+			NAGR Z 4;
+			NAGR Z 0 A_SpawnItemEx("Nailbomb_LED");
+			TNT1 A 0 blinkDangerIndicator(100);
+			TNT1 A 0 A_SpawnItemEx("RedFlare3", 0, 0, 8);
+			TNT1 A 0 {
+				A_AlertMonsters();
+				if (invoker.BeepCount == 4) {
+					SetStateLabel("Explode");
+				}
+				invoker.BeepCount++;
+			}
+			loop;
+		Explode:
+			NAGR Z 15;
+			TNT1 A 0 A_SETPITCH(0);
+		Baboom:
+			NAGR Z 0 {
+				A_PlaySound("nailgun/fire",CHAN_AUTO, 0.2, 0, 1.0, false, frandom(0.66, 0.70));
+				for(int i = 0; i <= 35; i++) {
+			 		A_SpawnProjectile ("NailBombTracer", 25, 15, i*8, 2, pitch + frandom(-17,0));
+				}
+			}
+			TNT1 A 0 S_EXPLODE(60,100, XF_HURTSOURCE);
+			TNT1 A 0 A_STOPSOUND(CHAN_WEAPON);
+			TNT1 A 0 A_SpawnItemEx("PrettyExplosionParticleRainPerformance");
+			stop;
+	}
+}
+
+class nailTurret : pickupableDecoration
+{
+	const NAILTURRET_AMMO_MAX = 25;
+	const NAILTURRET_SMF_TIME = 5*TICRATE;
+	int smfTimer;
+	int nailTurretAmmo;
+	string tagName;
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		tagName = "$OBJECT_NAILTURRET";
+		nailTurretAmmo = NAILTURRET_AMMO_MAX;
+	}
+
+
+	override void tick()
+	{
+		super.tick();
+		if(target && target is "dawn")
+		{
+			target = null;
+		}
+		if(skill == SKILL_SMF) {
+			smfTimer++;
+			if(smfTimer >= NAILTURRET_SMF_TIME) {
+				A_SpawnItemEx("SmallExplosion", 0, 0, 6);
+				destroy();
+			}
+		}
+		// Ammo counter
+		SetTag(String.Format("%s (Ammo: %d)", StringTable.Localize(tagName), nailTurretAmmo));
+	}
+
+	// Prevent sleeping after being picked up.
+    override void drop() {
+        super.drop();
+		bPreventSleep = true;
+    }
+
+	default 
+	{
+		tag "$OBJECT_NAILTURRET";
+		+ROLLSPRITE;
+		+NOPAIN;
+		+friendly;
+		+SelacoActor.thruplayers
+		+SELACOACTOR.preventSleep;
+		+Shootable
+		+DOOMBOUNCE
+		health 250;
+		height 12;
+		radius 5;
+		scale 0.4;
+		gravity 0.6;
+		BounceFactor 0.2;
+		Wallbouncefactor 0.2;
+		speed 15;
+		mass 700;
+		PainSound "impact/heavycrate";
+		BloodType "BulletImpactEffectArmorBig", "BulletImpactEffectArmorBig", "BulletImpactEffectArmorBig";
+		SeeSound "nailgun/bombbounce";
+		damageFactor "BulletAlien", 1;
+	}
+	states {
+
+		// Traverse until stationary
+		Spawn:
+			TNT1 A 0;
+			TNT1 AAAAAAAAAAAAAAA 0 A_SpawnParticle("WHITE", SPF_FULLBRIGHT, 20, 2, 0, frandom(-9,9), frandom(-9,9), frandom(-9,9));
+			NAGR Z 1
+			{
+				if(vel.length() == 0)
+				{
+					setStateLabel("EngageTurret");
+				}
+			}
+			loop;
+		EngageTurret:
+		// Prepare turret for attack.
+			NAGR Z 1 
+			{
+				A_SETSIZE(5,10);
+				A_PLAYSOUND("nailgun/bombprime", CHAN_AUTO, 1.0, 0, 0.6);
+			}
+			TNT1 A 0 A_PLAYSOUND("nailgun/nailbeep", CHAN_WEAPON, 1.0, 0, 0.6);
+			NAGR Z 36;
+			goto scanTarget;
+		Pickup:
+		Throw:
+		Putdown:
+		// Find target
+		ScanTarget:
+			NAGR Z 3;
+			NAGR Z 1 A_LOOKEX(0, 0, 4096, 0, 360, "Missile");
+			loop;
+		// Attack target
+		See:
+		Missile:
+			NAGR Z 6 {
+				if(!target)
+				{
+					setStateLabel("ScanTarget");
+				}
+			}
+			NAGR Z 1
+			{
+				A_AlertMonsters();
+				// Check if we still have Line of Sight
+				if(target && checkSight(target))
+				{
+					A_SpawnItemEx("BulletImpactSmoke", 5, 0, 0, frandom(1.5, 2), frandom(1.5, 2));
+					A_SpawnItemEx("BulletImpactSmoke", 5, 0, 0, frandom(1.5, 2), frandom(-1.5, -2));
+					A_SpawnItemEx("BulletImpactSmoke", 5, 0, 0, frandom(1.5, 2), 0, frandom(1.5, 2));
+
+					A_SpawnItemEx("Nailbomb_LED");
+					A_PLAYSOUND("nailgun/turret/fire", CHAN_AUTO, pitch:frandom(1.1,1.45));
+					nailTurretAmmo--;
+					A_SpawnProjectile("NailgunTracerSlow", 4);
+				}
+				else
+				{
+					setStateLabel("ScanTarget");
+				}
+
+				// Check if we have enough ammo
+				if(nailTurretAmmo <= 0)
+				{
+					setstatelabel("destroyTurret");
+				}
+			}
+			loop;
+		DestroyTurret:	
+		Death:
+		Xdeath:
+			TNT1 A 0 A_SpawnItemEx("SmallExplosion", 0, 0, 6);
+			stop;
+	}
+}
+
+class Nailbomb_LED : actor {
+	default {
+		scale 0.4;
+		+NOINTERACTION;
+		+NOGRAVITY;	
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			NAGR X 2 BRIGHT;
+			stop;
+	}
+}
+
+class NailgunTracerEnemy : EnemyTracer
+{
+	override void tick()
+	{
+		super.tick();
+		if(vel.length() > 0)
+		{
+			A_SpawnItemEx("YellowFlareProjectile", 0, 0, 0, 0);
+		}
+	}
+
+
+
+	bool isFlying;
+	bool surfaceHit;
+	int nailLifeSpan;
+    void setsurfaceHit() {
+        surfaceHit = true;
+    }
+    int getNailLifespan() {
+        return nailLifeSpan;
+    }
+    bool getsurfaceHit() {
+        if (surfaceHit) {
+            return true;
+        }
+        return false;
+    }
+
+    bool hitsCeiling() {
+        String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle,13 , 270,offsetz: height-12,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitCeiling) {
+			return true;
+		}
+        return false; 
+    }
+    
+    bool hitsWall() {
+        String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle, 15, 0, flags: TRF_BLOCKSELF, offsetz: height, data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall) {
+            pitch = 0;
+			return true;
+		}
+        return false; 
+    }
+
+    bool hitsFloor() {
+        String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle,20 , 270,offsetz: height-12,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitFloor) {
+			return true;
+		}
+        return false; 
+    }
+
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			loop;
+		Death:
+		VOXE L 0 {
+			isFlying = 0;
+			A_SpawnItemEx("NailgunPuff", 0, 0, 0, 0 ,0,0, 180);
+			A_SetAngle(angle + frandom(-3, 3));
+			if (hitsFloor() && !getsurfaceHit()) {
+				setsurfaceHit();
+				A_SpawnItemEx("FloorDecalConcreteCrack", 0, 0, 2);
+				pitch = 0;
+				SetStateLabel("Death.FloorImpact");
+			}
+			if (hitsCeiling() && !getsurfaceHit()) {
+				setsurfaceHit();  
+				A_SpawnItemEx("FloorDecalConcreteCrackCeiling", 0, 0, 4);
+				SetStateLabel("Death.CeilingImpact");
+			}
+		}
+		TNT1 A 0 A_PlaySound("impact/concrete");
+		TNT1 A 0 {
+			if (!getsurfaceHit()) {
+				A_SpawnItemEx("NailgunPuff", 0, 0, 0, 0 ,0,0, 180);
+				A_SprayDecal("WALLCRACKS", 172);
+			}
+		}
+		TNT1 A 0 {
+			SetStateLabel("DeathPuff");
+		}
+		DeathPuff:
+		TNT1 A 0 {
+			SetStateLabel("Looper");
+		}
+		
+		Looper:
+			VOXE L 1 {
+				// Despawn, but only when it's not a knife!
+				if (getNailLifespan() == 900 && damageType != "Knife") {
+					setStateLabel("FadeOut");
+					return;
+				}
+				if (!hitsWall() && !getsurfaceHit()) {
+					A_SpawnItemEx("NailgunTracerDrop", -5, 0, 0, frandom(1,3), 0, 3);
+					setStateLabel("KillSpike");
+					return;
+				}
+				//incrementLifespan();
+				// Sleep for a while until our next check
+				nailLifeSpan = min(nailLifeSpan + 5, 900);
+				sleep(5);
+			}
+			loop;
+			KillSpike:
+				TNT1 A 0;
+				stop;
+		KillSpike:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class NailgunTracer : PointyTracer {
+	bool allowShrapnel;
+	bool allowIronFury;
+	const BURN_CHANCE_PER_HIT = 25;
+	CONST BURN_TIMER = 35*5;
+	default 
+	{
+		projectile;
+	}
+	
+    override int SpecialMissileHit (Actor victim) {
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+        if((d) && victim.bIsMonster && d.countinv("UpgradeNailgunShrapnel") == 1 && allowShrapnel) {
+			shootShrapnel();
+        }
+
+		// Apply fire damage on top of projectile damage
+		if(allowIronFury && victim is "SelacoEnemy" && random(0,100) <= BURN_CHANCE_PER_HIT)
+		{
+			victim.damageMobj(self, players[consolePlayer].mo, damage, "Fire");
+		}
+		return super.SpecialMissileHit(victim);
+	}
+
+
+
+	// Player hit a target with the Shrapnel upgrade. Locate a nearby enemy and open first
+	void shootShrapnel()
+	{
+
+		// Save old target
+		actor oldTarget;
+		actor projectileTarget;
+		if(target)
+		{
+			oldtarget = target;
+		}
+
+		BlockThingsIterator it = BlockThingsIterator.Create(self, 1400);
+		Actor currentMo;
+		Array<Actor> moList;
+		// Find nearby enemies
+        while (it.Next()) {
+            currentMo = it.thing; // Get the Actor it's currently on
+            if(distance2DSquared(currentMo) < 1400*1400 && distance2DSquared(currentMo) > 60*60 && currentMo.bIsMonster && checkSight(currentMo))
+			{
+				moList.push(currentMo);
+			}
+       	}
+
+		// Select a random target
+		if(moList.size() > 0)
+		{
+			target = moList[random(0,moList.size()-1)];
+			if(target)
+			{
+				A_SpawnProjectile("NailShrapnel", target.height*0.2);
+			}
+		}
+
+		// Go back to old target
+		if(oldtarget)
+		{
+			target = oldtarget;
+		}
+
+	}
+}
+
+// Spawns on corpses and dont despawn unless a surface is removed.
+class NailgunTracerPermanent : SELACOACTOR {
+	int aliveTicks;
+	override void tick() {
+		super.tick();
+		if(aliveTicks <= 10) {
+			aliveTicks++;
+		}
+		if(level.time % 10 == 0 && aliveTicks >=10) {
+			hitsWall();
+		}
+	}
+	
+
+    void hitsWall() {
+        String hittex;
+		FLineTraceData RemoteRay;
+		LineTrace(angle-180,25, pitch,offsetz: height   ,data: RemoteRay);
+		if (RemoteRay.HitType == TRACE_HitWall) {
+			return;
+		}
+		self.destroy();
+    }
+
+    default {
+        +NOINTERACTION
+        damage 7;
+        height 3;
+        radius 4;
+        alpha 1.0;
+        renderstyle "Normal";
+        yscale 0.5;
+        xscale 0.5;
+    }
+	states {
+		Spawn:
+		Death:
+			VOXE L -1;
+			stop;
+	}
+}
+
+class NailgunTracerDecoration : SelacoActorStatic
+{
+	default
+	{
+		-SelacoActor.SlopeAlignment
+	}
+	states
+	{
+		spawn:
+			TNT1 A 0;
+			VOXE L -1;
+			stop;
+	}
+}
+
+class NailShrapnel : NailgunTracer {
+	actor targetToHit; // Shrapnel should only hit the target it's homing in on.
+	int aliveTime;
+    override int SpecialMissileHit (Actor victim) {
+		if(victim.bisMonster && aliveTime > 3)
+		{
+			victim.A_DamageSelf(damage);
+			victim.spawn(victim.GetBloodType(0), pos);
+			destroy();
+		}
+		return -1;
+	}
+
+	override void tick()
+	{
+		super.tick();
+		aliveTime++;
+	}
+
+	default {
+		+friendly;
+		-thruactors;
+		+missile;
+		+NOINTERACTION;
+        speed 35;
+		yscale 0.05;
+		xscale 0.05;
+        damage 5;
+    }
+	states {
+	Spawn:
+		TNT1 A 2;
+		TNT1 A 0 {
+			A_SpawnItemEx("NailgunTrailSmoke", -5, 10, 0, 0);
+            savePitch(pitch);
+			A_ChangeLinkFlags(0);
+		}
+		Goto Spawn2;
+	Spawn2:
+		TRAC A 1 bright {
+            A_SpawnItemEx("YellowFlareProjectileBaby", 0, 0, 0, 0);
+            savePitch(pitch);
+        }
+		Loop;
+	Xdeath:
+	Crash:
+	xDeath:
+		TNT1 A 0;
+		stop;
+	}
+}
+
+Class NailgunTracerSlow : NailgunTracer {
+	default 
+	{
+		speed 36;
+		damage 12;
+	}
+	states 
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				//A_SpawnItemEx("NailgunTrailSmoke", -5, 10, 0, 0);
+				spawnFlares = false;
+				savePitch(pitch);
+				SetStateLabel("Spawn2");
+			}
+			Goto Spawn2;
+		Spawn2:
+			TRAC A 1 bright {
+				A_SpawnItemEx("YellowFlareProjectileBaby", 0, 0, 0, 0);
+				savePitch(pitch);
+			}
+			Loop;
+		Xdeath:
+		Death:
+			TRAC A 0 {
+				A_SetAngle(angle + frandom(-3, 3));
+				if (hitsFloor() && !getsurfaceHit()) {
+					setsurfaceHit();
+					//A_SpawnItemEx("RicochetNailgun", 0, 0, 0, 0 ,0,0, 180);
+					A_SpawnItemEx("FloorDecalConcreteCrack", 0, 0, 1);
+					SetStateLabel("Death.FloorImpact");
+				}
+				if (hitsCeiling() && !getsurfaceHit()) {
+					setsurfaceHit();  
+					//A_SpawnItemEx("RicochetNailgun", 0, 0, 0, 0 ,0,0, 180);
+					A_SpawnItemEx("FloorDecalConcreteCrackCeiling", 0, 0, 1);
+					SetStateLabel("Death.CeilingImpact");
+				}
+			}
+			TNT1 A 0 A_PlaySound("impact/concrete");
+			TNT1 A 0 {
+				if (!getsurfaceHit()) {
+					A_SprayDecal("WALLCRACKS", 172);
+				}
+			}
+		DeathPuff:
+			TNT1 A 0 A_SpawnItemEx("BulletImpactSmoke", 0, 0, 0, frandom(1, 2), frandom(1.5, 2));
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class NailBombTracer : actor
+{
+	bool ignorePlayer;
+    override int SpecialMissileHit (Actor victim) {
+		if(ignorePlayer && victim is "dawn") {
+			return 0;
+		}
+		return super.SpecialMissileHit(victim);
+	}
+
+
+	default
+	{
+		damageType "Naildamage";
+		speed 30;
+		damage 23;
+		speed 40;
+		radius 2;
+		+MISSILE
+		projectile;
+		-DoomBounce
+		+HEXENBOUNCE 
+		+BOUNCEONFLOORS
+		+BOUNCEONWALLS
+		WallbounceFactor 0.6;
+		bounceCount 4;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+		Looper:
+			TNT1 A 0
+			{
+				A_ScaleVelocity(1.05);
+			}
+			VOXE L 1 A_SpawnItemEx("YellowFlareProjectileBaby", 0, 0, 0, 0);
+			loop;
+		Death:
+			TNT1 A 0
+			{
+				A_SpawnItemEx("NailgunPuff", 0, 0, 0, 0 ,0,0, 180);
+				A_PlaySound("impact/concrete");
+				A_SprayDecal("WALLCRACKS", 172);
+			}
+			stop;
+	}
+}
+
+class muzzleFlashSpawnerPenetrator : playerMuzzleFlash 
+{
+	default
+	{
+		PlayerMuzzleFlash.lightSize 100, 135;
+	}
+
+	override void SpawnLightEffect()
+	{
+		spawnLight(rColor:int(350*2.5), gColor:int(217*2.5), bColor:int(121*2.5), getLightSize(), 0, shadowRequirement:allowShadow, xOffset:random(-10,10), overbright: overbrightValue, divisionSpeed:1.95, alwaysShow:1,weaponFlash:1);
+	}
+}
+
+class NailGunTracerDrop : actor {
+    default {
+        +missile;
+        +doombounce
+        bouncefactor 0.6;
+        bounceCount 3;
+        height 5;
+        radius 5;
+        alpha 1.0;
+        renderstyle "Normal";
+        yscale 0.09;
+        xscale 0.09; 
+		SeeSound "impact/spikebounce";
+    }
+    states {
+        spawn:
+			TRAC A 1; 
+			TRAC A 0 A_PLAYSOUND("impact/spikebounce");
+		Looper:
+            TRAC A 1 {
+                A_SETPITCH(Pitch + frandom(4, 6));
+                A_SETANGLE(angle + frandom(12, 13));
+            }
+            loop;
+        Death:
+			TNT1 A 0 A_PLAYSOUND("impact/spikebounce");
+            TRAC A 900 A_SETPITCH(0);
+		    TRAC AAAAAAAAAA 2 A_FADEOUT(0.1);
+            stop;
+    }
+}

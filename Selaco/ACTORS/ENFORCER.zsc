@@ -1,0 +1,577 @@
+// EMPTY FOR DEMO
+class Enforcer : Soldier
+{
+	static const string regularDeathAnimations[] = {"DeadEnforcer1", "DeadEnforcer2", "DeadEnforcer4", "enforcerDeath5", "enforcerDeath6", "enforcerDeath7"};
+	static const string sittingDeathAnimation[] = {"Enforcer_wallsit"};
+	static const string headshotDeadAnimation[] = {"DeadEnforcer1", "DeadEnforcer4"};
+	static const string shotgunDeathAnimations[] = {"ShotgunDeadEnforcer1", "DEATH_ENFORCERSPINOFDEATHSHOTGUN", "ShotgunDeadEnforcer2"};
+	static const string nailgunDeathAnimation[] = {"EnforcerNailgun1"};
+	static const string meleeDeathAnimation[] = {"DEATH_ENFORCERSPINOFDEATHSHOTGUN"};
+	
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		if(getClassName() == "Enforcer")
+		{
+			if(random(0,1) == 1)
+			{
+				bKeepDistance = true;
+			}
+		}
+		currentAmmo = MagazineSize;
+		MaxburstLength = 3;
+		burstLength = MaxburstLength;
+		strafeChance = 0;
+		isFrightened = false;
+	}
+
+	override string GetGibbedAnimation() {
+		A_PLAYSOUND("dest/headblow", CHAN_AUTO, 0.7, 0, 0.6);
+		string deathSprite = gibbingAnimation[random(0,gibbingAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	override string GetMeleeDeathAnimation() {
+		string deathSprite = meleeDeathAnimation[random(0,meleeDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	override string GetHeadshotDeadAnimation() {
+		string deathSprite = headshotDeadAnimation[random(0,headshotDeadAnimation.size()-1)];
+		return deathSprite;
+	}
+
+
+	override string GetDeadAnimation() {
+		string deathSprite = regularDeathAnimations[random(0,regularDeathAnimations.size()-1)];
+		return deathSprite;
+	}
+
+	override string GetShotgunDeathAnimation() {
+		string deathSprite = shotgunDeathAnimations[random(0,shotgunDeathAnimations.size()-1)];
+		return deathSprite;
+	}
+
+	override string GetSittingAnimation() {
+		string deathSprite = sittingDeathAnimation[random(0,sittingDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+	override string GetWallSmashAnimation() {
+		string deathSprite = wallSmashDeathAnimations[random(0,wallSmashDeathAnimations.size()-1)];
+		return deathSprite;
+	}
+	override string GetnailgunDeathAnimation() {
+		string deathSprite = nailgunDeathAnimation[random(0,nailgunDeathAnimation.size()-1)];
+		return deathSprite;
+	}
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		if(damageType == "ice")
+		{
+			A_SetTranslation("Ice");
+			frostTimer = 700;
+		}
+        return res;
+    }
+
+	override void BeginPlay() {
+		super.BeginPlay();
+	}
+
+	override void tick() {
+		super.tick();
+		if(rifleReadyCooldown > 0) {
+			rifleReadyCooldown--;
+		}
+	} 
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		//A_SPAWNITEMEX("ARMOR_SHOOTER_ENFORCER");
+		for(int i = 0; i < 6;i++) {
+			EmitDefinition('ShortSparkParticleDefinition', 1.0, 15, offset:(frandom(-15,15), frandom(-15,15), frandom(0,height)));
+		}
+		if(self is "Enforcer") {
+			Stats.AddStat(STAT_KILLS_ENFORCER, 1, 0);
+		}
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+	void defaultEverything (void) {
+		handleSentryMode();
+		stateTic = 0;
+		mayNotTalk = false;
+		shockRemainder = 0;
+		heavyPain = false;
+		A_SetSize(12, 62);
+		damagedByEnhancedMelee = false;
+		strafesLeft = false;	
+		chargingForward = false;	
+		strafesRight = false;
+	}
+
+	override void prepareRifle() {
+		if (rifleReadyCooldown == 0 ) {
+			A_PlaySound("enforcer/readyrifle", 0, 1.0);
+			rifleReadyCooldown = 120;
+		}
+	}
+	int burstfires;
+	
+	Default {
+		tag "$CHARACTER_ENFORCER";
+		Species "Alien";
+		EnemySoldier.DisplayName "$CHARACTER_ENFORCER";
+		Selacoenemy.flankingChance 45;
+		EnemySoldier.speechOffset 1000;
+		SelacoEnemy.randomizerSpawnChance 15;
+        SelacoEnemy.WeaponDamage                8;
+        SelacoEnemy.WeaponDamageOffset          1;
+		SelacoEnemy.weapon AWPN_BURSTRIFLE;
+		-SelacoEnemy.AllowKnifeKill;
+		-SelacoEnemy.AllowGrenadeDodging;
+		+EnemySoldier.armored;
+		SelacoEnemy.HeadPainChance 0;
+		SelacoEnemy.PainChanceAdjustment 5;
+		EnemySoldier.aggressiveness 90;
+		EnemySoldier.evadeChance 10;
+		EnemySoldier.CombatDistance 250;
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.strafeChance 255;
+		EnemySoldier.accurateShotChance 120;
+		EnemySoldier.crouchedShotChance 120;
+		EnemySoldier.shieldCount 0;
+
+		EnemySoldier.SPRITE_Walking "ECRU";
+		EnemySoldier.SPRITE_Idle "ECID";
+		EnemySoldier.SPRITE_Pain "ALIP";
+		EnemySoldier.SPRITE_PainHeadshot "RFHE";
+		EnemySoldier.SPRITE_FireAimed "ECFR";
+		EnemySoldier.SPRITE_CrouchFire "ECCR";
+		EnemySoldier.SPRITE_StumbleRight "ECP4";
+		EnemySoldier.SPRITE_StumbleLeft "ECP5";
+		EnemySoldier.SPRITE_StumbleForward "ECP6";
+		EnemySoldier.SPRITE_Reload "ECRE";
+		EnemySoldier.SPRITE_StrafeFiring "ECSF";
+		EnemySoldier.SPRITE_AlertAllies "ALAL";
+		EnemySoldier.SPRITE_Hipfiring "ECHW";
+		EnemySoldier.SPRITE_HipWalking "ECHR";
+		EnemySoldier.SPRITE_Fallingdown "ECFL";
+		EnemySoldier.SPRITE_MeleeFly "ECGU";
+		EnemySoldier.SPRITE_Shocked "ECEL";
+		EnemySoldier.SPRITE_NailgunDeath "ECN1";
+		SelacoEnemy.ENEMY_IdentifierTag "ENFORCER";
+
+		-SelacoEnemy.AllowFreezing;
+		+SelacoEnemy.SlowWhenFrozen
+		+EnemySoldier.KeepDistance
+		Health 195; 
+		Radius 14;
+		Height 62;
+		Speed 6;
+		Mass 270;
+		FastSpeed 12;
+		PainChance 70;
+		PainChance "SMGBullet", 10;
+		Painchance "shotgun", 35;
+		scale 0.39;
+		monster;
+		yscale 0.3;
+		MaxDropOffHeight 39;
+		Selflighting "343434";
+        //translation "16:47=[103, 142, 171]:[122, 199, 255]", "169:191=[103, 142, 171]:[122, 199, 255]";
+		PainSound "enforcer/pain";
+		DeathSound "enforcer/death";
+		ActiveSound "";
+		DropItem "EnemyThrownGrenadeHotDrop", 3;
+		BloodType "Selaco_Blood_MEDIUMARMOR", "Selaco_Blood_MEDIUMARMOR", "Selaco_Blood_MEDIUMARMOR";
+		Obituary "%o has been gunned down by an Invader.";
+	}
+	States
+	{
+
+	Possession:
+		TNT1 A 0 A_SetInvulnerable;
+		POSS G 3;
+		POSS G 3 A_Pain;
+		TNT1 A 0 A_UnSetInvulnerable;
+		Goto See;
+
+	Pain.Shoulder_left:
+		ECP2 ABCDEF 2 {
+			disablePainState();
+			A_Pain();
+		}
+	    Goto SeeContinue;
+
+	Pain.Shoulder_right:
+		ECP1 ABCDEF 2 {
+			A_Pain();
+			disablePainState();
+		}
+	    Goto SeeContinue;
+
+    Spawn:
+		TNT1 A 0;
+		// This is here to ensure stability.
+		ECRU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		ECID ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		ECFR A 0;
+		ECSF A 0;
+		ECCR A 0;
+		ECP5 A 0;
+		ECP4 A 0;
+		ECHW A 0;
+		ECGU A 0;
+		ECEL A 0;
+		ECHR A 0;
+		ECFL A 0;
+		ECP6 A 0;
+		ECRE A 0;
+		ECN1 A 0;
+		RFN1 A 0;
+		ALIP ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		RFHE ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		RFSI ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		RFFL ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		RFGU ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		ECHW A 0;
+		RFEL ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+
+		TNT1 A 0 {
+			A_Look();
+		}
+		POSS B 1 {
+			SetStateLabel("Stand");
+		}
+		loop;
+
+	MissileBackward:
+		TNT1 AAAA 2 {
+			A_FACETARGET();
+			//spawnAttackIndicator("YellowFlare3", 40);
+		}
+		TNT1 A 0 {
+			prepareRifle();
+			Sprite = GetSpriteIndex(SPRITE_Hipfiring);
+			if (isDawnNear() == true) {
+				talk(SOLDIER_RETREAT);
+			}
+		}
+		TNT1 A 0 A_Jump(4, "MoveBackward");
+		TNT1 A 0 {
+			defaultEverything();
+		}
+		TNT1 DCBADCBADCBA 7
+		{
+			
+			A_SetTics(invoker.weapon_rateoffire+1);
+			A_FACETARGET();
+			IncrementStateTic();
+			ThrustThing(angle*256/360+128, 3, 0, 0);
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			if (CheckSight(target, true) && getStateTic() >= 8	) {
+				FireWeapon(4, 12, 47, 5, 4);
+			}
+			if (!CheckClear(4)) 
+			{ 
+				invoker.ShouldItShoot = 2;
+				if (CheckClear(1)) { SetStateLabel("MissileLeft");}
+				if (CheckClear(2)) { SetStateLabel("MissileRight");}
+				if (CheckClear(3)) { SetStateLabel("MissileForward");}
+			}
+		}
+		Goto SeeContinue;
+
+	MissileLeft: // Enemy will strafe to the left while taking shots at the player
+		TNT1 A 0 {
+			defaultEverything();
+			invoker.strafesLeft = true;
+			invoker.strafeSpeed = -0.4;
+			checkStrafeDirection = 90;
+			strafeFrames = 0;
+		}
+		goto PrepareStrafe;
+
+
+	MissileForward:
+		TNT1 A 0 {
+			if(hasHeightAdvantage(70, target)) {
+				setStateLabel("Prepare_ShootWeapon1");
+			}
+		}
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex(SPRITE_HipWalking);
+		}
+		TNT1 AAA 2 {
+			A_FACETARGET();
+			//spawnAttackIndicator("YellowFlare3", 40);
+		}
+		TNT1 A 0 talk(SOLDIER_PUSH);
+		TNT1 ABCDABCDABCD 7
+		{
+			invoker.chargingForward = true;
+			invoker.animationInterval++;
+			if (invoker.animationInterval == 3) {
+				playFootstepSound();
+				invoker.animationInterval = 0;
+			}
+			preventEdgeFalling("Prepare_ShootWeapon1");
+			checkNearForcefield();
+			A_SetTics(invoker.weapon_rateoffire-1);
+			incrementStateTic();
+			
+			CheckStrafe(0);
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			A_FACETARGET();
+			ThrustThing(angle*256/360, 2, 0, 0);
+			if (CheckSight(target, true) && getStateTic() >= 4) {
+				FireWeapon(4, 9, 46, 5, 2, 9);
+			}
+		}
+		Goto SeeContinue;
+
+	MissileRight:
+		TNT1 A 0 {
+			defaultEverything();
+			invoker.strafesRight = true;
+			invoker.strafeSpeed = 0.4;
+			checkStrafeDirection = 270;
+			strafeFrames = 3;
+		}	
+		goto PrepareStrafe;
+
+	PrepareStrafe:
+		TNT1 A 0 {
+			burstfires = 0;
+			if(isStrafing) {
+				setStateLabel("Strafe");
+				Sprite = GetSpriteIndex(SPRITE_FireAimed);
+			}
+		}
+		TNT1 A 0 prepareRifle();
+		TNT1 A 2 A_FACETARGET(); 
+		TNT1 A 0 {
+			if(skill >= 3 || squadLeaderBuff) {SetStateLabel("strafe");}
+		}	
+		TNT1 AA 2 A_FACETARGET(); 
+	Strafe:
+		TNT1 A 1 {
+			Sprite = GetSpriteIndex(SPRITE_StrafeFiring);
+			invoker.animationInterval = 0;
+		}
+		TNT1 A 0 {
+			killStrafeNodes();
+			if(!noStrafeFiring) {
+				A_CheckSight("CannotSeeTarget");
+			}
+			// Create network for strafe nodes
+			if(!ignoreStrafenode) {
+				if(strafesRight) 	{createStrafeNodes(STF_RIGHT, 7);}
+				if(strafesLeft) 	{createStrafeNodes(STF_LEFT, 7);}
+			}
+		}
+		TNT1 A 0 {
+			Sprite = GetSpriteIndex(SPRITE_StrafeFiring);
+			invoker.animationInterval = 0;
+		}
+		TNT1 AAAAABBBBBCCCCCDDDDDAAAAABBBBBCCCCCDDDDDAAAAABBBBBCCCCCDDDDD 1
+		{
+			isStrafing = true;
+			frame = strafeFrames;
+			invoker.animationInterval++;
+			if (invoker.animationInterval == 5) {
+				if((!ignoreStrafenode && !validateStrafe()) || checkGeometryCollision()) {
+					setStateLabel("missile");
+				}
+				if(invoker.strafesLeft) {
+					strafeFrames++;
+					if (strafeFrames >= 4) {
+						strafeFrames = 0;
+					}
+				}
+				if(invoker.strafesRight) {
+					strafeFrames--;
+					if (strafeFrames < 0) {
+						strafeFrames = 3;
+					}
+				}
+				playFootstepSound();
+				invoker.animationInterval = 0;
+			}
+
+			incrementStateTic();
+			if(invoker.animationInterval % 2 == 0)
+			{
+				preventEdgeFalling("Prepare_ShootWeapon1");
+			}
+
+			//TO-DO: Improve
+			if(!CheckIfwallClear(90, 50) && !CheckIfwallClear(90, 50)) {
+				//ThrowAbortException("CRASHED MOTHAFUCKA");
+				SetStateLabel("ShootWeapon1");
+			}
+			if(invoker.strafesRight && checkGeometryCollision(-1, 25)) {
+				SetStateLabel("MissileLeft");
+			}
+			if(invoker.strafesLeft && checkGeometryCollision(-1, 25)) {
+				SetStateLabel("MissileRight");
+			}
+			
+			if (!hasEnoughAmmo()) {
+				setStateLabel("ReloadWeapon");
+			}
+			A_FACETARGET();
+			//if(!CheckIfWallClear(270, 50)) {
+			//	if(!CheckIfWallClear(90, 50)) {
+			//		defaultEverything();
+			//		setStateLabel("SeeContinue");
+			//		ThrowAbortException("Tell Nexxtic he needs to fix his wallchecks.");
+			//	}
+			//}
+			if (CheckSight(target, true) && GetStateTic() >= weapon_rateoffire+1) {
+				stateTic = 0;
+				//console.printf("BURSTS: %d", burstfires);
+				burstfires++;
+				if(burstfires<4) {
+					FireWeapon(4, 12, 42, 0, 2);
+				}
+				if(burstfires == 8) {
+					burstfires = 0;
+				}
+			}
+			A_ChangeVelocity(0,invoker.strafeSpeed, 0,CVF_RELATIVE);
+		}
+		Goto SeeContinue;
+		ActuallyThrowSmokeGrenade:
+        ActuallyThrowGrenade:
+            TNT1 A 0 A_Stop;
+            TNT1 A 0 {
+                invoker.grenadeCount--;
+            }
+            TNT1 A 0 {
+                bGhost = false;
+                invoker.isThrowingGrenade = true;
+                bNoDropoff = false;
+            }
+            ECGR ABCD 3 A_FACETARGET;
+            TNT1 A 0 A_PlaySound("OPNGRN", 1);
+            TNT1 A 0;
+			TNT1 A 0 A_CHANGEVELOCITY(-5,0,0,CVF_RELATIVE);
+            TNT1 A 0 talk(SOLDIER_SMOKE);
+            ECGR EF 3 A_FACETARGET;
+            TNT1 A 0 A_PlaySound("THRGRN", 1);
+            TNT1 A 0 A_SpawnProjectile("SmokeGrenadeFast", 42, 0, 15, CMF_OFFSETPITCH, -8);
+            TNT1 A 0 A_SpawnProjectile("SmokeGrenadeFast", 42, 0, -15, CMF_OFFSETPITCH, -8);
+            TNT1 A 0 {
+                bGhost = false;
+                invoker.isThrowingGrenade = false;
+                bNoDropoff = false;
+            }
+            ECGR GHIJ 3 A_FACETARGET;
+            Goto SeeContinue;
+
+	Pain.MeleeImpactSplash:
+		TNT1 A 0 A_FACETARGET();
+		TNT1 A 0 A_CHANGEVELOCITY(-3, 0, 0, CVF_RELATIVE);
+	Pain.ShotgunNext:
+    Pain.MeleeImpact:
+		 TNT1 A 0 A_STOPSOUND(CHAN_VOICE);
+		 TNT1 A 0 A_FACETARGET();
+		 TNT1 A 0 {
+			 mayNotTalk = true;
+		 }
+		 TNT1 A 0 {
+			 // Insta kills do not apply to an enemy who is shocked because a taser hit might end up more benefitial than an instant kill.
+			if (!getSeenPlayer() && !shockRemainder) {
+		       A_DamageSelf(health);
+               SetStateLabel("death.spinner");
+			}
+			bNoPain = true;
+			bNoDropoff = false;
+			invoker.wallsmashed = false;
+			if (CheckProximity("WeaponMeleeEnhanced", 80)) {
+				invoker.damagedByEnhancedMelee = true;
+			}
+		}
+		 TNT1 A 0 A_Pain();
+		 TNT1 A 0 {
+			bNoPain = true;
+			bFORCEXYBILLBOARD = true;
+		}
+		ECMH ABCDEFFEFEFGJK 3 {
+			A_RECOIL(1);
+			A_SPAWNITEMEX("SparkEffect", 0,17,0 );
+			A_SPAWNITEMEX("SparkEffect", 0,-16,0 );
+		}
+		TNT1 A 0 {
+			if(checkSight(target))
+			{
+				SetStateLabel("Shootweapon_aiming");
+			}
+			else
+			{
+				SetStateLabel("Prepare_ShootWeapon_Aiming");
+			}
+		}
+	}
+}
+
+class ENFORCER_DEFENDER : ENFORCER {
+	default {
+		Selacoenemy.flankingChance 0;
+		EnemySoldier.combatDistance 850;
+		+EnemySoldier.KeepDistance;
+		SelacoEnemy.role "$ROLE_DEFENDER";
+	}
+}
+
+class ENFORCER_AGGRESSOR : Enforcer
+{
+	default {
+		speed 8;
+		SelacoEnemy.role "$ROLE_PUSHER";
+		SelacoEnemy.flankingChance 25;
+		EnemySoldier.sprayShotChance 0;
+		EnemySoldier.accurateShotChance 0;
+		EnemySoldier.crouchedShotChance 20;
+		EnemySoldier.strafeChance 25;
+		EnemySoldier.combatDistance 75;
+		EnemySoldier.aggressiveness 225;
+		-EnemySoldier.KeepDistance
+		+JUMPDOWN
+	}
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		if(Skill == SKILL_ENSIGN) {
+			aggressiveness = aggressiveness / 2;
+		}
+	}
+
+}
+
+class ENFORCER_BURSTFIRE_WEAPONKIT : ENFORCER
+{
+
+	default
+	{
+		SelacoEnemy.randomizerSpawnChance 0;
+		-NoGravity
+	}
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		actor weaponKitActor;
+		bool weaponKitSuccess;
+		[weaponKitsuccess, weaponKitActor] = A_SPAWNITEMEX("WeaponKit",0 ,0, 18, 1, 0, 3, tid:8901);
+		if(weaponKitActor)
+		{
+			weaponKitActor.args[0] = 5;
+		}
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+}

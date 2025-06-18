@@ -1,0 +1,190 @@
+class ISAAC : SelacoActor
+{
+    int distance;
+    int particleCount;
+    const PARTICLE_DISTANCE_REQUIRED = 600;
+
+
+
+    override void tick()
+    {
+        super.tick();
+
+        // Isaac spawns a bunch of tiny sparks which looks quite fun, but can also be demanding. We occasionally check the distance and adjust particle counts accordingly.
+        // The effect is small, so larger quantities from a distance are unneccessary.
+        if(health > 0 && level.time % random(28,35) == 0)
+        {
+            PlayerPawn pawn = players[0].mo;
+            let d = Dawn(pawn);
+            distance = distance3D(d);
+
+            // Adjust particleCount based on the distance
+            if (distance <= PARTICLE_DISTANCE_REQUIRED)
+            {
+                // Calculate the number of tries based on the distance
+                particleCount = 1 + (PARTICLE_DISTANCE_REQUIRED - distance) / 125;
+            }
+            else
+            {
+                // If the player is beyond the required distance, set particleCount to 0
+                particleCount = 0;
+            }
+        }
+    }
+
+    
+    default
+    {
+	    BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/heavycrate";
+        health 90;
+        radius 24;
+        height 25;
+        +NOBLOODDECALS
+        +SHOOTABLE
+        +CANPASS;
+        +INTERPOLATEANGLES;
+        +friendly;
+        mass 1800;
+        +SELACOACTOR.SlopeAlignment
+        speed 3;
+        SelacoActor.SleepDistance 2048;
+    }
+    states
+    {
+        Precache:
+            ISAC ABCDL 0;
+            stop;
+        Spawn:
+            TNT1 A 0;
+            ISAC A 0;
+            TNT1 A 0
+            {
+                if(args[0] == 1)
+                {
+                    setStateLabel("Weld");
+                }
+                if(args[0] == 2)
+                {
+                    setStateLabel("inActiveMode");
+                }
+            }
+        Looper:
+            ISAC ABCD 1 
+            {
+                emitdefinition('DebrisChunkParticleDefinitionShort', chance: 1.0, numTries: 2, angle:-180, pitch: -95, offset:(4, 13, -20), particleSpawnOffsets:5);
+                emitdefinition('DebrisChunkParticleDefinitionShort', chance: 1.0, numTries: 2, angle:-180, pitch: -95, offset:(4, -13, -20), particleSpawnOffsets:5);
+                A_CHASE();
+            }
+            loop;
+        InactiveMode:
+            ISAC A -1;
+            stop;
+        Weld:
+            TNT1 A 0 {
+                A_SPAWNITEMEX("WeldEffect", 26, -10, 14);
+            }
+            ISAC AAAAAAAAAAAAAAAAAAAAAAAAA 1
+            {
+                emit('WeldingParticleWild', chance: 1.0, numTries: particleCount*0.5, angle:105, pitch: frandom(-10,10), offset:(4, -26, 14));
+                emit('WeldingParticle', chance: 1.0, numTries: particleCount, angle:105, pitch: frandom(-10,10), offset:(4, -26, 14));
+            }
+            ISAC A random(3,36);
+            loop;
+        Death: 
+            TNT1 A 0 {
+                Stats.AddStat(STAT_ISAACS_KILLED, 1, 0);
+                SpawnLight(255, 226, 166, 128,divisionSpeed: 1.05);
+            }
+            TNT1 AA 0 A_SpawnItemEx("SparkMissileGravity", frandom(-20,20), frandom(-20,20), frandom(15,25), frandom(2,5), 0, frandom(7,11), angle:random(0,360));
+            TNT1 AAAAAA 0 A_SPAWNITEMEX("SmallExplosionNoSound", frandom(-10,10), frandom(-10,10), frandom(5,30));
+            TNT1 AA 0 A_SPAWNITEMEX("SmallExplosion", frandom(-10,10), frandom(-10,10), frandom(5,30));
+            TNT1 A 0 A_SPAWNITEMEX("ISAAC_DECAPITATED", 0, 0, 25, frandom(1,2), 0, frandom(12,16), angle:random(0,360));
+            TNT1 A 0 A_SPAWNITEMEX("ISAAC_ARM", 0, -15, 15, frandom(2,5), 0, frandom(6,8), angle:90);
+            TNT1 A 0 A_SPAWNITEMEX("ISAAC_ARM", 0, 15, 15, frandom(2,5), 0, frandom(6,8), angle:270);
+            TNT1 A 0 A_SPAWNITEMEX("BaseShockwaveSmaller");
+            ISAC LLLLLLLLLLLL random(35,50)
+            {
+                A_SpawnItemEx("GunFireSmokeMassive", frandom(-15,15), frandom(-15,15), frandom(5,30), 0, frandom(0.2,0.5), 1);
+				A_SpawnItemEx("GunFireSmokeMassive", frandom(-15,15), frandom(-15,15), frandom(5,30), 0, frandom(0.2,0.5), 1);
+			    A_SpawnProjectile ("SparkEmberUpward", 32, -3, random (0, 70), 2, random (0, 190));
+                A_SpawnDefinedParticle("BulletImpactEffectMetalDefinition", frandom(-15,15), frandom(-15,15), frandom(5,30), 0, frandom(0.2,0.5), 1);
+            }
+            ISAC L -1;
+            stop;
+    }
+}
+
+// Why would anyone do this =(
+class  ISAAC_DECAPITATED : SelacoActorDecorationMissile {
+    int destructionTicks;
+
+    const MAX_DESTRUCTION_TICKS = 9;
+    override void tick()
+    {
+        super.tick();
+        if(level.time % random(20,45) == 0 && destructionTicks <= MAX_DESTRUCTION_TICKS)
+        {
+            destructionTicks++;
+            A_SpawnItemEx("GunFireSmokeMassive", frandom(5,-5), frandom(-5,5), frandom(5,15), 0, frandom(0.2,0.5), 1);
+			A_SpawnItemEx("GunFireSmokeMassive", frandom(5,-5), frandom(-5,5), frandom(5,15), 0, frandom(0.2,0.5), 1);
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", frandom(5,-5), frandom(-5,5), frandom(5,15), 0, frandom(0.2,0.5), 1);
+        }
+    }
+    states
+    {
+        Death:
+            VOXE L 300
+            {
+                A_SETPITCH(0);
+            }
+            VOXE L -1
+            {
+                SleepIndefinite();
+                A_SETPITCH(0);
+            }
+            stop;
+    }
+}
+
+class ISAAC_BEHEADEDBODY : SelacoActor
+{
+    int destructionTicks;
+    const MAX_DESTRUCTION_TICKS = 9;
+    override void tick()
+    {
+        super.tick();
+        if(level.time % random(20,45) == 0 && destructionTicks <= MAX_DESTRUCTION_TICKS)
+        {
+            destructionTicks++;
+            A_SpawnItemEx("GunFireSmokeMassive", frandom(5,-5), frandom(-5,5), frandom(25,27), 0, frandom(0.2,0.5), 1);
+			A_SpawnItemEx("GunFireSmokeMassive", frandom(5,-5), frandom(-5,5), frandom(25,27), 0, frandom(0.2,0.5), 1);
+            A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition", frandom(5,-5), frandom(-5,5), frandom(5,15), 0, frandom(0.2,0.5), 1);
+        }
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class ISAAC_HEAD : SelacoActorStatic
+{
+    default
+    {
+        +NOINTERACTION
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            loop;
+    }
+}
+
+CLASS ISAAC_ARM : ISAAC_DECAPITATED
+{
+
+}

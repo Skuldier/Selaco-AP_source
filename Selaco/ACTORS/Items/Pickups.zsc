@@ -1,0 +1,581 @@
+
+class OMNI_PURPLECARD_PICKUP : SelacoItem {
+	int cardID;
+	string mapIcon;
+	string cardIcon;
+	bool shownOnMap;
+	bool success;
+	Actor cardIconSpawn;
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		cardID = 1;
+		mapIcon = "mapPurplecardIcon";
+		cardIcon = "PurplecardIcon";
+		useIcon = TexMan.CheckForTexture("XH_CARD");
+	}
+	
+    default {
+        // FLAGS
+		+SELACOITEM.ESSENTIAL
+		+Inventory.ALWAYSPICKUP
+        +COUNTITEM
+        -SOLID
+        +NOGRAVITY
+
+        // Properties
+		tag "$PICKUPTAG_PURPLEKEY";
+        Inventory.amount 1;
+        Inventory.maxAmount 1;
+        Inventory.pickupsound "item/key";
+		SelacoItem.pickupType "OMNI_PURPLECARD";
+		SelacoItem.pickupIcon "P_PURKEY";
+		SelacoItem.pickupTag "$PICKUPTAG_PURPLEKEY";
+		SelacoItem.SleepDistance 1536;
+        radius 25;
+        scale 1.0;
+    }
+	States {
+        Spawn:
+            TNT1 A 0;
+            VOXE L 2 BRIGHT A_LookEx(LOF_NOSOUNDCHECK, 0, 1536, 0, 5000, "ShowIcon");
+            loop;
+        ShowIcon:
+            VOXE L 0 A_SpawnItemEx(invoker.cardIcon, 0, 0, 6);
+            VOXE L 1 BRIGHT {
+				if(!invoker.shownOnMap) {
+					invoker.shownOnMap = true;
+					[invoker.success, invoker.cardIconSpawn] = A_SpawnItemEx(invoker.mapIcon, tid:tid);
+				}
+			}
+            loop;
+        pickup:
+			TNT1 A 0 {
+				if(invoker.success) {
+					invoker.cardIconSpawn.die(self, self);
+				}
+			}
+            TNT1 A 0 ACS_NamedExecute("CARDPICKUP", 0, invoker.cardID);
+            goto pickupSuccess;
+	}
+}
+
+class OMNI_YELLOWCARD_PICKUP : OMNI_PURPLECARD_PICKUP {
+	default{
+		tag "$PICKUPTAG_YELLOWKEY";
+		SelacoItem.pickupIcon "P_YELKEY";
+		SelacoItem.pickupType "OMNI_YELLOWCARD";
+		SelacoItem.pickupTag "$PICKUPTAG_YELLOWKEY";
+	}
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		cardID = 2;
+		mapIcon = "mapYellowcardIcon";
+		cardIcon = "yellowcardicon";
+	}
+}
+
+
+class OMNI_BLUECARD_PICKUP : OMNI_PURPLECARD_PICKUP {
+	default {
+		tag "$PICKUPTAG_BLUEKEY";
+		SelacoItem.pickupIcon "P_BLUKEY";
+		SelacoItem.pickupType "OMNI_BLUECARD";
+		SelacoItem.pickupTag "$PICKUPTAG_BLUEKEY";
+	}
+	
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		cardID = 3;
+		mapIcon = "mapBluecardIcon";
+		cardIcon = "BluecardIcon";
+	}
+}
+
+class CabinetCard : FlaredPickup {
+	default {
+		scale 1;
+		+SelacoItem.Essential;
+		+CountItem;
+		tag "$OBJECT_CABINETCARD";
+		Inventory.PickupSound "items/keycard";
+		Inventory.Amount 1;
+		Inventory.MaxAmount 99999999;
+
+		FlaredPickup.FlareOffset 1;
+		FlaredPickup.IconOffset 8;
+		FlaredPickup.FlareClass "throwable_flare";
+		FlaredPickup.IconClass "CABINET_ICON";
+		SelacoItem.pickupType "CabinetCardCount";
+		SelacoItem.pickupIcon "P_CABIA0";
+		SelacoItem.pickupTag "$PICKUPTAG_CABINETCARD";
+		SelacoItem.pickupCount 1;
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 { Stats.AddStat(STAT_CABINETCARDS_FOUND, 0, 1); }
+			VOXE L -1 bright;
+
+		Pickup:
+			TNT1 A 0 { Stats.AddStat(STAT_CABINETCARDS_FOUND, 1, 0); }
+			TNT1 A 0 ACS_NamedExecute("cabinetTipdisplay", 0);
+			goto PickupSuccess;
+	}
+}
+
+class ProteinShake : FlaredPickup
+{
+	default
+	{
+		tag "$OBJECT_PROTEINSHAKE";
+		+INVENTORY.ALWAYSPICKUP;
+		SelacoItem.randomizerSpawnChance 3;
+		scale 3;
+		+DONTTHRUST;
+		radius 15;
+		height 15;
+		scale 0.9;
+	}
+	
+	states
+	{
+		spawn:
+			VOXE L -1;
+			stop;
+		Pickup:
+			TNT1 A 0
+			{
+				PlayerPawn pawn=players[0].mo;
+				let d = Dawn(pawn);
+				stats.AddStat(STAT_PROTEINSHAKES_USED, 1, 0);
+				d.A_GiveInventory("MegaPowderAmount", 12);
+				A_PLAYSOUND("ITEMS/PROTEIN", CHAN_AUTO, 0.6);
+			}
+			stop;
+	}
+}
+
+// TO-DO: This should all be condensed in a single class at some point. This is cumbersome.
+class WeaponCapacityKit : SelacoItem {
+	static const Name WeaponList[] = {
+		"RoaringCricket","Shot_gun", "rifle", "GrenadeLauncher", "Nailgun", "PlasmaRifle", "DMR"
+	};
+
+	virtual void upgradeAmmoCapacity()
+	{
+		let p = players[consoleplayer].mo;
+
+		// Player needs to have the item in their inventory for this to work
+		p.A_GiveInventory(ammoType, 1);
+		Ammo ammoToModify = ammo(p.FindInventory(ammoType));
+
+		// Increment ammo
+		ammoToModify.maxAmount+=ammoAmount;
+		p.A_GiveInventory(ammoType, ammoAmount-1);
+
+		// Ensure we dont go over 999 because that breaks the HUD element
+		if(ammoToModify.maxAmount > 999)
+		{
+			ammoToModify.maxAmount = 999;
+		}
+
+		// Inform the player
+		p.A_PLAYSOUND("item/levelup", CHAN_AUTO, 1.0);
+		PrintNotification();
+	}
+
+	string weaponName, ammoType;
+	int ammoAmount;
+	int weaponIndex;
+	property WeaponName: weaponName;
+	property AmmoAmount: ammoAmount;
+	property AmmoType : ammoType;
+
+	override void BeginPlay()
+	{
+		super.BeginPlay();
+
+		if(!weaponName)
+		{
+			assignCapacityProperties();
+		}
+
+		SetTag(string.format("%s (%s)", getTag(), stringTable.localize(weaponName)));
+	}
+
+	virtual void assignCapacityProperties()
+	{
+		int weaponIndex = args[0];
+		string selectedWeapon;
+
+		// If args[0] is left blank in UDB, pick random weapon from the list
+		if(weaponIndex == 999) {
+			selectedWeapon = WeaponList[random(0,weaponList.size()-1)];
+		} else {
+			selectedWeapon = WeaponList[weaponIndex];
+		}
+
+		// Set the properties
+		if(selectedWeapon)
+		{
+            class<SelacoWeapon> weaponClass = selectedWeapon;
+			class<Ammo> ammoClass = SelacoWeapon(GetDefaultByType(weaponClass)).ammoType2.getClassName();
+
+			// Get the magazine size, we will increase the ammo by this amount
+			ammoAmount = Ammo(GetDefaultByType(ammoClass)).maxAmount;
+			ammoType = SelacoWeapon(GetDefaultByType(weaponClass)).ammoType1.getClassName();  
+
+			// Name, used for printing
+            weaponName = SelacoWeapon(GetDefaultByType(weaponClass)).getTag();  
+		}
+	}
+
+	default {
+		+SelacoItem.Essential;
+		+SelacoItem.UpgradeItem;
+		SelacoItem.RandomizerSpawnChance 1;
+		tag "$PICKUP_CAPACITYUPGRADE";
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+		LoopingTime:
+			VOXE L -1;
+		Pickup:
+			TNT1 A 0 
+			{
+				invoker.upgradeAmmoCapacity();
+			}
+			goto pickupSuccess;
+	}
+
+	void PrintNotification() {
+		Notification.QueueNew('PBNotification', "Weapon Upgrade Kit Found!", string.format("\c[HI]%s \c[white]ammo capacity increased by \c[omniblue]%d", stringTable.localize(weaponName), ammoAmount), "",  slot: NotificationItem.SLOT_TOP_MID);
+	}
+}
+
+class WeaponCapacityKit_UC36 : WeaponCapacityKit { // 14478
+	
+	default
+	{
+		SelacoItem.RandomizerSpawnChance 0;
+		WeaponCapacityKit.Weaponname "$WEAPON_ASSAULTRIFLE";
+		WeaponCapacityKit.AmmoAmount 30;
+		WeaponCapacityKit.AmmoType "RifleReserve";
+	}
+}
+
+class WeaponCapacityKit_Shotgun : WeaponCapacityKit_UC36 { // 14477
+	default
+	{
+		WeaponCapacityKit.AmmoType "ShotgunReserve";
+		WeaponCapacityKit.Weaponname "$WEAPON_SHOTGUN";
+		WeaponCapacityKit.AmmoAmount 8;
+	}
+}
+
+class WeaponCapacityKit_Roaring : WeaponCapacityKit_UC36 { // 14476
+	default
+	{
+		WeaponCapacityKit.AmmoType "PistolReserve";
+		WeaponCapacityKit.Weaponname "$WEAPON_ROARINGCRICKET";
+		WeaponCapacityKit.AmmoAmount 9;
+	}
+}
+
+class CreditsbagLarge: SelacoItem
+{
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		if(args[0] > 0) {
+			pickupCount = args[0];
+		}
+	}
+
+	override void DoPickupSpecial (actor toucher)
+	{
+		Stats.AddStat(STAT_CREDITS_COLLECTED, pickupCount, 0);
+		super.DoPickupSpecial(toucher);
+	}
+
+	float soundPitch;
+	//int creditsCount;
+	//property CreditsCount : creditsCount;
+
+	property SoundPitch   : soundPitch;
+
+	default {
+		SelacoItem.RandomizerSpawnChance 15;
+		-SelacoItem.ApplyScarcityMode;
+		Scale 0.8;
+		radius 20;
+		+COUNTITEM;
+		+DONTGIB;
+		+INVENTORY.ALWAYSPICKUP;
+		SelacoItem.pickupCount 250;
+		SelacoItem.pickupType "CreditsCount";
+		CreditsbagLarge.SoundPitch 1.0;
+		Inventory.pickupSound "none";
+		Tag "$PICKUP_CREDITSBAG";
+
+		SelacoItem.pickupIcon "P_CREDB0";
+		SelacoItem.pickupTag "$PICKUPTAG_CREDITS";
+
+	}
+	States {
+		Spawn:
+			VOXE L -1;
+			Loop;
+
+		PickupSuccess:
+			TNT1 A 0 A_PLAYSOUND("item/creditsb", CHAN_AUTO, 1.0, pitch:invoker.SoundPitch);
+			stop;
+	}
+}
+
+class CreditsbagSmall: CreditsbagLarge
+{
+	default {
+		SelacoItem.RandomizerSpawnChance 35;
+		SelacoItem.pickupCount 50;
+		CreditsbagLarge.SoundPitch 1.3;
+	}
+}
+class CreditsbagMedium: CreditsbagLarge
+{
+	default {
+		SelacoItem.RandomizerSpawnChance 20;
+		SelacoItem.pickupCount 100;
+		CreditsbagLarge.SoundPitch 1.1;
+	}
+}
+class CreditsFlat : SelacoItem
+{
+	default {
+		Scale 1;
+		radius 20;
+		friction 0.7;
+		+COUNTITEM;
+		+DONTGIB;
+		+INVENTORY.ALWAYSPICKUP;
+		-SelacoItem.AllowRandomizerSwapping
+		Inventory.pickupSound "none";
+		-SelacoItem.ApplyScarcityMode;
+		SelacoItem.pickupType "CreditsCount";
+		SelacoItem.pickupCount 5;
+		SelacoItem.pickupIcon "P_CREDB0";
+		SelacoItem.pickupTag "$PICKUPTAG_CREDITS";
+		Tag "$PICKUP_SELVER";
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{	
+				invoker.bPreventSleep = true;
+			}
+			VOXE L random(1,8);
+			TNT1 A 0 A_PLAYSOUND("PICKUP/COINLAYER", CHAN_AUTO, 0.9, 0, 0.8, pitch:frandom(1.0,1.3));
+			TNT1 A 0
+			{	
+				invoker.bPreventSleep = false;
+			}
+			goto Show;
+
+		Show:
+			TNT1 A 0;
+			TNT1 A 0 A_SETANGLE(random(0,360));
+			VOXE L -1;
+			Loop;
+
+		PickupSuccess:
+			TNT1 A 0 A_PLAYSOUND("item/coinpickup", CHAN_ITEM, 0.8, pitch:frandom(0.9,1.15));
+			TNT1 A 5;
+			TNT1 A 0 A_PLAYSOUND("PICKUP/COINLAYER", CHAN_AUTO, 1.0, pitch:frandom(1.0,1.3));
+			stop;
+	}
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		
+		// Set random credits amount
+		pickupCount = 1;
+		SetTag(String.Format("%s (+%d %s)", StringTable.Localize("$PICKUP_SELVER"), pickupCount, StringTable.Localize("$PICKUP_CREDITS")));
+	}
+}
+
+// Gives 1 of each Equipment Type, also increases capacity by one upon first pickup.
+class GrenadeBandolier : SelacoItem
+{
+	Dawn d; // Toucher
+	Array<SelacoAmmo> equipmentTypes;
+
+    override bool CanPickup(Actor toucher) 
+	{
+		d = Dawn(toucher);
+		if(!d) return false;	// Non dawns shouldn't pick this up
+
+		// Find all equipment items and toss them in a list.
+		retrieveAllEquipmentItems(equipmentTypes);
+
+		if(d && equipmentTypes.size())
+		{
+			// Got no Bandolier? Always pickup.
+			if(!d.hasGrenadeBandolier)
+			{
+				return true;	
+			}
+
+			// Check all grenade types. If any of them not at full capacity? Give bandolier!
+			for (int i = 0; i < equipmentTypes.size(); i++)
+			{
+				SelacoAmmo ammoType = equipmentTypes[i];
+				
+				// Check if the player has the SelacoAmmo entry
+				if (d.countinv(ammoType.getClassName()) <= ammoType.maxAmount)
+				{
+					return true;
+				}
+			}
+		}
+		d.A_PLAYSOUND("item/iconhide", CHAN_AUTO);
+		A_PRINTBOLD(string.format("\c[red]%s", stringTable.localize("$UPGRADE_EQUIPMENTBANDOLIER_REJECTED")), 3.0);
+		
+		
+		// Manually engage pickup timeout, since TryPickup is never called if we return false here
+		if(pickupIsTouchBased) {
+            touchTime = level.totalTime;
+        }
+
+		return super.CanPickup(toucher);
+    }
+
+	// Find all equipment items
+	void retrieveAllEquipmentItems(out array<SelacoAmmo> equipmentInstances)
+	{
+		array<SelacoAmmo> tempEquipmentInstances;
+
+		// Find all equipment items.
+		int totalClasses = AllClasses.size();
+		Array< class<SelacoAmmo> > foundEquipment;
+		for (int x = 0; x < totalClasses; x++) 
+		{
+			if (AllClasses[x] is 'SelacoAmmo' && AllClasses[x])
+			{
+				let cls = (class<SelacoAmmo>)(AllClasses[x]);
+				foundEquipment.push(cls);
+			}
+		} 
+
+		// Iterate over the items we found
+		for (int x = 0; x < foundEquipment.size(); x++)
+		{
+			class<SelacoAmmo> ammoClass = foundEquipment[x];
+			let ammoType = GetDefaultByType(ammoClass);
+			if (ammoType.bEquipment)
+			{
+				// Give the bandolier the item lol
+				A_GiveInventory(ammoType.getClassName());
+				let equipmentToUpgrade = FindInventory(ammoType.getClass());
+				tempEquipmentInstances.push(SelacoAmmo(equipmentToUpgrade));
+			}
+		}
+
+		// Copy the temp array to the output parameter
+		equipmentInstances.copy(tempEquipmentInstances);
+	}
+
+	void giveBandolier(Dawn d, array<SelacoAmmo> equipmentTypes)
+	{
+		// Iterate over the equipment items
+		for (int x = 0; x < equipmentTypes.size(); x++)
+		{
+			SelacoAmmo equipmentType = equipmentTypes[x];
+			if(!d.hasGrenadeBandolier)
+			{
+				let equipmentToUpgrade = d.FindInventory(equipmentType.getClass());
+				bool didNotOwnEquipment;
+				if(!equipmentToUpgrade)
+				{
+					// Give placeholder Item
+					didNotOwnEquipment = true;
+					d.A_GiveInventory(equipmentType.getClassName());
+
+					// Assign it again..
+					equipmentToUpgrade = d.FindInventory(equipmentType.getClass());
+				}
+
+				equipmentToUpgrade.maxAmount++;
+				
+				if(didNotOwnEquipment)
+				{
+					// Take away Placeholder Item
+					d.A_TakeInventory(equipmentType.getClassName());
+				}
+				
+			}
+			d.A_GiveInventory(equipmentType.getClassName());
+		}
+
+		
+		// Inform the player of their increased capacity.
+		if(!d.hasGrenadeBandolier)
+		{
+			d.A_PLAYSOUND("item/levelup", CHAN_AUTO, 0.7);
+			A_PRINTBOLD(string.format("\c[OMNIBLUE] %s", stringTable.localize("$UPGRADE_EQUIPMENTBANDOLIER")), 3.0, "SEL21FONT");
+			d.hasGrenadeBandolier = true;
+		}
+	}
+
+	default
+	{
+		inventory.pickupSound "PICKUP/BANDOLIER";
+		+Selacoitem.UpgradeItem;
+		SelacoItem.randomizerSpawnChance 0.25;
+		tag "$OBJECT_EQUIPMENTBANDOLIER";
+		radius 15;
+		height 15;
+	}
+
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+		Pickup:
+			TNT1 A 1
+			{
+				invoker.giveBandolier(invoker.d, invoker.equipmentTypes);
+			}
+			stop;
+	}
+}
+
+class GASMASK_PICKUP : SelacoItem
+{
+	default
+	{
+		tag "$PICKUP_GASMASK";
+		+INVENTORY.ALWAYSPICKUP;
+	}
+	states
+	{
+		Spawn:
+			VOXE L -1;
+			stop;
+		Pickup:
+			TNT1 A 1
+			{
+				A_PRINTBOLD(string.Format("\c[omniblue]%s", stringTable.localize("$GASMASK_PICKUP")));
+				A_PLAYSOUND("PICKUP_GASMASK", CHAN_AUTO);
+				A_GiveInventory("HasGasmask", 1);
+			}
+			stop;
+	}
+}

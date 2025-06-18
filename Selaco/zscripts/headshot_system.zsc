@@ -1,0 +1,23 @@
+mixin class headshot_checks 
+{
+        
+	// In case we want to use actors who cannot take Headshot damage, add these to this array.
+	static const class<actor> damagemodifier_ignore[] = 
+		{
+			"Dawn",
+			"Juggernaut"
+		};
+
+	bool checkDamageModifier(class<actor> check)
+	{
+		int size = damagemodifier_ignore.Size();
+		
+		for(int i = 0; i < size; i++)
+		{
+			if(check is damagemodifier_ignore[i])
+				return false;
+		}
+		return true;
+	}
+
+}

@@ -1,0 +1,953 @@
+graphic "m_pause", 414, 61
+{
+    patch "m_pause", 0, 0
+    xscale 2
+    YSCALE 2
+    offset 0, -110
+}
+
+// BLACKER is used for fadeouts in ACS
+graphic "BLACKER", 10, 10
+{
+    patch "BLACKER", 0, 0
+    XSCALE 0.001
+    YSCALE 0.001
+}
+
+// I think this is used in ACS as well
+graphic "BLASCRN", 10, 10
+{
+    patch "BLASCRN", 0, 0
+    XSCALE 0.001
+    YSCALE 0.001
+}
+
+// I think this is used in ACS as well
+graphic "BLUSCR", 10, 10
+{
+    patch "BLUSCR", 0, 0
+    XSCALE 0.001
+    YSCALE 0.001
+}
+
+// SMALLFONT
+graphic SELINFI, 32, 19
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELHEK, 19, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELPERC, 22, 21
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELA, 19, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+
+graphic SELB, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+
+graphic SELC, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+
+graphic SELD, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELE, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELF, 16, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELG, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELH, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELI, 8, 20
+{
+    XScale 2.55
+    YSCALE 2.4
+}
+
+graphic SELEX, 7, 21
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELPER, 8, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELSPERC, 22, 21
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELPLU, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELPLUS, 25, 41
+{
+    XScale 2.0
+    YSCALE 2.0
+    Offset 2, 2
+}
+
+graphic SELJ, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELK, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELL, 16, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELM, 21, 20
+{
+    XScale 2.4
+    YSCALE 2.4
+}
+
+graphic SELN, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELO, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELP, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELQ, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELR, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELS, 16, 20
+{
+    XScale 2.45
+    YSCALE 2.4
+}
+
+graphic SELT, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELU, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELBRL, 12, 27
+{
+    XScale 2.5
+    YSCALE 3.0
+}
+
+graphic SELBRR, 12, 27
+{
+    XScale 2.5
+    YSCALE 3.0
+}
+
+graphic SELV, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELW, 27, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELX, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELY, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELZ, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELT, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELT, 18, 20 //UC
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELE, 16, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL0, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL1, 11, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL2, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL3, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL4, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL5, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL6, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL7, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL8, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SEL9, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELDD, 7, 22
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELCOM, 8, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELAPOS, 8, 27
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELAPOS2, 9, 21
+{
+    XScale 2.2
+    YSCALE 2.2
+}
+
+graphic SELBRACL, 8, 21
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELBRACR, 8, 21
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELMIN, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELMIN2, 18, 20
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic CREDB2, 50, 50
+{
+    XScale 1
+    YSCALE 1
+}
+
+graphic SELSLA, 10, 25
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELAND, 20, 21
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+graphic SELQUES, 15, 21
+{
+    XScale 2.5
+    YSCALE 2.4
+}
+
+
+
+// BIG FONT OVERHAUL
+graphic SA, 33, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+Offset 2, 2
+}
+
+
+graphic SB, 31, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SC, 31, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SDD, 31, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SE, 26, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SF, 26, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SG, 33, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SH, 33, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SI, 17, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SJ, 28, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SK, 33, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SL, 27, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SM, 42, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SN, 33, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SO, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SP, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SQ, 32, 42
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SR, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SS, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic ST, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SU, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SV, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SW, 49, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SX, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SY, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SZ, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SRC, 19, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SLC, 19, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELSPLUS, 25, 41
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+graphic SPLUS, 25, 41
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM0, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM1, 20, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM2, 31, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM3, 31, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM4, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM5, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM6, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM7, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM8, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SELNUM9, 32, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SCOLN, 14, 27
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SCOM, 14, 27
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SMINS, 16, 27
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic Sddot, 16, 27
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SPERD, 13, 27
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SQUES, 27, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SQUES, 27, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SQUO, 14, 45
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SEXC, 14, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SSLSH, 25, 41
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+
+graphic SPERC, 38, 35
+{
+XScale 2.0 //
+YSCALE 2.0 //
+Offset 2, 2 //
+}
+
+texture ALLBLACK, 1,1 
+{
+    NoDecals
+    Patch ALLBLACK, 0, 0
+}
+
+
+texture SKYS1EZ, 192, 512
+{
+Nodecals
+Patch SKYS1E, 0, 0
+}
+
+texture SKYS7BZ, 256, 256
+{
+    Nodecals
+    Patch SKYS7B, 0, 0
+}
+texture SKYS7AZ, 256, 256
+{
+    Nodecals
+    Patch SKYS7A, 0, 0
+}
+/*texture SKYS7Z, 256, 256
+{
+    Nodecals
+    Patch SKYS7, 0, 0
+}*/
+texture SKYS7DESZ, 256, 256
+{
+    Nodecals
+    Patch SKYS7DES, 0, 0
+}
+
+
+// Switches and such should *not* add DECALS. Add them here!
+texture LIGHTU, 128, 241
+{
+Nodecals
+Patch LIGHTU, 0, 0
+}
+
+
+texture LIGHTL, 128, 241
+{
+Nodecals
+Patch LIGHTL, 0, 0
+}
+
+
+texture SHUTU, 128, 241
+{
+    Nodecals
+    Patch SHUTU, 0, 0
+}
+
+texture SHUTL, 128, 241
+{
+Nodecals
+Patch SHUTL, 0, 0
+}
+
+texture DOORCNS0, 128, 241
+{
+Nodecals
+Patch DOORCNS0, 0, 0
+}
+
+texture DRLOCKA, 128, 241
+{
+Nodecals
+Patch DRLOCKA, 0, 0
+}
+
+texture DRLOCKI, 128, 241
+{
+Nodecals
+Patch DRLOCKI, 0, 0
+}
+
+texture SMLLOCKD, 128, 241
+{
+Nodecals
+Patch SMLLOCKD, 0, 0
+}
+
+texture GENLOCK, 249, 190
+{
+Nodecals
+Patch GENLOCK, 0, 0
+}
+
+texture PANHOR1, 150, 97
+{
+Nodecals
+Patch PANHOR1, 0, 0
+}
+
+
+texture PUR_AMMO, 150, 241
+{
+Nodecals
+Patch PUR_AMMO, 0, 0
+}
+
+texture PUR_COMP, 150, 241
+{
+Nodecals
+Patch PUR_COMP, 0, 0
+}
+
+texture PUR_GREN, 150, 241
+{
+Nodecals
+Patch PUR_GREN, 0, 0
+}
+
+texture PUR_MINE, 150, 241
+{
+Nodecals
+Patch PUR_MINE, 0, 0
+}
+
+texture PUR_MKIT, 150, 241
+{
+Nodecals
+Patch PUR_MKIT, 0, 0
+}
+
+texture PUR_SHLD, 150, 241
+{
+Nodecals
+Patch PUR_SHLD, 0, 0
+}
+
+texture PUR_TURR, 150, 241
+{
+Nodecals
+Patch PUR_TURR, 0, 0
+}

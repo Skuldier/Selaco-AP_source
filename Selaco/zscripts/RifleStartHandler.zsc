@@ -1,0 +1,174 @@
+// Handles the Rifle Start code. If checked, wipe inventory after level completion
+
+// [V] -- Actually remove Inventory Items
+// [ ] -- Detect entering a new level (NOT AREA!)
+// [ ] -- Prevent players from exploiting the Rifle Start by going back to an old level.
+// [V] -- EXCLUDE FAKE ITEMS!
+// [ ] -- All weapons should still be shown in the Workshop even after they have been removed
+// [ ] -- CockUI element to tell players their inventory got wiped (@COCKATRICE)
+
+class RifleStartHandler : StaticEventHandler 
+{
+
+    // Detect if player entered a new level
+    int lastGroup;
+
+    // Get the level we are exiting from
+    override void NewGame()
+    {
+        lastGroup = level.levelGroup;
+    }
+    
+    // Get the level we are entering
+    override void WorldLoaded (WorldEvent  e) 
+    {
+        console.printf("LEVEL GROUP: %d, PREVIOUS: %d", level.levelGroup, lastGroup);
+
+        if(e.isSaveGame || e.IsReopen || level.levelGroup == 100) {
+            // Just accept the save group
+            lastGroup = level.levelGroup;
+        } else if(level.levelGroup > lastGroup && level.levelGroup != 100 && lastGroup != 100) {
+            resetRifleStart();
+            lastGroup = level.levelGroup;
+        }
+    }
+
+    // Handles resetting
+    void resetRifleStart()
+    {
+        static const String removedItems[] = {"CabinetCardCount", "PortableMedkit", "HandGrenadeAmmo", "IceGrenadeAmmo", "MineAmmo"};
+
+	    PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+
+        int hasRifleStart = CVAR.GetCVar("g_riflestart",players[0]).getInt();
+
+        if(hasRifleStart)
+        {
+            //  --- Step 1 -> Remove all the guns and their ammo ---
+            // Scan through all available weapons and start wiping
+            int totalClasses = AllClasses.size();
+            for(int x = 0; x < totalClasses; x++) 
+            {
+                if(AllClasses[x] is 'SelacoWeapon')
+                {
+                    Inventory i = players[0].mo.FindInventory((class<SelacoWeapon>)(AllClasses[x]));
+                    if(i && i.amount > 0)
+                    {
+                        // Ignore weapons that we want to keep
+                        if(i is "FakeWeapon" || i is "Fists")
+                            continue;
+
+                        // Remove the ammo of the currently selected weapon
+                        if(i is "SelacoWeapon")
+                        {
+                            SelacoWeapon w = SelacoWeapon(i);
+
+                            if(w.ammo1)
+                            {
+                                // Set reserves to 0.
+                                w.ammo1.amount = 0;
+
+                                // Set loaded amount to the max amount of the ammo type. We dont want players to start with an empty magazine.
+                                if(w.ammo2) w.ammo2.amount = w.ammo2.maxamount;
+                            }
+                            
+                            // Get rid of the weapon unless it's a rifle.
+                            if(!(i is "rifle"))
+                            {
+                                i.destroy();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- Step 2 -> Reset Armor and Health
+                d.A_SetHealth(d.getMaxHealth()); // Set health to max
+                d.A_TakeInventory("SelacoArmor", 999); // Reset armor
+
+            // --- Step 3 -> Get rid of credits
+                // By default the player can take 1000 credits with them to the next level. This amount is reduced per difficulty level.
+                int creditsCap = 1000;
+                int reductionPerSkill = 50;
+                int skillLevel = CVAR.GetCVar("skill",players[0]).getInt(); 
+
+                // Reduce credits cap per skill level
+                for(int x = 0;x<skillLevel;x++)
+                {
+                    creditsCap-=50;
+                }
+
+            // If the player has more credits than the current skill level, set it to the cap.
+                if(d.countinv("creditsCount") > creditsCap)
+                {
+                    d.TakeInventory("CreditsCount", 999999999999);
+                    d.GiveInventory("CreditsCount", creditsCap);
+                }
+
+            // --- Step 4 -> Remove misc stuff //
+                for(int x=0;x<removedItems.size();x++)
+                {
+                    d.TakeInventory(removedItems[x], 999);
+                }
+
+            // --- Step 5 -> No Ice and Acid grenades!
+                d.TakeInventory("GLFragReserve", 999);
+                d.TakeInventory("GLAcidAmmo", 999);
+                d.TakeInventory("GLIceAmmo", 999);
+                d.TakeInventory("GLAcidReserve", 999);
+                d.TakeInventory("GLIceReserve", 999);
+
+
+            // --- Step 6 -> Give some spare rifle ammo
+                d.GiveInventory("RifleReserve", 60);
+        }
+    }
+}
+
+/* class HitFlashHandler : StaticEventHandler {
+    override void WorldThingDamaged (WorldEvent e) {
+        if(e.thing is "EnemySoldier") {
+            e.thing.Spawn("PurpleFlash", e.thing.pos);
+        }
+        if(e.thing is "SelacoEnemyRobot") {
+            e.thing.Spawn("YellowFlash", e.thing.pos);
+        }
+    }
+} */
+
+/* class HitFlashMaster : Actor {
+    mixin LightEmitter;
+    int r,g,b;
+
+    override void beginPlay() {
+        super.beginPlay();
+        spawnLight(255,0,255, BASE_FLASH_RADIUS, divisionSpeed:1.4);
+        destroy();
+    }
+
+    property RedColor : r;
+    property GreenColor : g;
+    property BlueColor : b;
+
+    const BASE_FLASH_RADIUS = 120;
+    default {
+        +NOINTERACTION;
+    }
+}
+
+class PurpleFlash : HitFlashMaster {
+    override void beginPlay() {
+        super.beginPlay();
+        spawnLight(255,0,255, BASE_FLASH_RADIUS, divisionSpeed:1.4);
+        destroy();
+    }
+}
+
+class YellowFlash : HitFlashMaster {
+    override void beginPlay() {
+        super.beginPlay();
+        spawnLight(255,105,5, BASE_FLASH_RADIUS, divisionSpeed:1.4);
+        destroy();
+    }
+} */

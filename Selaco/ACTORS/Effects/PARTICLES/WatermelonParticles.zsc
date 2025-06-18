@@ -1,0 +1,18 @@
+
+class MelonSplatterDefinition : PaintSplatterBaseDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.color = "ff0d00";
+        particle.SetScale(0.2);
+        particle.AlphaStep = -0.05;
+    }    
+}
+
+class MelonSplatterDefinitionTrail : MelonSplatterDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        super.OnCreateParticle(particle, refActor);
+        particle.SetScale(0.1);
+    }    
+}

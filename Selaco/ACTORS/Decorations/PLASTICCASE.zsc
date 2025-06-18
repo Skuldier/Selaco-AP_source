@@ -1,0 +1,308 @@
+
+class PlasticCase : PlasticCaseBase {
+    enum PLASTICCASE_TYPES {
+        PLASTICCASE_BLUE = 1,
+        PLASTICCASE_GREEN = 2,
+        PLASTICCASE_YELLOW = 3,
+        PLASTICCASE_RED = 4,
+        PLASTICCASE_PURPLE = 5,
+    } 
+    
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+        switch(args[0]) {
+            case 0:
+                frameNum = random(0,PLASTICCASE_YELLOW-1);
+                break;
+            case PLASTICCASE_GREEN:
+                frameNum = 0;
+                break;
+            case PLASTICCASE_PURPLE:
+                frameNum = 1;
+                break;
+            case PLASTICCASE_BLUE:
+                frameNum = 2;
+                break;
+            case PLASTICCASE_RED:
+                frameNum = 3;
+                break;
+            case PLASTICCASE_YELLOW:
+                frameNum = 4;
+                break;
+        }
+	}    
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1 {
+                frame = frameNum;
+            }
+            stop;
+        Pain:
+            TNT1 A 0;
+            TNT1 A 0 A_SETANGLE(angle+frandom(-4,4));
+            TNT1 A 0 A_PlaySound("impact/breakable", CHAN_AUTO, 0.5, 0, 1.0, pitch:frandom(1.1,1.2));
+            goto Spawn;
+        Death:
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO, 1.0, 0, 0.7);
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO, 1.0, 0, 0.7);
+            TNT1 A 0 {
+                if(random(0,1) == 1) {
+                    A_SpawnItemEx("PaperPieceUp", frandom(-6,6), frandom(-8,8), frandom(0,24));
+                    A_SpawnItemEx("PaperPieceUp", frandom(-6,6), frandom(-8,8), frandom(0,24));
+                } else {
+                    for(int i=0; i<random(15,25);i++) {
+                        A_SPAWNITEMEX("JunkLauncher", frandom(1,10), frandom(-8,8), frandom(0,19), random(1,1), random(1,1), 1.1, random(0,360), 0, 180);
+                    }
+                }
+            }
+            TNT1 A 0 A_SpawnItemEx(bottomModel);
+            TNT1 A 0 A_SpawnItemEx(topModel, 0, 0, 20, frandom(3,5), 0, 10, angle:random(0,360));
+            stop;
+		// Used for SE_06A's sliding door
+		ShrinkSize:
+			TNT1 A 0
+			{
+				A_SETSIZE(9, -1);
+			}
+			goto spawn;
+    }
+
+}
+
+// DEPRECATED.
+class PlasticCaseSpawner : actor {
+	static const String CaseList[] =
+		{
+			"PLASTIC_CASE_GREEN",
+			"PLASTIC_CASE_PURPLE",
+            "PLASTIC_CASE_BLUE",
+            "PLASTIC_CASE_RED",
+            "PLASTIC_CASE_YELLOW"
+	};	
+
+	string caseToSpawn;
+
+	override void PostBeginPlay() {
+		caseToSpawn = CaseList[random(0, CaseList.size()-1)];
+        switch(args[0]) {
+            case 0:
+                caseToSpawn = CaseList[random(0, CaseList.size()-1)];
+                break;
+            case 1:
+                caseToSpawn = "PLASTIC_CASE_BLUE";
+                break;
+            case 2:
+                caseToSpawn = "PLASTIC_CASE_GREEN";
+                break;
+            case 3:
+                caseToSpawn = "PLASTIC_CASE_YELLOW";
+                break;
+            case 4:
+                caseToSpawn = "PLASTIC_CASE_RED";
+                break;
+            case 5:
+                caseToSpawn = "PLASTIC_CASE_PURPLE";
+                break;
+            case 6:
+                caseToSpawn = "PLASTIC_CASE_LONG";
+                break;
+        }
+        A_SpawnItemEx(caseToSpawn, flags:SXF_TRANSFERSPECIAL | SXF_TRANSFERAMBUSHFLAG | SXF_TRANSFERPOINTERS | 288,tid:tid);
+		super.PostBeginPlay();
+	}
+}
+class PlasticCaseBase : PickupableDecoration {
+    String topModel, bottomModel;
+    property TopModel : topModel;
+    property BottomModel : bottomModel;
+
+    override void spawnLandingEffects() {
+        A_SpawnDefinedParticle("BulletImpactEffectPlasticDefinition", 0, 0, 0);
+       //A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0, frandom(1, 2), frandom(-1.5, -2));
+        //A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0, frandom(1.5, 2), 0, frandom(1.5, 2));
+    }
+
+    default {
+        tag "$OBJECT_PLASTICCONTAINER";
+        SelacoActor.CollisionSound "push/plastic";
+        +PickupableDecoration.SlowDownPlayer;
+        PickupableDecoration.MaxThrowVel 12;
+        PickupableDecoration.HoldDistance 40;
+        PickupableDecoration.HoldHeight -24;
+        PickupableDecoration.LandingSound "PLASTICCASE/LANDING";    
+        +SOLID;
+        +SHOOTABLE;
+        +NOBLOODDECALS
+        +PUSHABLE
+        +CANPASS
+        -NoBlood
+        radius 16;
+        friction 0.7;
+        mass 450;
+        height 34;
+        pushfactor 0.55;
+        health 125;
+        painchance 255;
+
+        PlasticCaseBase.TopModel "PLASTIC_CASE_GREEN_TOP";
+        PlasticCaseBase.BottomModel "PLASTIC_CASE_GREEN_BOTTOM";
+        
+        -SelacoActor.WakeNearPlayer;
+
+        DamageFactor "BulletAlien", 5.0;
+        bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+        PainSound "impact/breakable";
+    }
+}
+
+class PLASTIC_CASE_LONG   : PLASTIC_CASE_GREEN {
+    default {
+        radius 26;
+        height 28;
+        PlasticCaseBase.TopModel "PLASTIC_CASE_LONG_TOP";
+        PlasticCaseBase.BottomModel "PLASTIC_CASE_LONG_BOTTOM";
+    }
+    states {
+        spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class PLASTIC_CASE_GREEN : PlasticCaseBase {
+    states {
+        Spawn:
+            VOXE L -1;
+            stop;
+        Pain:
+            TNT1 A 0;
+            TNT1 A 0 A_SETANGLE(angle+frandom(-4,4));
+            TNT1 A 0 A_PlaySound("impact/breakable", CHAN_AUTO, 0.5, 0, 1.0, pitch:frandom(1.1,1.2));
+            goto Spawn;
+        Death:
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO, 1.0, 0, 0.7);
+            TNT1 A 0 A_PLAYSOUND("dest/snap", CHAN_AUTO, 1.0, 0, 0.7);
+            TNT1 A 0 {
+                if(random(0,1) == 1) {
+                    A_SpawnItemEx("PaperPieceUp", frandom(-6,6), frandom(-8,8), frandom(0,24));
+                    A_SpawnItemEx("PaperPieceUp", frandom(-6,6), frandom(-8,8), frandom(0,24));
+                } else {
+                    for(int i=0; i<random(15,25);i++) {
+                        A_SPAWNITEMEX("JunkLauncher", frandom(1,10), frandom(-8,8), frandom(0,19), random(1,1), random(1,1), 1.1, random(0,360), 0, 180);
+                    }
+                }
+            }
+            TNT1 A 0 A_SpawnItemEx(BottomModel);
+            TNT1 A 0 A_SpawnItemEx(TopModel, 0, 0, 20, frandom(3,5), 0, 10, angle:random(0,360));
+            stop;
+		// Used for SE_06A's sliding door
+		ShrinkSize:
+			TNT1 A 0
+			{
+				A_SETSIZE(9, -1);
+			}
+			goto spawn;
+    }
+}
+
+class PLASTIC_CASE_GREEN_BOTTOM : PlasticCaseBase {
+    default {
+        -SOLID;
+        -PUSHABLE;
+        +NOBLOCKMAP
+        +BUDDHA;
+        radius 3;
+        height 10;
+    }
+    states {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+class PLASTIC_CASE_GREEN_TOP : SelacoActorDecorationMissile {
+    // Hits floor
+    override void bounceEffects()
+    {
+        for(int x=0;x<=3;x++) {
+            A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+        }
+        A_SpawnDefinedParticle("BulletImpactEffectPlasticStationaryDefinition");
+    }
+
+    default {
+        -SOLID;
+        -PUSHABLE;
+        +MISSILE;
+        -SelacoActor.SlopeAlignment;
+        +DoomBounce
+        radius 3;
+        gravity 0.8;
+        SeeSound "bounce/jug";
+        BounceFactor 0.5;
+    }
+    states {
+        Spawn:
+            VOXE L 0;
+            VOXE L 0 {
+                A_SETANGLE(random(0,360));
+            }
+            goto looper;
+        Looper:
+            VOXE LL 1
+            {
+                if(vel.length() == 0)
+                {
+                    setStateLabel("Death");
+                }
+                loopingEffects();
+            }
+            TNT1 A 0
+            {
+                A_SETPITCH(pitch+25);
+            }
+            loop;
+    }
+}
+
+class PLASTIC_CASE_PURPLE: PLASTIC_CASE_GREEN { 
+    default {
+        PlasticCaseBase.TopModel "PLASTIC_CASE_PURPLE_TOP";
+        PlasticCaseBase.BottomModel "PLASTIC_CASE_PURPLE_BOTTOM";
+    }
+}
+class PLASTIC_CASE_BLUE: PLASTIC_CASE_GREEN { 
+    default {
+        PlasticCaseBase.TopModel "PLASTIC_CASE_BLUE_TOP";
+        PlasticCaseBase.BottomModel "PLASTIC_CASE_BLUE_BOTTOM";
+    }
+}
+class PLASTIC_CASE_RED: PLASTIC_CASE_GREEN { 
+    default {
+        PlasticCaseBase.TopModel "PLASTIC_CASE_RED_TOP";
+        PlasticCaseBase.BottomModel "PLASTIC_CASE_RED_BOTTOM";
+    }
+}
+
+class PLASTIC_CASE_YELLOW: PLASTIC_CASE_GREEN { 
+    default {
+        PlasticCaseBase.TopModel "PLASTIC_CASE_YELLOW_TOP";
+        PlasticCaseBase.BottomModel "PLASTIC_CASE_YELLOW_BOTTOM";
+    }
+}
+
+class PLASTIC_CASE_LONG_TOP : PLASTIC_CASE_GREEN_TOP { }
+class PLASTIC_CASE_LONG_BOTTOM : PLASTIC_CASE_GREEN_BOTTOM { }
+class PLASTIC_CASE_PURPLE_TOP : PLASTIC_CASE_GREEN_TOP { }
+class PLASTIC_CASE_PURPLE_BOTTOM : PLASTIC_CASE_GREEN_BOTTOM { }
+
+class PLASTIC_CASE_RED_TOP : PLASTIC_CASE_GREEN_TOP { }
+class PLASTIC_CASE_RED_BOTTOM : PLASTIC_CASE_GREEN_BOTTOM { }
+
+class PLASTIC_CASE_BLUE_TOP : PLASTIC_CASE_GREEN_TOP { }
+class PLASTIC_CASE_BLUE_BOTTOM : PLASTIC_CASE_GREEN_BOTTOM { }
+
+class PLASTIC_CASE_YELLOW_TOP : PLASTIC_CASE_GREEN_TOP { }
+class PLASTIC_CASE_YELLOW_BOTTOM : PLASTIC_CASE_GREEN_BOTTOM { }

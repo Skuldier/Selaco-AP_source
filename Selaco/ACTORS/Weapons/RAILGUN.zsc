@@ -1,0 +1,303 @@
+// --------------------------------------------------------------------------
+//
+// Railgun
+//
+// --------------------------------------------------------------------------
+class Rail_Gun : SelacoWeapon
+{
+	
+	default {
+		WeaponBase.AmmoUse1 0;
+		WeaponBase.AmmoUse2 0;
+		WeaponBase.AmmoGive1 0;
+		WeaponBase.AmmoGive2 0;
+		WeaponBase.AmmoType1 "RailgunAmmo";
+		WeaponBase.AmmoType2 "";
+		SelacoWeapon.lowAmmoThreshold 0;
+		SelacoWeapon.VoxelDecorationModel "RailgunModel";
+		WeaponBase.SlotNumber 8;
+		WeaponBase.BobRangeX 1.2;
+		WeaponBase.BobRangeY 0.9;
+		WeaponBase.BobSpeed 2.4;
+		SelacoWeapon.SlidingSprite "RAIS";
+		SelacoWeapon.InteractionSprite "RAIB";
+		SelacoWeapon.MeleeSpritev2 "RAIM";
+		SelacoWeapon.AmmoColor "3A C0 FF";
+		SelacoWeapon.BulletDamageToGlass 9999;
+		SelacoWeapon.BulletForceToGlass 30;
+		SelacoWeapon.weaponStatistic	STAT_RAILGUN;
+		SelacoWeapon.WeaponDamage 550;
+		SelacoWeapon.weaponRecoil 0;
+		Inventory.Icon "WPNRAIL";
+		Obituary "%o was pierced by %k's Railgun.";
+		//Inventory.PickupSound "Weapon/RAILPICK"
+		+WeaponBase.NOAUTOAIM;
+		+WeaponBase.NOAUTOFIRE;
+		+WeaponBase.NOALERT;
+		+FLOORCLIP;
+		+DONTGIB;
+		Tag "$WEAPON_RAILGUN";
+	}
+	States
+	{
+	precache:
+		RAIM ABCDEF 0;
+		RAIS ABCDEF 0;
+		RAIB ABCDEF 0;
+		RAIM ABCDEF 0;
+		RAIR ABCDEGIJKLMNOPQ 0;
+		stop;
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_SPAWNITEMEX("RAILGUN_PICKUP");
+		Stop;
+
+	Equip:
+		TNT1 A 0 A_SETTICS(invoker.WEAPON_SWAP_SPEED);
+		TNT1 A 0
+		{
+			invoker.breathingFrame = 19;
+			checkWeaponReady();
+			A_EquipNewWeapon();
+		}
+        RAIR ABDEFHIJKLMNP 1
+		{
+			S_WeaponOffset();
+		}
+	Ready3:
+	Ready2:
+		RAII A 1;
+	ReloadWeapon:
+		TNT1 A 0
+		{
+			A_TakeInventory("Reloading", 1);
+		}
+ReallyReady:
+		TNT1 A 0 A_SetCrosshair(39);
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		RAII A 1
+			{
+				checkPlayerStates();
+				breathWobble("RAII", 20);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			}
+		loop;
+
+	Unequip:
+		TNT1 A 0 A_StopSound(3);
+		TNT1 A 0 A_StopSound(6);
+		TNT1 A 0 A_StopSound(1);
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+        TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_UNEQUIPWEAPON();
+        RAIR QOMLKIHFEDCBA 1;
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower;
+		Wait;
+
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 0, 0, 0, 10, 10, 10, 6, 2, 2);
+		RAIW ABCD 2  {
+				A_SetPitch(pitch + 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		RAIW E 6  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		RAIW DCBA 2  {
+				A_SetPitch(pitch - 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+
+	Select:
+		TNT1 A 4;
+		TNT1 A 0 A_EnableWeaponShift();	// Only needed once since we have no zoom state
+		//TNT1 A 0 A_PlaySound("PLSDRAW");
+		TNT1 AAAAAAAAA 0 A_Raise;
+		TNT1 AAAA 1 A_Raise;
+		Wait;
+	
+	Fire:
+		TNT1 A 0 A_SetCrosshair(39);
+		TNT1 A 0 A_WeaponOffset(0,32);
+		TNT1 A 0 
+		{
+			if(level.levelnum != MAP_SAFEROOMEXTENSION)
+			{
+				invoker.TakeWeaponAmmo(ammoType2Override:findInventory(invoker.ammoType1));
+			}
+		}
+		TNT1 A 0 A_SetCrosshair(0);
+		TNT1 A 0 
+		{
+			A_FireProjectile("RailShot", 0, 0, 0, 0);
+			A_AlertMonsters();
+			S_ZOOMFACTOR(0.92);
+			A_FireProjectile("muzzleFlashRailgun",0,0,0,5);
+			invoker.playerIsFiring();
+			// Strong shake first
+			switch(getCvar("g_screenshake")) {
+				case 2:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 9, 9, 9);
+					A_QuakeEx(4, 4, 4 , 10, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 10, 10, 10, 6, 0, 4);
+					break;
+				case 1:
+					ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 9);
+					A_QuakeEx(2, 2, 2 , 7, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 8, 8, 8, 5, 0, 3);
+					break;
+			}
+			A_PlaySound("weapons/railgunattack", CHAN_AUTO, 1.0, pitch:frandom(0.95,1.05));
+			// Zero check added here for savegame compatibility
+			// Old saves will not have weaponDamage defined.
+			A_RailAttack(invoker.weaponDamage == 0 ? 550 : invoker.weaponDamage, spawnofs_xy: 9, useAmmo:1, puffType:"RailgunPuff",range:2000, sparsity:41.35,spawnClass:"RailgunBeam", spawnofs_z:-3);
+			FireBullets(0, 0, 1, -1, "RailgunPuffEffect"); // At the time writing, hitpuffs dont spawn from RailAttacks. Firebullets is purely used to spawn a hitpuff.
+		}
+		RAIF AA 1 S_SelacoMuzzleFlash("PLM2", 0, 0.15, xOffset:-1);
+		TNT1 A 0
+		{
+			S_ZOOMFACTOR(0.98);
+		}
+		RAIF BB 1 S_SelacoMuzzleFlash("PLM2", 1, 0.15, xOffset:-1);
+		TNT1 A 0
+		{
+			S_ZOOMFACTOR(1.0);
+		}
+		TNT1 A 0 A_Recoil(3);
+		TNT1 A 0 A_FireProjectile("SmokeSpawner",0,0,0,5);
+		RAIF CC 1  S_SelacoMuzzleFlash("PLM2", 2, 0.15, xOffset:-1);
+		TNT1 A 0 A_FireProjectile("BlueFlare",0,0,0,5);
+		RAIF DD 1  S_SelacoMuzzleFlash("PLM2", 3, 0.15, xOffset:-1);
+		RAIF FFGHIJKLMNOPQRSTUVWXYZ 2 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_SetCrosshair(15);
+		TNT1 A 0 A_STOPSOUND(CHAN_7);
+		TNT1 A 0 A_PlaySound("Weapon/RAILRDY", CHAN_AUTO, 0.7, pitch:frandom(0.95,1.05));
+		goto ReallyReady;
+	
+	ReloadWeapon:
+		TNT1 A 0 A_TakeInventory("Reloading", 1);
+	    RAIS A 0 S_WeaponReady;
+		TNT1 A 0 A_StopSound(6);
+		goto Reallyready;
+
+	}
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		setCrosshair('RailgunCrosshair');
+	}
+}
+
+class RailShot : FastProjectile
+{
+  default {
+	Speed 400;
+	Radius 5;
+	Height 3;
+	Damage 35;
+	Renderstyle "Add";
+	-CANNOTPUSH;
+	+NODAMAGETHRUST;
+	+EXTREMEDEATH;
+	+FORCERADIUSDMG;
+	DamageType "RailAttack";
+	DeathSound "weapons/StachanovHit";
+	MissileType "RailGunTrail";
+	Decal "RailScorchLower";
+  }
+  states
+  {
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 1 A_PlaySound("Weapons/StachanovFly",5,1.0,1);
+		TNT1 A 1;
+		Loop;
+	Death:
+		TNT1 AA 0 A_SpawnItemEx("BluePlasmaParticleSpawner", 0, 0, 0, 0, 0, 0, 0, 128);
+		TNT1 A 0 A_PlaySound("RAIL_I");
+		TNT1 ABCDE 2 BRIGHT A_SpawnItem("BlueFlare" ,0);
+		stop;
+  }
+}
+
+class muzzleFlashRailgun : Actor {
+	default {
+		+NOINTERACTION;
+	}
+	mixin LightEmitter;
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		spawnLight(rColor:100, gColor:400, bColor:900, 350, 0, shadowRequirement:-1, xOffset:random(-10,10), overbright: 1, divisionSpeed:1.35, alwaysShow:1,weaponFlash:1);
+	}
+	states {
+		Spawn:
+			TNT1 A 1;
+			stop;
+	}
+}
+
+class RailgunBeam : Actor {
+	Dawn d;
+
+	override void beginPlay(){
+		super.beginPlay();
+		PlayerPawn pawn=players[consolePlayer].mo;
+		d = Dawn(pawn);
+	}
+
+	default {
+		+ROLLSPRITE;
+		+NOINTERACTION
+		+INTERPOLATEANGLES
+		RenderStyle "translucent";
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 AAAAAAAAA 0 A_SpawnItemEx("RailGunTrailSpark", random(12,-12), random(4,-4), random(4,-4), 0, 0, 0, 0, 128, 12);
+			VOXE L 4 BRIGHT;
+		FadeAway:
+			VOXE L 1 BRIGHT A_FADEOUT(0.02);
+			loop;
+	}
+}
+
+class RailGunTrailSpark : actor
+{ 
+
+	override void postbeginPlay() {
+		super.postBeginPlay();
+		// Move and roll
+		roll = random(0,360);
+		A_ChangeVelocity (frandom(-0.7, 0.7), frandom(-0.7, 0.7), frandom(-0.7, 0.7),CVF_REPLACE);
+	}
+
+	override void tick() {
+		super.tick();
+		// Movement stuff
+		vel*=0.94;
+		scale*=0.98;
+		A_FadeOut(0.015);
+	}
+
+	default {
+		RenderStyle "add";
+		Scale 0.045;
+		Alpha 0.85;
+		+NOINTERACTION;
+		+NOGRAVITY;
+		+ROLLSPRITE
+		+CLIENTSIDEONLY;
+	}
+    States
+    {
+		Spawn:
+			TNT1 A 0;
+			RABA A 1 bright;
+			Loop;
+    }
+}

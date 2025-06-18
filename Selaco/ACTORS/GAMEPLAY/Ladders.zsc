@@ -1,0 +1,366 @@
+// Ladder mostly just acts as a passive helper for Dawn to know where and when to climb
+// Place ladders at the top of where you want climbing to stop, they will automatically find the ground and set size accordingly
+// Angle ladders towards the wall you want to climb
+class Ladder : Actor {
+    int ladderFlags;
+
+    flagdef AllowSlide      : ladderFlags, 1;
+    flagdef GrabCentering   : ladderFlags, 2;
+
+    // TODO: Add sound effect props, allowing for different surfaces
+
+    default {
+        radius 32;
+        height 64;
+        -SOLID;
+        -SHOOTABLE;
+        +NONSHOOTABLE;
+        +NOGRAVITY;
+        +SPECIAL;
+		-THRUACTORS;
+		-THRUGHOST;
+        +GHOST;
+        +NODAMAGE;
+        +NOBLOODDECALS;
+        -MOVEWITHSECTOR;
+        -RELATIVETOFLOOR;
+        +Ladder.AllowSlide;
+        +Ladder.GrabCentering;
+        Activation THINGSPEC_Default;
+        Tag "$OBJECT_LADDER";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A -1 {
+                SleepIndefinite();
+            }
+            stop;
+    }
+
+    Line wallLine;
+    Vector2 wallPos;
+    bool inactive;      // Not called active, because we can't default it to TRUE in any meaningful way
+    bool automaticDown; // Automatically grab the player if they approach from above, disabled by default
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+        
+        bGrabCentering = args[2] > 0 ? args[2] - 1 : false;
+        
+        // Size to the ground
+        if(args[0] <= 0) {
+            double groundLevel = GetZAt(radius - 8);
+
+            A_SetSize(newHeight: pos.z - groundLevel + 64);
+            SetOrigin((pos.x, pos.y, groundLevel), false);
+        } else {
+            A_SetSize(newHeight: args[0]);
+            SetOrigin((pos.x, pos.y, pos.z + 64 - args[0]), false);
+        }
+
+        if(args[1] > 0) automaticDown = true;
+
+        // Spawn use object at the top
+        LadderUsable lu = LadderUsable(Spawn('LadderUsable', pos + (0,0,height)));
+        lu.angle = angle;   // This really doesn't matter, screw it
+        lu.owningLadder = self;
+        lu.setTag(getTag());
+
+        // Spawn bottom use object
+        lu = LadderUsable(Spawn('LadderUsableAtBottom', pos));
+        lu.angle = angle;   // This really doesn't matter, screw it
+        lu.owningLadder = self;
+        lu.A_SetSize(newHeight: height);
+        lu.setTag(getTag());
+    }
+
+    override void Activate(Actor activator) {
+        inactive = false;
+        activationType = THINGSPEC_Default;
+    }
+
+	override void Deactivate(Actor activator) {
+        inactive = true;
+        activationType = THINGSPEC_Default;
+    }
+
+    override void touch(Actor toucher) {
+        if(inactive) return;
+
+        let d = Dawn(toucher);
+		if(d) {
+			if(d.curLadder) {
+                if(d.curLadder == self) {
+                    // Dawn already knows she is climbing a ladder, TODO: Update to make sure she still is.. or something. I forget now.
+                }
+            } else {
+                // Make sure Dawn is heading roughly in the direction of the ladder surface, and could reasonably be touching it
+                // If so, assign the ladder to Dawn and she will start to climb on the next tick
+                // Check for pressing into the ladder from in front of it
+                if(abs(deltaAngle(angle, d.angle)) < 55 && abs(deltaAngle(vectorangle(d.vel.x, d.vel.y), angle)) < 85) {
+                    let angVec = angleToVector(angle, 1);
+                    let wallPos = pos.xy + (angVec * radius);
+                    let dir = (-angVec.y, angVec.x);
+
+                    // Make sure we are near the presumed ladder surface and moving towards it
+                    if(!(d.vel.xy ~== (0,0)) && Line.DistanceToLine(dir, wallPos, d.pos.xy) < d.radius + 16) {
+                        d.tryGrabLadder(self);
+                    }
+                } else {
+                    // Check for grabbing the ladder from above (near the top of the ladder)
+                    // Requires 
+                    // - moving towards ladder
+                    if(abs(deltaAngle(vectorangle(d.vel.x, d.vel.y), angle)) < 110) return;
+
+                    // - near the top of the ladder
+                    if(d.pos.z < pos.z + height - 50) return;
+
+                    // - has left the ledge near the ladder
+                    if(d.pos.z > pos.z + height - 2) return;
+
+                    // - near the outside edge of the ladder
+                    let angVec = angleToVector(angle, 1);
+                    let dir = (-angVec.y, angVec.x);
+                    let wallPos = pos.xy + (angVec * radius);
+                    if(Line.DistanceToLine(dir, wallPos, d.pos.xy) > d.radius + 24) return;
+
+                    // - not moving too fast
+                    //if(d.vel.xy.length() > d.Speed + 0.1) { A_PRINTBOLD("Moving too fast!"); return; }
+                    
+                    // At the correct angle for auto-grab
+                    if(!automaticDown && abs(deltaAngle(d.angle, angle)) > 70) return;
+
+                    // - does not require looking at the ladder
+                    d.tryGrabLadder(self, true);
+                } 
+            }
+		}
+	}
+
+    override bool canCollideWith(Actor other, bool passive) {
+        if(other is 'Dawn') return true;
+        return false;
+	}
+
+    void dawnUsedTop(Dawn d) {
+        d.tryGrabLadder(self, true, true);
+    }
+
+    void dawnUsedBottom(Dawn d) {
+        d.tryGrabLadder(self, false, true);
+    }
+
+    clearscope private bool rightSideof(Vector2 v, Vector2 vp, Vector2 p) {
+        return (v.y * p.x) - (v.x * p.y) - (v.y * vp.x) + (v.x * vp.y) > 0;
+    }
+
+    clearscope Vector2 getClosestLadderPos(Vector2 pos) {
+        let angVec = angleToVector(angle, 1);
+        let dir = (-angVec.y, angVec.x);
+        let wallPos = self.pos.xy + (angVec * (radius - 2.));
+        return pointOnLine(wallPos, wallPos + (dir * radius), pos, false);
+    }
+
+    clearscope Vector2 getCenterLadderPos() {
+        return self.pos.xy + angleToVector(angle, radius - 2.);
+    }
+
+    clearscope bool playerCanUseFromAbove(Dawn d) {
+        if(inactive) return false;
+        
+        let angVec = angleToVector(angle, 1);
+        let dir = (-angVec.y, angVec.x);
+        let wallPos = pos.xy + (angVec * radius);
+        
+        // Not on ground
+        if(!(d.pos.Z <= d.floorz || d.pos.Z ~== d.floorz)) return false;
+        
+        // Is on the non-ladder side
+        if(!rightSideof(dir, wallPos, d.pos.xy)) return false;
+        
+        // Too far from ladder surface
+        if(Line.DistanceToLine(dir, wallPos, d.pos.xy) > d.radius + 64) return false;
+        if(d.pos.z - (pos.z + height) > 16) return false;
+        
+        // Too far to grab a part of the ladder
+        double distToCenter =  (pointOnLine(pos.xy + dir, pos.xy, d.pos.xy) - pos.xy).length();
+        if(distToCenter > radius) return false;
+
+        // Make sure player is looking roughly at the ladder
+        if(abs(deltaAngle(d.angle, angle)) < 70) return false;
+
+        return true;
+    }
+
+    clearscope bool playerCanUseFromBelow(Dawn d) {
+        if(inactive) return false;
+        
+        // Is player above the useable area?
+        if(d.pos.z >= pos.z + height - 16) return false;
+
+        let angVec = angleToVector(angle, 1);
+        let dir = (-angVec.y, angVec.x);
+        let wallPos = pos.xy + (angVec * radius);
+        
+        // Is on the ladder side
+        if(rightSideof(dir, wallPos, d.pos.xy)) return false;
+        
+        // Too far from ladder surface
+        if(Line.DistanceToLine(dir, wallPos, d.pos.xy) > d.radius + 64) return false;
+        if(pos.z - d.pos.z > d.height * 0.75) return false;
+        
+        // Too far to grab a part of the ladder
+        double distToCenter =  (pointOnLine(pos.xy + dir, pos.xy, d.pos.xy) - pos.xy).length();
+        if(distToCenter > radius) return false;
+
+        // Make sure player is looking roughly at the ladder
+        if(abs(deltaAngle(d.angle, angle)) > 70) return false;
+
+        return true;
+    }
+
+    // Original func by Corey Ogburn
+    clearscope static Vector2 pointOnLine(Vector2 p1, Vector2 p2, Vector2 pt, bool restrict = false) {
+        Vector2 r = (0,0);
+        if (p1.x == p2.x && p1.y == p2.y) p1.x -= 0.00001;
+
+        let U = ((pt.x - p1.x) * (p2.x - p1.x)) + ((pt.y - p1.y) * (p2.y - p1.y));
+        let Udenom = (p2.x - p1.x)**2 + (p2.y - p1.y)**2;
+
+        U /= Udenom;
+
+        r.x = p1.x + (U * (p2.x - p1.x));
+        r.y = p1.y + (U * (p2.y - p1.y));
+
+        if(restrict) {
+            let minx = min(p1.x, p2.x);
+            let maxx = max(p1.x, p2.x);
+
+            let miny = min(p1.y, p2.y);
+            let maxy = max(p1.y, p2.y);
+
+            r.x = clamp(r.x, minx, maxx);
+            r.y = clamp(r.y, miny, maxy);
+        }
+
+        return r;
+    }
+
+
+    static clearscope bool, Vector2 getIntersection(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3) {
+        let s1_x = p1.x - p0.x;     
+        let s1_y = p1.y - p0.y;
+        let s2_x = p3.x - p2.x;     
+        let s2_y = p3.y - p2.y;
+        
+        let sd = (-s2_x * s1_y + s1_x * s2_y);
+
+        if( (s1_x * s2_y - s1_y * s2_x) ~== 0 || sd ~== 0) return false, (0,0);  // Check perpendicular
+        
+        let s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / sd;
+        let t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / sd;
+
+        if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+            return true, (
+                p0.x + (t * s1_x),
+                p0.y + (t * s1_y)
+            );
+        }
+
+        return false, (0,0);
+    }
+}
+
+
+class FenceLadder : Ladder {
+    default {
+        -Ladder.GrabCentering;
+        -Ladder.AllowSlide;
+        Tag "$OBJECT_FENCE";
+    }
+}
+
+
+// Placed at the top of ladders for climbing down
+class LadderUsable : Interactable {
+    Ladder owningLadder;
+
+    default {
+        Radius 32;
+        Height 64;
+        -SOLID;
+        -SHOOTABLE;
+        +NOGRAVITY;
+        +SPECIAL;
+		+THRUACTORS;
+		+THRUGHOST;
+        +GHOST;
+        +NODAMAGE;
+        +NOBLOODDECALS;
+        -MOVEWITHSECTOR;
+        -RELATIVETOFLOOR;
+        -SELACOACTOR.WakeNearPlayer;
+        -SELACOACTOR.WakeOnPain;
+        -SELACOACTOR.WakeOnTouch;
+        -SELACOACTOR.allowSlideCollision;
+        -SelacoActor.SlopeAlignment;
+        Activation THINGSPEC_Activate;
+        +USESPECIAL;
+        Tag "$OBJECT_LADDER";
+        SelacoActor.UseTag "$INTERACT_CLIMB";
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A -1 {
+                SleepIndefinite();
+            }
+            stop;
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+        useIcon = TexMan.CheckForTexture("XH_CLIMB");
+    }
+
+    override bool canCollideWith(Actor other, bool passive) {
+        return false;
+	}
+
+    override void Activate (Actor activator) {
+        ActivationType = THINGSPEC_Activate;
+        bUseSpecial = true;
+        
+        if(owningLadder && activator is 'Dawn') {
+            owningLadder.dawnUsedTop(Dawn(activator));
+        }
+	}
+
+    // Check if conditions are correct for this to be useable
+    clearscope virtual bool dawnCanUseLadder(Dawn d) {
+        return owningLadder && !owningLadder.inactive && owningLadder.playerCanUseFromAbove(d) && !d.holdingObject;
+    }
+}
+
+
+class LadderUsableAtBottom : LadderUsable {
+    default {
+        height 50;
+    }
+
+    override void Activate (Actor activator) {
+        ActivationType = THINGSPEC_Activate;
+        bUseSpecial = true;
+        
+        if(owningLadder && activator is 'Dawn') {
+            owningLadder.dawnUsedBottom(Dawn(activator));
+        }
+	}
+
+    override bool dawnCanUseLadder(Dawn d) {
+        return owningLadder && !owningLadder.inactive && owningLadder.playerCanUseFromBelow(d) && !d.holdingObject;
+    }
+}

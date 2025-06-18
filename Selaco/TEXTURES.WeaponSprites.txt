@@ -1,0 +1,9531 @@
+weaponsprite CODEA0, 8, 13
+{
+    offset 150, -291
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEB0, 73, 123
+{
+    offset 150, -266
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODED0, 186, 186
+{
+    offset 150, -203
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEE0, 260, 209
+{
+    offset 150, -161
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEF0, 358, 284
+{
+    offset 150, -113
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEG0, 502, 380
+{
+    offset 150, -52
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEH0, 696, 444
+{
+    offset 150, 11
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEI0, 959, 498
+{
+    offset 150, 65
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEJ0, 959, 503
+{
+    offset 150, 70
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEK0, 960, 504
+{
+    offset 150, 70
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEL0, 960, 504
+{
+    offset 150, 70
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite CODEM0, 960, 504
+{
+    offset 160, 120
+    XSCALE 2
+    YSCALE 2
+}
+weaponsprite DAD1A0, 303, 301
+{
+    offset -43, -202
+}
+weaponsprite DAD1B0, 295, 334
+{
+    offset -40, -169
+}
+weaponsprite DAD1C0, 312, 392
+{
+    offset -9, -111
+}
+weaponsprite DAD1D0, 319, 437
+{
+    offset -6, -66
+}
+weaponsprite DAD1E0, 329, 449
+{
+    offset -24, -54
+}
+weaponsprite DAD1F0, 315, 439
+{
+    offset -70, -64
+}
+weaponsprite DAD1G0, 341, 445
+{
+    offset -35, -58
+}
+weaponsprite DAD1H0, 354, 455
+{
+    offset -34, -48
+}
+weaponsprite DAD1I0, 363, 459
+{
+    offset -30, -44
+}
+weaponsprite DAD1J0, 355, 448
+{
+    offset -49, -55
+}
+weaponsprite DAD1K0, 371, 447
+{
+    offset -29, -56
+}
+weaponsprite DAD1L0, 374, 420
+{
+    offset -19, -83
+}
+weaponsprite DAD1M0, 377, 363
+{
+    offset -6, -140
+}
+weaponsprite DAD1N0, 411, 340
+{
+    offset 20, -163
+}
+weaponsprite DAD1O0, 443, 346
+{
+    offset 20, -157
+}
+weaponsprite DAD1P0, 476, 314
+{
+    offset 17, -189
+}
+weaponsprite DAD1Q0, 505, 269
+{
+    offset 15, -234
+}
+weaponsprite DAD1R0, 498, 244
+{
+    offset -9, -259
+}
+weaponsprite DAD1S0, 499, 229
+{
+    offset -19, -274
+}
+weaponsprite DAD1T0, 507, 224
+{
+    offset -19, -279
+}
+weaponsprite DAD1U0, 514, 224
+{
+    offset -19, -279
+}
+weaponsprite DAD1V0, 514, 224
+{
+    offset -21, -279
+}
+weaponsprite DAHSA0, 151, 45
+{
+    offset -11, -388
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAHSB0, 351, 127
+{
+    offset 121, -306
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAHSC0, 394, 212
+{
+    offset 124, -221
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAHSD0, 403, 287
+{
+    offset 97, -146
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAHSE0, 400, 380
+{
+    offset 73, -53
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAHSF0, 388, 459
+{
+    offset 50, 26
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAHSG0, 388, 491
+{
+    offset 24, 58
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAHSH0, 386, 500
+{
+    offset -6, 67
+    XSCALE 2.3
+    YSCALE 2.3
+}
+weaponsprite DAWKA0, 97, 28
+{
+    offset -617, -565
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKB0, 147, 116
+{
+    offset -600, -477
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKC0, 222, 220
+{
+    offset -589, -373
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKD0, 295, 335
+{
+    offset -578, -258
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKE0, 362, 453
+{
+    offset -567, -140
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKF0, 363, 493
+{
+    offset -582, -100
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKG0, 282, 397
+{
+    offset -589, -196
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKH0, 246, 296
+{
+    offset -588, -297
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKI0, 242, 381
+{
+    offset -572, -212
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKJ0, 242, 381
+{
+    offset -571, -212
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKK0, 241, 379
+{
+    offset -571, -214
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKL0, 265, 357
+{
+    offset -550, -236
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKM0, 280, 344
+{
+    offset -548, -249
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKN0, 303, 398
+{
+    offset -537, -195
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKO0, 319, 434
+{
+    offset -536, -159
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKP0, 315, 419
+{
+    offset -531, -174
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKQ0, 292, 349
+{
+    offset -541, -244
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKR0, 246, 258
+{
+    offset -551, -335
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKS0, 182, 156
+{
+    offset -574, -437
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKT0, 120, 53
+{
+    offset -601, -540
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKU0, 100, 31
+{
+    offset -600, -562
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DAWKV0, 112, 41
+{
+    offset -596, -552
+    XSCALE 3.2
+    YSCALE 3.2
+}
+weaponsprite DLEGA0, 564, 363
+{
+    offset -150, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DLEGB0, 589, 366
+{
+    offset -150, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DLEGC0, 617, 381
+{
+    offset -150, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DLEGD0, 617, 395
+{
+    offset -169, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DLEGE0, 652, 399
+{
+    offset -150, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DLEGF0, 654, 394
+{
+    offset -150, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DLEGG0, 670, 422
+{
+    offset -150, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DLEGH0, 675, 431
+{
+    offset -150, 0
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite DMR1A0, 821, 321
+{
+    offset -273, -182
+}
+weaponsprite DMR1B0, 783, 308
+{
+    offset -342, -195
+}
+weaponsprite DMR1C0, 569, 324
+{
+    offset -563, -179
+}
+weaponsprite DMR1D0, 635, 348
+{
+    offset -488, -155
+}
+weaponsprite DMR1E0, 645, 373
+{
+    offset -471, -130
+}
+weaponsprite DMR1F0, 671, 396
+{
+    offset -485, -107
+}
+weaponsprite DMR1G0, 675, 419
+{
+    offset -486, -84
+}
+weaponsprite DMR1H0, 679, 449
+{
+    offset -484, -54
+}
+weaponsprite DMR1I0, 659, 472
+{
+    offset -486, -31
+}
+weaponsprite DMR1J0, 656, 488
+{
+    offset -497, -15
+}
+weaponsprite DMR1K0, 665, 496
+{
+    offset -495, -7
+}
+weaponsprite DMR1L0, 635, 501
+{
+    offset -502, -2
+}
+weaponsprite DMR1M0, 538, 501
+{
+    offset -564, -2
+}
+weaponsprite DMR1N0, 487, 499
+{
+    offset -596, -4
+}
+weaponsprite DMR1O0, 481, 497
+{
+    offset -592, -6
+}
+weaponsprite DMR1P0, 472, 496
+{
+    offset -590, -7
+}
+weaponsprite DMR1Q0, 538, 501
+{
+    offset -504, -2
+}
+weaponsprite DMR1R0, 715, 503
+{
+    offset -310, 0
+}
+weaponsprite DMR1S0, 757, 494
+{
+    offset -247, -9
+}
+weaponsprite DMR1T0, 773, 483
+{
+    offset -225, -20
+}
+weaponsprite DMR1U0, 769, 472
+{
+    offset -235, -31
+}
+weaponsprite DMR1V0, 753, 460
+{
+    offset -271, -43
+}
+weaponsprite DMR1W0, 775, 449
+{
+    offset -283, -54
+}
+weaponsprite DMR1X0, 755, 438
+{
+    offset -348, -65
+}
+weaponsprite DMR1Y0, 610, 432
+{
+    offset -523, -71
+}
+weaponsprite DMR1Z0, 568, 429
+{
+    offset -571, -74
+}
+weaponsprite DMR2A0, 576, 426
+{
+    offset -564, -77
+}
+weaponsprite DMR2B0, 581, 425
+{
+    offset -558, -78
+}
+weaponsprite DMR2C0, 584, 425
+{
+    offset -552, -78
+}
+weaponsprite DMR2D0, 581, 426
+{
+    offset -547, -77
+}
+weaponsprite DMR2E0, 570, 428
+{
+    offset -543, -75
+}
+weaponsprite DMR2F0, 554, 430
+{
+    offset -539, -73
+}
+weaponsprite DMR2G0, 541, 432
+{
+    offset -538, -71
+}
+weaponsprite DMR2H0, 801, 434
+{
+    offset -271, -69
+}
+weaponsprite DMR2I0, 850, 436
+{
+    offset -217, -67
+}
+weaponsprite DMR2J0, 850, 438
+{
+    offset -210, -65
+}
+weaponsprite DMR2K0, 809, 438
+{
+    offset -234, -65
+}
+weaponsprite DMR2L0, 752, 441
+{
+    offset -267, -62
+}
+weaponsprite DMR2M0, 735, 444
+{
+    offset -260, -59
+}
+weaponsprite DMR2N0, 736, 447
+{
+    offset -245, -56
+}
+weaponsprite DMR2O0, 718, 450
+{
+    offset -251, -53
+}
+weaponsprite DMR2P0, 716, 453
+{
+    offset -244, -50
+}
+weaponsprite DMR2Q0, 717, 457
+{
+    offset -236, -46
+}
+weaponsprite DMR2R0, 728, 462
+{
+    offset -227, -41
+}
+weaponsprite DMR2S0, 749, 467
+{
+    offset -210, -36
+}
+weaponsprite DMR2T0, 752, 473
+{
+    offset -216, -30
+}
+weaponsprite DMR2U0, 726, 473
+{
+    offset -251, -30
+}
+weaponsprite DMR2V0, 666, 464
+{
+    offset -407, -39
+}
+weaponsprite DMR2W0, 655, 452
+{
+    offset -514, -51
+}
+weaponsprite DMR2X0, 616, 461
+{
+    offset -553, -42
+}
+weaponsprite DMR2Y0, 610, 466
+{
+    offset -558, -37
+}
+weaponsprite DMR2Z0, 597, 467
+{
+    offset -552, -36
+}
+weaponsprite DMR3A0, 594, 472
+{
+    offset -543, -31
+}
+weaponsprite DMR3B0, 607, 478
+{
+    offset -520, -25
+}
+weaponsprite DMR3C0, 653, 484
+{
+    offset -476, -19
+}
+weaponsprite DMR3D0, 703, 490
+{
+    offset -427, -13
+}
+weaponsprite DMR3E0, 726, 494
+{
+    offset -389, -9
+}
+weaponsprite DMR3F0, 712, 498
+{
+    offset -382, -5
+}
+weaponsprite DMR3G0, 729, 499
+{
+    offset -341, -4
+}
+weaponsprite DMR3H0, 721, 493
+{
+    offset -337, -10
+}
+weaponsprite DMR3I0, 709, 481
+{
+    offset -346, -22
+}
+weaponsprite DMR3J0, 762, 457
+{
+    offset -313, -46
+}
+weaponsprite DMR3K0, 767, 422
+{
+    offset -297, -81
+}
+weaponsprite DMR3L0, 712, 378
+{
+    offset -296, -125
+}
+weaponsprite DMR3M0, 684, 334
+{
+    offset -316, -169
+}
+weaponsprite DMR3N0, 654, 302
+{
+    offset -333, -201
+}
+weaponsprite DMR3O0, 654, 302
+{
+    offset -333, -201
+}
+
+weaponsprite DMR4A0, 769, 317
+{
+    offset -241, -187
+}
+weaponsprite DMR4B0, 803, 304
+{
+    offset -207, -200
+}
+weaponsprite DMR4C0, 823, 295
+{
+    offset -187, -209
+}
+weaponsprite DMR4D0, 784, 288
+{
+    offset -197, -216
+}
+weaponsprite DMR4E0, 688, 281
+{
+    offset -240, -223
+}
+weaponsprite DMR4F0, 573, 275
+{
+    offset -310, -229
+}
+weaponsprite DMR4G0, 523, 273
+{
+    offset -342, -231
+}
+weaponsprite DMR5A0, 521, 273
+{
+    offset -342, -231
+}
+weaponsprite DMR5B0, 548, 262
+{
+    offset -418, -242
+}
+weaponsprite DMR5C0, 689, 265
+{
+    offset -420, -239
+}
+weaponsprite DMR5D0, 708, 261
+{
+    offset -462, -243
+}
+weaponsprite DMR5E0, 717, 267
+{
+    offset -464, -237
+}
+weaponsprite DMR5F0, 704, 270
+{
+    offset -455, -234
+}
+weaponsprite DMR5G0, 661, 272
+{
+    offset -450, -232
+}
+weaponsprite DMR5H0, 633, 272
+{
+    offset -449, -232
+}
+weaponsprite DMR5I0, 622, 272
+{
+    offset -438, -232
+}
+weaponsprite DMR5J0, 594, 271
+{
+    offset -430, -233
+}
+weaponsprite DMR5K0, 560, 271
+{
+    offset -422, -233
+}
+weaponsprite DMR5L0, 542, 272
+{
+    offset -401, -232
+}
+weaponsprite DMR5M0, 531, 272
+{
+    offset -379, -232
+}
+weaponsprite DMR5N0, 524, 272
+{
+    offset -361, -232
+}
+weaponsprite DMR5O0, 522, 273
+{
+    offset -347, -231
+}
+weaponsprite DMR5P0, 521, 273
+{
+    offset -341, -231
+}
+weaponsprite DMR8A0, 506, 238
+{
+    offset -208, -175
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8B0, 464, 244
+{
+    offset -185, -169
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8C0, 376, 254
+{
+    offset -231, -159
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8D0, 311, 268
+{
+    offset -262, -145
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8E0, 303, 286
+{
+    offset -261, -127
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8F0, 322, 306
+{
+    offset -206, -107
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8G0, 350, 328
+{
+    offset -172, -85
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8H0, 391, 356
+{
+    offset -154, -57
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8I0, 448, 391
+{
+    offset -128, -22
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8J0, 458, 400
+{
+    offset -124, -13
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8K0, 500, 413
+{
+    offset -71, 0
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8L0, 524, 413
+{
+    offset -53, 0
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMR8M0, 525, 413
+{
+    offset -55, 0
+    XSCALE 2.25
+    YSCALE 2.25
+}
+weaponsprite DMRBA0, 715, 301
+{
+    offset -302, -202
+}
+weaponsprite DMRBB0, 713, 318
+{
+    offset -310, -185
+}
+weaponsprite DMRBC0, 738, 339
+{
+    offset -309, -164
+}
+weaponsprite DMRBD0, 771, 360
+{
+    offset -317, -143
+}
+weaponsprite DMRBE0, 543, 377
+{
+    offset -579, -126
+}
+weaponsprite DMRBF0, 554, 383
+{
+    offset -584, -120
+}
+weaponsprite DMRFA0, 739, 331
+{
+    offset -329, -172
+}
+weaponsprite DMRFB0, 697, 336
+{
+    offset -447, -167
+}
+weaponsprite DMRFC0, 804, 323
+{
+    offset -381, -180
+}
+weaponsprite DMRFD0, 823, 341
+{
+    offset -365, -162
+}
+weaponsprite DMRFE0, 845, 332
+{
+    offset -335, -171
+}
+weaponsprite DMRFF0, 836, 322
+{
+    offset -316, -181
+}
+weaponsprite DMRFG0, 818, 314
+{
+    offset -300, -189
+}
+weaponsprite DMRFH0, 790, 315
+{
+    offset -290, -188
+}
+weaponsprite DMRFI0, 764, 316
+{
+    offset -281, -187
+}
+weaponsprite DMRFJ0, 741, 314
+{
+    offset -274, -189
+}
+weaponsprite DMRFK0, 730, 311
+{
+    offset -271, -192
+}
+weaponsprite DMRFL0, 718, 307
+{
+    offset -271, -196
+}
+weaponsprite DMRFM0, 705, 302
+{
+    offset -271, -201
+}
+weaponsprite DMRFN0, 700, 298
+{
+    offset -273, -205
+}
+weaponsprite DMRFO0, 696, 299
+{
+    offset -276, -204
+}
+weaponsprite DMRFP0, 692, 299
+{
+    offset -281, -204
+}
+weaponsprite DMRFQ0, 550, 241
+{
+    offset -268, -136
+}
+weaponsprite DMRIA0, 692, 299
+{
+    offset -282, -204
+}
+weaponsprite DMRIB0, 692, 299
+{
+    offset -282, -204
+}
+weaponsprite DMRIC0, 694, 299
+{
+    offset -281, -204
+}
+weaponsprite DMRID0, 695, 300
+{
+    offset -281, -203
+}
+weaponsprite DMRIE0, 697, 300
+{
+    offset -280, -203
+}
+weaponsprite DMRIF0, 699, 301
+{
+    offset -279, -202
+}
+weaponsprite DMRIG0, 702, 302
+{
+    offset -278, -201
+}
+weaponsprite DMRIH0, 705, 304
+{
+    offset -276, -199
+}
+weaponsprite DMRII0, 708, 305
+{
+    offset -275, -198
+}
+weaponsprite DMRIJ0, 712, 307
+{
+    offset -273, -196
+}
+weaponsprite DMRIK0, 717, 309
+{
+    offset -271, -194
+}
+weaponsprite DMRIL0, 722, 311
+{
+    offset -269, -192
+}
+weaponsprite DMRIM0, 725, 312
+{
+    offset -268, -191
+}
+weaponsprite DMRIN0, 729, 314
+{
+    offset -266, -189
+}
+weaponsprite DMRIO0, 732, 316
+{
+    offset -265, -187
+}
+weaponsprite DMRIP0, 735, 317
+{
+    offset -264, -186
+}
+weaponsprite DMRIQ0, 738, 318
+{
+    offset -263, -185
+}
+weaponsprite DMRIR0, 740, 319
+{
+    offset -262, -184
+}
+weaponsprite DMRIS0, 741, 319
+{
+    offset -262, -184
+}
+weaponsprite DMRIT0, 742, 320
+{
+    offset -261, -183
+}
+weaponsprite DMRIU0, 743, 320
+{
+    offset -261, -183
+}
+weaponsprite DMRMA0, 136, 112
+{
+    offset -349, -148
+    XSCALE 2.2
+    YSCALE 2.2
+}
+weaponsprite DMRMB0, 315, 179
+{
+    offset -254, -124
+    XSCALE 2.2
+    YSCALE 2.2
+}
+weaponsprite DMRMC0, 392, 171
+{
+    offset -227, -120
+    XSCALE 2.2
+    YSCALE 2.2
+}
+weaponsprite DMRMD0, 402, 161
+{
+    offset -228, -119
+    XSCALE 2.2
+    YSCALE 2.2
+}
+weaponsprite DMRME0, 418, 165
+{
+    offset -213, -124
+    XSCALE 2.2
+    YSCALE 2.2
+}
+weaponsprite DMRSA0, 219, 106
+{
+    offset -239, -397
+}
+weaponsprite DMRSB0, 384, 125
+{
+    offset -137, -378
+}
+weaponsprite DMRSC0, 482, 152
+{
+    offset -126, -351
+}
+weaponsprite DMRSD0, 547, 182
+{
+    offset -158, -321
+}
+weaponsprite DMRSE0, 547, 214
+{
+    offset -253, -289
+}
+weaponsprite DMRSF0, 727, 243
+{
+    offset -169, -260
+}
+weaponsprite DMRSG0, 788, 258
+{
+    offset -178, -245
+}
+weaponsprite DMRSH0, 772, 272
+{
+    offset -207, -231
+}
+weaponsprite DMRSI0, 748, 285
+{
+    offset -236, -218
+}
+weaponsprite DMRSJ0, 719, 294
+{
+    offset -259, -209
+}
+weaponsprite DMRSK0, 702, 298
+{
+    offset -275, -205
+}
+weaponsprite DMRWA0, 688, 297
+{
+    offset -266, -207
+}
+weaponsprite DMRWB0, 689, 290
+{
+    offset -257, -214
+}
+weaponsprite DMRWC0, 637, 289
+{
+    offset -286, -215
+}
+weaponsprite DMRWD0, 730, 288
+{
+    offset -187, -216
+}
+weaponsprite DMRWE0, 802, 288
+{
+    offset -101, -216
+}
+weaponsprite DMRWF0, 833, 289
+{
+    offset -62, -215
+}
+
+weaponsprite DMRZA0, 683, 297
+{
+    offset -294, -206
+}
+weaponsprite DMRZB0, 681, 291
+{
+    offset -311, -212
+}
+weaponsprite DMRZC0, 711, 281
+{
+    offset -350, -222
+}
+weaponsprite DMRZD0, 763, 273
+{
+    offset -373, -230
+}
+weaponsprite DMRZE0, 794, 270
+{
+    offset -379, -233
+}
+weaponsprite EXTGA0, 938, 484
+{
+    offset -260, -21
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTGB0, 805, 438
+{
+    offset -334, -67
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTGC0, 499, 378
+{
+    offset -548, -127
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTGD0, 577, 360
+{
+    offset -552, -145
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTGE0, 663, 361
+{
+    offset -551, -144
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTSA0, 927, 497
+{
+    offset -271, -8
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTSB0, 926, 411
+{
+    offset -287, -94
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTSC0, 823, 276
+{
+    offset -391, -229
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTSD0, 739, 283
+{
+    offset -475, -222
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite EXTSE0, 700, 302
+{
+    offset -514, -203
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FISAA0, 821, 230
+{
+    offset -111, -276
+}
+weaponsprite FISAB0, 862, 234
+{
+    offset -97, -272
+}
+weaponsprite FISAC0, 815, 233
+{
+    offset -144, -273
+}
+weaponsprite FISAD0, 890, 267
+{
+    offset -55, -239
+}
+weaponsprite FISAE0, 829, 282
+{
+    offset -49, -224
+}
+weaponsprite FISAF0, 815, 282
+{
+    offset -64, -224
+}
+weaponsprite FISAG0, 823, 282
+{
+    offset -64, -224
+}
+weaponsprite FISAH0, 839, 281
+{
+    offset -64, -225
+}
+weaponsprite FISAI0, 837, 281
+{
+    offset -63, -225
+}
+weaponsprite FISAJ0, 805, 279
+{
+    offset -78, -227
+}
+weaponsprite FISAK0, 856, 261
+{
+    offset -66, -245
+}
+weaponsprite FISAL0, 802, 234
+{
+    offset -126, -272
+}
+weaponsprite FISBA0, 830, 219
+{
+    offset -85, -287
+}
+weaponsprite FISBB0, 893, 200
+{
+    offset -38, -306
+}
+weaponsprite FISBC0, 884, 278
+{
+    offset -33, -228
+}
+weaponsprite FISBD0, 838, 278
+{
+    offset -34, -228
+}
+weaponsprite FISBE0, 835, 278
+{
+    offset -39, -228
+}
+weaponsprite FISBF0, 839, 277
+{
+    offset -46, -229
+}
+weaponsprite FISBG0, 868, 274
+{
+    offset -44, -232
+}
+weaponsprite FISBH0, 901, 267
+{
+    offset -38, -239
+}
+weaponsprite FISBI0, 905, 266
+{
+    offset -40, -240
+}
+weaponsprite FISBJ0, 914, 259
+{
+    offset -32, -247
+}
+weaponsprite FISBL0, 897, 255
+{
+    offset -42, -251
+}
+weaponsprite FISSA0, 820, 229
+{
+    offset -105, -274
+}
+weaponsprite FISSB0, 855, 228
+{
+    offset -71, -275
+}
+weaponsprite FISSC0, 901, 222
+{
+    offset -24, -281
+}
+weaponsprite FISSD0, 940, 201
+{
+    offset -7, -302
+}
+weaponsprite FISSE0, 944, 195
+{
+    offset -9, -308
+}
+weaponsprite FISUA0, 897, 237
+{
+    offset -30, -269
+}
+weaponsprite FISUB0, 798, 216
+{
+    offset -133, -290
+}
+weaponsprite FISUC0, 800, 198
+{
+    offset -81, -308
+}
+weaponsprite FISUD0, 698, 172
+{
+    offset -61, -334
+}
+weaponsprite FISUE0, 683, 401
+{
+    offset -58, -105
+}
+weaponsprite FISUF0, 635, 503
+{
+    offset -37, -3
+}
+weaponsprite FISUG0, 636, 503
+{
+    offset -17, -3
+}
+weaponsprite FISUH0, 642, 499
+{
+    offset -7, -7
+}
+weaponsprite FISUI0, 646, 494
+{
+    offset -5, -12
+}
+weaponsprite FISUJ0, 703, 471
+{
+    offset -8, -35
+}
+weaponsprite FISUK0, 769, 403
+{
+    offset -27, -103
+}
+weaponsprite FISUL0, 781, 324
+{
+    offset -65, -182
+}
+weaponsprite FISUM0, 777, 270
+{
+    offset -96, -236
+}
+weaponsprite FISUN0, 774, 243
+{
+    offset -115, -263
+}
+weaponsprite FISUO0, 770, 234
+{
+    offset -129, -272
+}
+weaponsprite FPFPA0, 119, 102
+{
+    offset -255, -416
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPB0, 224, 198
+{
+    offset -285, -320
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPC0, 259, 301
+{
+    offset -309, -217
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPD0, 692, 385
+{
+    offset -323, -133
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPE0, 580, 446
+{
+    offset -302, -72
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPF0, 667, 484
+{
+    offset -275, -34
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPG0, 788, 502
+{
+    offset -265, -16
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPH0, 886, 503
+{
+    offset -257, -15
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPI0, 944, 497
+{
+    offset -255, -21
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPFPJ0, 893, 481
+{
+    offset -272, -37
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPTRA0, 813, 242
+{
+    offset -50, -276
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPTRB0, 744, 223
+{
+    offset -111, -295
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPTRC0, 628, 226
+{
+    offset -153, -292
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPTRD0, 601, 198
+{
+    offset -150, -320
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPTRE0, 623, 152
+{
+    offset -145, -366
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite FPTRF0, 556, 91
+{
+    offset -212, -427
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLA1A0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLA1B0, 346, 267
+{
+    offset -552, -185
+}
+weaponsprite GLA1C0, 350, 271
+{
+    offset -551, -180
+}
+weaponsprite GLA1D0, 357, 278
+{
+    offset -551, -172
+}
+weaponsprite GLA1E0, 366, 287
+{
+    offset -553, -163
+}
+weaponsprite GLA1F0, 377, 300
+{
+    offset -557, -151
+}
+weaponsprite GLA1G0, 390, 312
+{
+    offset -564, -141
+}
+weaponsprite GLA1H0, 404, 325
+{
+    offset -576, -129
+}
+weaponsprite GLA1I0, 419, 334
+{
+    offset -593, -119
+}
+weaponsprite GLA1J0, 430, 352
+{
+    offset -615, -110
+}
+weaponsprite GLA1K0, 432, 365
+{
+    offset -626, -107
+}
+weaponsprite GLA1L0, 429, 343
+{
+    offset -607, -113
+}
+weaponsprite GLA1M0, 417, 312
+{
+    offset -566, -130
+}
+weaponsprite GLA1N0, 409, 297
+{
+    offset -530, -144
+}
+weaponsprite GLA1O0, 400, 298
+{
+    offset -522, -143
+}
+weaponsprite GLA1P0, 393, 304
+{
+    offset -520, -135
+}
+weaponsprite GLA1Q0, 387, 314
+{
+    offset -521, -123
+}
+weaponsprite GLA1R0, 373, 312
+{
+    offset -530, -109
+}
+weaponsprite GLA1S0, 343, 295
+{
+    offset -548, -92
+}
+weaponsprite GLA1T0, 311, 277
+{
+    offset -565, -75
+}
+weaponsprite GLA1U0, 277, 265
+{
+    offset -581, -58
+}
+weaponsprite GLA1V0, 245, 261
+{
+    offset -595, -43
+}
+weaponsprite GLA1W0, 226, 295
+{
+    offset -611, -35
+}
+weaponsprite GLA1X0, 211, 339
+{
+    offset -620, -29
+}
+weaponsprite GLA1Y0, 196, 379
+{
+    offset -618, -47
+}
+weaponsprite GLA1Z0, 189, 410
+{
+    offset -617, -68
+}
+weaponsprite GLA2A0, 188, 420
+{
+    offset -619, -56
+}
+weaponsprite GLA2B0, 187, 424
+{
+    offset -628, -35
+}
+weaponsprite GLA2C0, 189, 423
+{
+    offset -641, -16
+}
+weaponsprite GLA2D0, 192, 424
+{
+    offset -659, -4
+}
+weaponsprite GLA2E0, 198, 417
+{
+    offset -680, -8
+}
+weaponsprite GLA2F0, 214, 401
+{
+    offset -693, -23
+}
+weaponsprite GLA2G0, 241, 386
+{
+    offset -695, -44
+}
+weaponsprite GLA2H0, 275, 377
+{
+    offset -692, -66
+}
+weaponsprite GLA2I0, 318, 376
+{
+    offset -687, -89
+}
+weaponsprite GLA2J0, 369, 384
+{
+    offset -682, -110
+}
+weaponsprite GLA2K0, 413, 378
+{
+    offset -678, -125
+}
+weaponsprite GLA3A0, 430, 373
+{
+    offset -673, -130
+}
+weaponsprite GLA3B0, 432, 374
+{
+    offset -673, -129
+}
+weaponsprite GLA3C0, 428, 377
+{
+    offset -674, -126
+}
+weaponsprite GLA3D0, 422, 382
+{
+    offset -675, -121
+}
+weaponsprite GLA3E0, 420, 388
+{
+    offset -677, -115
+}
+weaponsprite GLA3F0, 425, 400
+{
+    offset -681, -103
+}
+weaponsprite GLA3G0, 430, 408
+{
+    offset -677, -95
+}
+weaponsprite GLA3H0, 422, 399
+{
+    offset -670, -91
+}
+weaponsprite GLA3I0, 389, 374
+{
+    offset -668, -90
+}
+weaponsprite GLA3J0, 357, 363
+{
+    offset -668, -71
+}
+weaponsprite GLA3K0, 347, 367
+{
+    offset -668, -55
+}
+weaponsprite GLA3L0, 346, 360
+{
+    offset -667, -72
+}
+weaponsprite GLA3M0, 345, 349
+{
+    offset -666, -98
+}
+weaponsprite GLA3N0, 351, 349
+{
+    offset -667, -115
+}
+weaponsprite GLA3O0, 370, 363
+{
+    offset -668, -120
+}
+weaponsprite GLA3P0, 390, 378
+{
+    offset -670, -124
+}
+weaponsprite GLA3Q0, 411, 376
+{
+    offset -672, -127
+}
+weaponsprite GLA3R0, 424, 374
+{
+    offset -673, -129
+}
+weaponsprite GLA3S0, 430, 373
+{
+    offset -673, -130
+}
+weaponsprite GLA4A0, 328, 327
+{
+    offset -661, -98
+}
+weaponsprite GLA4B0, 324, 320
+{
+    offset -658, -105
+}
+weaponsprite GLA4C0, 325, 309
+{
+    offset -656, -123
+}
+weaponsprite GLA4D0, 339, 303
+{
+    offset -663, -134
+}
+weaponsprite GLA4E0, 351, 306
+{
+    offset -671, -132
+}
+weaponsprite GLA4F0, 352, 306
+{
+    offset -673, -132
+}
+weaponsprite GLA4G0, 352, 309
+{
+    offset -667, -134
+}
+weaponsprite GLA4H0, 354, 308
+{
+    offset -666, -129
+}
+weaponsprite GLA4I0, 370, 309
+{
+    offset -684, -117
+}
+weaponsprite GLA4J0, 388, 311
+{
+    offset -684, -102
+}
+weaponsprite GLA4K0, 402, 308
+{
+    offset -656, -105
+}
+weaponsprite GLA4L0, 414, 300
+{
+    offset -630, -115
+}
+weaponsprite GLA4M0, 421, 296
+{
+    offset -601, -123
+}
+weaponsprite GLA4N0, 413, 298
+{
+    offset -581, -126
+}
+weaponsprite GLA4O0, 396, 294
+{
+    offset -570, -136
+}
+weaponsprite GLA4P0, 377, 285
+{
+    offset -564, -149
+}
+weaponsprite GLA4Q0, 362, 277
+{
+    offset -559, -162
+}
+weaponsprite GLA4R0, 352, 271
+{
+    offset -555, -175
+}
+weaponsprite GLA4S0, 346, 266
+{
+    offset -553, -184
+}
+weaponsprite GLAEA0, 43, 26
+{
+    offset 235, -477
+}
+weaponsprite GLAEB0, 54, 34
+{
+    offset 206, -469
+}
+weaponsprite GLAEC0, 63, 55
+{
+    offset 168, -447
+}
+weaponsprite GLAED0, 215, 89
+{
+    offset 121, -414
+}
+weaponsprite GLAEE0, 246, 129
+{
+    offset 67, -374
+}
+weaponsprite GLAEF0, 271, 173
+{
+    offset 5, -330
+}
+weaponsprite GLAEG0, 291, 216
+{
+    offset -62, -287
+}
+weaponsprite GLAEH0, 299, 256
+{
+    offset -136, -247
+}
+weaponsprite GLAEI0, 297, 290
+{
+    offset -213, -213
+}
+weaponsprite GLAEJ0, 285, 312
+{
+    offset -291, -191
+}
+weaponsprite GLAEK0, 291, 323
+{
+    offset -367, -180
+}
+weaponsprite GLAEL0, 316, 327
+{
+    offset -438, -176
+}
+weaponsprite GLAEM0, 345, 326
+{
+    offset -476, -177
+}
+weaponsprite GLAEN0, 351, 321
+{
+    offset -502, -182
+}
+weaponsprite GLAEO0, 348, 284
+{
+    offset -519, -186
+}
+weaponsprite GLAFA0, 482, 324
+{
+    offset -566, -179
+}
+weaponsprite GLAFB0, 507, 334
+{
+    offset -576, -169
+}
+weaponsprite GLAFC0, 517, 385
+{
+    offset -588, -118
+}
+weaponsprite GLAFD0, 560, 441
+{
+    offset -594, -62
+}
+weaponsprite GLAFE0, 574, 448
+{
+    offset -593, -55
+}
+weaponsprite GLAFF0, 573, 446
+{
+    offset -591, -57
+}
+weaponsprite GLAFG0, 567, 448
+{
+    offset -587, -55
+}
+weaponsprite GLAFH0, 549, 456
+{
+    offset -578, -47
+}
+weaponsprite GLAFI0, 549, 457
+{
+    offset -574, -46
+}
+weaponsprite GLAFJ0, 517, 443
+{
+    offset -565, -60
+}
+weaponsprite GLAFK0, 492, 423
+{
+    offset -562, -80
+}
+weaponsprite GLAFL0, 454, 399
+{
+    offset -555, -104
+}
+weaponsprite GLAFM0, 420, 375
+{
+    offset -554, -128
+}
+weaponsprite GLAFN0, 390, 338
+{
+    offset -553, -151
+}
+weaponsprite GLAFO0, 368, 301
+{
+    offset -554, -169
+}
+weaponsprite GLAIA0, 349, 268
+{
+    offset -552, -187
+}
+weaponsprite GLAIB0, 348, 268
+{
+    offset -552, -187
+}
+weaponsprite GLAIC0, 348, 269
+{
+    offset -552, -187
+}
+weaponsprite GLAID0, 348, 269
+{
+    offset -552, -188
+}
+weaponsprite GLAIE0, 348, 270
+{
+    offset -552, -189
+}
+weaponsprite GLAIF0, 348, 270
+{
+    offset -552, -190
+}
+weaponsprite GLAIG0, 348, 272
+{
+    offset -552, -190
+}
+weaponsprite GLAIH0, 348, 273
+{
+    offset -552, -191
+}
+weaponsprite GLAII0, 347, 274
+{
+    offset -552, -192
+}
+weaponsprite GLAIJ0, 347, 277
+{
+    offset -552, -192
+}
+weaponsprite GLAIK0, 347, 278
+{
+    offset -552, -193
+}
+weaponsprite GLAIL0, 347, 279
+{
+    offset -552, -194
+}
+weaponsprite GLAIM0, 347, 280
+{
+    offset -552, -195
+}
+weaponsprite GLAIN0, 347, 282
+{
+    offset -552, -195
+}
+weaponsprite GLAIO0, 347, 282
+{
+    offset -552, -196
+}
+weaponsprite GLAIP0, 346, 284
+{
+    offset -552, -196
+}
+weaponsprite GLAIQ0, 346, 284
+{
+    offset -552, -197
+}
+weaponsprite GLAIR0, 346, 285
+{
+    offset -552, -197
+}
+weaponsprite GLAIS0, 346, 286
+{
+    offset -552, -197
+}
+weaponsprite GLAIT0, 346, 285
+{
+    offset -552, -198
+}
+weaponsprite GLAIU0, 346, 284
+{
+    offset -552, -198
+}
+weaponsprite GLAKA0, 370, 284
+{
+    offset -559, -189
+}
+weaponsprite GLAKB0, 425, 312
+{
+    offset -571, -191
+}
+weaponsprite GLAKC0, 473, 309
+{
+    offset -586, -194
+}
+weaponsprite GLAKD0, 464, 305
+{
+    offset -598, -198
+}
+weaponsprite GLAKE0, 452, 304
+{
+    offset -604, -199
+}
+weaponsprite GLAMA0, 373, 308
+{
+    offset -510, -188
+}
+weaponsprite GLAMB0, 392, 312
+{
+    offset -510, -191
+}
+weaponsprite GLAMC0, 409, 308
+{
+    offset -515, -195
+}
+weaponsprite GLAMD0, 498, 307
+{
+    offset -518, -196
+}
+weaponsprite GLAME0, 399, 333
+{
+    offset -503, -170
+}
+weaponsprite GLAMF0, 370, 368
+{
+    offset -479, -135
+}
+weaponsprite GLAMG0, 462, 382
+{
+    offset -444, -121
+}
+weaponsprite GLAMH0, 466, 384
+{
+    offset -429, -119
+}
+weaponsprite GLAMI0, 454, 379
+{
+    offset -444, -124
+}
+weaponsprite GLAMJ0, 423, 362
+{
+    offset -466, -137
+}
+weaponsprite GLAMK0, 381, 322
+{
+    offset -492, -157
+}
+weaponsprite GLAML0, 354, 283
+{
+    offset -516, -178
+}
+weaponsprite GLASA0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLASB0, 344, 267
+{
+    offset -551, -188
+}
+weaponsprite GLASC0, 340, 268
+{
+    offset -550, -188
+}
+weaponsprite GLASD0, 337, 268
+{
+    offset -547, -186
+}
+weaponsprite GLASE0, 334, 264
+{
+    offset -545, -185
+}
+weaponsprite GLASF0, 332, 259
+{
+    offset -543, -183
+}
+weaponsprite GLASG0, 330, 255
+{
+    offset -545, -181
+}
+weaponsprite GLASH0, 330, 252
+{
+    offset -547, -178
+}
+weaponsprite GLASI0, 329, 251
+{
+    offset -549, -175
+}
+weaponsprite GLASJ0, 329, 250
+{
+    offset -550, -172
+}
+weaponsprite GLASK0, 324, 254
+{
+    offset -561, -159
+}
+weaponsprite GLAUA0, 361, 295
+{
+    offset -563, -184
+}
+weaponsprite GLAUB0, 383, 336
+{
+    offset -586, -167
+}
+weaponsprite GLAUC0, 398, 362
+{
+    offset -617, -141
+}
+weaponsprite GLAUD0, 403, 391
+{
+    offset -651, -112
+}
+weaponsprite GLAUE0, 400, 418
+{
+    offset -679, -85
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLAUF0, 401, 430
+{
+    offset -690, -73
+}
+weaponsprite GLAWA0, 295, 272
+{
+    offset -562, -121
+}
+weaponsprite GLAWB0, 282, 267
+{
+    offset -545, -130
+}
+weaponsprite GLAWC0, 275, 269
+{
+    offset -547, -129
+}
+weaponsprite GLAWD0, 268, 271
+{
+    offset -550, -130
+}
+weaponsprite GLAWE0, 272, 270
+{
+    offset -551, -135
+}
+weaponsprite GLAWF0, 278, 267
+{
+    offset -551, -142
+}
+weaponsprite GLAWG0, 286, 265
+{
+    offset -551, -149
+}
+weaponsprite GLAWH0, 296, 262
+{
+    offset -551, -156
+}
+weaponsprite GLAWI0, 306, 261
+{
+    offset -551, -164
+}
+weaponsprite GLAWJ0, 317, 262
+{
+    offset -551, -171
+}
+weaponsprite GLAWK0, 328, 262
+{
+    offset -551, -178
+}
+weaponsprite GLAWL0, 336, 263
+{
+    offset -552, -183
+}
+weaponsprite GLAWM0, 342, 265
+{
+    offset -552, -186
+}
+weaponsprite GLAWN0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLAWO0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLF1A0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLF1B0, 346, 267
+{
+    offset -552, -185
+}
+weaponsprite GLF1C0, 350, 271
+{
+    offset -551, -180
+}
+weaponsprite GLF1D0, 357, 278
+{
+    offset -551, -172
+}
+weaponsprite GLF1E0, 366, 287
+{
+    offset -553, -163
+}
+weaponsprite GLF1F0, 377, 300
+{
+    offset -557, -151
+}
+weaponsprite GLF1G0, 390, 312
+{
+    offset -564, -141
+}
+weaponsprite GLF1H0, 404, 325
+{
+    offset -576, -129
+}
+weaponsprite GLF1I0, 419, 334
+{
+    offset -593, -119
+}
+weaponsprite GLF1J0, 430, 352
+{
+    offset -615, -110
+}
+weaponsprite GLF1K0, 432, 365
+{
+    offset -626, -107
+}
+weaponsprite GLF1L0, 429, 343
+{
+    offset -607, -113
+}
+weaponsprite GLF1M0, 417, 312
+{
+    offset -566, -130
+}
+weaponsprite GLF1N0, 409, 297
+{
+    offset -530, -144
+}
+weaponsprite GLF1O0, 400, 298
+{
+    offset -522, -143
+}
+weaponsprite GLF1P0, 393, 305
+{
+    offset -520, -134
+}
+weaponsprite GLF1Q0, 387, 314
+{
+    offset -521, -123
+}
+weaponsprite GLF1R0, 373, 312
+{
+    offset -530, -109
+}
+weaponsprite GLF1S0, 343, 295
+{
+    offset -548, -92
+}
+weaponsprite GLF1T0, 311, 277
+{
+    offset -565, -75
+}
+weaponsprite GLF1U0, 277, 265
+{
+    offset -581, -58
+}
+weaponsprite GLF1V0, 245, 261
+{
+    offset -595, -43
+}
+weaponsprite GLF1W0, 226, 295
+{
+    offset -611, -35
+}
+weaponsprite GLF1X0, 211, 339
+{
+    offset -620, -29
+}
+weaponsprite GLF1Y0, 196, 379
+{
+    offset -618, -47
+}
+weaponsprite GLF1Z0, 189, 410
+{
+    offset -617, -68
+}
+weaponsprite GLF2A0, 188, 420
+{
+    offset -619, -56
+}
+weaponsprite GLF2B0, 187, 424
+{
+    offset -628, -35
+}
+weaponsprite GLF2C0, 189, 423
+{
+    offset -641, -16
+}
+weaponsprite GLF2D0, 192, 424
+{
+    offset -659, -4
+}
+weaponsprite GLF2E0, 198, 417
+{
+    offset -680, -8
+}
+weaponsprite GLF2F0, 214, 401
+{
+    offset -693, -23
+}
+weaponsprite GLF2G0, 241, 386
+{
+    offset -695, -44
+}
+weaponsprite GLF2H0, 275, 377
+{
+    offset -692, -66
+}
+weaponsprite GLF2I0, 318, 376
+{
+    offset -687, -89
+}
+weaponsprite GLF2J0, 369, 384
+{
+    offset -682, -110
+}
+weaponsprite GLF2K0, 413, 378
+{
+    offset -678, -125
+}
+weaponsprite GLF3A0, 430, 373
+{
+    offset -673, -130
+}
+weaponsprite GLF3B0, 432, 374
+{
+    offset -673, -129
+}
+weaponsprite GLF3C0, 428, 377
+{
+    offset -674, -126
+}
+weaponsprite GLF3D0, 422, 382
+{
+    offset -675, -121
+}
+weaponsprite GLF3E0, 420, 389
+{
+    offset -677, -114
+}
+weaponsprite GLF3F0, 425, 400
+{
+    offset -681, -103
+}
+weaponsprite GLF3G0, 430, 408
+{
+    offset -677, -95
+}
+weaponsprite GLF3H0, 422, 399
+{
+    offset -670, -91
+}
+weaponsprite GLF3I0, 389, 374
+{
+    offset -668, -90
+}
+weaponsprite GLF3J0, 357, 363
+{
+    offset -668, -71
+}
+weaponsprite GLF3K0, 347, 367
+{
+    offset -668, -55
+}
+weaponsprite GLF3L0, 346, 360
+{
+    offset -667, -72
+}
+weaponsprite GLF3M0, 345, 349
+{
+    offset -666, -98
+}
+weaponsprite GLF3N0, 351, 349
+{
+    offset -667, -115
+}
+weaponsprite GLF3O0, 370, 363
+{
+    offset -668, -120
+}
+weaponsprite GLF3P0, 390, 378
+{
+    offset -670, -124
+}
+weaponsprite GLF3Q0, 411, 376
+{
+    offset -672, -127
+}
+weaponsprite GLF3R0, 424, 374
+{
+    offset -673, -129
+}
+weaponsprite GLF3S0, 430, 373
+{
+    offset -673, -130
+}
+weaponsprite GLF4A0, 328, 327
+{
+    offset -661, -98
+}
+weaponsprite GLF4B0, 324, 320
+{
+    offset -658, -105
+}
+weaponsprite GLF4C0, 325, 309
+{
+    offset -656, -123
+}
+weaponsprite GLF4D0, 339, 303
+{
+    offset -663, -134
+}
+weaponsprite GLF4E0, 351, 306
+{
+    offset -671, -132
+}
+weaponsprite GLF4F0, 352, 306
+{
+    offset -673, -132
+}
+weaponsprite GLF4G0, 352, 309
+{
+    offset -667, -134
+}
+weaponsprite GLF4H0, 354, 308
+{
+    offset -666, -129
+}
+weaponsprite GLF4I0, 370, 309
+{
+    offset -684, -117
+}
+weaponsprite GLF4J0, 388, 311
+{
+    offset -684, -102
+}
+weaponsprite GLF4K0, 402, 308
+{
+    offset -656, -105
+}
+weaponsprite GLF4L0, 414, 300
+{
+    offset -630, -115
+}
+weaponsprite GLF4M0, 421, 296
+{
+    offset -601, -123
+}
+weaponsprite GLF4N0, 413, 298
+{
+    offset -581, -126
+}
+weaponsprite GLF4O0, 396, 293
+{
+    offset -570, -136
+}
+weaponsprite GLF4P0, 377, 285
+{
+    offset -564, -149
+}
+weaponsprite GLF4Q0, 362, 277
+{
+    offset -559, -162
+}
+weaponsprite GLF4R0, 352, 271
+{
+    offset -555, -175
+}
+weaponsprite GLF4S0, 346, 266
+{
+    offset -553, -184
+}
+weaponsprite GLFEA0, 43, 26
+{
+    offset 235, -477
+}
+weaponsprite GLFEB0, 54, 34
+{
+    offset 226, -469
+    XSCALE 3
+    YSCALE 220
+}
+weaponsprite GLFEC0, 63, 55
+{
+    offset 168, -447
+}
+weaponsprite GLFED0, 215, 89
+{
+    offset 121, -414
+}
+weaponsprite GLFEE0, 246, 129
+{
+    offset 67, -374
+}
+weaponsprite GLFEF0, 271, 173
+{
+    offset 5, -330
+}
+weaponsprite GLFEG0, 291, 216
+{
+    offset -62, -287
+}
+weaponsprite GLFEH0, 299, 256
+{
+    offset -136, -247
+}
+weaponsprite GLFEI0, 297, 290
+{
+    offset -213, -213
+}
+weaponsprite GLFEJ0, 285, 312
+{
+    offset -291, -191
+}
+weaponsprite GLFEK0, 291, 323
+{
+    offset -367, -180
+}
+weaponsprite GLFEL0, 316, 327
+{
+    offset -438, -176
+}
+weaponsprite GLFEM0, 345, 326
+{
+    offset -476, -177
+}
+weaponsprite GLFEN0, 351, 321
+{
+    offset -502, -182
+}
+weaponsprite GLFEO0, 348, 284
+{
+    offset -519, -186
+}
+weaponsprite GLFFA0, 482, 324
+{
+    offset -566, -179
+}
+weaponsprite GLFFB0, 507, 334
+{
+    offset -576, -169
+}
+weaponsprite GLFFC0, 517, 385
+{
+    offset -588, -118
+}
+weaponsprite GLFFD0, 560, 441
+{
+    offset -594, -62
+}
+weaponsprite GLFFE0, 574, 448
+{
+    offset -593, -55
+}
+weaponsprite GLFFF0, 573, 446
+{
+    offset -591, -57
+}
+weaponsprite GLFFG0, 567, 448
+{
+    offset -587, -55
+}
+weaponsprite GLFFH0, 549, 456
+{
+    offset -578, -47
+}
+weaponsprite GLFFI0, 549, 457
+{
+    offset -574, -46
+}
+weaponsprite GLFFJ0, 517, 443
+{
+    offset -565, -60
+}
+weaponsprite GLFFK0, 492, 424
+{
+    offset -562, -79
+}
+weaponsprite GLFFL0, 454, 399
+{
+    offset -555, -104
+}
+weaponsprite GLFFM0, 420, 375
+{
+    offset -554, -128
+}
+weaponsprite GLFFN0, 390, 338
+{
+    offset -553, -151
+}
+weaponsprite GLFFO0, 368, 301
+{
+    offset -554, -169
+}
+weaponsprite GLFFP0, 354, 276
+{
+    offset -551, -182
+}
+weaponsprite GLFFQ0, 348, 267
+{
+    offset -399, -187
+}
+weaponsprite GLFFR0, 347, 266
+{
+    offset -399, -187
+}
+weaponsprite GLFFS0, 346, 286
+{
+    offset -552, -197
+}
+weaponsprite GLFFT0, 346, 285
+{
+    offset -552, -198
+}
+weaponsprite GLFIA0, 348, 268
+{
+    offset -552, -187
+}
+weaponsprite GLFIB0, 349, 268
+{
+    offset -552, -187
+}
+weaponsprite GLFIC0, 348, 269
+{
+    offset -552, -187
+}
+weaponsprite GLFID0, 348, 269
+{
+    offset -552, -188
+}
+weaponsprite GLFIE0, 348, 270
+{
+    offset -552, -189
+}
+weaponsprite GLFIF0, 348, 270
+{
+    offset -552, -190
+}
+weaponsprite GLFIG0, 348, 272
+{
+    offset -552, -190
+}
+weaponsprite GLFIH0, 348, 273
+{
+    offset -552, -191
+}
+weaponsprite GLFII0, 347, 274
+{
+    offset -552, -192
+}
+weaponsprite GLFIJ0, 347, 277
+{
+    offset -552, -192
+}
+weaponsprite GLFIK0, 347, 278
+{
+    offset -552, -193
+}
+weaponsprite GLFIL0, 347, 279
+{
+    offset -552, -194
+}
+weaponsprite GLFIM0, 347, 280
+{
+    offset -552, -195
+}
+weaponsprite GLFIN0, 347, 282
+{
+    offset -552, -195
+}
+weaponsprite GLFIO0, 346, 282
+{
+    offset -552, -196
+}
+weaponsprite GLFIP0, 346, 284
+{
+    offset -552, -196
+}
+weaponsprite GLFIQ0, 346, 284
+{
+    offset -552, -197
+}
+weaponsprite GLFIR0, 346, 285
+{
+    offset -552, -197
+}
+weaponsprite GLFIS0, 346, 286
+{
+    offset -552, -197
+}
+weaponsprite GLFIT0, 346, 285
+{
+    offset -552, -198
+}
+weaponsprite GLFIU0, 346, 284
+{
+    offset -552, -198
+}
+weaponsprite GLFKA0, 370, 284
+{
+    offset -559, -189
+}
+weaponsprite GLFKB0, 425, 312
+{
+    offset -571, -191
+}
+weaponsprite GLFKC0, 473, 309
+{
+    offset -586, -194
+}
+weaponsprite GLFKD0, 464, 305
+{
+    offset -598, -198
+}
+weaponsprite GLFKE0, 452, 304
+{
+    offset -604, -199
+}
+weaponsprite GLFMA0, 373, 308
+{
+    offset -510, -188
+}
+weaponsprite GLFMB0, 392, 312
+{
+    offset -510, -191
+}
+weaponsprite GLFMC0, 409, 308
+{
+    offset -515, -195
+}
+weaponsprite GLFMD0, 498, 307
+{
+    offset -518, -196
+}
+weaponsprite GLFME0, 399, 333
+{
+    offset -503, -170
+}
+weaponsprite GLFMF0, 370, 368
+{
+    offset -479, -135
+}
+weaponsprite GLFMG0, 462, 382
+{
+    offset -444, -121
+}
+weaponsprite GLFMH0, 466, 384
+{
+    offset -429, -119
+}
+weaponsprite GLFMI0, 454, 379
+{
+    offset -444, -124
+}
+weaponsprite GLFMJ0, 423, 362
+{
+    offset -466, -137
+}
+weaponsprite GLFMK0, 381, 322
+{
+    offset -492, -157
+}
+weaponsprite GLFML0, 354, 283
+{
+    offset -516, -178
+}
+weaponsprite GLFSA0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLFSB0, 344, 267
+{
+    offset -551, -188
+}
+weaponsprite GLFSC0, 340, 268
+{
+    offset -550, -188
+}
+weaponsprite GLFSD0, 337, 268
+{
+    offset -547, -186
+}
+weaponsprite GLFSE0, 334, 264
+{
+    offset -545, -185
+}
+weaponsprite GLFSF0, 332, 259
+{
+    offset -543, -183
+}
+weaponsprite GLFSG0, 330, 255
+{
+    offset -545, -181
+}
+weaponsprite GLFSH0, 330, 252
+{
+    offset -547, -178
+}
+weaponsprite GLFSI0, 329, 251
+{
+    offset -549, -175
+}
+weaponsprite GLFSJ0, 329, 250
+{
+    offset -550, -172
+}
+weaponsprite GLFSK0, 324, 254
+{
+    offset -561, -159
+}
+weaponsprite GLFUA0, 361, 295
+{
+    offset -563, -184
+}
+weaponsprite GLFUB0, 383, 336
+{
+    offset -586, -167
+}
+weaponsprite GLFUC0, 398, 362
+{
+    offset -617, -141
+}
+weaponsprite GLFUD0, 403, 391
+{
+    offset -651, -112
+}
+weaponsprite GLFUE0, 400, 418
+{
+    offset -679, -85
+}
+weaponsprite GLFUF0, 401, 430
+{
+    offset -690, -73
+}
+weaponsprite GLFWA0, 295, 272
+{
+    offset -562, -121
+}
+weaponsprite GLFWB0, 282, 267
+{
+    offset -545, -130
+}
+weaponsprite GLFWC0, 275, 269
+{
+    offset -547, -129
+}
+weaponsprite GLFWD0, 268, 271
+{
+    offset -550, -130
+}
+weaponsprite GLFWE0, 272, 270
+{
+    offset -551, -135
+}
+weaponsprite GLFWF0, 278, 267
+{
+    offset -551, -142
+}
+weaponsprite GLFWG0, 286, 265
+{
+    offset -551, -149
+}
+weaponsprite GLFWH0, 296, 262
+{
+    offset -551, -156
+}
+weaponsprite GLFWI0, 306, 261
+{
+    offset -551, -164
+}
+weaponsprite GLFWJ0, 317, 262
+{
+    offset -551, -171
+}
+weaponsprite GLFWK0, 328, 262
+{
+    offset -551, -178
+}
+weaponsprite GLFWL0, 336, 263
+{
+    offset -552, -183
+}
+weaponsprite GLFWM0, 342, 265
+{
+    offset -552, -186
+}
+weaponsprite GLFWN0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLFWO0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLI1A0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLI1B0, 346, 267
+{
+    offset -552, -185
+}
+weaponsprite GLI1C0, 350, 271
+{
+    offset -551, -180
+}
+weaponsprite GLI1D0, 357, 278
+{
+    offset -551, -172
+}
+weaponsprite GLI1E0, 366, 287
+{
+    offset -553, -163
+}
+weaponsprite GLI1F0, 377, 300
+{
+    offset -557, -151
+}
+weaponsprite GLI1G0, 390, 312
+{
+    offset -564, -141
+}
+weaponsprite GLI1H0, 404, 325
+{
+    offset -576, -129
+}
+weaponsprite GLI1I0, 419, 334
+{
+    offset -593, -119
+}
+weaponsprite GLI1J0, 430, 352
+{
+    offset -615, -110
+}
+weaponsprite GLI1K0, 432, 365
+{
+    offset -626, -107
+}
+weaponsprite GLI1L0, 429, 343
+{
+    offset -607, -113
+}
+weaponsprite GLI1M0, 417, 312
+{
+    offset -566, -130
+}
+weaponsprite GLI1N0, 409, 297
+{
+    offset -530, -144
+}
+weaponsprite GLI1O0, 400, 298
+{
+    offset -522, -143
+}
+weaponsprite GLI1P0, 393, 304
+{
+    offset -520, -135
+}
+weaponsprite GLI1Q0, 387, 314
+{
+    offset -521, -123
+}
+weaponsprite GLI1R0, 373, 312
+{
+    offset -530, -109
+}
+weaponsprite GLI1S0, 343, 295
+{
+    offset -548, -92
+}
+weaponsprite GLI1T0, 311, 277
+{
+    offset -565, -75
+}
+weaponsprite GLI1U0, 277, 265
+{
+    offset -581, -58
+}
+weaponsprite GLI1V0, 245, 261
+{
+    offset -595, -43
+}
+weaponsprite GLI1W0, 226, 295
+{
+    offset -611, -35
+}
+weaponsprite GLI1X0, 211, 339
+{
+    offset -620, -29
+}
+weaponsprite GLI1Y0, 196, 379
+{
+    offset -618, -47
+}
+weaponsprite GLI1Z0, 189, 410
+{
+    offset -617, -68
+}
+weaponsprite GLI2A0, 188, 420
+{
+    offset -619, -56
+}
+weaponsprite GLI2B0, 187, 424
+{
+    offset -628, -35
+}
+weaponsprite GLI2C0, 189, 423
+{
+    offset -641, -16
+}
+weaponsprite GLI2D0, 192, 424
+{
+    offset -659, -4
+}
+weaponsprite GLI2E0, 198, 417
+{
+    offset -680, -8
+}
+weaponsprite GLI2F0, 214, 401
+{
+    offset -693, -23
+}
+weaponsprite GLI2G0, 241, 386
+{
+    offset -695, -44
+}
+weaponsprite GLI2H0, 275, 377
+{
+    offset -692, -66
+}
+weaponsprite GLI2I0, 318, 376
+{
+    offset -687, -89
+}
+weaponsprite GLI2J0, 369, 384
+{
+    offset -682, -110
+}
+weaponsprite GLI2K0, 413, 378
+{
+    offset -678, -125
+}
+weaponsprite GLI3A0, 430, 373
+{
+    offset -673, -130
+}
+weaponsprite GLI3B0, 432, 374
+{
+    offset -673, -129
+}
+weaponsprite GLI3C0, 428, 377
+{
+    offset -674, -126
+}
+weaponsprite GLI3D0, 422, 382
+{
+    offset -675, -121
+}
+weaponsprite GLI3E0, 420, 388
+{
+    offset -677, -115
+}
+weaponsprite GLI3F0, 425, 400
+{
+    offset -681, -103
+}
+weaponsprite GLI3G0, 430, 408
+{
+    offset -677, -95
+}
+weaponsprite GLI3H0, 422, 399
+{
+    offset -670, -91
+}
+weaponsprite GLI3I0, 389, 374
+{
+    offset -668, -90
+}
+weaponsprite GLI3J0, 357, 363
+{
+    offset -668, -71
+}
+weaponsprite GLI3K0, 347, 367
+{
+    offset -668, -55
+}
+weaponsprite GLI3L0, 346, 360
+{
+    offset -667, -72
+}
+weaponsprite GLI3M0, 345, 349
+{
+    offset -666, -98
+}
+weaponsprite GLI3N0, 351, 349
+{
+    offset -667, -115
+}
+weaponsprite GLI3O0, 370, 363
+{
+    offset -668, -120
+}
+weaponsprite GLI3P0, 390, 378
+{
+    offset -670, -124
+}
+weaponsprite GLI3Q0, 411, 376
+{
+    offset -672, -127
+}
+weaponsprite GLI3R0, 424, 374
+{
+    offset -673, -129
+}
+weaponsprite GLI3S0, 430, 373
+{
+    offset -673, -130
+}
+weaponsprite GLI3T0, 599, 406
+{
+    offset -454, -97
+}
+weaponsprite GLI4A0, 328, 327
+{
+    offset -661, -98
+}
+weaponsprite GLI4B0, 324, 320
+{
+    offset -658, -105
+}
+weaponsprite GLI4C0, 325, 309
+{
+    offset -656, -123
+}
+weaponsprite GLI4D0, 339, 303
+{
+    offset -663, -134
+}
+weaponsprite GLI4E0, 351, 306
+{
+    offset -671, -132
+}
+weaponsprite GLI4F0, 352, 306
+{
+    offset -673, -132
+}
+weaponsprite GLI4G0, 352, 309
+{
+    offset -667, -134
+}
+weaponsprite GLI4H0, 354, 308
+{
+    offset -666, -129
+}
+weaponsprite GLI4I0, 370, 309
+{
+    offset -684, -117
+}
+weaponsprite GLI4J0, 388, 311
+{
+    offset -684, -102
+}
+weaponsprite GLI4K0, 402, 308
+{
+    offset -656, -105
+}
+weaponsprite GLI4L0, 414, 300
+{
+    offset -630, -115
+}
+weaponsprite GLI4M0, 421, 296
+{
+    offset -601, -123
+}
+weaponsprite GLI4N0, 413, 298
+{
+    offset -581, -126
+}
+weaponsprite GLI4O0, 396, 294
+{
+    offset -570, -136
+}
+weaponsprite GLI4P0, 377, 285
+{
+    offset -564, -149
+}
+weaponsprite GLI4Q0, 362, 277
+{
+    offset -559, -162
+}
+weaponsprite GLI4R0, 352, 271
+{
+    offset -555, -175
+}
+weaponsprite GLI4S0, 346, 266
+{
+    offset -553, -184
+}
+weaponsprite GLIEA0, 43, 26
+{
+    offset 235, -477
+}
+weaponsprite GLIEB0, 54, 34
+{
+    offset 206, -469
+}
+weaponsprite GLIEC0, 63, 55
+{
+    offset 168, -447
+}
+weaponsprite GLIED0, 215, 89
+{
+    offset 121, -414
+}
+weaponsprite GLIEE0, 246, 129
+{
+    offset 67, -374
+}
+weaponsprite GLIEF0, 271, 173
+{
+    offset 5, -330
+}
+weaponsprite GLIEG0, 291, 216
+{
+    offset -62, -287
+}
+weaponsprite GLIEH0, 299, 256
+{
+    offset -136, -247
+}
+weaponsprite GLIEI0, 297, 290
+{
+    offset -213, -213
+}
+weaponsprite GLIEJ0, 285, 312
+{
+    offset -291, -191
+}
+weaponsprite GLIEK0, 291, 323
+{
+    offset -367, -180
+}
+weaponsprite GLIEL0, 316, 327
+{
+    offset -438, -176
+}
+weaponsprite GLIEM0, 345, 326
+{
+    offset -476, -177
+}
+weaponsprite GLIEN0, 351, 321
+{
+    offset -502, -182
+}
+weaponsprite GLIEO0, 348, 284
+{
+    offset -519, -186
+}
+weaponsprite GLIFA0, 482, 324
+{
+    offset -566, -179
+}
+weaponsprite GLIFB0, 507, 334
+{
+    offset -576, -169
+}
+weaponsprite GLIFC0, 517, 385
+{
+    offset -588, -118
+}
+weaponsprite GLIFD0, 560, 441
+{
+    offset -594, -62
+}
+weaponsprite GLIFE0, 574, 448
+{
+    offset -593, -55
+}
+weaponsprite GLIFF0, 573, 446
+{
+    offset -591, -57
+}
+weaponsprite GLIFG0, 567, 448
+{
+    offset -587, -55
+}
+weaponsprite GLIFH0, 549, 456
+{
+    offset -578, -47
+}
+weaponsprite GLIFI0, 549, 457
+{
+    offset -574, -46
+}
+weaponsprite GLIFJ0, 517, 443
+{
+    offset -565, -60
+}
+weaponsprite GLIFK0, 492, 423
+{
+    offset -562, -80
+}
+weaponsprite GLIFL0, 454, 399
+{
+    offset -555, -104
+}
+weaponsprite GLIFM0, 420, 375
+{
+    offset -554, -128
+}
+weaponsprite GLIFN0, 390, 338
+{
+    offset -553, -151
+}
+weaponsprite GLIFO0, 368, 301
+{
+    offset -554, -169
+}
+weaponsprite GLIFP0, 354, 276
+{
+    offset -551, -182
+}
+weaponsprite GLIIA0, 348, 267
+{
+    offset -552, -187
+}
+weaponsprite GLIIB0, 349, 268
+{
+    offset -552, -187
+}
+weaponsprite GLIIC0, 348, 268
+{
+    offset -552, -188
+}
+weaponsprite GLIID0, 348, 269
+{
+    offset -552, -188
+}
+weaponsprite GLIIE0, 348, 270
+{
+    offset -552, -189
+}
+weaponsprite GLIIF0, 348, 270
+{
+    offset -552, -190
+}
+weaponsprite GLIIG0, 348, 272
+{
+    offset -552, -190
+}
+weaponsprite GLIIH0, 348, 273
+{
+    offset -552, -191
+}
+weaponsprite GLIII0, 348, 274
+{
+    offset -552, -192
+}
+weaponsprite GLIIJ0, 347, 277
+{
+    offset -552, -192
+}
+weaponsprite GLIIK0, 347, 278
+{
+    offset -552, -193
+}
+weaponsprite GLIIL0, 347, 279
+{
+    offset -552, -194
+}
+weaponsprite GLIIM0, 347, 280
+{
+    offset -552, -195
+}
+weaponsprite GLIIN0, 347, 282
+{
+    offset -552, -195
+}
+weaponsprite GLIIO0, 346, 282
+{
+    offset -552, -196
+}
+weaponsprite GLIIP0, 347, 284
+{
+    offset -552, -196
+}
+weaponsprite GLIIQ0, 346, 284
+{
+    offset -552, -197
+}
+weaponsprite GLIIR0, 346, 285
+{
+    offset -552, -197
+}
+weaponsprite GLIIS0, 346, 286
+{
+    offset -552, -197
+}
+weaponsprite GLIIT0, 346, 285
+{
+    offset -552, -198
+}
+weaponsprite GLIIU0, 346, 285
+{
+    offset -552, -198
+}
+weaponsprite GLIKA0, 370, 284
+{
+    offset -559, -189
+}
+weaponsprite GLIKB0, 425, 312
+{
+    offset -571, -191
+}
+weaponsprite GLIKC0, 473, 309
+{
+    offset -586, -194
+}
+weaponsprite GLIKD0, 464, 305
+{
+    offset -598, -198
+}
+weaponsprite GLIKE0, 452, 304
+{
+    offset -604, -199
+}
+weaponsprite GLIMA0, 373, 308
+{
+    offset -510, -188
+}
+weaponsprite GLIMB0, 392, 312
+{
+    offset -510, -191
+}
+weaponsprite GLIMC0, 409, 308
+{
+    offset -515, -195
+}
+weaponsprite GLIMD0, 498, 307
+{
+    offset -518, -196
+}
+weaponsprite GLIME0, 399, 333
+{
+    offset -503, -170
+}
+weaponsprite GLIMF0, 370, 368
+{
+    offset -479, -135
+}
+weaponsprite GLIMG0, 462, 382
+{
+    offset -444, -121
+}
+weaponsprite GLIMH0, 466, 384
+{
+    offset -429, -119
+}
+weaponsprite GLIMI0, 454, 379
+{
+    offset -444, -124
+}
+weaponsprite GLIMJ0, 423, 362
+{
+    offset -466, -137
+}
+weaponsprite GLIMK0, 381, 322
+{
+    offset -492, -157
+}
+weaponsprite GLIML0, 354, 283
+{
+    offset -516, -178
+}
+weaponsprite GLISA0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLISB0, 344, 267
+{
+    offset -551, -188
+}
+weaponsprite GLISC0, 340, 268
+{
+    offset -550, -188
+}
+weaponsprite GLISD0, 337, 268
+{
+    offset -547, -186
+}
+weaponsprite GLISE0, 334, 264
+{
+    offset -545, -185
+}
+weaponsprite GLISF0, 332, 259
+{
+    offset -543, -183
+}
+weaponsprite GLISG0, 330, 255
+{
+    offset -545, -181
+}
+weaponsprite GLISH0, 330, 252
+{
+    offset -547, -178
+}
+weaponsprite GLISI0, 329, 251
+{
+    offset -549, -175
+}
+weaponsprite GLISJ0, 329, 250
+{
+    offset -550, -172
+}
+weaponsprite GLISK0, 324, 254
+{
+    offset -561, -159
+}
+weaponsprite GLIUA0, 361, 295
+{
+    offset -563, -184
+}
+weaponsprite GLIUB0, 383, 336
+{
+    offset -586, -167
+}
+weaponsprite GLIUC0, 398, 362
+{
+    offset -617, -141
+}
+weaponsprite GLIUD0, 403, 391
+{
+    offset -651, -112
+}
+weaponsprite GLIUE0, 400, 418
+{
+    offset -679, -85
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLIUF0, 401, 430
+{
+    offset -690, -73
+}
+weaponsprite GLIWA0, 295, 272
+{
+    offset -562, -121
+}
+weaponsprite GLIWB0, 282, 267
+{
+    offset -545, -130
+}
+weaponsprite GLIWC0, 275, 269
+{
+    offset -547, -129
+}
+weaponsprite GLIWD0, 268, 271
+{
+    offset -550, -130
+}
+weaponsprite GLIWE0, 272, 270
+{
+    offset -551, -135
+}
+weaponsprite GLIWF0, 278, 267
+{
+    offset -551, -142
+}
+weaponsprite GLIWG0, 286, 265
+{
+    offset -551, -149
+}
+weaponsprite GLIWH0, 296, 262
+{
+    offset -551, -156
+}
+weaponsprite GLIWI0, 306, 261
+{
+    offset -551, -164
+}
+weaponsprite GLIWJ0, 317, 262
+{
+    offset -551, -171
+}
+weaponsprite GLIWK0, 328, 262
+{
+    offset -551, -178
+}
+weaponsprite GLIWL0, 336, 263
+{
+    offset -552, -183
+}
+weaponsprite GLIWM0, 342, 265
+{
+    offset -552, -186
+}
+weaponsprite GLIWN0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLIWO0, 345, 265
+{
+    offset -552, -187
+}
+weaponsprite GLPEA0, 202, 28
+{
+    offset 237, -475
+}
+weaponsprite GLPEB0, 211, 36
+{
+    offset 208, -467
+}
+weaponsprite GLPEC0, 231, 58
+{
+    offset 170, -445
+}
+weaponsprite GLPED0, 263, 91
+{
+    offset 123, -412
+}
+weaponsprite GLPEE0, 319, 131
+{
+    offset 69, -372
+}
+weaponsprite GLPEF0, 354, 174
+{
+    offset 8, -329
+}
+weaponsprite GLPEG0, 396, 218
+{
+    offset -34, -285
+}
+weaponsprite GLPEH0, 413, 259
+{
+    offset -98, -244
+}
+weaponsprite GLPEI0, 415, 292
+{
+    offset -165, -211
+}
+weaponsprite GLPEJ0, 407, 314
+{
+    offset -238, -189
+}
+weaponsprite GLPEK0, 393, 325
+{
+    offset -320, -178
+}
+weaponsprite GLPEL0, 403, 329
+{
+    offset -392, -174
+}
+weaponsprite GLPEM0, 472, 327
+{
+    offset -390, -176
+}
+weaponsprite GLPEN0, 530, 323
+{
+    offset -375, -180
+}
+weaponsprite GLPEO0, 583, 318
+{
+    offset -344, -185
+}
+weaponsprite GLPEP0, 597, 316
+{
+    offset -346, -187
+}
+weaponsprite GLPFA0, 681, 325
+{
+    offset -428, -178
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFB0, 699, 335
+{
+    offset -458, -168
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFC0, 734, 388
+{
+    offset -453, -115
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFD0, 809, 443
+{
+    offset -441, -60
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFE0, 838, 450
+{
+    offset -428, -53
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFF0, 840, 448
+{
+    offset -422, -55
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFG0, 837, 450
+{
+    offset -409, -53
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFH0, 824, 458
+{
+    offset -392, -45
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFI0, 825, 459
+{
+    offset -378, -44
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFJ0, 780, 446
+{
+    offset -371, -57
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFK0, 747, 425
+{
+    offset -371, -78
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFL0, 696, 401
+{
+    offset -369, -102
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFM0, 664, 376
+{
+    offset -367, -127
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFN0, 642, 353
+{
+    offset -365, -150
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFO0, 616, 335
+{
+    offset -368, -168
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPFP0, 598, 322
+{
+    offset -367, -181
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPIA0, 589, 317
+{
+    offset -371, -186
+}
+weaponsprite GLPIB0, 589, 317
+{
+    offset -371, -186
+}
+weaponsprite GLPIC0, 588, 317
+{
+    offset -372, -186
+}
+weaponsprite GLPID0, 588, 316
+{
+    offset -372, -187
+}
+weaponsprite GLPIE0, 587, 316
+{
+    offset -373, -187
+}
+weaponsprite GLPIF0, 585, 315
+{
+    offset -374, -188
+}
+weaponsprite GLPIG0, 585, 314
+{
+    offset -374, -189
+}
+weaponsprite GLPIH0, 584, 313
+{
+    offset -375, -190
+}
+weaponsprite GLPII0, 583, 313
+{
+    offset -376, -190
+}
+weaponsprite GLPIJ0, 582, 312
+{
+    offset -377, -191
+}
+weaponsprite GLPIK0, 580, 311
+{
+    offset -379, -192
+}
+weaponsprite GLPIL0, 574, 310
+{
+    offset -384, -193
+}
+weaponsprite GLPIM0, 568, 310
+{
+    offset -390, -193
+}
+weaponsprite GLPIN0, 567, 309
+{
+    offset -391, -194
+}
+weaponsprite GLPIO0, 564, 308
+{
+    offset -394, -195
+}
+weaponsprite GLPIP0, 563, 308
+{
+    offset -395, -195
+}
+weaponsprite GLPIQ0, 563, 307
+{
+    offset -395, -196
+}
+weaponsprite GLPIR0, 562, 307
+{
+    offset -396, -196
+}
+weaponsprite GLPIS0, 562, 307
+{
+    offset -396, -196
+}
+weaponsprite GLPIT0, 561, 307
+{
+    offset -396, -196
+}
+weaponsprite GLPIU0, 561, 307
+{
+    offset -396, -196
+}
+weaponsprite GLPMA0, 616, 316
+{
+    offset -327, -187
+}
+weaponsprite GLPMB0, 622, 314
+{
+    offset -341, -189
+}
+weaponsprite GLPMC0, 615, 310
+{
+    offset -400, -193
+}
+weaponsprite GLPMD0, 742, 309
+{
+    offset -410, -194
+}
+weaponsprite GLPME0, 642, 335
+{
+    offset -344, -168
+}
+weaponsprite GLPMF0, 573, 370
+{
+    offset -326, -133
+}
+weaponsprite GLPMG0, 573, 384
+{
+    offset -371, -119
+}
+weaponsprite GLPMH0, 565, 386
+{
+    offset -381, -117
+}
+weaponsprite GLPMI0, 558, 381
+{
+    offset -393, -122
+}
+weaponsprite GLPMJ0, 571, 368
+{
+    offset -373, -135
+}
+weaponsprite GLPMK0, 584, 347
+{
+    offset -347, -156
+}
+weaponsprite GLPML0, 598, 327
+{
+    offset -331, -176
+}
+weaponsprite GLPSA0, 490, 316
+{
+    offset -505, -187
+}
+weaponsprite GLPSB0, 535, 313
+{
+    offset -520, -190
+}
+weaponsprite GLPSC0, 589, 310
+{
+    offset -535, -193
+}
+weaponsprite GLPSD0, 588, 307
+{
+    offset -547, -196
+}
+weaponsprite GLPSE0, 581, 305
+{
+    offset -552, -198
+}
+weaponsprite GLPUA0, 637, 321
+{
+    offset -349, -182
+}
+weaponsprite GLPUB0, 667, 338
+{
+    offset -354, -165
+}
+weaponsprite GLPUC0, 713, 363
+{
+    offset -352, -140
+}
+weaponsprite GLPUD0, 744, 393
+{
+    offset -359, -110
+}
+weaponsprite GLPUE0, 555, 420
+{
+    offset -574, -83
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite GLPUF0, 559, 432
+{
+    offset -580, -71
+}
+weaponsprite GLPWA0, 482, 310
+{
+    offset -446, -193
+}
+weaponsprite GLPWB0, 596, 314
+{
+    offset -327, -189
+}
+weaponsprite GLPWC0, 723, 329
+{
+    offset -208, -174
+}
+weaponsprite GLPWD0, 824, 348
+{
+    offset -104, -155
+}
+weaponsprite GLPWE0, 865, 357
+{
+    offset -40, -146
+}
+weaponsprite GLR1A0, 588, 317
+{
+    offset -368, -186
+}
+weaponsprite GLR1B0, 624, 319
+{
+    offset -333, -184
+}
+weaponsprite GLR1C0, 645, 325
+{
+    offset -318, -178
+}
+weaponsprite GLR1D0, 670, 333
+{
+    offset -302, -170
+}
+weaponsprite GLR1E0, 693, 343
+{
+    offset -293, -160
+}
+weaponsprite GLR1F0, 700, 353
+{
+    offset -305, -150
+}
+weaponsprite GLR1G0, 687, 364
+{
+    offset -343, -139
+}
+weaponsprite GLR1H0, 647, 375
+{
+    offset -413, -128
+}
+weaponsprite GLR1I0, 636, 385
+{
+    offset -461, -118
+}
+weaponsprite GLR1J0, 642, 394
+{
+    offset -489, -109
+}
+weaponsprite GLR1K0, 650, 398
+{
+    offset -489, -105
+}
+weaponsprite GLR1L0, 634, 392
+{
+    offset -489, -111
+}
+weaponsprite GLR1M0, 655, 374
+{
+    offset -452, -129
+}
+weaponsprite GLR1N0, 680, 361
+{
+    offset -415, -142
+}
+weaponsprite GLR1O0, 681, 362
+{
+    offset -394, -141
+}
+weaponsprite GLR1P0, 661, 370
+{
+    offset -397, -133
+}
+weaponsprite GLR1Q0, 654, 381
+{
+    offset -394, -122
+}
+weaponsprite GLR1R0, 700, 396
+{
+    offset -351, -107
+}
+weaponsprite GLR1S0, 732, 413
+{
+    offset -287, -90
+}
+weaponsprite GLR1T0, 887, 429
+{
+    offset -239, -74
+}
+weaponsprite GLR1U0, 933, 447
+{
+    offset -206, -56
+}
+weaponsprite GLR1V0, 939, 462
+{
+    offset -200, -41
+}
+weaponsprite GLR1W0, 725, 470
+{
+    offset -285, -33
+}
+weaponsprite GLR1X0, 385, 475
+{
+    offset -500, -28
+}
+weaponsprite GLR1Y0, 346, 457
+{
+    offset -504, -46
+}
+weaponsprite GLR1Z0, 323, 437
+{
+    offset -509, -66
+}
+weaponsprite GLR2A0, 324, 449
+{
+    offset -508, -54
+}
+weaponsprite GLR2B0, 332, 469
+{
+    offset -507, -34
+}
+weaponsprite GLR2C0, 348, 490
+{
+    offset -507, -13
+}
+weaponsprite GLR2D0, 370, 501
+{
+    offset -507, -2
+}
+weaponsprite GLR2E0, 395, 498
+{
+    offset -509, -5
+}
+weaponsprite GLR2F0, 421, 482
+{
+    offset -514, -21
+}
+weaponsprite GLR2G0, 448, 462
+{
+    offset -518, -41
+}
+weaponsprite GLR2H0, 482, 439
+{
+    offset -519, -64
+}
+weaponsprite GLR2I0, 526, 416
+{
+    offset -516, -87
+}
+weaponsprite GLR2J0, 581, 395
+{
+    offset -513, -108
+}
+weaponsprite GLR2K0, 626, 380
+{
+    offset -509, -123
+}
+weaponsprite GLR3A0, 633, 375
+{
+    offset -506, -128
+}
+weaponsprite GLR3B0, 637, 376
+{
+    offset -502, -127
+}
+weaponsprite GLR3C0, 642, 379
+{
+    offset -497, -124
+}
+weaponsprite GLR3D0, 648, 384
+{
+    offset -491, -119
+}
+weaponsprite GLR3E0, 664, 391
+{
+    offset -475, -112
+}
+weaponsprite GLR3F0, 686, 402
+{
+    offset -453, -101
+}
+weaponsprite GLR3G0, 721, 410
+{
+    offset -418, -93
+}
+weaponsprite GLR3H0, 700, 414
+{
+    offset -437, -89
+}
+weaponsprite GLR3I0, 657, 415
+{
+    offset -445, -88
+}
+weaponsprite GLR3J0, 634, 434
+{
+    offset -439, -69
+}
+weaponsprite GLR3K0, 640, 449
+{
+    offset -438, -54
+}
+weaponsprite GLR3L0, 610, 433
+{
+    offset -456, -70
+}
+weaponsprite GLR3M0, 600, 407
+{
+    offset -454, -96
+}
+weaponsprite GLR3N0, 626, 390
+{
+    offset -437, -113
+}
+weaponsprite GLR3O0, 636, 385
+{
+    offset -448, -118
+}
+weaponsprite GLR3P0, 599, 381
+{
+    offset -507, -122
+}
+weaponsprite GLR3Q0, 622, 377
+{
+    offset -505, -126
+}
+weaponsprite GLR3R0, 634, 375
+{
+    offset -505, -128
+}
+weaponsprite GLR3S0, 633, 375
+{
+    offset -506, -128
+}
+weaponsprite GLR4A0, 599, 406
+{
+    offset -454, -97
+}
+weaponsprite GLR4B0, 634, 400
+{
+    offset -409, -103
+}
+weaponsprite GLR4C0, 659, 381
+{
+    offset -372, -122
+}
+weaponsprite GLR4D0, 685, 372
+{
+    offset -358, -131
+}
+weaponsprite GLR4E0, 687, 373
+{
+    offset -377, -130
+}
+weaponsprite GLR4F0, 679, 373
+{
+    offset -388, -130
+}
+weaponsprite GLR4G0, 646, 371
+{
+    offset -415, -132
+}
+weaponsprite GLR4H0, 593, 375
+{
+    offset -481, -128
+}
+weaponsprite GLR4I0, 641, 388
+{
+    offset -483, -115
+}
+weaponsprite GLR4J0, 713, 403
+{
+    offset -426, -100
+}
+weaponsprite GLR4K0, 740, 400
+{
+    offset -399, -103
+}
+weaponsprite GLR4L0, 715, 390
+{
+    offset -424, -113
+}
+weaponsprite GLR4M0, 693, 383
+{
+    offset -446, -120
+}
+weaponsprite GLR4N0, 700, 378
+{
+    offset -439, -125
+}
+weaponsprite GLR4O0, 675, 368
+{
+    offset -429, -135
+}
+weaponsprite GLR4P0, 641, 356
+{
+    offset -415, -147
+}
+weaponsprite GLR4Q0, 620, 342
+{
+    offset -394, -161
+}
+weaponsprite GLR4R0, 601, 330
+{
+    offset -380, -173
+}
+weaponsprite GLR4S0, 589, 321
+{
+    offset -371, -182
+}
+weaponsprite GLR4T0, 604, 317
+{
+    offset -352, -186
+}
+weaponsprite GLR5A0, 588, 317
+{
+    offset -368, -186
+}
+weaponsprite GLR5B0, 614, 317
+{
+    offset -339, -186
+}
+weaponsprite GLR5C0, 635, 317
+{
+    offset -313, -186
+}
+weaponsprite GLR5D0, 636, 318
+{
+    offset -305, -185
+}
+weaponsprite GLR5E0, 633, 319
+{
+    offset -303, -184
+}
+weaponsprite GLR5F0, 646, 321
+{
+    offset -299, -182
+}
+weaponsprite GLR5G0, 669, 324
+{
+    offset -287, -179
+}
+weaponsprite GLR5H0, 698, 327
+{
+    offset -268, -176
+}
+weaponsprite GLR5I0, 734, 330
+{
+    offset -240, -173
+}
+weaponsprite GLR5J0, 715, 332
+{
+    offset -265, -171
+}
+weaponsprite GLR5K0, 713, 345
+{
+    offset -266, -158
+}
+weaponsprite GLR5L0, 798, 361
+{
+    offset -272, -142
+}
+weaponsprite GLR5M0, 845, 370
+{
+    offset -294, -133
+}
+weaponsprite GLR5N0, 841, 378
+{
+    offset -298, -125
+}
+weaponsprite GLR5O0, 834, 386
+{
+    offset -305, -117
+}
+weaponsprite GLR5P0, 795, 393
+{
+    offset -344, -110
+}
+weaponsprite GLR5Q0, 788, 401
+{
+    offset -351, -102
+}
+weaponsprite GLR5R0, 786, 408
+{
+    offset -353, -95
+}
+weaponsprite GLR5S0, 772, 416
+{
+    offset -348, -87
+}
+weaponsprite GLR5T0, 760, 422
+{
+    offset -356, -81
+}
+weaponsprite GLR5U0, 775, 427
+{
+    offset -325, -76
+}
+weaponsprite GLR5V0, 713, 430
+{
+    offset -363, -73
+}
+weaponsprite GLR5W0, 528, 431
+{
+    offset -519, -72
+}
+weaponsprite GLR5X0, 508, 429
+{
+    offset -513, -74
+}
+weaponsprite GLR5Y0, 495, 427
+{
+    offset -510, -76
+}
+weaponsprite GLR5Z0, 487, 425
+{
+    offset -510, -78
+}
+weaponsprite GLR6A0, 476, 424
+{
+    offset -511, -79
+}
+weaponsprite GLR6B0, 465, 424
+{
+    offset -513, -79
+}
+weaponsprite GLR6C0, 456, 424
+{
+    offset -515, -79
+}
+weaponsprite GLR6D0, 447, 425
+{
+    offset -516, -78
+}
+weaponsprite GLR6E0, 440, 425
+{
+    offset -515, -78
+}
+weaponsprite GLR6F0, 437, 425
+{
+    offset -513, -78
+}
+weaponsprite GLR6G0, 437, 425
+{
+    offset -509, -78
+}
+weaponsprite GLR6H0, 439, 424
+{
+    offset -504, -79
+}
+weaponsprite GLR6I0, 439, 422
+{
+    offset -499, -81
+}
+weaponsprite GLR6J0, 540, 419
+{
+    offset -392, -84
+}
+weaponsprite GLR6K0, 551, 418
+{
+    offset -374, -85
+}
+weaponsprite GLR6L0, 557, 417
+{
+    offset -364, -86
+}
+weaponsprite GLR6M0, 556, 417
+{
+    offset -362, -86
+}
+weaponsprite GLR6N0, 541, 417
+{
+    offset -376, -86
+}
+weaponsprite GLR6O0, 539, 417
+{
+    offset -382, -86
+}
+weaponsprite GLR6P0, 523, 417
+{
+    offset -408, -86
+}
+weaponsprite GLR6Q0, 517, 416
+{
+    offset -431, -87
+}
+weaponsprite GLR6R0, 531, 415
+{
+    offset -442, -88
+}
+weaponsprite GLR6S0, 543, 412
+{
+    offset -460, -91
+}
+weaponsprite GLR6T0, 543, 406
+{
+    offset -479, -97
+}
+weaponsprite GLR6U0, 514, 396
+{
+    offset -486, -107
+}
+weaponsprite GLR6V0, 458, 383
+{
+    offset -503, -120
+}
+weaponsprite GLR6W0, 456, 375
+{
+    offset -512, -128
+}
+weaponsprite GLR6X0, 464, 376
+{
+    offset -471, -127
+}
+weaponsprite GLR6Y0, 471, 375
+{
+    offset -452, -128
+}
+weaponsprite GLR6Z0, 492, 369
+{
+    offset -434, -134
+}
+weaponsprite GLR7A0, 504, 363
+{
+    offset -428, -140
+}
+weaponsprite GLR7B0, 513, 356
+{
+    offset -426, -147
+}
+weaponsprite GLR7C0, 536, 348
+{
+    offset -413, -155
+}
+weaponsprite GLR7D0, 554, 340
+{
+    offset -407, -163
+}
+weaponsprite GLR7E0, 549, 333
+{
+    offset -411, -170
+}
+weaponsprite GLR7F0, 544, 327
+{
+    offset -413, -176
+}
+weaponsprite GLR7G0, 563, 322
+{
+    offset -392, -181
+}
+weaponsprite GLR7H0, 572, 318
+{
+    offset -381, -185
+}
+weaponsprite GLR7I0, 590, 317
+{
+    offset -366, -186
+}
+weaponsprite GLR7J0, 588, 317
+{
+    offset -368, -186
+}
+weaponsprite HDPAA0, 595, 58
+{
+    offset -51, -445
+}
+weaponsprite HDPAB0, 581, 108
+{
+    offset -5, -395
+}
+weaponsprite HDPAC0, 562, 150
+{
+    offset 4, -353
+}
+weaponsprite HDPAD0, 548, 245
+{
+    offset -4, -258
+}
+weaponsprite HDPAE0, 510, 289
+{
+    offset -13, -214
+}
+weaponsprite HDPAF0, 477, 292
+{
+    offset -19, -211
+}
+weaponsprite HND1A0, 324, 460
+{
+    offset 64, -33
+}
+weaponsprite HND1B0, 339, 442
+{
+    offset 26, -51
+}
+weaponsprite HND1C0, 468, 353
+{
+    offset 14, -140
+}
+weaponsprite HND1D0, 419, 268
+{
+    offset -118, -225
+}
+weaponsprite HND1E0, 383, 187
+{
+    offset -200, -306
+}
+weaponsprite HND1F0, 392, 133
+{
+    offset -206, -360
+}
+weaponsprite HND1G0, 376, 77
+{
+    offset -264, -416
+}
+weaponsprite HND1H0, 243, 26
+{
+    offset -324, -467
+}
+weaponsprite HND2A0, 154, 50
+{
+    offset -186, -462
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite HND2B0, 206, 111
+{
+    offset -219, -401
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite HND2C0, 295, 155
+{
+    offset -188, -357
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite HND2D0, 353, 180
+{
+    offset -192, -332
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite HND2E0, 398, 199
+{
+    offset -167, -313
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite HND4A0, 184, 61
+{
+    offset 204, -442
+}
+weaponsprite HND4B0, 211, 195
+{
+    offset 99, -308
+}
+weaponsprite HND4C0, 352, 293
+{
+    offset 154, -210
+}
+weaponsprite HND4D0, 571, 361
+{
+    offset 267, -142
+}
+weaponsprite HND4E0, 742, 419
+{
+    offset 291, -84
+}
+weaponsprite HND4F0, 828, 441
+{
+    offset 291, -62
+}
+weaponsprite HND7A0, 773, 140
+{
+    offset 73, -353
+}
+weaponsprite HND7B0, 841, 145
+{
+    offset 56, -348
+}
+weaponsprite HND7C0, 791, 168
+{
+    offset 24, -325
+}
+weaponsprite HND7D0, 526, 212
+{
+    offset 0, -281
+}
+weaponsprite HND7E0, 403, 221
+{
+    offset -27, -272
+}
+weaponsprite HND7F0, 292, 210
+{
+    offset -47, -283
+}
+weaponsprite HND7G0, 231, 190
+{
+    offset -15, -303
+}
+weaponsprite HND7H0, 200, 160
+{
+    offset 27, -333
+}
+weaponsprite HND7I0, 184, 115
+{
+    offset 49, -378
+}
+weaponsprite HND7J0, 165, 60
+{
+    offset 56, -433
+}
+weaponsprite HND7K0, 32, 10
+{
+    offset -49, -483
+}
+weaponsprite HND7L0, 184, 74
+{
+    offset 80, -419
+}
+weaponsprite HND7M0, 70, 22
+{
+    offset -4, -471
+}
+weaponsprite KFIHA0, 800, 216
+{
+    offset -75, -287
+}
+weaponsprite KFIHB0, 815, 208
+{
+    offset -63, -295
+}
+weaponsprite KFIHC0, 766, 204
+{
+    offset -113, -299
+}
+weaponsprite KFIHD0, 363, 194
+{
+    offset -513, -309
+}
+weaponsprite KFIHE0, 372, 187
+{
+    offset -510, -316
+}
+weaponsprite KFIHF0, 375, 184
+{
+    offset -508, -319
+}
+weaponsprite KFISA0, 816, 230
+{
+    offset -112, -276
+}
+weaponsprite KFSEA0, 39, 9
+{
+    offset -147, -494
+}
+weaponsprite KFSEB0, 712, 44
+{
+    offset -127, -459
+}
+weaponsprite KFSEC0, 731, 80
+{
+    offset -131, -423
+}
+weaponsprite KFSED0, 721, 114
+{
+    offset -142, -389
+}
+weaponsprite KFSEE0, 706, 145
+{
+    offset -151, -358
+}
+weaponsprite KFSEF0, 707, 174
+{
+    offset -145, -329
+}
+weaponsprite KFSEG0, 721, 198
+{
+    offset -137, -305
+}
+weaponsprite KFSEH0, 744, 215
+{
+    offset -123, -288
+}
+weaponsprite MUDMA0, 213, 246
+{
+    offset -410, -121
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUDMB0, 229, 263
+{
+    offset -414, -122
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUDMC0, 93, 97
+{
+    offset -473, -182
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZAA0, 153, 130
+{
+    offset -496, -198
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZAB0, 227, 223
+{
+    offset -461, -152
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZAC0, 420, 396
+{
+    offset -373, -47
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZAD0, 217, 206
+{
+    offset -448, -158
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZAE0, 166, 155
+{
+    offset -472, -177
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZBA0, 140, 143
+{
+    offset -434, -222
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZBB0, 236, 228
+{
+    offset -402, -164
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZBC0, 416, 403
+{
+    offset -312, -35
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZBD0, 114, 105
+{
+    offset -443, -162
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZBE0, 68, 64
+{
+    offset -471, -154
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZA0, 213, 246
+{
+    offset -420, -161
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZB0, 229, 263
+{
+    offset -424, -162
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZC0, 93, 97
+{
+    offset -483, -222
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZD0, 246, 213
+{
+    offset -403, -178
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZE0, 229, 263
+{
+    offset -413, -161
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZF0, 97, 93
+{
+    offset -480, -224
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZG0, 213, 246
+{
+    offset -420, -161
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZH0, 229, 263
+{
+    offset -424, -162
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZI0, 93, 97
+{
+    offset -483, -222
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZJ0, 246, 213
+{
+    offset -403, -178
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZK0, 229, 263
+{
+    offset -413, -161
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite MUZZL0, 97, 93
+{
+    offset -480, -224
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite NAF1A0, 694, 284
+{
+    offset -385, -219
+}
+weaponsprite NAF1B0, 708, 284
+{
+    offset -401, -219
+}
+weaponsprite NAF1C0, 695, 284
+{
+    offset -390, -219
+}
+weaponsprite NAF1D0, 664, 284
+{
+    offset -377, -229
+}
+weaponsprite NAF2A0, 713, 289
+{
+    offset -388, -214
+}
+weaponsprite NAF2B0, 740, 292
+{
+    offset -398, -211
+}
+weaponsprite NAF2C0, 725, 289
+{
+    offset -394, -214
+}
+weaponsprite NAF2D0, 693, 284
+{
+    offset -380, -229
+}
+weaponsprite NAGRA0, 683, 303
+{
+    offset -412, -210
+}
+weaponsprite NAGRB0, 713, 336
+{
+    offset -457, -177
+}
+weaponsprite NAGRC0, 734, 373
+{
+    offset -469, -140
+}
+weaponsprite NAGRD0, 794, 402
+{
+    offset -449, -111
+}
+weaponsprite NAGRE0, 811, 414
+{
+    offset -435, -99
+}
+weaponsprite NAGRF0, 803, 409
+{
+    offset -437, -104
+}
+weaponsprite NAGRG0, 778, 393
+{
+    offset -443, -120
+}
+weaponsprite NAGRH0, 722, 369
+{
+    offset -456, -144
+}
+weaponsprite NAGRI0, 665, 338
+{
+    offset -467, -175
+}
+weaponsprite NAGRJ0, 685, 306
+{
+    offset -431, -207
+}
+weaponsprite NAGRK0, 635, 283
+{
+    offset -372, -230
+}
+weaponsprite NAI2A0, 651, 285
+{
+    offset -379, -218
+}
+weaponsprite NAI2B0, 689, 281
+{
+    offset -392, -222
+}
+weaponsprite NAI2C0, 708, 282
+{
+    offset -444, -221
+}
+weaponsprite NAI2D0, 767, 282
+{
+    offset -445, -221
+}
+weaponsprite NAI3A0, 768, 283
+{
+    offset -445, -220
+}
+weaponsprite NAI3B0, 788, 283
+{
+    offset -446, -220
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite NAI3C0, 821, 284
+{
+    offset -447, -219
+}
+weaponsprite NAI3D0, 845, 286
+{
+    offset -449, -217
+}
+weaponsprite NAI3E0, 854, 286
+{
+    offset -411, -217
+    XSCALE 2.6
+    YSCALE 2.6
+}
+weaponsprite NAI7A0, 639, 278
+{
+    offset -377, -235
+}
+weaponsprite NAI7B0, 709, 269
+{
+    offset -338, -244
+}
+weaponsprite NAI7C0, 797, 255
+{
+    offset -290, -258
+}
+weaponsprite NAI7D0, 933, 242
+{
+    offset -184, -271
+}
+weaponsprite NAI7E0, 959, 237
+{
+    offset -145, -276
+}
+weaponsprite NAI9A0, 647, 272
+{
+    offset -404, -231
+}
+weaponsprite NAI9B0, 661, 267
+{
+    offset -427, -236
+}
+weaponsprite NAI9C0, 683, 262
+{
+    offset -460, -241
+}
+weaponsprite NAI9D0, 687, 256
+{
+    offset -498, -247
+}
+weaponsprite NAI9E0, 641, 255
+{
+    offset -569, -248
+}
+weaponsprite NAILA0, 646, 283
+{
+    offset -377, -220
+}
+weaponsprite NAILB0, 646, 283
+{
+    offset -377, -220
+}
+weaponsprite NAILC0, 646, 283
+{
+    offset -377, -220
+}
+weaponsprite NAILD0, 645, 282
+{
+    offset -378, -221
+}
+weaponsprite NAILE0, 644, 282
+{
+    offset -379, -221
+}
+weaponsprite NAILF0, 643, 281
+{
+    offset -380, -222
+}
+weaponsprite NAILG0, 641, 281
+{
+    offset -381, -222
+}
+weaponsprite NAILH0, 640, 280
+{
+    offset -382, -223
+}
+weaponsprite NAILI0, 639, 279
+{
+    offset -383, -224
+}
+weaponsprite NAILJ0, 637, 278
+{
+    offset -385, -225
+}
+weaponsprite NAILK0, 635, 278
+{
+    offset -386, -225
+}
+weaponsprite NAILL0, 631, 277
+{
+    offset -387, -226
+}
+weaponsprite NAILM0, 628, 276
+{
+    offset -388, -227
+}
+weaponsprite NAILN0, 625, 275
+{
+    offset -389, -228
+}
+weaponsprite NAILO0, 621, 274
+{
+    offset -391, -229
+}
+weaponsprite NAILP0, 619, 274
+{
+    offset -392, -229
+}
+weaponsprite NAILQ0, 616, 273
+{
+    offset -393, -230
+}
+weaponsprite NAILR0, 615, 273
+{
+    offset -393, -230
+}
+weaponsprite NAILS0, 613, 272
+{
+    offset -394, -231
+}
+weaponsprite NAILT0, 612, 272
+{
+    offset -394, -231
+}
+weaponsprite NAILU0, 610, 272
+{
+    offset -395, -231
+}
+weaponsprite NAILV0, 610, 272
+{
+    offset -395, -231
+}
+weaponsprite NAIMA0, 736, 276
+{
+    offset -386, -227
+}
+weaponsprite NAIMB0, 697, 261
+{
+    offset -425, -242
+}
+weaponsprite NAIMC0, 751, 248
+{
+    offset -419, -255
+}
+weaponsprite NAIMD0, 736, 281
+{
+    offset -419, -222
+}
+weaponsprite NAIME0, 591, 316
+{
+    offset -418, -187
+}
+weaponsprite NAIMF0, 541, 325
+{
+    offset -397, -178
+}
+weaponsprite NAIXA0, 654, 281
+{
+    offset -386, -232
+}
+weaponsprite NAIXB0, 702, 282
+{
+    offset -360, -231
+}
+weaponsprite NAIXC0, 770, 283
+{
+    offset -322, -230
+}
+weaponsprite NAIXD0, 820, 283
+{
+    offset -283, -230
+}
+weaponsprite NAIXE0, 843, 283
+{
+    offset -264, -230
+}
+weaponsprite NAOFA0, 637, 297
+{
+    offset -381, -206
+}
+weaponsprite NAOFB0, 679, 314
+{
+    offset -355, -189
+}
+weaponsprite NAOFC0, 742, 322
+{
+    offset -316, -181
+}
+weaponsprite NAOFD0, 832, 333
+{
+    offset -252, -170
+}
+weaponsprite NAOFE0, 527, 342
+{
+    offset -555, -161
+}
+weaponsprite NAOFF0, 521, 345
+{
+    offset -557, -158
+}
+weaponsprite NAR1A0, 615, 282
+{
+    offset -386, -221
+}
+weaponsprite NAR1B0, 614, 284
+{
+    offset -387, -219
+}
+weaponsprite NAR1C0, 570, 289
+{
+    offset -440, -214
+}
+weaponsprite NAR1D0, 628, 295
+{
+    offset -404, -208
+}
+weaponsprite NAR1E0, 605, 307
+{
+    offset -456, -196
+}
+weaponsprite NAR1F0, 542, 329
+{
+    offset -547, -174
+}
+weaponsprite NAR1G0, 545, 346
+{
+    offset -553, -157
+}
+weaponsprite NAR1H0, 548, 350
+{
+    offset -560, -153
+}
+weaponsprite NAR1I0, 557, 349
+{
+    offset -565, -154
+}
+weaponsprite NAR1J0, 560, 349
+{
+    offset -571, -154
+}
+weaponsprite NAR1K0, 561, 347
+{
+    offset -581, -156
+}
+weaponsprite NAR1L0, 560, 345
+{
+    offset -592, -158
+}
+weaponsprite NAR1M0, 891, 342
+{
+    offset -271, -161
+}
+weaponsprite NAR1N0, 848, 340
+{
+    offset -322, -163
+}
+weaponsprite NAR1O0, 805, 339
+{
+    offset -370, -164
+}
+weaponsprite NAR1P0, 853, 366
+{
+    offset -328, -137
+}
+weaponsprite NAR1Q0, 932, 427
+{
+    offset -255, -76
+}
+weaponsprite NAR1R0, 943, 425
+{
+    offset -255, -78
+}
+weaponsprite NAR1S0, 952, 421
+{
+    offset -255, -82
+}
+weaponsprite NAR1T0, 951, 419
+{
+    offset -258, -84
+}
+weaponsprite NAR1U0, 922, 413
+{
+    offset -289, -90
+}
+weaponsprite NAR1V0, 866, 392
+{
+    offset -345, -111
+}
+weaponsprite NAR1W0, 787, 363
+{
+    offset -408, -140
+}
+weaponsprite NAR1X0, 711, 360
+{
+    offset -475, -143
+}
+weaponsprite NAR1Y0, 616, 341
+{
+    offset -572, -162
+}
+weaponsprite NAR1Z0, 548, 320
+{
+    offset -664, -183
+}
+weaponsprite NAR2A0, 516, 311
+{
+    offset -661, -192
+}
+weaponsprite NAR2B0, 505, 318
+{
+    offset -661, -185
+}
+weaponsprite NAR2C0, 532, 334
+{
+    offset -613, -169
+}
+weaponsprite NAR2D0, 628, 353
+{
+    offset -499, -150
+}
+weaponsprite NAR2E0, 644, 371
+{
+    offset -455, -132
+}
+weaponsprite NAR2F0, 609, 379
+{
+    offset -468, -124
+}
+weaponsprite NAR2G0, 519, 374
+{
+    offset -519, -129
+}
+weaponsprite NAR2H0, 477, 364
+{
+    offset -563, -139
+}
+weaponsprite NAR2I0, 483, 364
+{
+    offset -580, -139
+}
+weaponsprite NAR2J0, 478, 377
+{
+    offset -620, -126
+}
+weaponsprite NAR2K0, 620, 409
+{
+    offset -574, -94
+}
+weaponsprite NAR2L0, 676, 413
+{
+    offset -535, -90
+}
+weaponsprite NAR2M0, 700, 397
+{
+    offset -505, -106
+}
+weaponsprite NAR2N0, 709, 375
+{
+    offset -484, -128
+}
+weaponsprite NAR2O0, 711, 350
+{
+    offset -473, -153
+}
+weaponsprite NAR2P0, 712, 327
+{
+    offset -462, -176
+}
+weaponsprite NAR2Q0, 707, 311
+{
+    offset -443, -192
+}
+weaponsprite NAR2R0, 706, 299
+{
+    offset -400, -204
+}
+weaponsprite NAR2S0, 663, 291
+{
+    offset -392, -212
+}
+weaponsprite NAR2T0, 626, 285
+{
+    offset -380, -218
+}
+weaponsprite NAREA0, 81, 22
+{
+    offset -40, -481
+}
+weaponsprite NAREB0, 537, 56
+{
+    offset 40, -447
+}
+weaponsprite NAREC0, 753, 113
+{
+    offset -8, -390
+}
+weaponsprite NARED0, 840, 153
+{
+    offset -43, -350
+}
+weaponsprite NAREE0, 876, 211
+{
+    offset -48, -292
+}
+weaponsprite NAREF0, 732, 259
+{
+    offset -90, -244
+}
+weaponsprite NAREG0, 745, 291
+{
+    offset -136, -212
+}
+weaponsprite NAREH0, 735, 308
+{
+    offset -205, -195
+}
+weaponsprite NAREI0, 796, 314
+{
+    offset -268, -189
+}
+weaponsprite NAREJ0, 791, 317
+{
+    offset -313, -186
+}
+weaponsprite NAREK0, 758, 315
+{
+    offset -352, -188
+}
+weaponsprite NAREL0, 724, 309
+{
+    offset -367, -194
+}
+weaponsprite NAREM0, 688, 298
+{
+    offset -370, -205
+}
+weaponsprite NAREN0, 673, 288
+{
+    offset -378, -215
+}
+weaponsprite NAREO0, 662, 283
+{
+    offset -389, -220
+}
+weaponsprite NASHA0, 669, 290
+{
+    offset -390, -213
+}
+weaponsprite NASHB0, 762, 301
+{
+    offset -390, -202
+}
+weaponsprite NASHC0, 889, 309
+{
+    offset -415, -194
+}
+weaponsprite NASHD0, 926, 304
+{
+    offset -423, -199
+}
+weaponsprite NASHE0, 923, 296
+{
+    offset -426, -207
+}
+weaponsprite NASHF0, 923, 295
+{
+    offset -426, -208
+}
+weaponsprite NASHG0, 924, 294
+{
+    offset -425, -209
+}
+weaponsprite NASHH0, 926, 293
+{
+    offset -423, -210
+}
+weaponsprite NASHI0, 889, 292
+{
+    offset -421, -211
+}
+weaponsprite NASHJ0, 847, 291
+{
+    offset -419, -212
+}
+weaponsprite NASHK0, 793, 290
+{
+    offset -416, -213
+}
+weaponsprite NASHL0, 758, 289
+{
+    offset -413, -214
+}
+weaponsprite NASHM0, 735, 288
+{
+    offset -402, -215
+}
+weaponsprite NASHN0, 712, 288
+{
+    offset -396, -215
+}
+weaponsprite NASHO0, 692, 287
+{
+    offset -392, -216
+}
+weaponsprite NASHP0, 675, 287
+{
+    offset -390, -216
+}
+weaponsprite NASHQ0, 660, 286
+{
+    offset -390, -217
+}
+weaponsprite NASHR0, 646, 286
+{
+    offset -390, -217
+}
+weaponsprite NFLAA0, 281, 284
+{
+    offset -463, -167
+}
+weaponsprite NFLAB0, 449, 415
+{
+    offset -370, -94
+}
+weaponsprite NFLAC0, 594, 578
+{
+    offset -304, -27
+}
+weaponsprite NFLAD0, 385, 383
+{
+    offset -419, -100
+}
+weaponsprite NFLAE0, 281, 284
+{
+    offset -465, -159
+}
+weaponsprite NFLAF0, 449, 415
+{
+    offset -374, -94
+}
+weaponsprite NFLAG0, 578, 594
+{
+    offset -327, -16
+}
+weaponsprite NFLAH0, 383, 385
+{
+    offset -419, -114
+}
+weaponsprite OFLAA0, 578, 240
+{
+    offset -252, -222
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLGEA0, 627, 291
+{
+    offset -392, -212
+}
+weaponsprite PLGEB0, 635, 297
+{
+    offset -384, -206
+}
+weaponsprite PLGEC0, 639, 300
+{
+    offset -378, -203
+}
+weaponsprite PLGED0, 626, 300
+{
+    offset -377, -203
+}
+weaponsprite PLGRA0, 605, 288
+{
+    offset -389, -215
+}
+weaponsprite PLGRB0, 597, 285
+{
+    offset -394, -218
+}
+weaponsprite PLGRC0, 589, 282
+{
+    offset -396, -221
+}
+weaponsprite PLGRD0, 596, 284
+{
+    offset -395, -219
+}
+weaponsprite PLGRE0, 610, 288
+{
+    offset -393, -215
+}
+weaponsprite PLGRF0, 622, 291
+{
+    offset -393, -212
+}
+weaponsprite PLGRG0, 627, 293
+{
+    offset -389, -210
+}
+weaponsprite PLGRH0, 627, 294
+{
+    offset -385, -209
+}
+weaponsprite PLGRI0, 617, 293
+{
+    offset -381, -210
+}
+weaponsprite PLGRJ0, 606, 292
+{
+    offset -380, -211
+}
+weaponsprite PLGRK0, 605, 290
+{
+    offset -383, -213
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite PLGRL0, 609, 288
+{
+    offset -387, -215
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite PLGRM0, 615, 288
+{
+    offset -392, -215
+}
+weaponsprite PLGRN0, 612, 284
+{
+    offset -400, -219
+}
+weaponsprite PLGRO0, 603, 280
+{
+    offset -409, -223
+}
+weaponsprite PLGRP0, 602, 277
+{
+    offset -409, -226
+}
+weaponsprite PLGRQ0, 609, 282
+{
+    offset -398, -221
+}
+weaponsprite PLGRR0, 610, 288
+{
+    offset -388, -215
+}
+weaponsprite PLGRS0, 611, 293
+{
+    offset -383, -210
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite PLGRT0, 614, 294
+{
+    offset -382, -209
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite PLGTA0, 647, 304
+{
+    offset -401, -199
+}
+weaponsprite PLGTB0, 713, 315
+{
+    offset -436, -188
+}
+weaponsprite PLGTC0, 693, 332
+{
+    offset -456, -171
+}
+weaponsprite PLGTD0, 702, 342
+{
+    offset -447, -161
+}
+weaponsprite PLGTE0, 669, 325
+{
+    offset -451, -178
+}
+weaponsprite PLGTF0, 607, 300
+{
+    offset -485, -203
+}
+weaponsprite PLGTG0, 601, 285
+{
+    offset -485, -218
+}
+weaponsprite PLGTH0, 590, 280
+{
+    offset -458, -223
+}
+weaponsprite PLGTI0, 602, 283
+{
+    offset -437, -220
+}
+weaponsprite PLGTJ0, 614, 288
+{
+    offset -405, -215
+}
+weaponsprite PLM1A0, 222, 226
+{
+    offset -406, -172
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM1B0, 207, 224
+{
+    offset -417, -169
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM1C0, 280, 303
+{
+    offset -376, -133
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM1D0, 253, 242
+{
+    offset -392, -158
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM2A0, 222, 227
+{
+    offset -403, -176
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM2B0, 321, 317
+{
+    offset -358, -135
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM2C0, 330, 296
+{
+    offset -361, -131
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM2D0, 333, 309
+{
+    offset -352, -118
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM3A0, 189, 207
+{
+    offset -421, -187
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM3B0, 260, 279
+{
+    offset -384, -147
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM3C0, 304, 323
+{
+    offset -368, -113
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLM3D0, 306, 326
+{
+    offset -364, -109
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite PLR1A0, 543, 308
+{
+    offset -393, -195
+}
+weaponsprite PLR1B0, 419, 363
+{
+    offset -352, -140
+}
+weaponsprite PLR1C0, 408, 411
+{
+    offset -280, -92
+}
+weaponsprite PLR1D0, 334, 433
+{
+    offset -220, -70
+}
+weaponsprite PLR1E0, 375, 441
+{
+    offset -121, -62
+}
+weaponsprite PLR1F0, 529, 433
+{
+    offset -82, -70
+}
+weaponsprite PLR1G0, 492, 409
+{
+    offset -74, -94
+}
+weaponsprite PLR1H0, 474, 410
+{
+    offset -86, -93
+}
+weaponsprite PLR1I0, 482, 416
+{
+    offset -94, -87
+}
+weaponsprite PLR1J0, 500, 423
+{
+    offset -86, -80
+}
+weaponsprite PLR1K0, 611, 427
+{
+    offset -60, -76
+}
+weaponsprite PLR1L0, 687, 435
+{
+    offset -60, -68
+}
+weaponsprite PLR1M0, 815, 446
+{
+    offset -63, -57
+}
+weaponsprite PLR1N0, 934, 451
+{
+    offset -72, -52
+}
+weaponsprite PLR1O0, 951, 448
+{
+    offset -68, -55
+}
+weaponsprite PLR1P0, 396, 445
+{
+    offset -69, -58
+}
+weaponsprite PLR1Q0, 392, 440
+{
+    offset -74, -63
+}
+weaponsprite PLR1R0, 386, 433
+{
+    offset -84, -70
+}
+weaponsprite PLR1S0, 380, 424
+{
+    offset -95, -79
+}
+weaponsprite PLR1T0, 375, 412
+{
+    offset -109, -91
+}
+weaponsprite PLR1U0, 370, 398
+{
+    offset -125, -105
+}
+weaponsprite PLR1V0, 757, 385
+{
+    offset -143, -118
+}
+weaponsprite PLR1W0, 788, 375
+{
+    offset -157, -128
+}
+weaponsprite PLR1X0, 771, 368
+{
+    offset -166, -135
+}
+weaponsprite PLR1Y0, 644, 371
+{
+    offset -150, -132
+}
+weaponsprite PLR1Z0, 583, 381
+{
+    offset -94, -122
+}
+weaponsprite PLR2A0, 529, 417
+{
+    offset -63, -86
+}
+weaponsprite PLR2B0, 458, 430
+{
+    offset -60, -73
+}
+weaponsprite PLR2C0, 477, 428
+{
+    offset -60, -75
+}
+weaponsprite PLR2D0, 515, 431
+{
+    offset -60, -72
+}
+weaponsprite PLR2E0, 570, 441
+{
+    offset -60, -62
+}
+weaponsprite PLR2F0, 647, 449
+{
+    offset -60, -54
+}
+weaponsprite PLR2G0, 618, 443
+{
+    offset -91, -60
+}
+weaponsprite PLR2H0, 553, 432
+{
+    offset -215, -71
+}
+weaponsprite PLR2I0, 489, 394
+{
+    offset -278, -109
+}
+weaponsprite PLR2J0, 460, 344
+{
+    offset -331, -159
+}
+weaponsprite PLR2K0, 576, 303
+{
+    offset -383, -200
+}
+weaponsprite PLR2L0, 619, 287
+{
+    offset -400, -216
+}
+weaponsprite PLR2M0, 569, 292
+{
+    offset -387, -211
+}
+weaponsprite PLR2N0, 598, 283
+{
+    offset -393, -220
+}
+weaponsprite PLR9A0, 621, 285
+{
+    offset -398, -218
+}
+weaponsprite PLR9B0, 652, 282
+{
+    offset -367, -221
+}
+weaponsprite PLR9C0, 752, 277
+{
+    offset -267, -226
+}
+weaponsprite PLR9D0, 858, 271
+{
+    offset -139, -232
+}
+weaponsprite PLR9E0, 906, 269
+{
+    offset -79, -234
+}
+weaponsprite PLRAA0, 574, 291
+{
+    offset -414, -222
+}
+weaponsprite PLRAB0, 603, 291
+{
+    offset -416, -222
+}
+weaponsprite PLRAC0, 634, 291
+{
+    offset -420, -222
+}
+weaponsprite PLRAD0, 658, 291
+{
+    offset -423, -222
+}
+weaponsprite PLRAE0, 658, 291
+{
+    offset -423, -222
+}
+weaponsprite PLRCA0, 620, 312
+{
+    offset -399, -191
+}
+weaponsprite PLRCB0, 632, 351
+{
+    offset -387, -152
+}
+weaponsprite PLRCC0, 647, 395
+{
+    offset -362, -108
+}
+weaponsprite PLRCD0, 665, 433
+{
+    offset -333, -70
+}
+weaponsprite PLRCE0, 382, 459
+{
+    offset -616, -44
+}
+weaponsprite PLRCF0, 371, 469
+{
+    offset -626, -34
+}
+weaponsprite PLRFA0, 586, 281
+{
+    offset -405, -222
+}
+weaponsprite PLRFB0, 580, 280
+{
+    offset -414, -223
+}
+weaponsprite PLRFC0, 572, 280
+{
+    offset -423, -223
+}
+weaponsprite PLRFD0, 586, 281
+{
+    offset -408, -222
+}
+weaponsprite PLRFE0, 587, 281
+{
+    offset -403, -222
+}
+weaponsprite PLRIA0, 621, 286
+{
+    offset -398, -217
+}
+weaponsprite PLRIB0, 621, 286
+{
+    offset -398, -217
+}
+weaponsprite PLRIC0, 621, 286
+{
+    offset -398, -217
+}
+weaponsprite PLRID0, 621, 286
+{
+    offset -398, -217
+}
+weaponsprite PLRIE0, 620, 286
+{
+    offset -398, -217
+}
+weaponsprite PLRIF0, 619, 286
+{
+    offset -398, -217
+}
+weaponsprite PLRIG0, 616, 285
+{
+    offset -399, -218
+}
+weaponsprite PLRIH0, 614, 285
+{
+    offset -399, -218
+}
+weaponsprite PLRII0, 612, 285
+{
+    offset -399, -218
+}
+weaponsprite PLRIJ0, 608, 284
+{
+    offset -400, -219
+}
+weaponsprite PLRIK0, 606, 284
+{
+    offset -400, -219
+}
+weaponsprite PLRIL0, 604, 283
+{
+    offset -400, -220
+}
+weaponsprite PLRIM0, 600, 283
+{
+    offset -401, -220
+}
+weaponsprite PLRIN0, 598, 283
+{
+    offset -401, -220
+}
+weaponsprite PLRIO0, 596, 282
+{
+    offset -401, -221
+}
+weaponsprite PLRIP0, 594, 282
+{
+    offset -401, -221
+}
+weaponsprite PLRIQ0, 591, 282
+{
+    offset -402, -221
+}
+weaponsprite PLRIR0, 590, 281
+{
+    offset -402, -222
+}
+weaponsprite PLRIS0, 588, 281
+{
+    offset -402, -222
+}
+weaponsprite PLRIT0, 587, 281
+{
+    offset -402, -222
+}
+weaponsprite PLRIU0, 586, 281
+{
+    offset -402, -222
+}
+weaponsprite PLRMA0, 512, 295
+{
+    offset -431, -208
+}
+weaponsprite PLRMB0, 426, 313
+{
+    offset -358, -190
+}
+weaponsprite PLRMC0, 544, 341
+{
+    offset -246, -162
+}
+weaponsprite PLRMD0, 939, 178
+{
+    offset -20, -325
+}
+weaponsprite PLRME0, 958, 240
+{
+    offset -1, -263
+}
+weaponsprite PLRMF0, 959, 265
+{
+    offset 20, -238
+}
+weaponsprite PLRRA0, 227, 62
+{
+    offset -112, -441
+}
+weaponsprite PLRRB0, 680, 150
+{
+    offset -79, -353
+}
+weaponsprite PLRRC0, 929, 214
+{
+    offset -90, -289
+}
+weaponsprite PLRRD0, 859, 270
+{
+    offset -139, -233
+}
+weaponsprite PLRRE0, 774, 304
+{
+    offset -240, -199
+}
+weaponsprite PLRRF0, 671, 298
+{
+    offset -293, -205
+}
+weaponsprite PLRRG0, 623, 288
+{
+    offset -335, -215
+}
+weaponsprite PLRRH0, 606, 280
+{
+    offset -365, -223
+}
+weaponsprite PLRRI0, 612, 275
+{
+    offset -380, -228
+}
+weaponsprite PLRRJ0, 621, 276
+{
+    offset -388, -227
+}
+weaponsprite PLRRK0, 626, 280
+{
+    offset -392, -223
+}
+weaponsprite PLRRL0, 624, 285
+{
+    offset -395, -218
+}
+weaponsprite PLRRM0, 621, 286
+{
+    offset -398, -217
+}
+weaponsprite PLRSA0, 611, 285
+{
+    offset -405, -228
+}
+weaponsprite PLRSB0, 568, 282
+{
+    offset -417, -231
+}
+weaponsprite PLRSC0, 566, 277
+{
+    offset -443, -236
+}
+weaponsprite PLRSD0, 576, 273
+{
+    offset -455, -240
+}
+weaponsprite PLRSE0, 578, 270
+{
+    offset -491, -243
+}
+weaponsprite PLRZA0, 600, 287
+{
+    offset -389, -226
+}
+weaponsprite PLRZB0, 584, 289
+{
+    offset -405, -224
+}
+weaponsprite PLRZC0, 553, 290
+{
+    offset -431, -223
+}
+weaponsprite PLRZD0, 563, 291
+{
+    offset -418, -222
+}
+weaponsprite PRIDA0, 611, 280
+{
+    offset -528, -223
+}
+weaponsprite RAIBA0, 542, 316
+{
+    offset -456, -187
+}
+weaponsprite RAIBB0, 590, 325
+{
+    offset -416, -178
+}
+weaponsprite RAIBC0, 673, 344
+{
+    offset -395, -159
+}
+weaponsprite RAIBD0, 541, 367
+{
+    offset -549, -136
+}
+weaponsprite RAIBE0, 530, 383
+{
+    offset -554, -120
+}
+weaponsprite RAIBF0, 525, 391
+{
+    offset -557, -112
+}
+weaponsprite RAIFA0, 512, 306
+{
+    offset -467, -197
+}
+weaponsprite RAIFB0, 485, 315
+{
+    offset -529, -188
+}
+weaponsprite RAIFC0, 479, 308
+{
+    offset -555, -195
+}
+weaponsprite RAIFD0, 487, 306
+{
+    offset -555, -197
+}
+weaponsprite RAIFE0, 491, 304
+{
+    offset -552, -199
+}
+weaponsprite RAIFF0, 479, 310
+{
+    offset -541, -193
+}
+weaponsprite RAIFG0, 461, 322
+{
+    offset -524, -181
+}
+weaponsprite RAIFH0, 463, 342
+{
+    offset -519, -161
+}
+weaponsprite RAIFI0, 527, 357
+{
+    offset -497, -146
+}
+weaponsprite RAIFJ0, 586, 362
+{
+    offset -488, -141
+}
+weaponsprite RAIFK0, 586, 360
+{
+    offset -484, -143
+}
+weaponsprite RAIFL0, 573, 355
+{
+    offset -481, -148
+}
+weaponsprite RAIFM0, 558, 347
+{
+    offset -478, -156
+}
+weaponsprite RAIFN0, 548, 340
+{
+    offset -474, -163
+}
+weaponsprite RAIFO0, 543, 334
+{
+    offset -470, -169
+}
+weaponsprite RAIFP0, 542, 330
+{
+    offset -467, -173
+}
+weaponsprite RAIFQ0, 542, 325
+{
+    offset -465, -178
+}
+weaponsprite RAIFR0, 542, 322
+{
+    offset -464, -181
+}
+weaponsprite RAIFS0, 539, 318
+{
+    offset -463, -185
+}
+weaponsprite RAIFT0, 530, 315
+{
+    offset -463, -188
+}
+weaponsprite RAIFU0, 524, 313
+{
+    offset -463, -190
+}
+weaponsprite RAIFV0, 520, 310
+{
+    offset -463, -193
+}
+weaponsprite RAIFW0, 517, 308
+{
+    offset -464, -195
+}
+weaponsprite RAIFX0, 514, 307
+{
+    offset -465, -196
+}
+weaponsprite RAIFY0, 513, 306
+{
+    offset -466, -197
+}
+weaponsprite RAIFZ0, 512, 306
+{
+    offset -467, -197
+}
+weaponsprite RAIIA0, 516, 305
+{
+    offset -466, -198
+}
+weaponsprite RAIIB0, 516, 306
+{
+    offset -466, -197
+}
+weaponsprite RAIIC0, 518, 306
+{
+    offset -465, -197
+}
+weaponsprite RAIID0, 518, 306
+{
+    offset -465, -197
+}
+weaponsprite RAIIE0, 520, 307
+{
+    offset -464, -196
+}
+weaponsprite RAIIF0, 522, 307
+{
+    offset -463, -196
+}
+weaponsprite RAIIG0, 524, 308
+{
+    offset -462, -195
+}
+weaponsprite RAIIH0, 527, 309
+{
+    offset -461, -194
+}
+weaponsprite RAIII0, 529, 310
+{
+    offset -460, -193
+}
+weaponsprite RAIIJ0, 532, 311
+{
+    offset -459, -192
+}
+weaponsprite RAIIK0, 534, 312
+{
+    offset -458, -191
+}
+weaponsprite RAIIL0, 537, 312
+{
+    offset -457, -191
+}
+weaponsprite RAIIM0, 539, 313
+{
+    offset -456, -190
+}
+weaponsprite RAIIN0, 541, 314
+{
+    offset -455, -189
+}
+weaponsprite RAIIO0, 543, 315
+{
+    offset -454, -188
+}
+weaponsprite RAIIP0, 544, 316
+{
+    offset -453, -187
+}
+weaponsprite RAIIQ0, 546, 316
+{
+    offset -452, -187
+}
+weaponsprite RAIIR0, 546, 317
+{
+    offset -452, -186
+}
+weaponsprite RAIIS0, 548, 317
+{
+    offset -451, -186
+}
+weaponsprite RAIIT0, 548, 318
+{
+    offset -451, -185
+}
+weaponsprite RAIIU0, 548, 318
+{
+    offset -451, -185
+}
+weaponsprite RAIMA0, 527, 306
+{
+    offset -491, -197
+}
+weaponsprite RAIMB0, 543, 309
+{
+    offset -488, -194
+}
+weaponsprite RAIMC0, 566, 314
+{
+    offset -508, -189
+}
+weaponsprite RAIMD0, 503, 323
+{
+    offset -542, -180
+}
+weaponsprite RAIME0, 600, 336
+{
+    offset -553, -167
+}
+weaponsprite RAIMF0, 675, 348
+{
+    offset -539, -155
+}
+weaponsprite RAIMG0, 719, 345
+{
+    offset -469, -158
+}
+weaponsprite RAIMH0, 632, 349
+{
+    offset -404, -154
+}
+weaponsprite RAIMI0, 570, 336
+{
+    offset -406, -167
+}
+weaponsprite RAIMJ0, 415, 302
+{
+    offset -418, -201
+}
+weaponsprite RAIMK0, 408, 286
+{
+    offset -436, -217
+}
+weaponsprite RAIML0, 462, 296
+{
+    offset -457, -207
+}
+weaponsprite RAIRA0, 683, 87
+{
+    offset -182, -416
+}
+weaponsprite RAIRB0, 707, 109
+{
+    offset -174, -394
+}
+weaponsprite RAIRC0, 826, 140
+{
+    offset -91, -363
+}
+weaponsprite RAIRD0, 849, 174
+{
+    offset -105, -329
+}
+weaponsprite RAIRE0, 835, 208
+{
+    offset -150, -295
+}
+weaponsprite RAIRF0, 803, 238
+{
+    offset -199, -265
+}
+weaponsprite RAIRG0, 763, 267
+{
+    offset -244, -236
+}
+weaponsprite RAIRH0, 730, 292
+{
+    offset -271, -211
+}
+weaponsprite RAIRI0, 706, 309
+{
+    offset -284, -194
+}
+weaponsprite RAIRJ0, 693, 319
+{
+    offset -288, -184
+}
+weaponsprite RAIRK0, 675, 322
+{
+    offset -308, -181
+}
+weaponsprite RAIRL0, 645, 321
+{
+    offset -347, -182
+}
+weaponsprite RAIRM0, 614, 315
+{
+    offset -385, -188
+}
+weaponsprite RAIRN0, 586, 312
+{
+    offset -416, -191
+}
+weaponsprite RAIRO0, 563, 313
+{
+    offset -438, -190
+}
+weaponsprite RAIRP0, 548, 314
+{
+    offset -450, -189
+}
+weaponsprite RAIRQ0, 542, 315
+{
+    offset -454, -188
+}
+weaponsprite RAISA0, 561, 316
+{
+    offset -456, -187
+}
+weaponsprite RAISB0, 579, 310
+{
+    offset -473, -193
+}
+weaponsprite RAISC0, 553, 303
+{
+    offset -483, -200
+}
+weaponsprite RAISD0, 531, 297
+{
+    offset -486, -206
+}
+weaponsprite RAISE0, 527, 295
+{
+    offset -484, -208
+}
+weaponsprite RAIWA0, 580, 316
+{
+    offset -425, -187
+}
+weaponsprite RAIWB0, 658, 317
+{
+    offset -394, -186
+}
+weaponsprite RAIWC0, 734, 318
+{
+    offset -322, -185
+}
+weaponsprite RAIWD0, 873, 327
+{
+    offset -189, -176
+}
+weaponsprite RAIWE0, 951, 335
+{
+    offset -115, -168
+}
+weaponsprite RIF2A0, 458, 299
+{
+    offset -470, -204
+}
+weaponsprite RIF2B0, 456, 341
+{
+    offset -414, -162
+}
+weaponsprite RIF2C0, 418, 381
+{
+    offset -370, -122
+}
+weaponsprite RIF2D0, 393, 405
+{
+    offset -231, -101
+    XSCALE 2.7
+    YSCALE 3
+}
+weaponsprite RIF2E0, 372, 409
+{
+    offset -352, -94
+}
+weaponsprite RIF2F0, 377, 425
+{
+    offset -297, -78
+}
+weaponsprite RIF3B0, 373, 408
+{
+    offset -243, -98
+    XSCALE 2.7
+    YSCALE 3
+}
+weaponsprite RIF3C0, 413, 409
+{
+    offset -203, -97
+    XSCALE 2.7
+    YSCALE 3
+}
+weaponsprite RIF3D0, 636, 375
+{
+    offset -275, -131
+    XSCALE 2.7
+    YSCALE 3
+}
+weaponsprite RIF3E0, 378, 406
+{
+    offset -239, -100
+    XSCALE 2.7
+    YSCALE 3
+}
+weaponsprite RIF4A0, 638, 380
+{
+    offset -481, -123
+}
+weaponsprite RIF4B0, 637, 380
+{
+    offset -482, -123
+}
+weaponsprite RIF4C0, 636, 380
+{
+    offset -483, -123
+}
+weaponsprite RIF4D0, 636, 375
+{
+    offset -483, -128
+}
+weaponsprite RIF7A0, 450, 286
+{
+    offset -538, -217
+}
+weaponsprite RIF7B0, 504, 325
+{
+    offset -505, -178
+}
+weaponsprite RIF7C0, 588, 375
+{
+    offset -486, -128
+}
+weaponsprite RIF8A0, 471, 274
+{
+    offset -465, -229
+}
+weaponsprite RIF8B0, 503, 255
+{
+    offset -451, -248
+}
+weaponsprite RIF8C0, 517, 254
+{
+    offset -444, -249
+}
+weaponsprite RIF8D0, 527, 254
+{
+    offset -442, -249
+}
+weaponsprite RIF9A0, 519, 272
+{
+    offset -437, -231
+}
+weaponsprite RIF9B0, 574, 250
+{
+    offset -379, -253
+}
+weaponsprite RIF9C0, 686, 249
+{
+    offset -277, -254
+}
+weaponsprite RIF9D0, 834, 247
+{
+    offset -149, -256
+}
+weaponsprite RIF9E0, 910, 246
+{
+    offset -61, -257
+}
+weaponsprite RIFFA0, 472, 290
+{
+    offset -494, -213
+}
+weaponsprite RIFFB0, 496, 289
+{
+    offset -507, -214
+}
+weaponsprite RIFFC0, 482, 287
+{
+    offset -518, -216
+}
+weaponsprite RIFFD0, 468, 287
+{
+    offset -517, -216
+}   
+
+weaponsprite RIFGA0, 462, 290
+{
+    offset -492, -213
+}
+weaponsprite RIFGB0, 462, 289
+{
+    offset -492, -214
+}
+weaponsprite RIFGC0, 462, 289
+{
+    offset -492, -214
+}
+weaponsprite RIFGD0, 462, 289
+{
+    offset -492, -214
+}
+weaponsprite RIFGE0, 462, 288
+{
+    offset -492, -215
+}
+weaponsprite RIFGF0, 461, 287
+{
+    offset -492, -216
+}
+weaponsprite RIFGG0, 461, 286
+{
+    offset -492, -217
+}
+weaponsprite RIFGH0, 460, 286
+{
+    offset -493, -217
+}
+weaponsprite RIFGI0, 459, 284
+{
+    offset -493, -219
+}
+weaponsprite RIFGJ0, 459, 283
+{
+    offset -493, -220
+}
+weaponsprite RIFGK0, 458, 282
+{
+    offset -494, -221
+}
+weaponsprite RIFGL0, 457, 281
+{
+    offset -494, -222
+}
+weaponsprite RIFGM0, 457, 280
+{
+    offset -494, -223
+}
+weaponsprite RIFGN0, 455, 279
+{
+    offset -495, -224
+}
+weaponsprite RIFGO0, 455, 278
+{
+    offset -495, -225
+}
+weaponsprite RIFGP0, 454, 277
+{
+    offset -495, -226
+}
+weaponsprite RIFGQ0, 453, 276
+{
+    offset -495, -227
+}
+weaponsprite RIFGR0, 451, 275
+{
+    offset -496, -228
+}
+weaponsprite RIFGS0, 451, 275
+{
+    offset -496, -228
+}
+weaponsprite RIFGT0, 451, 275
+{
+    offset -496, -228
+}
+weaponsprite RIFGU0, 450, 275
+{
+    offset -496, -228
+}
+weaponsprite RIFGZ0, 546, 286
+{
+    offset -467, -217
+    XSCALE 2
+    YSCALE 2
+}
+
+weaponsprite RIFMA0, 456, 293
+{
+    offset -430, -205
+}
+weaponsprite RIFMB0, 483, 291
+{
+    offset -404, -207
+}
+weaponsprite RIFMC0, 603, 276
+{
+    offset -315, -222
+}
+weaponsprite RIFMD0, 783, 253
+{
+    offset -151, -245
+}
+weaponsprite RIFME0, 812, 289
+{
+    offset -122, -209
+}
+weaponsprite RIFMF0, 913, 275
+{
+    offset -21, -223
+}
+weaponsprite RIFOA0, 560, 289
+{
+    offset -457, -214
+}
+weaponsprite RIFOB0, 595, 284
+{
+    offset -424, -219
+}
+weaponsprite RIFOC0, 637, 259
+{
+    offset -382, -244
+}
+weaponsprite RIFOD0, 721, 224
+{
+    offset -298, -279
+}
+weaponsprite RIFOE0, 735, 196
+{
+    offset -247, -307
+}
+weaponsprite RIFOF0, 607, 171
+{
+    offset -276, -332
+}
+weaponsprite RIFOG0, 328, 110
+{
+    offset -301, -393
+}
+weaponsprite RIFOH0, 48, 38
+{
+    offset -542, -465
+}
+weaponsprite RIFRA0, 457, 289
+{
+    offset -486, -214
+}
+weaponsprite RIFRB0, 440, 283
+{
+    offset -452, -220
+}
+weaponsprite RIFRC0, 299, 264
+{
+    offset -523, -239
+}
+weaponsprite RIFRD0, 255, 267
+{
+    offset -506, -236
+}
+weaponsprite RIFRE0, 282, 265
+{
+    offset -446, -238
+}
+weaponsprite RIFRF0, 336, 256
+{
+    offset -393, -247
+}
+weaponsprite RIFRG0, 412, 252
+{
+    offset -370, -251
+}
+weaponsprite RIFRH0, 476, 252
+{
+    offset -364, -251
+}
+weaponsprite RIFRI0, 325, 297
+{
+    offset -396, -206
+}
+weaponsprite RIFRJ0, 311, 299
+{
+    offset -547, -204
+}
+weaponsprite RIFRK0, 667, 289
+{
+    offset -225, -214
+}
+weaponsprite RIFRL0, 775, 323
+{
+    offset -244, -180
+}
+weaponsprite RIFRM0, 870, 334
+{
+    offset -144, -169
+}
+weaponsprite RIFRN0, 534, 336
+{
+    offset -445, -167
+}
+weaponsprite RIFRO0, 498, 332
+{
+    offset -458, -171
+}
+weaponsprite RIFRP0, 592, 330
+{
+    offset -357, -173
+}
+weaponsprite RIFRQ0, 599, 329
+{
+    offset -349, -174
+}
+weaponsprite RIFRR0, 779, 294
+{
+    offset -230, -209
+}
+weaponsprite RIFRS0, 573, 374
+{
+    offset -418, -129
+}
+weaponsprite RIFRT0, 491, 396
+{
+    offset -470, -107
+}
+weaponsprite RIFRU0, 448, 381
+{
+    offset -494, -122
+}
+weaponsprite RIFRV0, 449, 349
+{
+    offset -485, -154
+}
+weaponsprite RIFRW0, 458, 311
+{
+    offset -484, -192
+}
+weaponsprite RIFRX0, 468, 297
+{
+    offset -486, -206
+}
+weaponsprite RIFRY0, 463, 292
+{
+    offset -489, -211
+}
+weaponsprite RIFTA0, 541, 263
+{
+    offset -475, -240
+}
+weaponsprite RIFTB0, 593, 308
+{
+    offset -411, -195
+}
+weaponsprite RIFTC0, 684, 365
+{
+    offset -313, -138
+}
+weaponsprite RIFTD0, 603, 424
+{
+    offset -376, -79
+}
+weaponsprite RIFTE0, 257, 475
+{
+    offset -693, -28
+}
+weaponsprite RIFTF0, 264, 497
+{
+    offset -689, -6
+}
+weaponsprite RIFXA0, 468, 290
+{
+    offset -489, -213
+}
+weaponsprite RIFXB0, 488, 289
+{
+    offset -487, -214
+}
+weaponsprite RIFXC0, 520, 286
+{
+    offset -493, -217
+}
+weaponsprite RIFXD0, 511, 280
+{
+    offset -508, -223
+}
+weaponsprite RIFXE0, 501, 279
+{
+    offset -518, -224
+}
+weaponsprite RIGFA0, 533, 337
+{
+    offset -516, -166
+}
+weaponsprite RIGFB0, 582, 374
+{
+    offset -526, -129
+}
+weaponsprite RIGFC0, 593, 370
+{
+    offset -529, -133
+}
+weaponsprite RIGFD0, 620, 360
+{
+    offset -533, -143
+}
+weaponsprite RIGFE0, 650, 346
+{
+    offset -541, -157
+}
+weaponsprite RIGFF0, 707, 331
+{
+    offset -546, -172
+}
+weaponsprite RIGFG0, 730, 317
+{
+    offset -549, -186
+}
+weaponsprite RIGFH0, 713, 306
+{
+    offset -547, -197
+}
+weaponsprite RIGFI0, 643, 298
+{
+    offset -544, -205
+}
+weaponsprite RIGFJ0, 574, 293
+{
+    offset -538, -210
+}
+weaponsprite RIGFK0, 520, 289
+{
+    offset -532, -214
+}
+weaponsprite RIGFL0, 487, 287
+{
+    offset -523, -216
+}
+weaponsprite RIGFM0, 457, 285
+{
+    offset -521, -218
+}
+weaponsprite RIGFN0, 454, 285
+{
+    offset -516, -218
+}
+weaponsprite RIGFO0, 445, 285
+{
+    offset -515, -218
+}
+weaponsprite RIGLA0, 463, 290
+{
+    offset -484, -213
+}
+weaponsprite RIGLB0, 499, 291
+{
+    offset -469, -212
+}
+weaponsprite RIGLC0, 576, 292
+{
+    offset -429, -211
+}
+weaponsprite RIGLD0, 608, 288
+{
+    offset -413, -215
+}
+weaponsprite RIGLE0, 583, 280
+{
+    offset -426, -223
+}
+weaponsprite RIGLF0, 550, 274
+{
+    offset -455, -229
+}
+weaponsprite RIGLG0, 491, 280
+{
+    offset -494, -223
+}
+weaponsprite RIGLH0, 459, 284
+{
+    offset -507, -219
+}
+weaponsprite RIGLI0, 445, 285
+{
+    offset -517, -218
+}
+weaponsprite RIGLJ0, 444, 282
+{
+    offset -515, -221
+}
+weaponsprite RIGLK0, 440, 276
+{
+    offset -517, -227
+}
+weaponsprite RIGLL0, 431, 280
+{
+    offset -527, -223
+}
+weaponsprite RIGLM0, 449, 285
+{
+    offset -497, -218
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite RIGLN0, 464, 288
+{
+    offset -488, -215
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite RIGLO0, 452, 285
+{
+    offset -496, -218
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite RIGLP0, 465, 288
+{
+    offset -489, -215
+}
+weaponsprite RIGLQ0, 463, 290
+{
+    offset -492, -213
+}
+weaponsprite RIGSA0, 450, 285
+{
+    offset -519, -218
+}
+weaponsprite RIGSB0, 464, 282
+{
+    offset -529, -221
+}
+weaponsprite RIGSC0, 501, 278
+{
+    offset -546, -225
+}
+weaponsprite RIGSD0, 547, 272
+{
+    offset -557, -231
+}
+weaponsprite RIGSE0, 562, 269
+{
+    offset -562, -234
+}
+weaponsprite RO4AA0, 595, 468
+{
+    offset -299, -35
+}
+weaponsprite RO4AB0, 547, 434
+{
+    offset -336, -69
+}
+weaponsprite RO4AC0, 563, 406
+{
+    offset -305, -97
+}
+weaponsprite RO4AD0, 287, 380
+{
+    offset -601, -123
+}
+weaponsprite RO4AE0, 281, 346
+{
+    offset -609, -157
+}
+weaponsprite RO4AF0, 276, 305
+{
+    offset -607, -198
+}
+weaponsprite RO4AG0, 309, 259
+{
+    offset -555, -244
+}
+weaponsprite ROAFA0, 721, 422
+{
+    offset -113, -91
+}
+weaponsprite ROAFB0, 700, 461
+{
+    offset -135, -52
+}
+weaponsprite ROAFC0, 595, 413
+{
+    offset -171, -110
+}
+weaponsprite ROAFD0, 508, 381
+{
+    offset -221, -147
+}
+weaponsprite ROAFE0, 828, 450
+{
+    offset -62, -78
+}
+weaponsprite ROAFF0, 959, 500
+{
+    offset 0, -28
+}
+weaponsprite ROAFG0, 959, 499
+{
+    offset 0, -39
+}
+weaponsprite ROAFH0, 939, 485
+{
+    offset 0, -58
+}
+weaponsprite ROAFI0, 889, 459
+{
+    offset -16, -89
+}
+weaponsprite ROAFJ0, 852, 449
+{
+    offset -47, -99
+}
+weaponsprite ROAFK0, 815, 447
+{
+    offset -64, -101
+}
+weaponsprite ROAFL0, 659, 444
+{
+    offset -143, -94
+}
+weaponsprite ROAFM0, 646, 438
+{
+    offset -153, -90
+}
+weaponsprite ROAFN0, 681, 456
+{
+    offset -138, -67
+}
+weaponsprite ROAFO0, 571, 456
+{
+    offset -185, -67
+}
+weaponsprite ROAFP0, 524, 434
+{
+    offset -205, -89
+}
+weaponsprite ROAFQ0, 556, 400
+{
+    offset -195, -123
+}
+weaponsprite ROAFR0, 631, 380
+{
+    offset -162, -143
+}
+weaponsprite ROAFS0, 636, 388
+{
+    offset -162, -135
+}
+weaponsprite ROAFT0, 635, 390
+{
+    offset -163, -123
+}
+weaponsprite ROAZA0, 306, 270
+{
+    offset -610, -233
+}
+weaponsprite ROAZB0, 625, 272
+{
+    offset -243, -231
+}
+weaponsprite ROAZC0, 549, 278
+{
+    offset -290, -225
+}
+weaponsprite ROAZD0, 505, 287
+{
+    offset -367, -216
+}
+weaponsprite ROAZE0, 463, 298
+{
+    offset -371, -205
+}
+weaponsprite ROAZF0, 428, 330
+{
+    offset -375, -173
+}
+weaponsprite ROAZG0, 616, 372
+{
+    offset -218, -131
+}
+weaponsprite ROAZH0, 638, 390
+{
+    offset -163, -123
+}
+weaponsprite ROR2A0, 302, 301
+{
+    offset -611, -202
+}
+weaponsprite ROR2B0, 345, 417
+{
+    offset -577, -86
+}
+weaponsprite ROR2C0, 335, 455
+{
+    offset -584, -48
+}
+weaponsprite ROR2D0, 296, 277
+{
+    offset -483, -226
+}
+weaponsprite ROR2E0, 319, 105
+{
+    offset -285, -398
+}
+weaponsprite ROR3A0, 303, 283
+{
+    offset -608, -220
+}
+weaponsprite ROR3B0, 281, 323
+{
+    offset -625, -180
+}
+weaponsprite ROR3C0, 252, 376
+{
+    offset -651, -127
+}
+weaponsprite ROR3D0, 259, 431
+{
+    offset -678, -72
+}
+weaponsprite ROR3E0, 286, 476
+{
+    offset -701, -27
+}
+weaponsprite ROR3F0, 288, 495
+{
+    offset -712, -8
+}
+weaponsprite ROR4A0, 293, 203
+{
+    offset -521, -300
+}
+weaponsprite ROR4C0, 471, 215
+{
+    offset -511, -288
+}
+weaponsprite ROR4D0, 414, 255
+{
+    offset -550, -248
+}
+weaponsprite ROR4E0, 716, 325
+{
+    offset -246, -178
+}
+weaponsprite ROR4F0, 742, 362
+{
+    offset -229, -141
+}
+weaponsprite ROR4G0, 710, 424
+{
+    offset -284, -79
+}
+weaponsprite ROR4H0, 681, 449
+{
+    offset -308, -54
+}
+weaponsprite ROR4I0, 643, 450
+{
+    offset -327, -53
+}
+weaponsprite ROR4J0, 623, 456
+{
+    offset -362, -47
+}
+weaponsprite ROR4K0, 607, 470
+{
+    offset -366, -33
+}
+weaponsprite ROR4L0, 607, 485
+{
+    offset -357, -18
+}
+weaponsprite ROR4M0, 643, 497
+{
+    offset -335, -6
+}
+weaponsprite ROR4N0, 645, 496
+{
+    offset -340, -7
+}
+weaponsprite ROR4O0, 618, 496
+{
+    offset -367, -7
+}
+weaponsprite ROR4P0, 607, 497
+{
+    offset -373, -6
+}
+weaponsprite ROR4Q0, 618, 492
+{
+    offset -343, -11
+}
+weaponsprite ROR4R0, 625, 487
+{
+    offset -324, -16
+}
+weaponsprite ROR4S0, 622, 482
+{
+    offset -315, -21
+}
+weaponsprite ROR4T0, 586, 474
+{
+    offset -333, -29
+}
+weaponsprite ROR4U0, 605, 472
+{
+    offset -311, -31
+}
+weaponsprite ROR4V0, 609, 471
+{
+    offset -339, -32
+}
+weaponsprite ROR4W0, 739, 476
+{
+    offset -251, -27
+}
+weaponsprite ROR4X0, 775, 486
+{
+    offset -219, -17
+}
+weaponsprite ROR4Y0, 741, 486
+{
+    offset -241, -17
+}
+weaponsprite ROR4Z0, 654, 487
+{
+    offset -282, -16
+}
+weaponsprite ROR5A0, 285, 249
+{
+    offset -617, -263
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite ROR5B0, 228, 242
+{
+    offset -637, -270
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite ROR5C0, 241, 237
+{
+    offset -655, -275
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite ROR5D0, 256, 235
+{
+    offset -661, -277
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite ROR5E0, 257, 235
+{
+    offset -662, -277
+    XSCALE 3
+    YSCALE 3
+}
+weaponsprite ROR6A0, 165, 65
+{
+    offset -614, -438
+}
+weaponsprite ROR6B0, 210, 146
+{
+    offset -536, -357
+}
+weaponsprite ROR6C0, 357, 243
+{
+    offset -473, -260
+}
+weaponsprite ROR6D0, 472, 327
+{
+    offset -420, -176
+}
+weaponsprite ROR6E0, 507, 380
+{
+    offset -382, -123
+}
+weaponsprite ROR6F0, 529, 404
+{
+    offset -353, -99
+}
+weaponsprite ROR6G0, 554, 419
+{
+    offset -325, -84
+}
+weaponsprite ROR6H0, 579, 427
+{
+    offset -300, -76
+}
+weaponsprite ROR6I0, 599, 431
+{
+    offset -280, -72
+}
+weaponsprite ROR6J0, 615, 433
+{
+    offset -263, -70
+}
+weaponsprite ROR6K0, 624, 432
+{
+    offset -251, -71
+}
+weaponsprite ROR6L0, 625, 431
+{
+    offset -246, -72
+}
+weaponsprite ROR6M0, 620, 425
+{
+    offset -247, -78
+}
+weaponsprite ROR6N0, 611, 416
+{
+    offset -253, -87
+}
+weaponsprite ROR6O0, 599, 404
+{
+    offset -262, -99
+}
+weaponsprite ROR6P0, 586, 394
+{
+    offset -271, -109
+}
+weaponsprite ROR6Q0, 575, 387
+{
+    offset -279, -116
+}
+weaponsprite ROR6R0, 566, 385
+{
+    offset -285, -118
+}
+weaponsprite ROR6S0, 561, 387
+{
+    offset -289, -116
+}
+weaponsprite ROR6T0, 555, 391
+{
+    offset -293, -112
+}
+weaponsprite ROR6U0, 551, 395
+{
+    offset -296, -108
+}
+weaponsprite ROR6V0, 546, 399
+{
+    offset -300, -104
+}
+weaponsprite ROR6W0, 539, 399
+{
+    offset -307, -104
+}
+weaponsprite ROR6X0, 525, 396
+{
+    offset -323, -107
+}
+weaponsprite ROR6Y0, 506, 392
+{
+    offset -343, -111
+}
+weaponsprite ROR6Z0, 507, 396
+{
+    offset -344, -107
+}
+weaponsprite ROR7A0, 492, 397
+{
+    offset -337, -106
+}
+weaponsprite ROR7B0, 445, 397
+{
+    offset -323, -106
+}
+weaponsprite ROR7C0, 459, 408
+{
+    offset -296, -95
+}
+weaponsprite ROR7D0, 502, 426
+{
+    offset -256, -77
+}
+weaponsprite ROR7E0, 551, 442
+{
+    offset -209, -61
+}
+weaponsprite ROR7F0, 596, 448
+{
+    offset -166, -55
+}
+weaponsprite ROR7G0, 617, 445
+{
+    offset -148, -58
+}
+weaponsprite ROR7H0, 618, 439
+{
+    offset -151, -64
+}
+weaponsprite ROR7I0, 622, 437
+{
+    offset -156, -66
+}
+weaponsprite ROR7J0, 620, 436
+{
+    offset -164, -67
+}
+weaponsprite ROR7K0, 626, 436
+{
+    offset -173, -67
+}
+weaponsprite ROR7L0, 660, 437
+{
+    offset -180, -66
+}
+weaponsprite ROR7M0, 667, 435
+{
+    offset -186, -68
+}
+weaponsprite ROR7N0, 675, 431
+{
+    offset -190, -72
+}
+weaponsprite ROR7O0, 643, 422
+{
+    offset -193, -81
+}
+weaponsprite ROR7P0, 650, 414
+{
+    offset -204, -89
+}
+weaponsprite ROR7Q0, 646, 416
+{
+    offset -230, -87
+}
+weaponsprite ROR7R0, 625, 422
+{
+    offset -274, -81
+}
+weaponsprite ROR7S0, 587, 428
+{
+    offset -331, -75
+}
+weaponsprite ROR7T0, 513, 428
+{
+    offset -403, -75
+}
+weaponsprite ROR7U0, 442, 409
+{
+    offset -474, -94
+}
+weaponsprite ROR7V0, 381, 373
+{
+    offset -533, -130
+}
+weaponsprite ROR7W0, 347, 333
+{
+    offset -569, -170
+}
+weaponsprite ROR7X0, 326, 298
+{
+    offset -591, -205
+}
+weaponsprite ROR8A0, 317, 272
+{
+    offset -602, -231
+}
+weaponsprite ROR8B0, 316, 271
+{
+    offset -602, -232
+}
+weaponsprite ROR8C0, 315, 270
+{
+    offset -603, -233
+}
+weaponsprite RORAA0, 303, 253
+{
+    offset -600, -250
+}
+weaponsprite RORAB0, 291, 252
+{
+    offset -601, -251
+}
+weaponsprite RORAC0, 371, 280
+{
+    offset -616, -223
+}
+weaponsprite RORAD0, 387, 316
+{
+    offset -632, -187
+}
+weaponsprite RORAE0, 383, 329
+{
+    offset -631, -174
+}
+weaponsprite RORAF0, 375, 333
+{
+    offset -633, -170
+}
+weaponsprite RORAG0, 367, 337
+{
+    offset -633, -166
+}
+weaponsprite RORAH0, 355, 342
+{
+    offset -633, -161
+}
+weaponsprite RORAI0, 345, 345
+{
+    offset -633, -158
+}
+weaponsprite RORAJ0, 340, 346
+{
+    offset -632, -157
+}
+weaponsprite RORAK0, 338, 347
+{
+    offset -630, -156
+}
+weaponsprite RORAL0, 310, 348
+{
+    offset -626, -155
+}
+weaponsprite RORAM0, 284, 349
+{
+    offset -621, -154
+}
+weaponsprite RORAN0, 276, 346
+{
+    offset -619, -157
+}
+weaponsprite RORAO0, 268, 340
+{
+    offset -616, -163
+}
+weaponsprite RORAP0, 285, 322
+{
+    offset -612, -181
+}
+weaponsprite RORAQ0, 295, 299
+{
+    offset -607, -204
+}
+weaponsprite RORAR0, 302, 259
+{
+    offset -601, -244
+}
+weaponsprite RORIA0, 310, 270
+{
+    offset -603, -233
+}
+weaponsprite RORIB0, 309, 270
+{
+    offset -603, -233
+}
+weaponsprite RORIC0, 309, 270
+{
+    offset -603, -233
+}
+weaponsprite RORID0, 308, 270
+{
+    offset -603, -233
+}
+weaponsprite RORIE0, 307, 270
+{
+    offset -603, -233
+}
+weaponsprite RORIF0, 306, 269
+{
+    offset -603, -234
+}
+weaponsprite RORIG0, 304, 269
+{
+    offset -603, -234
+}
+weaponsprite RORIH0, 303, 268
+{
+    offset -603, -235
+}
+weaponsprite RORII0, 302, 268
+{
+    offset -603, -235
+}
+weaponsprite RORIJ0, 300, 267
+{
+    offset -603, -236
+}
+weaponsprite RORIK0, 299, 267
+{
+    offset -603, -236
+}
+weaponsprite RORIL0, 298, 266
+{
+    offset -602, -237
+}
+weaponsprite RORIM0, 296, 266
+{
+    offset -603, -237
+}
+weaponsprite RORIN0, 294, 265
+{
+    offset -603, -238
+}
+weaponsprite RORIO0, 293, 265
+{
+    offset -602, -238
+}
+weaponsprite RORIP0, 291, 264
+{
+    offset -603, -239
+}
+weaponsprite RORIQ0, 289, 264
+{
+    offset -603, -239
+}
+weaponsprite RORIR0, 287, 263
+{
+    offset -603, -240
+}
+weaponsprite RORIS0, 286, 263
+{
+    offset -603, -240
+}
+weaponsprite RORIT0, 285, 263
+{
+    offset -603, -240
+}
+weaponsprite RORIU0, 284, 262
+{
+    offset -603, -241
+}
+weaponsprite RORIV0, 284, 263
+{
+    offset -603, -240
+}
+weaponsprite RORSA0, 92, 37
+{
+    offset -836, -466
+}
+weaponsprite RORSB0, 173, 105
+{
+    offset -803, -398
+}
+weaponsprite RORSC0, 224, 135
+{
+    offset -721, -368
+}
+weaponsprite RORSD0, 259, 163
+{
+    offset -651, -340
+}
+weaponsprite RORSE0, 248, 190
+{
+    offset -629, -313
+}
+weaponsprite RORSF0, 278, 213
+{
+    offset -615, -290
+}
+weaponsprite RORSG0, 303, 232
+{
+    offset -607, -271
+}
+weaponsprite RORSH0, 308, 253
+{
+    offset -603, -250
+}
+weaponsprite ROZFA0, 371, 275
+{
+    offset -548, -228
+}
+weaponsprite ROZFB0, 381, 278
+{
+    offset -558, -225
+}
+weaponsprite ROZFC0, 463, 278
+{
+    offset -572, -225
+}
+weaponsprite ROZFD0, 571, 272
+{
+    offset -579, -231
+}
+weaponsprite ROZFE0, 709, 287
+{
+    offset -590, -216
+}
+weaponsprite ROZFF0, 691, 300
+{
+    offset -598, -203
+}
+weaponsprite ROZFG0, 735, 300
+{
+    offset -598, -203
+}
+weaponsprite ROZFH0, 750, 303
+{
+    offset -597, -200
+}
+weaponsprite ROZFI0, 739, 307
+{
+    offset -595, -196
+}
+weaponsprite ROZFJ0, 655, 312
+{
+    offset -592, -191
+}
+weaponsprite ROZFK0, 590, 319
+{
+    offset -585, -184
+}
+weaponsprite ROZFL0, 558, 326
+{
+    offset -573, -177
+}
+weaponsprite ROZFM0, 559, 333
+{
+    offset -550, -170
+}
+weaponsprite ROZFN0, 498, 339
+{
+    offset -537, -164
+}
+weaponsprite ROZFO0, 435, 335
+{
+    offset -530, -168
+}
+weaponsprite ROZFP0, 409, 314
+{
+    offset -530, -189
+}
+weaponsprite ROZFQ0, 389, 289
+{
+    offset -538, -214
+}
+weaponsprite ROZFR0, 377, 274
+{
+    offset -540, -229
+}
+weaponsprite ROZOA0, 617, 271
+{
+    offset -279, -232
+}
+weaponsprite ROZOB0, 456, 271
+{
+    offset -379, -232
+}
+weaponsprite ROZOC0, 385, 271
+{
+    offset -478, -232
+}
+weaponsprite ROZOD0, 397, 272
+{
+    offset -500, -231
+}
+weaponsprite ROZOE0, 417, 272
+{
+    offset -514, -231
+}
+weaponsprite ROZOF0, 388, 273
+{
+    offset -526, -230
+}
+weaponsprite ROZOG0, 371, 273
+{
+    offset -536, -230
+}
+weaponsprite SHO1A0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHO1B0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHO1C0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHO1D0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHO1E0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHO1F0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1A0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1B0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1C0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1D0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1E0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1F0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1G0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1H0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1I0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1J0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1K0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1L0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1M0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1N0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1O0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1P0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1Q0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR1R0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2A0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2B0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2C0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2D0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2E0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2F0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2G0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2H0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2I0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2J0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHR2K0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSA0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSB0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSC0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSD0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSE0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSF0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSG0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSH0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSI0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSJ0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSK0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSL0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSM0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSN0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSO0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSP0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSQ0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSR0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSS0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSST0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHSSU0, 960, 504
+{
+	offset -40,0
+}
+
+weaponsprite SHT9A0, 489, 240
+{
+    offset -437, -263
+}
+weaponsprite SHT9B0, 472, 227
+{
+    offset -426, -276
+}
+weaponsprite SHT9C0, 529, 218
+{
+    offset -317, -285
+}
+weaponsprite SHT9D0, 715, 208
+{
+    offset -162, -295
+}
+weaponsprite SHT9E0, 803, 207
+{
+    offset -69, -296
+}
+weaponsprite SHTFA0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFB0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFC0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFD0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFE0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFF0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFG0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFH0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFI0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFJ0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFK0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFL0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFM0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFN0, 960, 504
+{
+	offset -420,0
+}
+weaponsprite SHTFO0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGA0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGB0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGC0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGD0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGE0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGF0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGG0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGH0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGI0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGJ0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGK0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGL0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGM0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGN0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGO0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGP0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGQ0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGR0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGS0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTGT0, 960, 504
+{
+	offset -40,0
+}
+weaponsprite SHTMA0, 526, 267
+{
+    offset -223, -236
+}
+weaponsprite SHTMB0, 362, 260
+{
+    offset -220, -243
+}
+weaponsprite SHTMC0, 607, 242
+{
+    offset -18, -261
+}
+weaponsprite SHTMD0, 604, 179
+{
+    offset -101, -324
+}
+weaponsprite SHTME0, 706, 278
+{
+    offset -166, -225
+}
+weaponsprite SHTMF0, 943, 283
+{
+    offset 20, -220
+}
+weaponsprite SHTRA0, 130, 54
+{
+    offset -185, -449
+}
+weaponsprite SHTRB0, 209, 108
+{
+    offset -242, -395
+}
+weaponsprite SHTRC0, 305, 163
+{
+    offset -300, -340
+}
+weaponsprite SHTRD0, 416, 206
+{
+    offset -339, -297
+}
+weaponsprite SHTRE0, 504, 229
+{
+    offset -389, -274
+}
+weaponsprite SHTRF0, 572, 239
+{
+    offset -411, -264
+}
+weaponsprite SHTRG0, 573, 247
+{
+    offset -426, -256
+}
+weaponsprite SHTRH0, 552, 251
+{
+    offset -439, -252
+}
+weaponsprite SHTXA0, 589, 252
+{
+    offset -465, -251
+}
+weaponsprite SHTXB0, 634, 254
+{
+    offset -468, -249
+}
+weaponsprite SHTXC0, 673, 257
+{
+    offset -473, -246
+}
+weaponsprite SHTXD0, 683, 259
+{
+    offset -480, -244
+}
+weaponsprite SHTXE0, 695, 259
+{
+    offset -483, -244
+}
+weaponsprite SHTZA0, 960, 504
+{
+	offset -100,0
+}
+weaponsprite SHTZB0, 960, 504
+{
+	offset -100,0
+}
+weaponsprite SHTZC0, 960, 504
+{
+	offset -100,0
+}
+weaponsprite SHTZD0, 960, 504
+{
+	offset -100,0
+}
+weaponsprite SHLOA0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOB0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOC0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOD0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOE0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOF0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOG0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOH0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOI0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOJ0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOK0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOL0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOM0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLON0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOO0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOP0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOQ0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOR0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOS0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOT0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOU0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOV0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOW0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOX0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SHLOY0, 960, 504
+{
+	offset -110,0
+}
+weaponsprite SMD1A0, 158, 55
+{
+    offset -669, -448
+}
+weaponsprite SMD1B0, 125, 26
+{
+    offset -722, -477
+}
+weaponsprite SMD1C0, 11, 3
+{
+    offset -758, -500
+}
+weaponsprite SMD1K0, 32, 15
+{
+    offset -266, -488
+}
+weaponsprite SMD1L0, 185, 41
+{
+    offset -134, -462
+}
+weaponsprite SMD1M0, 223, 73
+{
+    offset -105, -430
+}
+weaponsprite SMD1N0, 696, 109
+{
+    offset -89, -394
+}
+weaponsprite SMD1O0, 825, 146
+{
+    offset -54, -357
+}
+weaponsprite SMD1P0, 860, 182
+{
+    offset -33, -321
+}
+weaponsprite SMD1Q0, 920, 213
+{
+    offset -18, -290
+}
+weaponsprite SMD1R0, 949, 240
+{
+    offset -11, -263
+}
+weaponsprite SMD1S0, 943, 260
+{
+    offset -27, -243
+}
+weaponsprite SMD1T0, 904, 273
+{
+    offset -54, -230
+}
+weaponsprite SMD1U0, 873, 285
+{
+    offset -66, -218
+}
+weaponsprite SMDBA0, 872, 285
+{
+    offset -65, -218
+}
+weaponsprite SMDBB0, 873, 285
+{
+    offset -65, -218
+}
+weaponsprite SMDBC0, 872, 284
+{
+    offset -65, -219
+}
+weaponsprite SMDBD0, 872, 284
+{
+    offset -65, -219
+}
+weaponsprite SMDBE0, 872, 284
+{
+    offset -65, -219
+}
+weaponsprite SMDBF0, 872, 283
+{
+    offset -65, -220
+}
+weaponsprite SMDBG0, 872, 283
+{
+    offset -65, -220
+}
+weaponsprite SMDBH0, 872, 282
+{
+    offset -65, -221
+}
+weaponsprite SMDBI0, 871, 282
+{
+    offset -66, -221
+}
+weaponsprite SMDBJ0, 871, 281
+{
+    offset -66, -222
+}
+weaponsprite SMDBK0, 871, 281
+{
+    offset -66, -222
+}
+weaponsprite SMDBL0, 871, 280
+{
+    offset -66, -223
+}
+weaponsprite SMDBM0, 871, 280
+{
+    offset -66, -223
+}
+weaponsprite SMDBN0, 870, 279
+{
+    offset -67, -224
+}
+weaponsprite SMDBO0, 870, 278
+{
+    offset -67, -225
+}
+weaponsprite SMDBP0, 870, 278
+{
+    offset -67, -225
+}
+weaponsprite SMDBQ0, 870, 278
+{
+    offset -67, -225
+}
+weaponsprite SMDBR0, 870, 277
+{
+    offset -67, -226
+}
+weaponsprite SMDBS0, 869, 277
+{
+    offset -68, -226
+}
+weaponsprite SMDBT0, 869, 277
+{
+    offset -68, -226
+}
+weaponsprite SMDBU0, 869, 277
+{
+    offset -68, -226
+}
+weaponsprite SMDBV0, 869, 276
+{
+    offset -68, -227
+}
+weaponsprite SMDCA0, 897, 298
+{
+    offset -73, -205
+}
+weaponsprite SMDCB0, 885, 333
+{
+    offset -85, -170
+}
+weaponsprite SMDCC0, 762, 380
+{
+    offset -208, -123
+}
+weaponsprite SMDCD0, 461, 427
+{
+    offset -509, -76
+}
+weaponsprite SMDCE0, 459, 464
+{
+    offset -511, -39
+}
+weaponsprite SMDCF0, 458, 479
+{
+    offset -512, -24
+}
+weaponsprite SMDEA0, 929, 258
+{
+    offset -41, -245
+}
+weaponsprite SMDEB0, 939, 247
+{
+    offset -31, -256
+}
+weaponsprite SMDEC0, 950, 233
+{
+    offset -20, -270
+}
+weaponsprite SMDED0, 959, 218
+{
+    offset -11, -285
+}
+weaponsprite SMDEE0, 959, 201
+{
+    offset -11, -302
+}
+weaponsprite SMDEF0, 959, 190
+{
+    offset -11, -313
+}
+weaponsprite SMDEG0, 959, 178
+{
+    offset -11, -325
+}
+weaponsprite SMDEH0, 959, 164
+{
+    offset -11, -339
+}
+weaponsprite SMDEI0, 959, 149
+{
+    offset -11, -354
+}
+weaponsprite SMDEJ0, 954, 130
+{
+    offset -11, -373
+}
+weaponsprite SMDEK0, 943, 108
+{
+    offset -15, -395
+}
+weaponsprite SMDEL0, 903, 84
+{
+    offset -31, -419
+}
+weaponsprite SMDEM0, 878, 58
+{
+    offset -37, -445
+}
+weaponsprite SMDEN0, 840, 34
+{
+    offset -47, -469
+}
+weaponsprite SMDFA0, 954, 284
+{
+    offset -5, -219
+}
+weaponsprite SMDFB0, 950, 285
+{
+    offset -9, -218
+}
+weaponsprite SMDFC0, 918, 284
+{
+    offset -34, -219
+}
+weaponsprite SMDMA0, 887, 285
+{
+    offset -65, -218
+}
+weaponsprite SMDMB0, 875, 296
+{
+    offset -41, -207
+}
+weaponsprite SMDMC0, 858, 294
+{
+    offset -16, -209
+}
+weaponsprite SMDMD0, 749, 283
+{
+    offset -11, -220
+}
+weaponsprite SMDME0, 730, 270
+{
+    offset -11, -233
+}
+weaponsprite SMDMF0, 915, 282
+{
+    offset -12, -221
+}
+weaponsprite SMDRA0, 847, 284
+{
+    offset -90, -219
+}
+weaponsprite SMDRB0, 873, 277
+{
+    offset -97, -226
+}
+weaponsprite SMDRC0, 868, 272
+{
+    offset -102, -231
+}
+weaponsprite SMDRD0, 850, 274
+{
+    offset -110, -229
+}
+weaponsprite SMDRE0, 830, 278
+{
+    offset -123, -225
+}
+weaponsprite SMDRF0, 828, 283
+{
+    offset -135, -220
+}
+weaponsprite SMDRG0, 830, 287
+{
+    offset -137, -216
+}
+weaponsprite SMDRH0, 864, 316
+{
+    offset -106, -187
+}
+weaponsprite SMDRI0, 802, 347
+{
+    offset -87, -156
+}
+weaponsprite SMDRJ0, 801, 325
+{
+    offset -138, -178
+}
+weaponsprite SMDRK0, 664, 270
+{
+    offset -132, -233
+}
+weaponsprite SMDRL0, 676, 274
+{
+    offset -106, -229
+}
+weaponsprite SMDRM0, 655, 288
+{
+    offset -125, -215
+}
+weaponsprite SMDRN0, 656, 314
+{
+    offset -153, -189
+}
+weaponsprite SMDRO0, 698, 324
+{
+    offset -141, -179
+}
+weaponsprite SMDRP0, 723, 322
+{
+    offset -125, -181
+}
+weaponsprite SMDRQ0, 759, 308
+{
+    offset -108, -195
+}
+weaponsprite SMDRR0, 826, 292
+{
+    offset -82, -211
+}
+weaponsprite SMDRS0, 853, 272
+{
+    offset -58, -231
+}
+weaponsprite SMDRT0, 863, 249
+{
+    offset -39, -254
+}
+weaponsprite SMDRU0, 856, 222
+{
+    offset -27, -281
+}
+weaponsprite SMDRV0, 790, 188
+{
+    offset -78, -315
+}
+weaponsprite SMDRW0, 753, 165
+{
+    offset -85, -338
+}
+weaponsprite SMDRX0, 705, 143
+{
+    offset -130, -360
+}
+weaponsprite SMDRY0, 665, 117
+{
+    offset -162, -386
+}
+weaponsprite SMDRZ0, 570, 86
+{
+    offset -253, -417
+}
+weaponsprite SMDSA0, 914, 281
+{
+    offset -45, -222
+}
+weaponsprite SMDSB0, 917, 271
+{
+    offset -33, -232
+}
+weaponsprite SMDSC0, 932, 260
+{
+    offset -11, -243
+}
+weaponsprite SMDSD0, 937, 249
+{
+    offset -11, -254
+}
+weaponsprite SMDSE0, 950, 245
+{
+    offset -11, -258
+}
+weaponsprite SMF1A0, 603, 286
+{
+    offset -452, -217
+}
+weaponsprite SMF1B0, 587, 286
+{
+    offset -452, -217
+}
+weaponsprite SMF1C0, 506, 283
+{
+    offset -454, -220
+}
+weaponsprite SMF2A0, 540, 284
+{
+    offset -459, -219
+}
+weaponsprite SMF2B0, 541, 285
+{
+    offset -459, -218
+}
+weaponsprite SMF2C0, 543, 274
+{
+    offset -458, -229
+}
+weaponsprite SMF3A0, 524, 282
+{
+    offset -442, -221
+}
+weaponsprite SMF3B0, 524, 282
+{
+    offset -443, -221
+}
+weaponsprite SMF3C0, 543, 274
+{
+    offset -456, -229
+}
+weaponsprite SMFLA0, 170, 172
+{
+    offset -459, -283
+    XSCALE 2.7
+    YSCALE 2.7
+}
+weaponsprite SMGDA0, 500, 270
+{
+    offset -459, -233
+}
+weaponsprite SMGDB0, 504, 269
+{
+    offset -438, -234
+}
+weaponsprite SMGDC0, 648, 262
+{
+    offset -351, -241
+}
+weaponsprite SMGDD0, 731, 247
+{
+    offset -263, -256
+}
+weaponsprite SMGDE0, 718, 241
+{
+    offset -271, -262
+}
+weaponsprite SMGDF0, 768, 236
+{
+    offset -216, -267
+}
+weaponsprite SMGDG0, 569, 236
+{
+    offset -397, -267
+}
+weaponsprite SMGDH0, 544, 238
+{
+    offset -393, -265
+}
+weaponsprite SMGDI0, 526, 240
+{
+    offset -385, -263
+}
+weaponsprite SMGDJ0, 512, 245
+{
+    offset -381, -258
+}
+weaponsprite SMGDK0, 502, 248
+{
+    offset -378, -255
+}
+weaponsprite SMGDL0, 493, 250
+{
+    offset -380, -253
+}
+weaponsprite SMGDM0, 486, 251
+{
+    offset -388, -252
+}
+weaponsprite SMGDN0, 775, 251
+{
+    offset -81, -252
+}
+weaponsprite SMGDO0, 858, 258
+{
+    offset -11, -245
+}
+weaponsprite SMGDP0, 849, 271
+{
+    offset -11, -232
+}
+weaponsprite SMGDQ0, 877, 280
+{
+    offset -37, -223
+}
+weaponsprite SMGDR0, 869, 285
+{
+    offset -26, -218
+}
+weaponsprite SMGDS0, 904, 287
+{
+    offset -24, -216
+}
+weaponsprite SMGDT0, 881, 286
+{
+    offset -57, -217
+}
+weaponsprite SMGDU0, 874, 285
+{
+    offset -64, -218
+}
+weaponsprite SMGIA0, 498, 272
+{
+    offset -460, -231
+}
+weaponsprite SMGIB0, 498, 272
+{
+    offset -460, -231
+}
+weaponsprite SMGIC0, 498, 272
+{
+    offset -460, -231
+}
+weaponsprite SMGID0, 497, 272
+{
+    offset -461, -231
+}
+weaponsprite SMGIE0, 497, 271
+{
+    offset -461, -232
+}
+weaponsprite SMGIF0, 497, 271
+{
+    offset -461, -232
+}
+weaponsprite SMGIG0, 497, 271
+{
+    offset -461, -232
+}
+weaponsprite SMGIH0, 497, 270
+{
+    offset -461, -233
+}
+weaponsprite SMGII0, 497, 270
+{
+    offset -461, -233
+}
+weaponsprite SMGIJ0, 497, 269
+{
+    offset -461, -234
+}
+weaponsprite SMGIK0, 497, 269
+{
+    offset -461, -234
+}
+weaponsprite SMGIL0, 497, 268
+{
+    offset -461, -235
+}
+weaponsprite SMGIM0, 497, 268
+{
+    offset -461, -235
+}
+weaponsprite SMGIN0, 497, 268
+{
+    offset -461, -235
+}
+weaponsprite SMGIO0, 497, 267
+{
+    offset -461, -236
+}
+weaponsprite SMGIP0, 497, 267
+{
+    offset -461, -236
+}
+weaponsprite SMGIQ0, 497, 267
+{
+    offset -461, -236
+}
+weaponsprite SMGIR0, 497, 266
+{
+    offset -461, -237
+}
+weaponsprite SMGIS0, 497, 266
+{
+    offset -461, -237
+}
+weaponsprite SMGIT0, 497, 266
+{
+    offset -461, -237
+}
+weaponsprite SMGIU0, 497, 266
+{
+    offset -461, -237
+}
+weaponsprite SMGWA0, 581, 267
+{
+    offset -425, -236
+}
+weaponsprite SMGWB0, 614, 250
+{
+    offset -277, -253
+}
+weaponsprite SMGWC0, 537, 224
+{
+    offset -192, -279
+}
+weaponsprite SMGWD0, 557, 205
+{
+    offset -72, -298
+}
+weaponsprite SMGWE0, 531, 201
+{
+    offset -70, -302
+}
+weaponsprite SMMEA0, 531, 264
+{
+    offset -434, -239
+}
+weaponsprite SMMEB0, 561, 250
+{
+    offset -433, -253
+}
+weaponsprite SMMEC0, 396, 239
+{
+    offset -555, -264
+}
+weaponsprite SMMED0, 359, 260
+{
+    offset -418, -243
+}
+weaponsprite SMMEE0, 363, 280
+{
+    offset -422, -223
+}
+weaponsprite SMMEF0, 439, 285
+{
+    offset -427, -218
+}
+weaponsprite SMPUA0, 557, 283
+{
+    offset -452, -220
+}
+weaponsprite SMPUB0, 623, 307
+{
+    offset -386, -196
+}
+weaponsprite SMPUC0, 645, 339
+{
+    offset -364, -164
+}
+weaponsprite SMPUD0, 436, 373
+{
+    offset -549, -130
+}
+weaponsprite SMPUE0, 794, 403
+{
+    offset -204, -100
+}
+weaponsprite SMPUF0, 428, 425
+{
+    offset -571, -78
+}
+weaponsprite SMR1A0, 547, 272
+{
+    offset -462, -231
+}
+weaponsprite SMR1B0, 551, 270
+{
+    offset -458, -233
+}
+weaponsprite SMR1C0, 493, 266
+{
+    offset -446, -237
+}
+weaponsprite SMR1D0, 489, 263
+{
+    offset -432, -240
+}
+weaponsprite SMR1E0, 487, 263
+{
+    offset -417, -240
+}
+weaponsprite SMR1F0, 474, 268
+{
+    offset -406, -235
+}
+weaponsprite SMR1G0, 463, 276
+{
+    offset -394, -227
+}
+weaponsprite SMR1H0, 451, 286
+{
+    offset -385, -217
+}
+weaponsprite SMR1I0, 438, 295
+{
+    offset -377, -208
+}
+weaponsprite SMR1J0, 425, 301
+{
+    offset -371, -202
+}
+weaponsprite SMR1K0, 415, 302
+{
+    offset -366, -201
+}
+weaponsprite SMR1L0, 403, 298
+{
+    offset -364, -205
+}
+weaponsprite SMR1M0, 490, 294
+{
+    offset -319, -209
+}
+weaponsprite SMR1N0, 577, 289
+{
+    offset -236, -214
+}
+weaponsprite SMR1O0, 666, 284
+{
+    offset -158, -219
+}
+weaponsprite SMR1P0, 755, 280
+{
+    offset -85, -223
+}
+weaponsprite SMR1Q0, 780, 276
+{
+    offset -80, -227
+}
+weaponsprite SMR1R0, 790, 273
+{
+    offset -89, -230
+}
+weaponsprite SMR1S0, 832, 272
+{
+    offset -59, -231
+}
+weaponsprite SMR1T0, 816, 277
+{
+    offset -79, -226
+}
+weaponsprite SMR1U0, 744, 288
+{
+    offset -139, -215
+}
+weaponsprite SMR1V0, 700, 301
+{
+    offset -154, -202
+}
+weaponsprite SMR1W0, 752, 311
+{
+    offset -125, -192
+}
+weaponsprite SMR1X0, 770, 321
+{
+    offset -103, -182
+}
+weaponsprite SMR1Y0, 759, 321
+{
+    offset -109, -182
+}
+weaponsprite SMR1Z0, 733, 320
+{
+    offset -128, -183
+}
+weaponsprite SMR2A0, 716, 320
+{
+    offset -143, -183
+}
+weaponsprite SMR2B0, 669, 320
+{
+    offset -171, -183
+}
+weaponsprite SMR2C0, 604, 319
+{
+    offset -215, -184
+}
+weaponsprite SMR2D0, 556, 316
+{
+    offset -246, -187
+}
+weaponsprite SMR2E0, 562, 312
+{
+    offset -218, -191
+}
+weaponsprite SMR2F0, 554, 308
+{
+    offset -192, -195
+}
+weaponsprite SMR2G0, 479, 306
+{
+    offset -221, -197
+}
+weaponsprite SMR2H0, 479, 309
+{
+    offset -255, -194
+}
+weaponsprite SMR2I0, 528, 310
+{
+    offset -251, -193
+}
+weaponsprite SMR2J0, 600, 311
+{
+    offset -214, -192
+}
+weaponsprite SMR2K0, 591, 311
+{
+    offset -244, -192
+}
+weaponsprite SMR2L0, 536, 307
+{
+    offset -301, -196
+}
+weaponsprite SMR2M0, 503, 302
+{
+    offset -341, -201
+}
+weaponsprite SMR2N0, 506, 296
+{
+    offset -364, -207
+}
+weaponsprite SMR2O0, 514, 290
+{
+    offset -392, -213
+}
+weaponsprite SMR2P0, 519, 285
+{
+    offset -428, -218
+}
+weaponsprite SMR2Q0, 524, 279
+{
+    offset -463, -224
+}
+weaponsprite SMR2R0, 547, 272
+{
+    offset -462, -231
+}
+weaponsprite SMR2S0, 547, 272
+{
+    offset -462, -231
+}
+weaponsprite SMR2T0, 532, 274
+{
+    offset -461, -229
+}
+weaponsprite SMR2U0, 544, 272
+{
+    offset -462, -231
+}
+weaponsprite SMREB0, 353, 110
+{
+    offset -176, -393
+}
+weaponsprite SMREC0, 454, 174
+{
+    offset -200, -329
+}
+weaponsprite SMRED0, 518, 235
+{
+    offset -212, -268
+}
+weaponsprite SMREE0, 543, 283
+{
+    offset -301, -220
+}
+weaponsprite SMREF0, 545, 295
+{
+    offset -347, -208
+}
+weaponsprite SMREG0, 516, 289
+{
+    offset -384, -214
+}
+weaponsprite SMREH0, 481, 281
+{
+    offset -420, -222
+}
+weaponsprite SMREI0, 538, 274
+{
+    offset -450, -229
+}
+weaponsprite SMSLA0, 512, 258
+{
+    offset -463, -245
+}
+weaponsprite SMSLB0, 500, 253
+{
+    offset -472, -250
+}
+weaponsprite SMSLC0, 503, 252
+{
+    offset -484, -251
+}
+weaponsprite SMSLD0, 515, 253
+{
+    offset -493, -250
+}
+weaponsprite SMSLE0, 512, 255
+{
+    offset -497, -248
+}
+weaponsprite SMUZA0, 470, 413
+{
+    offset -513, -146
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZB0, 463, 431
+{
+    offset -510, -144
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZC0, 293, 303
+{
+    offset -607, -240
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZD0, 386, 380
+{
+    offset -541, -197
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZE0, 430, 403
+{
+    offset -517, -172
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZF0, 436, 428
+{
+    offset -513, -149
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZG0, 430, 425
+{
+    offset -513, -148
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZH0, 399, 443
+{
+    offset -532, -160
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMUZI0, 436, 428
+{
+    offset -513, -149
+    XSCALE 3.8
+    YSCALE 3.8
+}
+weaponsprite SMZFA0, 669, 271
+{
+    offset -316, -232
+}
+weaponsprite SMZFB0, 703, 270
+{
+    offset -306, -233
+}
+weaponsprite SMZFC0, 690, 270
+{
+    offset -313, -233
+}
+weaponsprite SMZIA0, 498, 272
+{
+    offset -460, -231
+}
+weaponsprite SMZIB0, 512, 272
+{
+    offset -456, -231
+}
+weaponsprite SMZIC0, 552, 272
+{
+    offset -443, -231
+}
+weaponsprite SMZID0, 561, 272
+{
+    offset -423, -231
+}
+weaponsprite SMZIE0, 573, 272
+{
+    offset -397, -231
+}
+weaponsprite SMZIF0, 588, 272
+{
+    offset -367, -231
+}
+weaponsprite SMZIG0, 605, 272
+{
+    offset -342, -231
+}
+weaponsprite SMZIH0, 617, 272
+{
+    offset -330, -231
+}

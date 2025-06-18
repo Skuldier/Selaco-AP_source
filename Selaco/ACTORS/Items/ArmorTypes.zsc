@@ -1,0 +1,320 @@
+
+class SelacoArmor : Inventory 
+{
+	bool hasArmorUp;
+
+	override void postbeginPlay()
+	{
+		super.postBeginPlay();
+		if(getCvar("g_armorup") == 1)
+		{
+			hasArmorUp = true;
+		}
+	}
+
+	// This function handles all the armor stuff. I hate how this tiny function took me half the day to get right >:(
+	int applyArmorAbsorption(actor user, actor inflictor, actor source, int damage, name DamageType)
+	{
+		if (inflictor is "MeleeImpactSplash")
+		{
+			return 0;
+		}
+
+		if(amount <= 0)
+		{
+			return damage;
+		}
+
+		SelacoActor inflictingActor = SelacoActor(inflictor); // The projectile
+		SelacoActor sourceActor = SelacoActor(source); // The attacker
+		int adjustedReductionValue = armorReductionValue;
+
+		// Higher difficulties deal way more damage which makes armor almost worthless. Slightly tweak the amount to compensate
+		if(skill >= SKILL_CAPTAIN && skill != SKILL_STORYONLY)
+		{
+			adjustedReductionValue = captainArmorReductionValue;
+		}
+
+		if(hasArmorUp)
+		{
+			adjustedReductionValue*=0.75;
+		}
+
+		int oldDamage = damage;
+		float absorptionAmount = 0.0;
+		float reductionPercentage = 0.0;
+
+		// Adjust incoming damage based on the stats of the shooter
+		if (sourceActor && sourceActor is "SelacoEnemy")
+		{
+			SelacoEnemy sourceSoldier = SelacoEnemy(sourceActor);
+			// Handle armorPenetration
+			if (sourceSoldier.armorPenetration < 0)
+			{
+				absorptionAmount += Abs(sourceSoldier.armorPenetration);
+			}
+			else
+			{
+				absorptionAmount -= sourceSoldier.armorPenetration / 100.0;
+			}
+			reductionPercentage += (sourceSoldier.ArmorShredding > 0) ? sourceSoldier.ArmorShredding : -Abs(sourceSoldier.ArmorShredding);
+		}
+
+		// Deplete armor and adjust damage
+		if (amount > 0)
+		{
+			// Apply absorption based on armor type
+			absorptionAmount += (amount < heavyArmorThreshold) ? lightArmorAbsorption : heavyArmorAbsorption;
+			absorptionAmount /= 100.0;
+
+			// Reduce damage based on absorption percentage
+			damage = Max(1, damage - int(damage * absorptionAmount));
+
+			// Reduce player armor depending on damage
+			reductionPercentage += Max(1.0, adjustedReductionValue);
+			reductionPercentage = Max(1, Min(reductionPercentage, 100)) / 100.0;
+
+			// Reduce armor stat by a percentage of the damage
+			int armorReduction = int(reductionPercentage * oldDamage);
+			amount = Max(0, amount - Max(1, armorReduction));
+		}
+
+		// Deplete damage if Plasma
+		if(damageType == "Plasma") {
+			damage*=0.75;
+		}
+
+		return damage;
+	}
+
+
+	meta int heavyArmorThreshold, heavyArmorAbsorption, lightArmorAbsorption, armorReductionValue, captainArmorReductionValue;
+	
+	property HeavyArmorThreshold 		: heavyArmorThreshold; 	// When do we consider it 'heavy armor' and apply additional absorption?
+	property HeavyArmorAbsorption 		: HeavyArmorAbsorption; // The percentage of damage Heavy Armor absorbs
+	property LightArmorAbsorption 		: LightArmorAbsorption; // The percentage of damage Light Armor absorbs
+	property ArmorReductionValue		: armorReductionValue;	// How much percentage of damage will be removed from the armor stat? 
+	property CaptainArmorReductionValue		: captainArmorReductionValue;	// Same as ArmorReductionValue, but this is used for Captain and Above
+	default
+	{
+		inventory.maxAmount 200;
+		SelacoArmor.HeavyArmorThreshold 75;
+		SelacoArmor.HeavyArmorAbsorption 50;
+		SelacoArmor.LightArmorAbsorption 35;
+		SelacoArmor.ArmorReductionValue 75;
+		SelacoArmor.CaptainArmorReductionValue 55;
+	}
+}
+
+
+class ArmorPickupBase : FlaredPickup
+{
+	string spriteModel;
+	bool iconShown;
+
+	property SpriteModel : spriteModel;
+
+	default {
+		scale 0.9;
+		Radius 20;
+		Height 25;
+
+	
+		FlaredPickup.FlareClass "Armor_Flare";
+		FlaredPickup.FlareOffset 20;
+		FlaredPickup.IconClass "ARMOR_ICON";
+		FlaredPickup.IconOffset 35;
+
+		SelacoItem.pickupCount 0;
+		Inventory.PickupSound "ARMOR/PICKUP";
+
+		SelacoItem.pickupIcon "P_ARMOR";
+		SelacoItem.pickupTag "$PICKUPTAG_ARMOR";
+		SelacoItem.pickupType "SelacoArmor";
+
+		-SelacoItem.FlyAnimation;
+
+		+CountItem
+	}
+
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			VOXE L 1;
+			loop;
+	}
+
+	// Special case for armor, check BasicArmor amount
+	override bool CheckPickupLimit(Actor toucher) {
+        if(!pickupType || bALWAYSPICKUP) return true;
+
+        let item = toucher.FindInventory("SelacoArmor");
+        return !item || item.amount < item.maxAmount;
+    }
+
+	override void DoPickupSpecial(Actor toucher) {
+		Super.DoPickupSpecial(toucher);
+
+		
+		// If armor is 25 or more for the first time, give armor message
+		if(toucher is "Dawn" && toucher.countinv("SelacoArmor") >= 25) {
+			TutorialHandler.TutorialMessage("TUT_ARMOR", 1);
+			PDAManager.AddEntry(toucher, 31, 17);
+		}
+
+		// Add stats for armor picked up
+		Stats.AddStat(STAT_ARMOR, pickupCount, 0);
+	}
+}
+
+class CommonArmor  : ArmorPickupBase
+{
+	default 
+	{
+		tag "$PICKUP_LIGHTARMOR";
+		ArmorPickupBase.SpriteModel "VOXEL0";
+		SelacoItem.pickupCount 25;
+		SelacoItem.RandomizerSpawnChance 50;
+	}
+
+}
+
+class RareArmor :  ArmorPickupBase 
+{	
+	default 
+	{
+		tag "$PICKUP_COMBATARMOR";
+		SelacoItem.pickupCount 50;
+		ArmorPickupBase.SpriteModel "VOXEL0";
+		SelacoItem.RandomizerSpawnChance 10;
+	}
+}
+
+class EpicArmor :  ArmorPickupBase 
+{
+	default 
+	{
+		tag "$PICKUP_HEAVYARMOR";
+		SelacoItem.pickupCount 75;
+		ArmorPickupBase.SpriteModel "VOXEL0";
+		SelacoItem.RandomizerSpawnChance 7;
+	}
+}
+
+class LegendaryArmor :  ArmorPickupBase 
+{
+	default 
+	{
+		tag "$PICKUP_ADMIRALARMOR";
+		SelacoItem.pickupCount 100;
+		SelacoItem.RandomizerSpawnChance 2;
+		ArmorPickupBase.SpriteModel "VOXEL0";
+	}
+}
+
+// Armor Shards
+class ArmorShardPickup : FlaredPickup
+{
+	//$Category OminousPickups
+	default {
+
+		+FLOAT
+		-CountItem
+		+FLOORCLIP
+		+DONTGIB
+
+		Tag "ARMOR SHARD";
+		Radius 20;
+		Height 16;
+		radius 35;
+		scale 1.0;
+		Inventory.PickUpSound "item/armorbonus_pickup";
+		FlaredPickup.IconDistance 0;
+		//FlaredPickup.FlareDistance 800;
+		//FlaredPickup.FlareClass "ARMOR_FLARE";
+		FlaredPickup.IconClass "";
+		FlaredPickup.FlareOffset 24;
+		FlaredPickup.IconOffset 0;
+
+		//-SelacoItem.UsePrompt;
+		+SelacoItem.AlwaysAllowTouchMode;
+		SelacoItem.PickupType "SelacoArmor";
+		SelacoItem.PickupCount 2;
+		SelacoItem.pickupIcon "P_ARMOR";
+		SelacoItem.pickupTag "$PICKUPTAG_ARMOR";
+	}
+
+	States
+	{
+		spawn:
+			VOXE L 1 BRIGHT;
+			loop;
+	}
+
+	override void DoPickupSpecial(Actor toucher) {
+		Super.DoPickupSpecial(toucher);
+
+		if(toucher is "Dawn") {
+			PDAManager.AddEntry(toucher, 31, 17);
+		}
+
+		// Add stats for armor picked up
+		Stats.AddStat(STAT_ARMOR, pickupCount, 0);
+	}
+
+	// Special case for armor, check BasicArmor amount
+	override bool CheckPickupLimit(Actor toucher) {
+        if(!pickupType || bALWAYSPICKUP) return true;
+
+        let item = toucher.FindInventory("SelacoArmor");
+        return !item || item.amount < item.maxAmount;
+    }
+}
+
+class ArmorShardPickup_Flat : ArmorShardPickup
+{
+	default {
+		Inventory.PickUpSound "item/armorbonus_pickup";
+		-NoGravity;
+		radius 15;
+	}
+	States
+	{
+		spawn:
+			VOXE L 3 BRIGHT;
+			loop;
+		/*Pickup:
+			TNT1 A 45 A_JumpIf(ACS_NamedExecuteWithResult("CheckArmorScript", 2)==1,"GiveItem");
+			goto check3;
+		GiveItem:
+			TNT1 A 0 ACS_NamedExecuteWithResult("pickupArmor", 2);
+			goto pickupSuccess;
+		Check3:
+			TNT1 A 0;
+			stop;*/
+	}
+}
+
+
+class ArmorShardPickupTiny : ArmorShardPickup
+{
+	default {
+		Inventory.PickUpSound "item/armorbonus_pickup";
+		-FLOAT
+		-NOGRAVITY
+		scale 0.10;
+	}
+	States
+	{
+	spawn:
+		HELB A 2;
+		loop;
+	/*Pickup:
+		TNT1 A 45 A_JumpIf(ACS_NamedExecuteWithResult("CheckArmorScript", 2)==1,"GiveItem");
+		stop;
+	GiveItem:
+		TNT1 A 0 ACS_NamedExecuteWithResult("pickupArmor", 2);
+		Stop;*/
+	}
+}

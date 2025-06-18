@@ -1,0 +1,38 @@
+class SELACOCRAFT_GRASS : SelacoActorStatic
+{
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1
+            {
+                A_SPAWNITEMEX("SELACOCRAFT_GRASS_MIRRORED", angle:90);
+            }
+            stop;
+    }
+}
+
+class SELACOCRAFT_GRASS_MIRRORED : SelacoActorStatic
+{
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class Block : PickupableDecoration
+{
+    default
+    {
+        tag "$OBJECT_BLOCK";
+        mass 500;
+        -Shootable
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+    }
+}

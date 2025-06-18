@@ -1,0 +1,70 @@
+class WeaponPartPickup : SelacoItem {
+
+    actor overlayActor;
+    bool success;
+
+    default {
+        friction 0.8;
+        scale 1.0;
+        height 30;
+        +SelacoItem.AlwaysAllowTouchMode;
+        tag "$OBJECT_WEAPON_PARTS";
+
+        SelacoItem.RandomizerSpawnChance 10;
+		SelacoItem.pickupIcon "P_PART";
+        SelacoItem.pickupType "WeaponParts";
+        Selacoitem.pickupCount 15;
+		SelacoItem.pickupTag "$PICKUPTAG_WEAPONPART";
+        -SelacoItem.FlyAnimation;
+    }
+
+    override void BeginPlay() {
+        super.BeginPlay();
+        if(random(0,1) == 1 && level.maptime <= 5) {
+            [success, overlayActor] = A_SpawnItemEx("WeaponPartPickup_overlay");
+        }
+    }
+
+    states {
+        Spawn:  
+            TNT1 A 0;
+            VOXE A -1 {
+                frame = random(0,1);
+            }
+            loop;
+        Pickup:
+            TNT1 A 0 {
+                if(invoker.overlayActor) {
+                   invoker.overlayActor.destroy();
+                }
+                Stats.AddStat(STAT_WEAPONPARTS_PICKEDUP, invoker.pickupCount, 0);
+            }
+            TNT1 A 0 A_PLAYSOUND("item/weaponpart", CHAN_AUTO, 0.85, pitch:frandom(0.95,1.05));
+            goto pickupSuccess;
+    }
+
+}
+
+// Doesn't spawn additional gears around the bag.
+class WeaponPartPickupNoOverlay : WeaponPartPickup
+{
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        if(overlayActor)
+        {
+            overlayActor.destroy();
+        }
+    }
+    
+}
+
+class WeaponPartPickup_overlay : SelacoActorStatic {
+    states {
+        Spawn:
+            TNT1 A 0;
+            VOXE A -1 {
+                frame = random(0,1);
+            }
+            loop;
+    }
+}

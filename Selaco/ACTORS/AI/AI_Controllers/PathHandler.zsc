@@ -1,0 +1,151 @@
+class PathHandler : EventHandler {
+    const PLAYER_SEARCH_DIST = 800;
+    
+    IntTable            nodeLookup;
+    Array<PathNode>     allNodes;           // All viable nodes, indexed by nodeLookup. Should remain immutable, DO NOT CHANGE NODES
+    Array<PathNode>     doorNodes;          // Nodes to check when doors change state
+    Array<PathNode>     playerVisibleNodes; // A list of nodes that can currently see the player
+    private int         maxNodeID;
+    private int         nodeUpdateIndex, nodeUpdateInterleave, visUpdateIndex;
+    private int         interleaveSize;
+
+    static clearscope PathHandler instance() {
+        return PathHandler(EventHandler.Find("PathHandler"));
+    }
+
+    override void WorldLoaded(WorldEvent e) {
+        if(!e.isReopen) {
+            nodeLookup = new("IntTable").init(500);
+
+            // Find all pathnodes in the scene
+            ThinkerIterator it = ThinkerIterator.Create("PathNode");
+            PathNode nav = PathNode(it.Next());
+            for(; nav; nav = PathNode(it.Next())) {
+                allNodes.push(nav);
+                
+                if(nav.user_nodeid > 0) {
+                    maxNodeID = max(maxNodeID, nav.user_nodeid);
+                    nodeLookup.put(nav.user_nodeid, allNodes.size() - 1);
+
+                    if(nav is 'DoorNode') {
+                        doorNodes.push(nav);
+                    }
+                }
+            }
+
+            // TODO: Nodes are usually ordered roughly by position because of the way they are exported
+            // But we could optimize the search pattern by manually ordering them in an even distribution
+            // thus eliminating the need for the interleave entirely
+
+            interleaveSize = max(1, allNodes.size() / 25);
+        }
+    }
+
+    override void WorldTick() {
+        if(level.time == 2) {
+            visUpdateIndex = -1;
+            clearDebugVisibility();
+            updatePlayerNodes(999);     // Do an initial survey of nodes for the player
+        } else if(level.time > 2) {
+            updateVisPlayerNodes();
+            updatePlayerNodes();
+        }
+    }
+
+    void clearDebugVisibility() {
+        for(int x = 0; x < allNodes.size(); x++) {
+            allNodes[x].DEBUG_MakeInvisible();
+        }
+    }
+
+    // Continuously check nodes to see which ones can see the player
+    // This saves every agent from having to do the same search before building a path
+    // When the agent is searching for a target that is not the player, they cannot use this optimization (obviously)
+    // And will do their own search.
+    void updatePlayerNodes(int attempts = 1) {
+        let player = players[0].mo;
+        if(!player) return;
+
+        let numNodes = allNodes.size();
+        int numChecked = 0;
+        PathNode curNode = null;
+
+        if(numNodes == 0) return;
+
+        for(; attempts > 0 && numChecked < numNodes; numChecked++) {
+            if(attempts <= 0) return;
+
+            curNode = allNodes[nodeUpdateIndex];
+
+            // Update nodes that can see the player
+            if (curNode && curNode.distance2Dsquared(player) < PLAYER_SEARCH_DIST**2) {
+                if(playerVisibleNodes.find(curNode) == playerVisibleNodes.size()) {     // Don't check if we already know it can see us
+                    // Briefly increase height, so checksight is more likely to spot a player
+                    int navHeightOld = curNode.height;
+                    curNode.A_SetSize(-1, 120);
+                    if(curNode.CheckSight(player, SF_IGNOREVISIBILITY)) {
+                        playerVisibleNodes.push(curNode);
+                        if(curNode.debugOn) curNode.A_SetRenderStyle(1.0, STYLE_Normal);
+                    }
+                    curNode.A_SetSize(-1, navHeightOld);
+                    
+                    attempts--;
+                }
+            }
+
+            nodeUpdateIndex += interleaveSize;
+
+            // Reset for the next search
+            if(nodeUpdateIndex >= numNodes) {
+                nodeUpdateIndex = ++nodeUpdateInterleave % numNodes;
+            }
+        }
+    }
+
+    // Update nodes that think they can see the player to make sure they still can
+    void updateVisPlayerNodes(int attempts = 1) {
+        let player = players[0].mo;
+        if(!player) return;
+
+        PathNode curNode = null;
+
+        if(visUpdateIndex >= playerVisibleNodes.size()) {
+            visUpdateIndex = playerVisibleNodes.size() - 1;
+        }
+
+        for(; visUpdateIndex >= 0; visUpdateIndex--) {
+            if(attempts <= 0) return;
+
+            curNode = playerVisibleNodes[visUpdateIndex];
+
+            // Update nodes that can see the player
+            if (curNode && curNode.distance2Dsquared(player) < PLAYER_SEARCH_DIST**2) {
+                // Briefly increase height, so checksight is more likely to spot a player
+                int navHeightOld = curNode.height;
+                curNode.A_SetSize(-1, 120);
+                if(!curNode.CheckSight(player, SF_IGNOREVISIBILITY)) {
+                    playerVisibleNodes.delete(visUpdateIndex);
+                    if(curNode.debugOn) curNode.A_SetRenderStyle(0, STYLE_None);
+                }
+                curNode.A_SetSize(-1, navHeightOld);
+                
+                attempts--;
+            } else {
+                playerVisibleNodes.delete(visUpdateIndex);
+                if(curNode && curNode.debugOn) curNode.A_SetRenderStyle(0, STYLE_None);
+            }
+        }
+
+        if(visUpdateIndex < 0) visUpdateIndex = playerVisibleNodes.size() - 1;
+    }
+
+
+    PathNode findPathnode(int nodeID) {
+        uint index;
+        bool success;
+        [index, success] = nodeLookup.get(nodeID);
+
+        if(success) return allNodes[index];
+        return null;
+    }
+}

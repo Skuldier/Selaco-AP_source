@@ -1,0 +1,82 @@
+// Keep track of what weapons Dawn has acquired at any point
+// Useful for preventing duplicate pickup messages and for Rifle starts
+extend class Dawn {
+    Array< class<SelacoWeapon> > unlockedWeapons;
+    Array< class<SelacoAmmo> > unlockedGrenades;
+
+    class<SelacoWeapon> lastWeapon, curWeapon;
+
+    virtual void rememberWeapon(SelacoWeapon newWeap) {
+        class<SelacoWeapon> nw = newWeap.getClass();
+        if(nw != curWeapon) {
+            if(!GetDefaultByType(nw).bDisallowLastWeaponSwitch && (lastWeapon == NULL || lastWeapon != curWeapon)) {
+                lastWeapon = curWeapon;
+                curWeapon = nw;
+                if(developer > 1) Console.Printf("Remember Set %s %s", curWeapon ? curWeapon.getClassName() : 'none', lastWeapon ? lastWeapon.getClassName() : 'none');
+            }
+        }
+    }
+
+    virtual void rememberWeaponClass(class<SelacoWeapon> nw) {
+        if(nw != curWeapon) {
+            if(!GetDefaultByType(nw).bDisallowLastWeaponSwitch && lastWeapon != curWeapon) {
+                lastWeapon = curWeapon;
+                curWeapon = nw;
+            }
+        }
+    }
+
+    virtual void switchToLastWeapon() {
+        if(developer > 1) Console.Printf("Setting last weapon %s %s", curWeapon ? curWeapon.getClassName() : 'none', lastWeapon ? lastWeapon.getClassName() : 'none');
+        
+        if(player && curWeapon != null && (player.readyWeapon == null || curWeapon != player.readyWeapon.getClass())) {
+            ScriptUtil.SetWeapon(self, curWeapon);
+        } else if(lastWeapon != null) {
+            ScriptUtil.SetWeapon(self, lastWeapon);
+        }
+    }
+
+    override void AddInventory (Inventory item) {
+        Super.AddInventory(item);
+        
+        let weaponItem = SelacoWeapon(item);
+        if(weaponItem) {
+            weaponItem.checkForUpgrades(self);  // Make sure any enabled upgrades work by finding and adding them to the cache now
+
+            if(!hasUnlockedWeapon(weaponItem.GetClass())) {
+                unlockedWeapons.push(weaponItem.GetClass());
+
+                // TODO: We could potentially add the weapon notification here
+            }
+        }
+
+        // Unlock various grenade types
+        if(item is 'HandGrenadeAmmo' && !hasUnlockedGrenade('HandGrenadeAmmo')) {
+            unlockedGrenades.push(SelacoAmmo(item).GetClass());
+        } else if(item is 'IceGrenadeAmmo' && !hasUnlockedGrenade('IceGrenadeAmmo')) {
+            unlockedGrenades.push(SelacoAmmo(item).GetClass());
+        } else if(item is 'MineAmmo' && !hasUnlockedGrenade('MineAmmo')) {
+            unlockedGrenades.push(SelacoAmmo(item).GetClass());
+            // Give the player the fake mine weapon, so it can be upgraded at the Weapon Station
+            GiveInventory("MineWeapon", 1);
+        }
+	}
+
+    clearscope bool hasUnlockedWeapon(class<SelacoWeapon> cls) const {
+        for(int x = unlockedWeapons.size() - 1; x >= 0; x--) {
+            if(cls == unlockedWeapons[x]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    clearscope bool hasUnlockedGrenade(class<SelacoAmmo> cls) const {
+        for(int x = unlockedGrenades.size() - 1; x >= 0; x--) {
+            if(cls == unlockedGrenades[x]) {
+                return true;
+            }
+        }
+        return false;
+    }
+}

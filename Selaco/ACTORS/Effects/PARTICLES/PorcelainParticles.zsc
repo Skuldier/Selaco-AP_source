@@ -1,0 +1,109 @@
+
+class PorcelainShardDefinition : ParticleDefinition {
+    override void init() {
+        super.init();
+        self.DefaultRenderStyle = STYLE_TRANSLUCENT;
+        self.SetBaseScaleXY(0.67, 6.69); // nice
+        self.BounceFactor(0.6);
+        self.SetGravity(0.82);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+        self.SetFlag(PDF_LIFEFADE);
+        self.SetLifespanMultipliers(0.5, 0.7, 1.0, 5.0, 10.0);
+        self.FadeLifeRange(0,30);
+        self.RandomLife(350,550);
+        self.StopSpeed = 2;
+        self.BounceSound = "Bounce/ceramic";
+
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-25,25);
+        self.RandomAngle(0,360);
+        self.randomPitch(-60,-120);
+        self.RandomSpeed(4,10);
+        self.RandomScaleX(0.6,0.8);
+        self.RandomScaleY(0.6,0.8);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+    }
+
+    override void OnParticleSleep(in out ParticleData particle) {
+        particle.pitch = random(0,1) == 1 ? -180 : 0;
+        particle.SetFlag(DPF_FLAT);
+    }
+}
+
+class PorcelainDefinition : PorcelainShardDefinition {
+    override void init() {
+        super.init();
+        self.speed = 6;
+        self.SetGravity(0.7);
+        self.DefaultRenderStyle = STYLE_NORMAL;
+    }
+}
+
+class PorcelainBlueDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "3248a8";
+    }
+} 
+
+class PorcelainWhiteDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+    }
+} 
+
+class PorcelaiGreenDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "GREEN";
+    }
+} 
+
+class PorcelaiYellowDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "YELLOW";
+    }
+} 
+
+class PorcelaiRedDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "Red";
+    }
+} 
+
+class PorcelaiPurpleDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "PURPLE";
+    }
+} 
+
+class PorcelaiBrownDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "a85c32";
+    }
+} 
+
+
+class PorcelaiBlackDefinition : PorcelainDefinition {
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("POSH", "ABCDEFGHIJKL");
+        particle.color = "Black";
+    }
+} 

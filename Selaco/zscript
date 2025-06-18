@@ -1,0 +1,277 @@
+version "4.12"
+
+enum MagicNumbers {
+    Z_CONTAINER = 370
+};
+
+enum ThruGroup {
+    THRUBITS_DESK_STATICS = 1 << 0,
+    THRUBITS_DESK_ACTIVES = 1 << 1
+};
+
+enum LineBlockGroup {
+    LINEBITS_PICKUPABLES = 1,
+    LINEBITS_VACBOT      = 1 << 1
+};
+
+
+struct Engine {
+    static clearscope int GetMajorVersion() {
+        let cv = CVar.FindCVar("engine_major");
+        if(cv) return cv.GetInt();
+        return 4;
+    }
+
+    static clearscope int GetMinorVersion() {
+        let cv = CVar.FindCVar("engine_minor");
+        if(cv) return cv.GetInt();
+        return 8;
+    }
+
+    // Is 4.9 or greater
+    static clearscope bool FourPointNine() {
+        return GetMajorVersion() >= 4 && GetMinorVersion() >= 9;
+    }
+}
+
+// Systems & Logic
+#include "zscripts/inttable.zs"
+#include "ACTORS/Player/LEVELPROGRESSION.zsc"
+#include "ACTORS/Interface/MapMarkers.zsc"
+#include "ACTORS/decorations/decorations.zsc"
+#include "ACTORS/DECORATIONS/VENDINGMACHINES.zsc"
+#include "ACTORS/logics/SELACOACTOR.zsc"
+#include "ZScripts/HoveringTooltipMenu.txt"
+#include "ACTORS/Player/DAWN.zsc"
+#include "Actors/Weapons/MELEE.zsc"
+#include "Actors/Logics/INCURSION.zsc"
+#include "actors/Logics/TEXTUREMATERIALS.zsc"
+#include "Actors/Logics/SWITCHES.zsc"
+#include "Actors/Logics/GENERALLOGIC.zsc"
+#include "Actors/Logics/GWYNMACHINE.zsc"
+#include "ACTORS/decorations/CoverActor.zsc"
+#include "zscripts/OverlayHandler.zsc"
+#include "zscripts/casingshandler.zsc"
+#include "zscripts/equipmentHandler.zsc"
+#include "zscripts/MusicHandler.zsc"
+#include "zscripts/reflectionsHandler.zsc"
+#include "zscripts/stats.zs"
+#include "zscripts/BattleOverseer.zsc"
+#include "zscripts/stats_handler.zs"
+#include "zscripts/objectives.zs"
+#include "zscripts/LightsHandler.zs"		// Handler to replace flicker lights when photosensitivity mode is turned on
+#include "zscripts/ShaderHandler.zsc"
+#include "zscripts/LevelTransitionHandler.zsc"
+#include "ZScripts/UI/level_event.zs"
+
+// Items
+#include "ACTORS/Weapons/CROSSHAIR/crosshair.zs"
+#include "ACTORS/Items/SelacoItem.zsc"
+#include "ACTORS/Items/AmmoTypes.zsc"
+#include "ACTORS/Items/Pickups.zsc"
+#include "ACTORS/Items/AmmoPickups.zsc"
+#include "ACTORS/Items/ArmorTypes.zsc"
+#include "ACTORS/Items/DATAPAD.zsc"
+#include "ACTORS/Items/MISCPICKUPS.zsc"
+#include "ACTORS/Weapons/Upgrades.zsc"
+#include "ACTORS/Weapons/SelacoWeapon.zsc"
+#include "ZScripts/MeleeHandler.zsc"
+#include "ACTORS/Weapons/WEAPON_PICKUPS.zsc"
+#include "ACTORS/Weapons/fists.zsc"
+#include "ACTORS/Weapons/EXON_RIFLE.zsc"
+#include "ACTORS/Weapons/ROARINGCRICKET.zsc"
+#include "ACTORS/Weapons/EXON_SHOTGUN.zsc"
+#include "ACTORS/Weapons/THROWABLES.zsc"
+#include "Actors/Items/HealthPickups.zsc"
+#include "ACTORS/Items/food.zsc"
+#include "ACTORS/Items/WeaponUpgrades.zsc"
+
+// effects
+#include "Actors/EFFECTS/SelacoParticle.zsc"
+#include "Actors/EFFECTS/EXPLOSIONS.zsc"
+#include "ACTORS/EFFECTS/Decals.zsc"
+#include "ACTORS/EFFECTS/zPuffs.zsc"
+#include "ACTORS/EFFECTS/PooledParticles.zsc"
+#include "ACTORS/Gore/GoreSystem.zsc"
+#include "ACTORS/Gore/GoreSpawners.zsc"
+#include "ACTORS/Gore/GoreEffects.zsc"
+#include "Actors/Gore/SwarmFly.zsc"
+#include "ACTORS/EFFECTS/smoke.zsc"
+#include "ACTORS/EFFECTS/fasterprojectile.zsc"
+#include "ACTORS/EFFECTS/projectiles.zsc"
+#include "ACTORS/EFFECTS/lightshafts.zsc"
+#include "ACTORS/EFFECTS/MUZZLEFLASH.zsc"
+#include "ACTORS/EFFECTS/EFFECTS.zsc"
+#include "ACTORS/EFFECTS/EMBERS.zsc"
+#include "ACTORS/EFFECTS/fire.zsc"
+#include "Actors/EFFECTS/SPARKS.zsc"
+#include "actors/EFFECTS/DOORMARKERS.zsc"
+#include "ACTORS/EFFECTS/PARTICLES.zsc"
+#include "ACTORS/EFFECTS/PARTICLEEMITTERS.zsc"
+#include "ACTORS/EFFECTS/DESTRUCTIONEFFECTS.zsc"
+#include "Actors/Effects/CASING.zsc"
+#include "ACTORS/EFFECTS/glass.zsc"
+#include "Actors/EFFECTS/rain.zsc"
+// AI
+#include "Actors/AI/AI_MODULES/AI_STRAFENODE.zsc"
+#include "Actors/AI/AI_MODULES/AI_AltitudeCorrection.zsc"
+#include "Actors/AI/AI_Controllers/SelacoEnemy.zsc"
+#include "Actors/AI/AI_Controllers/EnemySoldier.zsc"
+#include "Actors/AI/AI_Controllers/SOLDIERSPEECH/SpeechHandler.zsc"
+#include "Actors/AI/AI_Controllers/AI_WEAPONS.zsc"
+//#include "Actors/AI/AI_Controllers/StatusReporter.zsc"
+#include "Actors/AI/AI_Controllers/deathceptions.zsc"
+#include "Actors/AI/AI_Controllers/pathfinding.zsc"
+#include "Actors/AI/roach.zsc"
+#include "Actors/monsters/PLASMA_TROOPER.zsc"
+#include "Actors/monsters/EnemyMine.zsc"
+#include "Actors/monsters/CRAFT/CRAFT_SOLDIER.zsc"
+#include "Actors/AI/ACESECURITY.zsc"
+#include "Actors/AI/SOLDIER.zsc"
+#include "Actors/AI/ARMORSOLDIER.zsc"
+#include "Actors/AI/CRYOENGINEER.zsc"
+#include "Actors/AI/ACIDENGINEER.zsc"
+#include "Actors/AI/JUGGERNAUT.zsc"
+#include "Actors/AI/ENGINEER.zsc"
+#include "Actors/AI/SIEGER.zsc"
+#include "Actors/AI/SOLDIER_Classes.zsc"
+#include "Actors/AI/SOLDIER_Scripted.zsc"
+#include "ACTORS/AI/VACBOT.zsc"
+#include "Actors/Effects/FLARES.zsc"
+// DECORATION
+
+#include "Actors/Decorations/FIREEXTINQUISHER.zsc"
+#include "Actors/Decorations/MUGS.zsc"
+#include "Actors/Decorations/Lightstick.zsc"
+#include "Actors/Decorations/BALLOONS.zsc"
+#include "ACTORS/decorations/OFFICECHAIR.zsc"
+#include "ACTORS/decorations/SHUTTERS.zsc"
+#include "Actors/Decorations/HANDDRYER.zsc"
+#include "Actors/Decorations/MEDSTATION.zsc"
+#include "Actors/Decorations/ENEMYWEAPONPROPS.zsc"
+#include "ACTORS/decorations/burningcivilian.zsc"
+#include "ACTORS/decorations/BROOMS.zsc"
+#include "ACTORS/decorations/CARS.zsc"
+#include "ACTORS/decorations/CARDBOARD.zsc"
+#include "ACTORS/decorations/PLUSHIES.zsc"
+#include "ACTORS/decorations/HoneyCombCases.zsc"
+#include "ACTORS/decorations/ENERGYSHIELD.zsc"
+#include "ACTORS/decorations/PLASTICCHAIR.zsc"
+#include "ACTORS/decorations/VALVE.zsc"
+#include "ACTORS/decorations/WATERCOOLER.zsc"
+#include "ACTORS/decorations/junk.zsc"
+#include "ACTORS/decorations/wires.zsc"
+#include "ACTORS/decorations/SPACEBRO.zsc"
+#include "ACTORS/decorations/CLUTTER.zsc"
+#include "ACTORS/decorations/Crate.zsc"
+#include "Actors/Decorations/dangerindicators.zsc"
+#include "Actors/Decorations/ComputerMonitors.zsc"
+#include "Actors/Decorations/KEYBOARDS.zsc"
+#include "Actors/PICKUPABLE.zsc"
+#include "Actors/Decorations/CAMERA.zsc"
+#include "zscripts/barrels.zsc"
+#include "zscripts/InvasionTiers.zsc"
+#include "zscripts/footsteps.zs"
+#include "zscripts/XMAS_EVENT.zsc"
+#include "zscripts/SafetyHandler.zsc"
+#include "zscripts/RifleStartHandler.zsc"
+#include "zscripts/plants.zsc"
+#include "actors/decorations/CHEMICALS.zsc"
+#include "actors/decorations/CLOTHES.zsc"
+#include "actors/decorations/JUKEBOX.zsc"
+#include "actors/decorations/Paperdispenser.zsc"
+#include "actors/decorations/DRAWINGS.zsc"
+#include "actors/decorations/GENERALDECORATIONS.zsc"
+#include "actors/decorations/SELACOCRAFT.zsc"
+#include "actors/decorations/Hockey.zsc"
+#include "actors/decorations/PATREONDOODLES.zsc"
+#include "ACTORS/Levelspecific/LEVEL_PATHFINDER.zsc"
+
+// User interfaces
+#include "ZScripts/menus.zs"
+#include "ZScripts/InputHandler.zsc"
+#include "ZScripts/UI/weapon_wheel.zs"
+#include "ZScripts/UI/credits/streets_credits.zs"   // Animated credits during Streets opening 03B
+
+// AIM ASSIST for Gamepad
+#include "ZScripts/GamepadAssist/AIMASSIST_HANDLER.zsc"
+
+// Recently changed from 3.3 to 4.1, hopefully that doesn't break anything
+#include "ACTORS/AI/SentryTurret.zsc"
+#include "ACTORS/AI/ISAAC.zsc"
+#include "ACTORS/AI/SawDrone.zsc"
+#include "ACTORS/AI/Sniper.zsc"
+#include "Actors/Weapons/RAILGUN.zsc"
+#include "Actors/DECORATIONS/PLASTICCASE.zsc"
+#include "Actors/CrawlerMine.zsc"
+#include "Actors/MONSTERS/AIRDRONE.zsc"
+#include "Actors/MONSTERS/GRENADIER.zsc"
+#include "Actors/THROWABLES.zsc"
+#include "Actors/Decorations/PICKNICKBENCH.zsc"
+#include "Actors/Decorations/faucet.zsc"
+#include "Actors/Decorations/COMFYCHAIR.zsc"
+#include "Actors/Decorations/BUILDINGS.zsc"
+#include "Actors/Decorations/KITCHENTOOLS.zsc"
+#include "ACTORS/WEAPONS/Penetrator.zsc"
+#include "ACTORS/WEAPONS/EXON_DMR.zsc"
+#include "ACTORS/WEAPONS/PLASMARIFLE.zsc"
+#include "ACTORS/WEAPONS/GRENADELAUNCHER.zsc"
+#include "ACTORS/WEAPONS/EXON_SMG.zsc" 
+#include "ACTORS/ITEMS/SaferoomUpgrade.zsc" 
+#include "ACTORS/Critters.zsc" 
+#include "ACTORS/DECORATIONS/TOWELS.zsc" 
+#include "Actors/Decorations/SANDBAGS.zsc"
+#include "Actors/Decorations/LABEQUIPMENT.zsc"
+#include "Actors/Enforcer.zsc"
+#include "Actors/EFFECTS/ZOMBIE_GORE.zsc"
+#include "Actors/EFFECTS/MAGGOTS.zsc"
+#include "Actors/MONSTERS/GUNNER.zsc"
+#include "Actors/MONSTERS/MECH.zsc"
+#include "Actors/MONSTERS/ZOMBIE_GRUNT.zsc"
+#include "Actors/MONSTERS/ZOMBIE_RANGED.zsc"
+#include "Actors/MONSTERS/ZOMBIE_TANK.zsc"
+#include "actors/ENVIRONMENTALHAZARD.zsc"
+#include "actors/DECORATIONS/LAPTOP.zsc"
+#include "actors/DECORATIONS/PAINT.zsc"
+#include "actors/DECORATIONS/TREES.zsc"
+
+#include "Actors/GAMEPLAY/Propane.zsc"
+#include "Actors/GAMEPLAY/Tasing.zsc"
+#include "Actors/GAMEPLAY/POWERCELL.zsc"
+#include "Actors/GAMEPLAY/Ladders.zsc"
+#include "ACTORS/Levelspecific/LEVEL_BACKROOMS.zsc"
+#include "ACTORS/Levelspecific/LEVEL_BLOOMFLORALS.zsc"
+#include "ACTORS/Levelspecific/LEVEL_WATERTREATMENT.zsc"
+#include "ACTORS/Levelspecific/LEVEL_STARLIGHT.zsc"
+#include "ACTORS/Levelspecific/LEVEL_SALSCAVE.zsc"
+#include "ACTORS/Levelspecific/LEVEL_STREETS.zsc"
+#include "ACTORS/Levelspecific/LEVEL_MALL.zsc"
+#include "ACTORS/WEAPONS/LANDMINE.zsc"
+
+#include "ACTORS/RJSkybox.zsc"
+#include "zscripts/ShootingRangeHandler.zsc"
+#include "zscripts/randomizer/RandomizerHandler.zsc"
+#include "zscripts/EarthquakeHandler.zsc"
+#include "zscripts/SafeRoomExtension.zsc"
+
+#include "Actors/GAMEPLAY/ItemChest.zsc"
+
+// I cannot figure out why Selaco needs to reference to this actor to boot...This is here to allow the game to actually run.
+class modelBase : actor {
+
+}
+
+class ExteriorSmokeLooper : SelacoActor {
+    default {
+        +NOINTERACTION
+		SelacoActor.sleepdistance 7000;
+    }
+    States {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A random(40,60) {
+                A_SPAWNITEMEX("SpawnExteriorSmoke", 0, 0, frandom(0,20), 3, 0, angle:frandom(-20,20));
+            }
+            loop;
+    }
+}

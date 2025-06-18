@@ -1,0 +1,182 @@
+
+class MetalShrapnelParticleDefinition : ParticleDefinition {
+    override void Init() {
+        super.init();
+        self.Speed = 5;
+        self.SetGravity(0.6);
+        self.DefaultRenderStyle = Style_Add;
+        self.SetBaseScale(0.11);
+        self.SetQualityChances(0, 0.5, 0.75, 1.0, 2.5);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+        self.SetFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_NOSPAWNUNDERWATER);
+        self.SetLifespanMultipliers(0.3, 1.5, 2.0, 2.3, 3.5);
+        //self.FadeVelRange(1.2, 3);
+        self.stopSpeed = 2;
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-5,5);
+        self.RandomLife(60,105);
+        self.RandomPitch(-45,45);
+        self.RandomAngle(-45,45);
+        self.RandomSpeed(1,7);
+        self.BounceFudge = 0.3;
+        self.RandomScaleX(-0.01,0.7);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.SetFlag(DPF_FULLBRIGHT);
+        particle.Texture = SelectRandomFrame("FEMB", "ABCDE");
+    }
+}
+
+class MetalShrapnelParticleExplosionDefinition : MetalShrapnelParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomPitch(-75,-115);
+        self.RandomSpeed(1,11);
+        self.RandomAngle(0,360);
+    }
+}
+
+class MetalShrapnelParticleSphericalDefinition : MetalShrapnelParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomPitch(-80,40);
+    }
+}
+
+class MetalShrapnelParticleShortDefinition : MetalShrapnelParticleDefinition {
+    override void Init() {
+        super.Init();
+        Self.SetBaseScale(0.15);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ScaleLifeRange(0, 1);
+        self.ScaleRangeX(1, 0.05);
+        self.ScaleRangeY(1,0.05);
+        self.FadeLifeRange(10, 20);
+        self.RandomAngle(-360,360);
+        self.RandomSpeed(1,13);
+        self.RandomPitch(-60, -120);
+        self.RandomLife(7,14);
+    }
+}
+
+class MetalShrapnelParticleShortBigDefinition : MetalShrapnelParticleShortDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.45);
+        self.RandomAngle(0,360);
+        self.RandomSpeed(1,6);
+        self.RandomPitch(-140,-170);
+        self.RandomLife(15,20);
+        self.RandomScaleX(1.1,3.3);
+    }
+}
+
+class MetalShrapnelParticleShortWallDefinition : MetalShrapnelParticleShortDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.1);
+        self.SetLifespanMultipliers(0.5, 1, 1, 1, 1);
+        self.RandomAngle(-25,25);
+        self.RandomPitch(-25,25);
+        self.RandomLife(5,10);
+        self.RandomSpeed(1,10);
+    }
+}
+
+
+
+class MetalShrapnelParticle360Definition : MetalShrapnelParticleDefinition {
+    override void init() {
+        super.init();
+        self.randomSpeed(1,6);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-70, -110);
+    }
+}
+
+// TODO: Smoke Trail using the particle system
+class MetalChunkDefinition : ParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.6);
+        self.DefaultRenderStyle = STYLE_Translucent;
+        self.SetBaseScale(0.46);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_LIFEFADE);
+        self.FadeVelRange(0.3, 1.5);
+        self.SetLifespanMultipliers(0.3, 1.5, 2, 2.3, 3.5);
+        self.RandomLife(60,105);
+        self.StopSpeed = 2;
+        self.RandomRoll(0,360);
+        self.RandomRollSpeed(-5,5);
+        self.BounceFudge = 0.3;
+        self.RandomRoll(0,360);
+        self.RandomPitch(-45,45);
+        self.RandomAngle(-45,45);
+        self.RandomRollSpeed(-30,30);
+        self.RandomSpeed(1,6);
+        self.BounceSound = "METAL/SHARD/BOUNCE";
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor) {
+        particle.Texture = SelectRandomFrame("BRPT", "ABCDE");
+    }
+}
+
+
+class MetalChunk360Definition : MetalChunkDefinition {
+    override void Init() {
+        super.init();
+        self.RandomPitch(-25,25);
+        self.RandomSpeed(1,12);
+        self.RandomAngle(-180,180);
+    }
+}
+
+
+class MetalShrapnelParticleShortWildDefinition : MetalShrapnelParticleShortDefinition {
+    override void init() {
+        super.init();
+        self.RandomSpeed(1,12);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-40,-140);
+    }
+}
+
+class ShortMetalShrapnelParticle360Definition : MetalShrapnelParticleDefinition {
+    override void init() {
+        super.init();
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_LIFESCALE);
+        self.RandomSpeed(1,5);
+        self.ScaleLifeRange(0,1);
+        self.RandomAngle(0,360);
+        self.randomScaleX(0.6,2.5);
+        self.RandomLife(11,14);
+        self.RandomPitch(-45,-90);
+    }
+}
+
+
+class MetalShrapnelParticleShortWideWallDefinition :  MetalShrapnelParticleShortDefinition {
+    override void init() {
+        super.init();
+        self.SetFlag(PDF_LifeScale);
+        self.ScaleLifeRange(0,1);
+        self.RandomPitch(0,180);
+        self.RandomLife(10,12);
+        self.drag = 0.075;
+    }
+}
+
+class MetalShrapnelParticleShortWideFloorDefinition :  MetalShrapnelParticleShortWideWallDefinition {
+    override void init() {
+        super.init();
+        self.RandomPitch(-30,-150);
+    }
+}

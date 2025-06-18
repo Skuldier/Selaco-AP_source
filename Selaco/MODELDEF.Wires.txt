@@ -1,0 +1,209 @@
+Model Wirekit1
+{
+   Path "MD/wire"   
+   Model 0 "wirekit1.md3"    
+   Skin 0 "wirekit1.png"
+   Scale 0.6 0.6 0.6
+   
+      FrameIndex VOXE L 0 0
+}
+Model Wirekit2
+{
+   Path "MD/wire"   
+   Model 0 "wirekit2.md3"    
+   Skin 0 "wirekit2.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit3
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit3.md3"    
+   Skin 0 "Wirekit3.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit4
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit4.md3"    
+   Skin 0 "Wirekit4.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit5
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit5.md3"    
+   Skin 0 "Wirekit5.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit6
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit6.md3"    
+   Skin 0 "Wirekit6.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit7
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit7.md3"    
+   Skin 0 "Wirekit7.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit8
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit8.md3"    
+   Skin 0 "Wirekit8.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit9
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit9.md3"    
+   Skin 0 "Wirekit9.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit10
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit10.md3"    
+   Skin 0 "Wirekit10.png"
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit11
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit11.md3"    
+   Skin 0 "Wirekit11.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit12
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit12.md3"    
+   Skin 0 "Wirekit12.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit13
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit13.md3"    
+   Skin 0 "Wirekit13.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model Wirekit14
+{
+   Path "MD/wire"   
+   Model 0 "Wirekit14.md3"    
+   Skin 0 "Wirekit14.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+Model WIREPLUG
+{
+   Path "MD/wire"   
+   Model 0 "WIREPLUG.md3"    
+   Skin 0 "WIREPLUG.png"
+   Scale 0.6 0.6 0.6
+   
+   FrameIndex VOXE L 0 0
+}
+
+Model wiretip
+{
+   Path "MD/wire"   
+   Model 0 "wiretip.md3"    
+   Skin 0 "wiretip.png"
+   Scale 0.6 0.6 0.6
+   
+      FrameIndex VOXE L 0 0
+}
+Model WIREPLUS
+{
+   Path "MD/wire"   
+   Model 0 "WIREPLUS.md3"    
+   Skin 0 "WIREPLUS.png"
+   Scale 0.6 0.6 0.6
+   
+      FrameIndex VOXE L 0 0
+}
+Model WIRELEDGE1
+{
+   Path "MD/wire"   
+   Model 0 "WIRELEDGE1.md3"    
+   Skin 0 "WIRELEDGE1.png"
+   Scale 0.6 0.6 0.6
+   
+      FrameIndex VOXE L 0 0
+}
+
+Model WIRELEDGE1B
+{
+   Path "MD/wire"   
+   Model 0 "WIRELEDGE1B.md3"    
+   Skin 0 "WIRELEDGE1B.png"
+   Scale 0.6 0.6 0.6
+   
+      FrameIndex VOXE L 0 0
+}
+
+Model WIRELEDGE2
+{
+   Path "MD/wire"   
+   Model 0 "WIRELEDGE2.obj"    
+   Skin 0 "WIRELEDGE2.png"
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0
+}
+
+Model WIRELEDGE2B
+{
+   Path "MD/wire"   
+   Model 0 "WIRELEDGE2B.md3"    
+   Skin 0 "WIRELEDGE2B.png"
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0
+}
+
+Model WIRE_Y1
+{
+   Path "MD/wire"   
+   Model 0 "WIRE_Y1.md3"    
+   Skin 0 "WIRE_Y1.png"
+   Scale 0.6 0.6 0.6
+   FrameIndex VOXE L 0 0
+}
+Model WIRE_Y2
+{
+   Path "MD/wire"   
+   Model 0 "WIRE_Y2.md3"    
+   Skin 0 "WIRE_Y2.png"
+   Scale 0.6 0.6 0.6
+   
+      FrameIndex VOXE L 0 0
+}
+

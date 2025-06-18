@@ -1,0 +1,49 @@
+class WoodPlankSpawnerMedium : SelacoActor {
+	mixin particleCvarCheck;
+	int watercount, lifespan, spawnChance;
+	default {
+		SelacoActor.SleepDistance 0;
+		+NOINTERACTION
+		+SelacoActor.IsTrash;
+	}
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0;
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("PlankSpawnerForward", 0, frandom(-20,20),frandom(-20,20));
+			stop;
+	}
+}
+
+class WoodPlankSpawnerUpward : WoodPlankSpawnerMedium {
+	States {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0;
+			TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("PlankSpawnerUpward", frandom(-20,20), frandom(-20,20),frandom(-20,20), 0, 0, random(3,6), angle:random(0,360));
+			stop;
+	}
+}
+
+// Bunch of glass for a window
+class WindowShatterSpawner : SelacoActor
+{
+	default
+	{
+		+NOINTERACTION
+		Selacoactor.sleepDistance 0;
+	}
+	states
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0
+			{
+				for(int x=0;x<=20;x++)
+				{
+					EmitDefinition('GlassParticleLargeDefinition', 1.0, 3,angle:0, speed:2, offset:(frandom(-50,50), frandom(-50,50), frandom(-30,30)));
+				}
+			}
+			stop;
+	}
+}

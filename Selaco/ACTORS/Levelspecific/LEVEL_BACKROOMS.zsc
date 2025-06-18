@@ -1,0 +1,288 @@
+// This draws an adorable little square
+class SparkMovingCeilingSquare : SelacoActor {
+    default {
+        +SelacoActor.PreventSleep
+        +NOINTERACTION
+	    +NOGRAVITY
+	    -SOLID
+	    radius 5;
+        height 5;
+    }
+
+    override void PostBeginPlay() {
+        super.postbeginPlay();
+        A_PLAYSOUND("script/doorweld", CHAN_AUTO, looping: 1);
+    }
+
+    int stage;
+    int ticks;
+    override void tick() {
+        super.tick();
+        ticks++;
+        sparkEffects();
+        drawShapes();
+    }
+    
+    virtual void sparkEffects()
+    {
+        if(ticks % 20 == 0) {
+            A_playsound("script/increment", CHAN_AUTO, 1.0, 0, 0.3);
+        }
+        EmitDefinition('LongerSpark360', chance: 0.75, numTries: 20, pitch:90, offset:(-10,0,0));
+        for(int x=5;x>0;x--)
+        {
+		    EmitDefinition('LongerSpark360', chance: 0.45, numTries: 6, pitch:frandom(80,110), speed:8, offset:(-10,0,0));
+        }
+        if(level.time % 2 == 0) {
+            A_Spawnitemex("YellowFlareSmallSparks", 1, 0, 7);
+        }
+    }
+
+    void incrementStage(int requirement = 20) {
+        if(ticks == requirement) {
+            stage++;
+            ticks = 0;
+        } 
+    }
+
+    virtual void drawShapes() {
+        if(ticks == 60) {
+            stage++;
+            ticks = 0;
+        }
+        switch(stage) {
+            case 0:
+                A_ChangeVelocity(2.3, 0, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 1:
+                A_ChangeVelocity(0, 2.3, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 2:
+                A_ChangeVelocity(-2.3, 0, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 3:
+                A_ChangeVelocity(0, -2.3, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 4:
+                setStateLabel("Death");
+                break;
+        }
+    }
+
+    states {
+        death:
+            TNT1 A 0;
+            stop;
+    }
+}
+
+// Adorable little rectangle on the wall
+class SparkMovingWallSquare : SparkMovingCeilingSquare {
+    override void PostBeginPlay() {
+        super.postbeginPlay();
+        vel.z = 0;
+        A_PLAYSOUND("script/doorweld", CHAN_AUTO, looping: 1);
+    }
+
+    override void sparkEffects()
+    {
+        EmitDefinition('LongerSpark360', chance: 0.75, numTries: 35, pitch:0);
+		EmitDefinition('LongerSpark360', chance: 0.45, numTries: 25, pitch:0, speed:5);
+        if(level.time % 2 == 0) {
+            vector3 sprayDirection = vecFromAngle(angle-180, pitch);
+            A_SprayDecal("scorchmarksmaller", 172, (0,0,0), sprayDirection);
+            A_Spawnitemex("YellowFlareSmallSparks", 1, 0, 3);
+        }
+    }
+
+    override void tick() {
+        super.tick();
+        if(level.time % 20 == 0) {
+            A_playsound("script/increment", CHAN_AUTO, 1.0, 0, 0.3);
+        }
+        drawShapes();
+    }
+
+    override void drawShapes() {
+        switch(stage) {
+            case 0:
+                A_ChangeVelocity(0, 0, frandom(1.9,2), CVF_REPLACE | CVF_RELATIVE);
+                incrementStage(38);
+                break;
+            case 1:
+                A_ChangeVelocity(0, 1.5, 0, CVF_REPLACE | CVF_RELATIVE);
+                incrementStage(66);
+                break;
+            case 2:
+                incrementStage(38);
+                A_ChangeVelocity(0, 0, -frandom(1.9,2.0), CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 3:
+                setStateLabel("Death");
+                break;
+            }
+    }
+
+    states {
+        death:
+            TNT1 A 0;
+            stop;
+    }
+}
+class SparkMovingCeilingSquareShort : SparkMovingCeilingSquare {
+    override void drawShapes() {
+        if(ticks == 60) {
+            stage++;
+            ticks = 0;
+        }
+        switch(stage) {
+            case 0:
+                A_ChangeVelocity(1.3, 0, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 1:
+                A_ChangeVelocity(0, 1.3, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 2:
+                A_ChangeVelocity(-1.3, 0, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 3:
+                A_ChangeVelocity(0, -1.3, 0, CVF_REPLACE | CVF_RELATIVE);
+                break;
+            case 4:
+                setStateLabel("Death");
+                break;
+        }
+    }
+}
+
+class BreachingCharge : Interactable 
+{
+    
+    float beepPitch;
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        beepPitch = 1.2;
+    }
+
+
+    override void Activate(actor activator)
+    {
+
+    }
+    override void deactivate(actor activator)
+    {
+        
+    }
+
+    default
+    {
+        tag " ";
+        SelacoActor.UseTag "$OBJECT_WALLMINE";
+        SelacoActor.SleepDistance 1024;
+        Activation THINGSPEC_SWITCH;
+        +MOVEWITHSECTOR
+        +NOBLOOD
+        +NOPAIN
+        +THRUACTORS
+        +INTERPOLATEANGLES
+        +USESPECIAL;
+        +NOGRAVITY;
+        +BUDDHA
+        height 50;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+		PainSound "impact/hardmetal";
+    }
+
+    states
+    {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 A_JumpIf(waterlevel > 1, "Death");
+        Active:
+        Inactive:
+        Pain:
+        Looper:
+			VOXE A 31;
+			VOXE L 4 {
+				A_PlaySound ("BREACHINGCHARGE", CHAN_AUTO, 0.20, attenuation:1.05);
+				A_SpawnItemEx("zRedFlareLarge",9,0,24);
+                SpawnLight(255, 120, 40, 64, divisionSpeed: 1.75);
+			}
+			loop;
+        DetonateTrigger:
+			VOXE LLLLLLLLLL 4 {
+				A_PlaySound ("BREACHINGCHARGE", CHAN_AUTO, 0.4, pitch:beepPitch);
+                //beepPitch+=0.003;
+				A_SpawnItemEx("zRedFlareLarge",16,0,24);
+			}
+			EXPL A 0 {
+                ACS_ExecuteAlways(args[0], 0);
+                Radius_Quake (2, 54, 0, 15, 0);
+                bFLOORCLIP = 0;
+                A_AlertMonsters();
+                A_SpawnItem("PrettyExplosionParticleRain");
+                A_PlaySound("Explosion",3);
+                A_Explode(100,100);
+                destroy();
+            }
+			Stop;
+    }
+}
+
+class DETONATOR : Interactable 
+{
+
+    override void activate(actor activator)
+    {
+        A_PLAYSOUND("SCRIPT/DETONATE", CHAN_AUTO, 1.0, 0, 0.6);
+        ACS_ExecuteAlways(args[0], 0);
+        super.activate(activator);
+    }
+
+    default
+    {
+        tag "$OBJECT_DETONATOR";
+        SelacoActor.UseTag "$INTERACT_ACTIVATE";
+        +THRUACTORS
+        +USESPECIAL;
+        +INTERPOLATEANGLES
+        +DONTTHRUST;
+        -SELACOACTOR.SlopeAlignment;
+        +NOGRAVITY;
+        -Shootable
+        Activation THINGSPEC_Activate;
+        height 25;
+        radius 14;
+    }
+    states 
+    {
+        Spawn:
+            VOXE A -1;
+            stop;
+        Active:
+            TNT1 A 0 {
+                angle+=8;
+            }
+            VOXE B -1;
+            stop;
+    }
+}
+
+// Used for the fridge!
+class FrozenSmokeLooper : SelacoActor 
+{
+    default
+    {
+        +NOINTERACTION;
+    }
+    states{
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 20
+            {
+                A_SPAWNITEMEX("FrozenSmoke", 0, 0, -32, 1, frandom(-0.2,0.2), 1);
+            }
+            loop;
+    }
+}

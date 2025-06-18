@@ -1,0 +1,662 @@
+
+class EnvironmentalHazard : PickupableDecoration {
+
+	mixin DangerIndicatorHandler;
+
+	bool overCharged;
+	int explosionRadius;
+	string explosionType;
+	actor explosionActor;
+	string explosionEffect;
+
+	bool success;
+
+	property ExplosionRadius : explosionRadius;
+	property ExplosionType : ExplosionType;
+	property ExplosionEffect : ExplosionEffect;
+	// START FULL GAME
+	override void tick() {
+		super.tick();
+		if(overCharged && level.time % random(2,3) == 0) {
+			A_SPAWNITEMEX("PlasmaPuffNoLights", frandom(-1*radius, radius+3), frandom(-1*radius, radius+8), frandom(-1*height, height+2));
+		}
+	}
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+		if(damagetype == "plasma" && overcharged) {
+			die(self, self);
+		}
+		if((source) && source.countInv("UpgradePlasmaRifleOvercharge") == 1 && damagetype == "Plasma" && !overcharged) {
+			overCharged = true;
+			damage = 0;
+			explosionRadius*=1.75;
+			A_PLAYSOUND("pain/electrocuted", CHAN_7, 0.6, 0, pitch:1.2);
+			scale = (scale.x + 0.1, scale.y + 0.1);
+		}
+		int res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+		return res;
+	}
+
+	default {
+		+PUSHABLE;
+		+SOLID;
+		+BloodSplatter;
+		-NOBLOOD;
+		+SLIDESONWALLS;
+		+NOBLOCKMONST;
+		+NoBloodDecals;
+		+shootable
+		-Pushable
+		Activation THINGSPEC_SWITCH;
+		-PickupableDecoration.CanPickUp;
+		EnvironmentalHazard.ExplosionEffect "ExplosionEffectNoDebris";
+		EnvironmentalHazard.explosionType "BarrelExplosion";
+		DamageFactor "FallSplashDamage", 0;
+		DamageFactor "Plasma", 1.0;
+		DamageFactor "DecorationImpact", 0.2;
+		DamageFactor "DawnFist", 0;
+
+		// Hazards should have a longer draw distance by default, since they are important for gameplay mechanics
+		DistanceCheck "r_ThingLODImportant";
+	}
+	states {
+		xDeath:
+	    Death:
+            TNT1 A 0;
+			TNT1 A 0 A_SetMass(150);
+			//TNT1 A 0 S_EXPLODE(390,90, 0, 0, 0, 0, 0 ,0 ,"ExplosiveImpact");
+			TNT1 A 0 A_Stop;
+			TNT1 A 0 {
+				// Create explosion instance
+				[success, explosionActor] = A_SpawnItemEx(explosionType);
+				// Give radius to explosion.
+				let explosionActorInstance = BarrelExplosion(explosionActor);
+				if(explosionActorInstance) {
+					explosionActorInstance.expRadius = explosionRadius;
+				}
+				// Spawn Explosion effects
+				A_SpawnItemEx(ExplosionEffect);
+
+				// To prevent weirdness from happening
+				bSolid = false;
+				bThruActors = true;
+
+				// Spawn scorchmark
+				A_SPAWNITEMEX("ScorchMarkFloor");
+			}
+	
+			EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+			TNT1 A 0 A_PlaySound("kaboom/explode", 3);
+			TNT1 A 0 A_Playsound("destruction/derby", chan_auto);
+			Stop;
+	}
+}
+
+class SelacoExplosivebarrel : EnvironmentalHazard
+{
+	bool primed;
+	int primeTimer;
+	bool detonated;
+	double dangerPitch; // Used to increment the Danger Pitch with each loop
+	override void tick() {
+		super.tick();
+		
+		if(LookForPlayers(true)) {
+
+		}
+
+		// Barrel is shot and is about to explode.
+		if(primed) {
+			bDangerousActor = true;
+			// Prevent Mr. Barrel from falling asleep during its shift
+			bPreventSleep = true;
+			
+			Selflighting = "ff1300";
+			if(primeTimer % 4 == 0) {
+				A_SpawnItemEx("SmokeScatteredCloudFast", 0,0,40, frandom(-0.03, 0.03), frandom(-0.03, 0.03), 1);
+				Selflighting = "";
+			}
+
+			// Pitch the sound up every 8 ticks
+			if(primeTimer % 8 == 0) {
+				BlinkDangerIndicator(explosionRadius);
+				A_PLAYSOUND("ui/dangerwarning", CHAN_AUTO, 1.0, 0, 2.3, 0, dangerPitch);
+				A_PLAYSOUND("ui/dangerwarning", CHAN_AUTO, 1.0, 0, 2.3, 0, dangerPitch);
+				dangerpitch = dangerpitch + 0.01;
+			}
+
+			// Expand the barrel and...
+			if(primeTimer > 70) {
+				A_SetScale(scale.x + 0.05, scale.y, 0, true);
+			}
+
+			// EXPLODE!
+			if(primeTimer >= 75 && !detonated) {
+				detonated = true;
+				die(self, self);
+			}
+			primeTimer++;
+		}
+	}
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		Stats.AddStat(STAT_EXPLOSIVEBARRELS_DESTROYED, 1, 0);
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+
+	//$Category SelacoDecorations
+	default {
+		+USESPECIAL;
+		+SelacoActor.AllowGravityManipulation;
+		+SelacoActor.HighPriorityGravTarget;
+		+SLIDESONWALLS;
+		-CANNOTPUSH;
+		Activation THINGSPEC_Switch;
+		EnvironmentalHazard.explosionRadius 200; 
+		SelacoActor.shoveFactor 0.6;
+		Interactable.pullFactor 0.2;
+		PushFactor 0.95;
+		SelacoActor.SpecialPushFactor 0.8;
+		+SelacoActor.SpecialPushable;
+		+SelacoActor.SpecialPushDirectionFix;
+
+		tag "$OBJECT_EXPLOSIVEBARREL";
+		SelacoActor.UseTag "$INTERACT_PULL";
+		Damagefactor "MeleeImpact", 0.1;
+		DamageFactor "MeleeImpactExtinguisher", 0.01;
+		Damagefactor "ExplosiveImpact", 0.4;
+		Damagefactor "Fire", 3.5;
+		DamageFactor "Shotgun", 500.0;
+		Damagefactor "Shrapnel", 0.0;
+		DamageFactor "DawnFist", 0.01;
+		DamageFactor "Bullet", 1;
+		DamageFactor "NailDamage", 100;
+		DamageFactor "MagnumBullet", 500;
+		DamageFactor "ExplosiveImpact", 0.2;
+		DamageFactor "MeleeImpactSplash", 0;
+		DamageFactor "BulletAlien", 0.3;
+
+		SelacoActor.CollisionSound "OBJECT/BARREL/PUSH";
+
+		Health 50;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+		MaxTargetRange 200;
+		PainChance "BulletAlien", 256;
+		DeathSound "kaboom/explode";
+		PainSound "barrel/pain";
+		Selflighting "232323";
+		maxStepHeight 8;
+		friction 0.93;
+		Painchance 255;
+		Radius 16;
+		Mass 75;
+		Height 32;
+		scale 1.1;
+		Pushfactor 0.76;
+
+	}
+	States
+	{
+		Active:
+		Inactive:
+		Spawn:
+			VOXE L 0;
+			VOXE L 0 {
+				bNOCLIP = false;
+			}
+			VOXE L 4;
+			Goto See;
+			
+		See:
+			VOXE L -1;
+			Loop;
+			
+		SpawnFire:
+			VOXE L 3;
+			TNT1 A 0 A_DamageSelf(15);
+			goto See;
+			
+			
+		Missile:
+			TNT1 A 0; //A_CheckSight
+			TNT1 A 0 A_ClearTarget;
+			Goto See;
+			
+			TNT1 A 0;
+			VOXE L 2 ;
+			TNT1 A 0 A_JumpIfCloser(280, 1);
+			Goto See;
+		DoingNothing:
+			VOXE L 2;
+			Goto See;
+		
+		Pain.ExplosiveImpact:
+		Pain.BulletAlien:
+		Pain:
+			VOXE L 1 {
+				activationtype = THINGSPEC_Default; 
+				bUseSpecial = false;
+				primed = true;
+				dangerPitch = 1.0;
+			}
+			Goto See;
+		
+		Pain.Melee:
+			VOXE L 1 A_Pain;
+			VOXE L 1 A_FaceTarget;
+			TNT1 A 0 HealThing(100);
+			TNT1 A 0 ThrustThing(angle*256/360+128, 5, 0, 0);
+			TNT1 A 0 ThrustThingZ(0,10,0,1);
+			Goto See;
+
+		Death:	
+			TNT1 A 0 A_SetMass(150);
+			//TNT1 A 0 S_EXPLODE(390,90, 0, 0, 0, 0, 0 ,0 ,"ExplosiveImpact");
+			TNT1 A 0 A_Stop;
+			TNT1 A 0 A_SpawnItemEx ("BaseExplosionEffect",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			TNT1 A 0 {
+				// Create explosion instance
+				[success, explosionActor] = A_SpawnItemEx(explosionType);
+				// Give radius to explosion.
+				let explosionActorInstance = BarrelExplosion(explosionActor);
+				explosionActorInstance.expRadius = explosionRadius;
+
+				// Spawn Explosion effects
+				A_SpawnItemEx("PrettyExplosionParticleRain");
+
+				// To prevent weirdness from happening
+				bSolid = false;
+				bThruActors = true;
+
+				// Spawn scorchmark
+				A_SPAWNITEMEX("ScorchMarkFloor");
+			}
+	
+			EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+			TNT1 A 0 A_PlaySound("kaboom/explode", 3);
+			TNT1 A 0 A_Playsound("destruction/derby", chan_auto);
+			TNT1 AAA 0 A_SpawnProjectile ("ExplosionSmoke", 1, 0, random (0, 360), 2, random (50, 130));
+			Stop;
+	}
+}
+
+class BarrelExplosion: SelacoActor {
+	int explosionDamage;
+	int expRadius;
+
+	property ExplosionDamage : explosionDamage;
+	property ExplosionRadius : expRadius;
+	default {
+		BarrelExplosion.ExplosionRadius 200;
+		BarrelExplosion.ExplosionDamage 390;
+		damageType "explosiveimpact";
+		+NOINTERACTION;
+		+FORCERADIUSDMG;
+	}
+
+	States {
+		Spawn:
+			Goto Death;
+		Death:
+			TNT1 A 0;
+			TNT1 A 2;
+			TNT1 A 0 S_EXPLODE(explosionDamage,expRadius);
+			TNT1 A 0 A_RadiusGive("ShieldEyes", 260, RGF_PLAYERS | RGF_GIVESELF, 1);
+			Stop;
+	}
+}
+
+// This actor destroys everything, except players and monsters.
+class EnvironmentalExplosion : BarrelExplosion
+{
+	default
+	{
+		damageType "EnvironmentalExplosion";
+	}
+	states
+	{
+		Spawn:
+		Death:
+			TNT1 A 0;
+			TNT1 A 2;
+			TNT1 A 0 S_EXPLODE(390,expRadius);
+			//TNT1 A 0 A_RadiusGive("ShieldEyes", 260, RGF_PLAYERS | RGF_GIVESELF, 1);
+			Stop;
+	}
+}
+
+class YellowBarrelExplosion : BarrelExplosion{
+	default {
+		damageType "YellowBarrel";
+	}
+	states {
+		Spawn:
+		Death:
+			TNT1 A 0;
+			TNT1 A 0 A_SpawnItem("WhiteShockwaveBig");
+			TNT1 A 2;
+			TNT1 A 0 S_EXPLODE(25,120);
+			TNT1 A 1;
+			TNT1 A 0 A_RadiusGive("ShieldEyes", 170, RGF_PLAYERS | RGF_GIVESELF, 1);
+			Stop;
+	}
+}
+
+class CryoBarrel : SelacoExplosivebarrel {
+	default {
+		tag "$OBJECT_CRYOBARREL";
+	}
+	states {
+		XDeath:
+		Death:	
+			TNT1 A 0 A_SetMass(150);
+			TNT1 A 0 A_Stop;
+			TNT1 A 0 {
+				bSolid = false;
+				bThruActors = true;
+				bPreventSleep = true;
+				bAllowGravityManipulation = false;
+			}
+			TNT1 AAAA 0 A_SpawnItem("WhiteShockwave");
+			TNT1 A 0 S_EXPLODE(10, 150, 0 , 0, 0, 0, 0, "Ice", "Ice");
+			EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+			BEXP B 0 BRIGHT A_Scream;
+			TNT1 A 0 A_ALertMonsters;
+			TNT1 A 0 A_PlaySound("GRENADE/ICEEXPLOSION", 3);
+
+			// The Ice Explosion + Damage
+			TNT1 A 0 A_SPAWNITEMEX("IceBombParticles");
+			
+			TNT1 AAAA 2 {
+				A_SpawnProjectile ("SpawnImpactSmoke", random(0,30), 0, random (0, 360), 2, random (0, 30));
+				A_SpawnProjectile ("SpawnImpactSmoke", random(0,30), 0, random (0, 360), 2, random (0, 30));
+				A_SpawnProjectile ("FrostSmoke", random(0,30), 0, random (0, 360), 2, random (0, 30));
+			}
+			stop;
+	}
+}
+
+class AcidBarrel : SelacoExplosivebarrel {
+	default {
+		tag "$OBJECT_ACIDBARREL";
+		damageType "acid";
+	}
+	states {
+		Xdeath:
+		Death:	
+			TNT1 A 0 A_SetMass(150);
+			TNT1 A 0 A_SPAWNITEMEX("ScorchMarkFloor");
+			//TNT1 A 0 S_EXPLODE(390,90, 0, 0, 0, 0, 0 ,0 ,"ExplosiveImpact");
+			TNT1 A 0 A_Stop;
+			//TNT1 A 0 A_SpawnItemEx ("BaseExplosionEffect",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			//TNT1 A 0 A_SpawnItemEx ("BarrelExplosion",0,0,30,0,0,0,0,SXF_NOCHECKPOSITION,0);
+			TNT1 A 0 {
+				bSolid = false;
+				bThruActors = true;
+				A_SPAWNITEMEX("AcidBombParticles");
+			}
+			TNT1 AAAA 0 A_SpawnItem("WhiteShockwave");
+			TNT1 A 0 S_EXPLODE(900, 320, damageType:"Acid");
+			EXPL A 0 Radius_Quake (2, 24, 0, 15, 0);
+			BEXP B 0 BRIGHT A_Scream;
+			TNT1 A 0 A_ALertMonsters;
+			stop;
+	}
+}
+
+class HeavyBarrel : DecorationObject {
+
+	bool hasSeenPlayer;
+	int cooldown;
+	const SQUEAK_TIMER = 170;
+	int squekTimerTicks;
+
+	actor barrelIcon;
+	bool success;
+
+	override void tick() 
+	{
+		super.tick();
+		A_SetArg(1, 1);
+		if(!barrelIcon && LookForPlayers(true)) 
+		{
+			ACS_NamedExecuteWithResult("AutomapAdded", 14);
+			[success, barrelIcon] = A_SPAWNITEMEX("barrelIcon", flags:SXF_SETMASTER);
+		}
+
+		if(barrelIcon)
+		{
+			barrelIcon.A_Warp(AAPTR_Master, 0, 0, 1.5, flags:WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION );
+		}
+
+		if(vel.length() < 0.7 && squekTimerTicks > 30)
+		{
+			squekTimerTicks = 0;
+			A_PLAYSOUND("BARREL/PUSHSTOP", CHAN_6, 0.4, pitch:frandom(0.7,0.8));
+		}
+
+		if(isMoving() && level.time > 10) {
+			cooldown++;
+			squekTimerTicks++;
+			if(squekTimerTicks >= SQUEAK_TIMER)
+			{
+				squekTimerTicks = 0;
+				A_PLAYSOUND("barrel/push", CHAN_5, 0.8, pitch:frandom(1.2,1.3));
+			}
+			if(cooldown > 2) {
+				string EffectToSpawn;
+				cooldown = 0;
+
+				if(waterlevel == 0) {
+					EffectToSpawn = "SparksNoFlare";
+					A_Playsound("mover/pushbarrel", CHAN_7, 0.6, 1, 0.5);
+				}
+				if(waterlevel > 0) {
+					EffectToSpawn = "WaterSplashBaseSmallShort";
+					A_Playsound("mover/pushbarrel", CHAN_7, 0.6, 1, 0.5, 0, 0.88);
+				}
+
+				A_SPAWNITEMEX(EffectToSpawn, 10, 10 ,0);
+				A_SPAWNITEMEX(EffectToSpawn, -10, -10 ,0);
+				A_SPAWNITEMEX(EffectToSpawn, -10, 10 ,0);
+				A_SPAWNITEMEX(EffectToSpawn, 10,-10 ,0);
+			}
+		} else {
+			A_Stopsound(CHAN_7);
+		}
+	}
+
+	default {
+		+SOLID;
+		+BUDDHA
+		+NOBLOODDECALS
+		+SelacoActor.essential;
+		-SelacoActor.AllowPunting;
+		-SelacoACtor.AllowGravityManipulation;
+		+SelacoActor.DisallowGravityManipulation
+		+SelacoActor.IsHeavy;
+		+SHOOTABLE
+		tag "$OBJECT_HEAVYBARREL";
+		SelacoActor.UseTag "$INTERACT_PULL";
+		damagefactor "MeleeImpact", 0.1;
+		damagefactor "ExplosiveImpact", 0.4;
+		damagefactor "Fire", 3.5;
+		damageFactor "Shotgun", 1.0;
+		damagefactor "Shrapnel", 0.0;
+		maxStepHeight 12;
+		Pushfactor 0.15;
+		Interactable.pullfactor 0.2;
+		Painchance 255;
+		friction 0.8;
+		Radius 16;
+		Mass 1050;
+		Height 36;
+		SelfLighting "505050";
+        +USESPECIAL;
+		+MOVEWITHSECTOR
+        Activation THINGSPEC_Switch;
+		+PUSHABLE;
+		+DONTTHRUST
+		-CANNOTPUSH;
+		-NOBLOOD;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/hardmetal";
+		scale 1.3;
+	}
+	states {
+		Pain:
+			TNT1 A 0 A_PAIN();
+			TNT1 A 0 A_SETANGLE(angle + random(4,5));
+			TNT1 A 0;
+		Spawn:
+			TNT1 A 0;
+			VOXE L -1;
+			loop;
+		Inactive:
+		Active:
+			goto spawn;
+	}
+
+	int pushTime;
+	override bool canCollideWith(Actor other, bool passive) {
+		let booyah = Super.CanCollideWith(other, passive);
+		
+		if(booyah) {
+			if(other.player && level.mapTime - pushTime < 3 && other.vel.length() > 0.15) {
+				// Increase push speed
+				pushfactor = min(pushfactor + 0.02, 0.62);
+				pushTime = level.mapTime;
+			} else if(level.mapTime - pushTime > 3) {
+				// Reset push speed
+				pushfactor = Default.pushfactor;
+				pushTime = level.mapTime;
+			}
+		}
+
+		return booyah;
+	}
+}
+
+class Jonathan : HeavyBarrel {
+	
+}
+
+class explosivePlant : SelacoActor {
+	actor anglePlant;
+	bool succ;
+	default {
+		+WALLSPRITE
+		+SHOOTABLE
+		+DONTTHRUST
+		+SelacoActor.DisallowGravityManipulation;
+		+NOBLOODDECALS
+		+SelacoActor.preventSleep
+		deathsound "dest/leafbr";
+		Bloodtype "FlowerChunk_UP", "FlowerChunk_UP", "FlowerChunk_UP";
+		scale 1.0;
+		health 10;
+		height 50;
+		mass 9000;
+	}
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				
+				[succ, anglePlant] = A_SpawnItemEx("explosivePlantAngled", 0, 0, 0, 0, 0, 0, random(80,100));
+			}
+		Looper:
+			PLEX A 3 A_SPAWNITEMEX("SporeEffect", frandom(-1,1), frandom(-1,1), 30);
+			loop;
+		Death:
+			TNT1 A 0 A_PLAYSOUND("dest/PLNTEXPL");
+			TNT1 A 0 S_EXPLODE(100,100);
+			TNT1 A 0 A_SpawnItemEx("BaseAcidExplosionSmall", 0, 0, 32);
+			TNT1 AAAAAAAAAAAA 0 A_SPAWNITEMEX("AcidSplash", frandom(-10, 10),frandom(-10, 10), frandom(28,32), frandom(-3,3), frandom(-3,3), frandom(3,9));
+			TNT1 AAAA 0 A_SpawnItem("WhiteShockwave");
+			TNT1 AA 0 A_SpawnItemEx("AcidsplosionShort", frandom(-1,1), frandom(-1,1), 32);
+			TNT1 AAAAAAAAAAA 0 A_SpawnItemEx("SporeParticle", frandom(-0.6, 0.6), frandom(-0.6, 0.7), 32, frandom(-3,3), frandom(-3,3), frandom(3,9));
+			TNT1 A 0
+			{
+				if(anglePlant)
+				{
+					anglePlant.setStateLabel("destroy");
+				}
+			}
+			PLEX BCDEF 3;
+			PLEX F -1;
+			stop;
+	}
+}
+
+class explosivePlantAngled : explosivePlant {
+	default {
+		-SHOOTABLE
+	}
+	states {
+		spawn:
+			PLEX A -1;
+			loop;
+		destroy:
+			TNT1 AAAAAAAAAAAA 0 A_SpawnItemEx("SporeParticle", frandom(-0.6, 0.6), frandom(-0.6, 0.7), 32, frandom(-3,3), frandom(-3,3), frandom(3,9));
+			PLEX BCDEF 3;
+			PLEX F -1;
+			stop;
+	}
+}
+
+class SporeEffect : actor {
+	int frameID;
+	default {
+		+NOINTERACTION;
+		+ROLLSPRITE;
+		alpha 0;
+		scale 0.3;
+	}
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				FrameID = random(0,6);
+				A_SETROLL(random(0,360));
+			}
+			ICSN AAAAAAAAAA 1 {
+				frame = FrameID;
+				A_FADEIN(0.1);
+			}
+			ICSN AAAAAAAAAA 1 {
+				frame = FrameID;
+				A_FADEOUT(0.1);
+			}
+			stop;
+	}
+}
+
+class SporeParticle : actor {
+	int frameID;
+	default {
+		speed 7;
+		scale 0.37;
+		+missile
+		+ROLLSPRITE;
+		gravity 0.5;
+	}
+	states {
+		spawn:
+			TNT1 A 0;
+			TNT1 A 0 {
+				frameID = random(7,6);
+				A_SetRoll(random(0,360));
+			}
+		Looper:
+			PLEX AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 2 {
+				A_SETROLL(roll+3);
+				frame = frameID;
+			}
+			PLEX AAAAAAAAAA 1 {
+				A_FADEOUT(0.1);
+			}
+	}
+}

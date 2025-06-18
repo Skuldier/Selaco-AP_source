@@ -1,0 +1,395 @@
+class SelacoClothes : SelacoActor
+{
+
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        scale.x+=frandom(0.045,0.065);
+        scale.y+=frandom(0.045,0.065);
+    }
+    void flipOver()
+    {
+        bNoGravity = false;
+        bDontThrust = false;
+        A_SETSIZE(2,2);
+        A_CHANGEVELOCITY(1.3,frandom(-0.3,0.3),0, CVF_RELATIVE);
+        A_SETANGLE(angle+frandom(25,25));
+        setStateLabel("FlipOverClothing");
+    }
+
+    bool hasHanger; // If clothing is attached to a clothing hanger
+    default 
+    {
+        friction 0.7;
+        -SelacoActor.SlopeAlignment;
+        +SelacoActor.thruPlayers;
+        +SelacoActor.ThruDecorations;
+        +SelacoActor.DecorativeActor;
+        +NOGRAVITY
+        +DONTTHRUST
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+        FlipOverClothing:
+            VOXE LLLLLLLLL 1 A_SETPITCH(pitch-10);
+            VOXE L -1;
+    }
+}
+
+class Mannequin : PickupableDecoration
+{
+    mixin MEDIUM_METAL_PROP;
+    default
+    {
+        PickupableDecoration.HoldHeight -35;
+        tag "$OBJECT_MANNEQUIN";
+        mass 1000;
+        height 50;
+        radius 15;
+        health 25;
+    }
+    states
+    {
+        death:
+            TNT1 A 0 A_SPAWNITEMEX("Mannequin_Destroyed");
+            stop;
+    }
+}
+
+class Mannequin_destroyed : Mannequin
+{
+    default
+    {
+        Health 25;
+    }
+    states
+    {
+        death:
+            TNT1 A 0 
+            {
+                bThruPlayers = true;
+                A_SpawnProjectile("Mannequin_death_body", 32, 0, frandom(170, 190), CMF_OFFSETPITCH , frandom(-60,-70));
+            }
+            VOXE A -1;
+            stop;
+    }
+}
+
+class Mannequin_death_body : SelacoActorDecorationMissile
+{
+    states
+    {
+        death:
+        Death:
+            VOXE L 30
+            {
+                WorldOffset.z += (7.5 - WorldOffset.z);
+                a_playsound(seeSound);
+                bounceEffects();
+                A_SETPITCH(0);
+                deathEffects();
+            }
+            VOXE L -1
+            {
+                SleepIndefinite();
+            }
+            stop;
+    }
+}
+
+// TODO: Have it drop whatever cloth piece is on it when picked up.
+class CLOTH_HANGER : PickupableDecoration
+{
+
+    SelacoClothes attachedClothing;
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		detachClothing();
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    // Remove piece of clothing that is currently attached
+    void detachClothing()
+    {
+        if(attachedClothing)
+        {
+            attachedClothing.hasHanger = false;
+            attachedClothing.master = null;
+            attachedClothing.bNoclip = false;
+            attachedClothing.flipOver();
+
+            attachedClothing = null;
+        }
+    }
+
+    override void tick()
+    {
+        super.tick();
+        warpClothing();
+    }
+
+    void warpClothing()
+    {
+        if(attachedClothing)
+        {
+            attachedClothing.A_Warp(AAPTR_MASTER, 0, 0, -18, 0, WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        }
+    }
+
+    // Locate nearby piece of clothing and pair it
+    void attachClothing()
+    {
+		ThinkerIterator it = ThinkerIterator.Create("SelacoClothes");
+		SelacoClothes clothing = SelacoClothes(it.Next());
+		for (; clothing; clothing = SelacoClothes(it.Next())) 
+		{
+			if(clothing.hasHanger || Distance2DSquared(clothing) >= 20*20)
+				continue;
+
+			attachedClothing = clothing;
+            attachedClothing.hasHanger = true;
+            attachedClothing.master = self;
+            attachedClothing.bNoclip = true;
+            break;
+		}
+    }
+
+    default
+    {
+        friction 0.7;
+        +SelacoActor.thruPlayers
+        +NOGRAVITY
+        +DONTTHRUST
+        health 1;
+        radius 5;
+        height 5;
+        tag "$OBJECT_CLOTHHANGER";
+        BloodType "BulletImpactEffectPlasticStationary";
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                attachClothing();
+            }
+        Looper:
+            VOXE L -1;
+            loop;
+        Throw:
+        Putdown:
+            TNT1 A 0
+            {
+                detachClothing();
+                A_SPAWNITEMEX("CLOTH_HANGER_LAYING", -5, 0, 0, -5, 0, 1);
+            }
+            stop;
+        Pain:
+        Death:
+            TNT1 A 0
+            {
+                bNoInteraction = true;
+                A_SPAWNITEMEX("CLOTH_HANGER_PIECE_1", 5, 5, 4, frandom(0.3,1.0), frandom(-1.4,-1.8), 0, 0.9);
+                A_SPAWNITEMEX("CLOTH_HANGER_PIECE_2", 5,-5, 4, frandom(0.3,1.0), frandom(1.4,1.8), 0, 0.9);
+            }
+            VOXE A -1;
+            loop;
+    }
+}
+
+class CLOTH_HANGER_PIECE_1: SelacoActorDecorationMissile
+{
+    default
+    {
+        seeSound "";
+    }
+    override void bounceEffects()
+    {
+        A_PLAYSOUND("bucket/bounce", CHAN_AUTO, 0.2, pitch:frandom(1.7,1.9));
+        for(int x=0;x<=3;x++) {
+            A_SPAWNITEMEX("BodyImpactSmokeUltraTiny", 0, 0, 0, frandom(-0.3,0.3), frandom(-0.3,0.3), frandom(0.1,0.25));
+        }
+    }
+}
+class CLOTH_HANGER_PIECE_2: CLOTH_HANGER_PIECE_1
+{
+
+}
+
+class CLOTH_HANGER_LAYING : CLOTH_HANGER
+{
+    default
+    {
+        +SelacoActor.ThruDecorations;
+        +SelacoActor.DecorativeActor;
+        -NOGRAVITY;
+        -DONTTHRUST;
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+    }
+}
+
+class CLOTHES_TORSO_1 : SelacoClothes   {   }
+class CLOTHES_TORSO_2 : SelacoClothes   {   }
+class CLOTHES_TORSO_2B : SelacoClothes   {   }
+class CLOTHES_TORSO_3 : SelacoClothes   {   }
+class CLOTHES_TORSO_4 : SelacoClothes   {   }
+class CLOTHES_TORSO_5 : SelacoClothes   {   }
+class CLOTHES_TORSO_6 : SelacoClothes   {   }
+class CLOTHES_TORSO_7 : SelacoClothes   {   }
+class CLOTHES_TORSO_8 : SelacoClothes   {   }
+
+class CLOTHES_TROLLEY : DecorationObject
+{
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		A_PLAYSOUND("HONEYCOMBCASE/BREAK", CHAN_AUTO, 0.85, pitch:frandom(0.8,1.0));
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+	}
+
+    string piece1, piece2, piece3;
+    property Piece1 : piece1;
+    property Piece2 : piece2;
+    property Piece3 : piece3;
+    default
+    {
+        +interpolateAngles
+        +SelacoActor.IsOnWheels;
+        +USESPECIAL
+        +hitscanThru;
+        +SelacoActor.AllProjectilePassThru
+        +SHOOTABLE
+        +SOLID;
+        -NOBLOOD;
+        -PUSHABLE
+		SelacoActor.SpecialPushFactor 1.0;
+		+SelacoActor.SpecialPushable;
+		+SelacoActor.SpecialPushDirectionFix;
+        pushfactor 0.8;
+        Activation THINGSPEC_SWITCH;
+        radius 20;
+        height 45;
+        tag "$OBJECT_CLOTHESTROLLEY";
+        Clothes_trolley.piece1 "CLOTHES_TROLLEY_PIECE_1";
+        Clothes_trolley.piece2 "CLOTHES_TROLLEY_PIECE_2";
+        Clothes_trolley.piece3 "CLOTHES_TROLLEY_PIECE_3";
+        health 10;
+	    BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/heavycrate";
+        Interactable.Pullfactor 0.1;
+    }
+    
+    states
+    {
+        inactive:
+        active:
+        spawn:
+            VOXE L -1;
+            stop;
+        Death:
+            TNT1 A 0
+            {
+                A_PLAYSOUND("dest/snap", CHAN_AUTO);
+                A_SPAWNITEMEX(piece1, 0, -20, 5, frandom(0.6,0.8), frandom(1.5,1.7), frandom(3,6));
+                A_SPAWNITEMEX(piece2, 0, 5, 30, frandom(-1,1), frandom(3.5,4.7), frandom(3,6));
+                A_SPAWNITEMEX(piece3, 0, -15, 30, frandom(-1,1), frandom(-3.5,4.9), frandom(1,2));
+            }
+            stop;
+        Death.Shotgun:
+        Death.explosiveimpact:
+            TNT1 A 0
+            {
+                A_PLAYSOUND("dest/snap", CHAN_AUTO);
+                A_SPAWNITEMEX(piece1, 0, -15, 5, frandom(0.4,1), frandom(0.5,1.0), frandom(7,13));
+                A_SPAWNITEMEX(piece2, 0, 5, 30, frandom(-1,1), frandom(-1.5,-4.5), frandom(7,13));
+                A_SPAWNITEMEX(piece3, 0, -5, 30, frandom(-1,1), frandom(-1.5,-4.5), frandom(7,13));
+            }
+            stop;
+    }
+}
+
+class CLOTHES_TROLLEY_PIECE_1 : SelacoActorDecorationMissile { 
+
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        A_SETANGLE(random(0,360));
+    }
+
+    override void bounceEffects()
+    {
+        super.bounceEffects();
+        A_PlaySound("impact/heavy/metal",CHAN_AUTO, 0.15, 0, 1.0, false, pitch:frandom(1.7,1.95));
+		A_PlaySound("IMPACT/METALPIPE",CHAN_AUTO, 0.15, 0, 1.0, false, pitch:frandom(1.45,1.75));   
+    }
+
+    default
+    {
+        bounceFactor 0;
+        seeSound "";
+    }
+
+}
+class CLOTHES_TROLLEY_PIECE_2 : CLOTHES_TROLLEY_PIECE_1 { 
+    default
+    {
+        bounceFactor 0.3;
+    }
+}
+class CLOTHES_TROLLEY_PIECE_3 : CLOTHES_TROLLEY_PIECE_2 { }
+
+class CLOTHES_TROLLEY_PINK : CLOTHES_TROLLEY
+{
+    default
+    {
+        Clothes_trolley.piece1 "CLOTHES_TROLLEY_PIECE_1_PINK";
+        Clothes_trolley.piece2 "CLOTHES_TROLLEY_PIECE_2_PINK";
+        Clothes_trolley.piece3 "CLOTHES_TROLLEY_PIECE_3_PINK";
+    }
+}
+
+class CLOTHES_TROLLEY_PIECE_1_PINK : CLOTHES_TROLLEY_PIECE_1 { }
+class CLOTHES_TROLLEY_PIECE_2_PINK : CLOTHES_TROLLEY_PIECE_2 { }
+class CLOTHES_TROLLEY_PIECE_3_PINK : CLOTHES_TROLLEY_PIECE_3 { }
+
+class Shoe_1 : PickupableDecoration
+{
+
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        if(args[0] == 1)
+        {
+            bxflip = true;
+        }
+    }
+
+    default
+    {
+        +SHOOTABLE
+        -NOBLOOD
+        radius 4;
+        height 4;
+        health 5;
+        +SelacoActor.ThruPlayers;
+        tag "$OBJECT_SHOE";
+        Bloodtype "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+    }
+
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+        Death:
+            TNT1 AAA 0 A_SPAWNITEMEX("PaperDustEffect", frandom(-20,20), frandom(-20,20), random(0,29));
+            stop;
+    }
+}

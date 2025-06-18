@@ -1,0 +1,100 @@
+brightmap sprite POR1A0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR1B0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR1C0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR1D0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR1E0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR1F0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1G0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1H0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1I0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1J0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1K0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1L0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1M0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1N0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1O0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1P0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1Q0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1R0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1S0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1T0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1U0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1V0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1W0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1X0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1Y0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR1Z0{ map "Brightmaps/textures/PORTLIGH2.png" }
+
+brightmap sprite PUS1A0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS1B0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS1C0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS2A0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS2B0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS2C0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS3A0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS3B0{ map "Brightmaps/textures/PUSHPIN.png" }
+brightmap sprite PUS3C0{ map "Brightmaps/textures/PUSHPIN.png" }
+
+brightmap sprite POR2A0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR2B0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR2C0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR2D0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR2E0{ map "Brightmaps/textures/PORTLIGH1.png" }
+brightmap sprite POR2F0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2G0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2H0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2I0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2J0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2K0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2L0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2M0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2N0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2O0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2P0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2Q0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2R0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2S0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2T0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2U0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2V0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2W0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2X0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2Y0{ map "Brightmaps/textures/PORTLIGH2.png" }
+brightmap sprite POR2Z0{ map "Brightmaps/textures/PORTLIGH2.png" }
+
+brightmap sprite PORLA0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLB0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLC0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLD0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLE0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLF0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLG0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLH0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}
+brightmap sprite PORLI0
+{
+    map "Brightmaps/AUTO/BR_TPAIN.png"
+}

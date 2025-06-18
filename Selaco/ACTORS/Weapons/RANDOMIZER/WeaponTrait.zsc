@@ -1,0 +1,1214 @@
+class WeaponTrait : WeaponUpgrade {
+    //const CHANCE_ICON = 4;
+
+    const TRAIT_TRIGGERCHANCE_MULTI = 1;
+
+    meta double effectChanceMin, effectChanceMax;
+    meta double effectAmountMin, effectAmountMax;
+    meta int effectLimit;
+    meta int effectIcon;
+
+    string displayTag;
+    int traitFlags;     // Making this meta does wildly incorrect things, I do not know why!
+
+    double effectChance, effectAmount;
+    int lastEffectTime;
+    
+    property EffectChance   : effectChanceMin, effectChanceMax;
+    property EffectAmount   : effectAmountMin, effectAmountMax;
+    property EffectLimit    : effectLimit;      // Can only trigger once per (effectLimit) frames. 0 = no limit
+    property EffectIcon     : effectIcon;       // Icon index from lookup table
+    
+    flagdef TriggerOnFire   : traitFlags, 1;    // On firing a shot
+    flagdef TriggerOnHit    : traitFlags, 2;    // On hitting an enemy
+    flagdef TriggerOnKill   : traitFlags, 3;    // Killing an enemy
+    flagdef TriggerOnBreak  : traitFlags, 4;    // Breaking a prop of any kind
+    flagdef TriggerOnMeleeHit : traitFlags, 5;
+    flagdef DumbTrait       :   traitFlags,  6;
+    flagdef AllowInRareTable  : traitFlags, 10; // Allow this weapon to appear in the Rare trait table
+
+    default {
+        WeaponTrait.EffectChance 1.0, 25.0;
+        WeaponTrait.EffectAmount 1, 5;
+        WeaponTrait.EffectLimit 1;  // Can only trigger once per frame (Sorry shotgun)
+        WeaponTrait.EffectIcon 4;
+        -WeaponTrait.DumbTrait
+        +WeaponTrait.AllowInRareTable;
+    }
+
+    // Roll stats, using the given weapon as a baseline
+    // This should only be called once when first assigned to a weapon
+    virtual void rollStats(int rarityID, class<SelacoWeapon> weapon) {
+        // Determine a random effect chance based off weapon rarity and min/max values
+        // TODO: Use a curve for the rarity spread instead of linear
+        double rarityFactor = MAX(0, (rarityID - 2) / 3.0);
+        double raritySpread = (effectChanceMax - effectChanceMin) * rarityFactor * 0.5;
+        double newEffectChanceMin = effectChanceMin + raritySpread;
+        double newEffectChanceMax = MAX(newEffectChanceMin, effectChanceMax - raritySpread);
+        
+        raritySpread = (effectAmountMax - effectAmountMin) * rarityFactor * 0.5;
+        double newEffectAmountMin = effectAmountMin + raritySpread;
+        double newEffectAmountMax = MAX(newEffectAmountMin, effectAmountMax - raritySpread);
+
+        effectChance = newEffectChanceMin + ((newEffectChanceMax - newEffectChanceMin) * frandom(0,1) * rarityFactor);
+        effectAmount = newEffectAmountMin + ((newEffectAmountMax - newEffectAmountMin) * frandom(0,1) * rarityFactor);
+
+        // Mostly used for testing to get higher trigger values
+        effectChance*=TRAIT_TRIGGERCHANCE_MULTI;
+    }
+
+    // When basic conditions are met, effect will be triggered with as much info as possible
+    // Any field could be NULL depending on how the effect was triggered
+    virtual void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff, int damage = -1) {
+        //A_PrintBold(String.Format("%s Class did not re-define TriggerEffect()!", getClassName()));
+    }
+
+    // Roll dice to determine if effect should be triggered
+    // Eventually we might want a more complicated dice roll
+    virtual bool rollTrigger() {
+        return frandom(0,100) < effectChance;
+    }
+
+    // returns true if we can fire
+    virtual bool checkLimit() {
+        return level.totalTime - lastEffectTime >= effectLimit;
+    }
+
+    virtual clearscope string getTitle() {
+        string percentageDisplay;
+        if(effectChance < 100) {
+            percentageDisplay = string.format("\c[green] (%d%%)\c-", effectChance);
+        }
+        return string.format("\c[yellow]%s%s\c-", upgradeNameShort, percentageDisplay);
+    }
+
+    virtual clearscope string getDescription() {
+        return "Where description?";
+    }
+
+    override void onBeforeWeaponFire(SelacoWeapon sourceWeapon, Actor source) {
+        /*A_PrintBold(
+            String.Format("%s: Before Fire %s", getClassName(), sourceWeapon.getClassName()),
+        1);*/
+    }
+
+    override void onWeaponFire(SelacoWeapon sourceWeapon, Actor source, Actor projectileOrPuff) {
+        /*A_PrintBold(
+            String.Format("%s: Fired %s %s", getClassName(), sourceWeapon.getClassName(), projectileOrPuff ? projectileOrPuff.getClassName() : 'none'),
+        1);*/
+        if(bTriggerOnFire && checkLimit() && rollTrigger()) {
+            triggerEffect(sourceWeapon, source, null, projectileOrPuff);
+            lastEffectTime = level.totalTime;
+        }
+    }
+
+    override int onDamageVictim(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff, int damage, Name damageType, int flags) {
+        //A_PrintBold(String.Format("%s: Damaged Victim: %s %s %d", getClassName(), sourceWeapon ? sourceWeapon.getClassName() : 'none', victim.getClassName(), damage), 1);
+        if(victim && victim is 'SelacoEnemy' && checkLimit() && rollTrigger()) {
+            if(bTriggerOnHit && damageType != "MeleeImpact") {
+                triggerEffect(sourceWeapon, source, victim, projectileOrPuff, damage);
+                lastEffectTime = level.totalTime;
+            }
+            if(bTriggerOnMeleeHit && damageType == "MeleeImpact") {
+                triggerEffect(sourceWeapon, source, victim, projectileOrPuff, damage);
+            }
+        }
+        return damage;
+    }
+
+    override void onKill(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        //A_PrintBold(String.Format("%s: Killed %s with %s - %s", getClassName(), victim.getClassName(), sourceWeapon.getClassName(), projectileOrPuff ? projectileOrPuff.getClassName() : 'none'), 1);
+        if( victim && 
+            ((victim is 'SelacoEnemy' && bTriggerOnKill) || (!(victim is 'SelacoEnemy') && bTriggerOnBreak)) && 
+            checkLimit() && 
+            rollTrigger()
+        ) {
+            triggerEffect(sourceWeapon, source, victim, projectileOrPuff);
+            lastEffectTime = level.totalTime;
+        }
+    }
+}
+
+
+
+// Test Trait, randomly refund a bullet when it hits
+class TestWeaponTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    1.0, 8.0;
+        WeaponTrait.EffectAmount    1, 5;
+        WeaponTrait.effectIcon      21;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Refunder", "Refunder";
+    }
+
+    // Find out what ammo the weapon uses and refund one unit
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        let amo = sourceWeapon ? sourceWeapon.Ammo2 : null;
+
+        if(amo != null && source) {
+            amo.Amount = min(amo.Amount + effectAmount, amo.MaxAmount);
+        }
+    }
+    
+    override string getDescription() {
+        return string.format("Regain \c[green]%d Ammo\c- on hit", effectAmount);;
+    }
+}
+
+// Give life on enemy hit
+class LifeLeech : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    5.0, 45.0;
+        WeaponTrait.EffectAmount    1, 3;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Life Leech", "Life Leech";
+        WeaponTrait.EffectIcon    5;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(source is "Dawn" && source.health < source.getMaxHealth()) {
+            Dawn d = Dawn(source);
+            d.A_PLAYSOUND("item/healpickup", CHAN_BODY, 0.4, pitch:1.1);
+            d.healPlayer(effectAmount);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Gain \c[green]%d Health\c- on hit", effectAmount);
+    }
+
+}
+
+// Spawn a big splash of paint on kill
+class PaintSplosionTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    100.0, 100.0;
+        WeaponTrait.EffectAmount    2, 4;
+        +WeaponTrait.TriggerOnKill;
+        +WeaponTrait.DumbTrait
+        WeaponUpgrade.UpgradeName   "Paint Explosion", "Paint Explosion";
+        WeaponTrait.EffectIcon    93;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        for(int x=0;x<effectAmount;x++) {
+            actor bucket;
+            bool succ;
+            [succ, bucket] = victim.A_SPAWNITEMEX("PaintBucket", frandom(-45,45), frandom(-45,45), frandom(10, 45), angle:random(0,360));
+            if(bucket) {
+                bucket.setStateLabel("DelayedDeath");
+                //paintBucket(bucket).paintSplatter.destroy();
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Enemies spawn \c[green]%d Paint Explosions\c- on kill", effectAmount);
+    }
+
+}
+// Give armor when hitting enemies
+class ArmorLeechTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    5.0, 25.0;
+        WeaponTrait.EffectAmount    1, 5;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Armor Leech", "Armor Leech";
+        WeaponTrait.EffectIcon    52;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source) 
+            return;
+
+        // Shitty hacky way to the inventory class and modify it, just in case the player never had any armor before.
+        source.A_GiveInventory("SelacoArmor", 1);
+        Inventory sa = source.FindInventory("SelacoArmor");
+        source.A_TakeInventory("SelacoArmor", 1);
+
+        // Apply armor if allowed
+        if(source.countInv("SelacoArmor") <= sa.maxAmount) {
+            source.A_PLAYSOUND("ARMOR/PICKUP", CHAN_BODY, 1.0, pitch:1.25);
+            source.A_GiveInventory("SelacoArmor", effectAmount);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Gain \c[green]%d Armor\c- on hit", effectAmount);
+    }
+
+}
+
+// Knocks enemy back when shot
+class KnockbackTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    1, 5;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Knockback", "Knockback";
+        WeaponTrait.EffectIcon    57;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source) 
+            return;
+
+        double knockbackX = cos(source.angle) * effectAmount;
+        double knockbackY = sin(source.angle) * effectAmount;    
+    
+        victim.vel.X += knockbackX;
+        victim.vel.Y += knockbackY;
+    }
+
+    override string getDescription() {
+        return String.Format("Applies \c[green]%d\c- Knockback on hit", effectAmount);
+    }
+}
+
+// Heal the player when hitting an enemy for the first time
+class VampireTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    1, 10;
+        WeaponTrait.EffectIcon      20;
+        +WeaponTrait.TriggerOnMeleeHit;
+        WeaponUpgrade.UpgradeName   "Vampire", "Vampire";
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(victim is "EnemySoldier") && !rollTrigger()) 
+            return;
+
+        EnemySoldier enemy = EnemySoldier(victim);
+        Dawn d = Dawn(source);
+        if(enemy && !enemy.wasHitByMelee) {
+            enemy.wasHitByMelee = true;
+            if(d) {
+                d.healPlayer(amount);
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Soldiers hit by \c[green]melee\c- for the first time grant \c[green]%d\c- health", effectAmount);
+    }
+}
+
+// Enemies explodes like a grenade on kill
+class FragmentedTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    5, 20;
+        WeaponTrait.EffectAmount    1, 5;
+        WeaponTrait.EffectIcon      63;
+        +WeaponTrait.TriggerOnKill;
+        WeaponUpgrade.UpgradeName   "Fragmented", "Fragmented";
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source && !rollTrigger()) 
+            return;
+
+        victim.A_SPAWNITEMEX("explodingEnemyTrait");
+    }
+
+    override string getDescription() {
+        return String.Format("Enemy Soldiers \c[green]explode\c- on kill", effectChance);
+    }
+}
+
+// Spawns an explosive hazard on kill
+class HazardTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    5, 20;
+        WeaponTrait.EffectAmount    1, 5;
+        WeaponTrait.EffectIcon 90;
+        +WeaponTrait.TriggerOnKill;
+        WeaponUpgrade.UpgradeName   "Hazardous", "Hazardous";
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source && !rollTrigger()) 
+            return;
+
+        RandomizerHandler randomizer;
+        randomizer = RandomizerHandler.Instance();
+        if(randomizer) {
+            victim.A_SPAWNITEMEX(randomizer.hazardSpawn[random(0,randomizer.hazardSpawn.size()-1)]);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Enemies spawn \c[green]Explosive Hazard\c- on kill", effectChance);
+    }
+}
+
+// Spawns a completely random decoration item per kill
+class DecoratorFullRandomTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    5, 25;
+        +WeaponTrait.TriggerOnKill;
+        WeaponUpgrade.UpgradeName   "Decorator", "Decorator";
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source && !rollTrigger()) 
+            return;
+
+        // TO-DO: Dont do this at every kill. Store it somewhere instead
+        array<String> approvedObjects;
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // FIND ALL ENEMIES
+            if(AllClasses[x] is 'PickupableDecoration') 
+            {
+                // Get Class Info
+                let def = PickupableDecoration(GetDefaultByType((class<PickupableDecoration>)(AllClasses[x])));
+                if(!def.bEssential) {
+                    approvedObjects.push(def.getClassName());
+                }
+            }
+        }
+        
+        // Pick an approved item and spawn it
+        victim.A_SPAWNITEMEX(approvedObjects[random(0,approvedObjects.size()-1)]);
+    }
+
+    override string getDescription() {
+        return String.Format("Spawns a \c[green]random prop\c- on kill", effectChance);
+    }
+}
+
+// Spawn a friendly crawler mine
+// TODO: Add an icon to tell friendly crawler mines apart from hostile ones
+class CrawlerBuddyTrait : WeaponTrait {
+    
+    default {
+        WeaponTrait.EffectChance    2, 7;
+        WeaponTrait.EffectAmount    1, 3;
+        +WeaponTrait.TriggerOnKill;
+        WeaponUpgrade.UpgradeName   "Crawler Buddy", "Crawler Buddy";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source && !rollTrigger()) 
+            return;
+
+        // Spawn a friendly mine
+        actor crawlerMineActor;
+        bool succ;
+        [succ, crawlerMineActor] = victim.A_SPAWNITEMEX("CrawlerMine", 0, 0, height, frandom(1,3));
+        if(crawlerMineActor) {
+            crawlerMineActor.bFriendly = true;
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Spawns a \c[green]friendly Crawler Mine\c- on kill", effectAmount);
+    }
+}
+ 
+// Increases melee knockback
+class BoxerTrait : WeaponTrait {
+    
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    5, 35;
+        WeaponTrait.effectIcon      9;
+        +WeaponTrait.TriggerOnMeleeHit;
+        WeaponUpgrade.UpgradeName   "Boxer", "Boxer";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source) 
+            return;
+
+        double knockbackX = cos(source.angle) * effectAmount;
+        double knockbackY = sin(source.angle) * effectAmount;    
+    
+        victim.vel.X += knockbackX;
+        victim.vel.Y += knockbackY;
+    }
+
+    override string getDescription() {
+        return String.Format("Increases \c[green]Melee Knockback\c- by \c[green]%d\c-", effectAmount);
+    }
+}
+
+// Enemies explode into fire
+class FireBatTrait : WeaponTrait {
+    
+    default {
+        WeaponTrait.EffectChance    6, 25;
+        WeaponTrait.EffectAmount    5, 35;
+        WeaponTrait.effectIcon      23;
+        +WeaponTrait.TriggerOnKill;
+        WeaponUpgrade.UpgradeName   "Firebat", "Firebat";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source) 
+            return;
+
+        victim.A_SPAWNITEMEX("PropaneExplosionEffects");
+        victim.A_SPAWNITEMEX("PropaneExplosionSmall");
+
+    }
+
+    override string getDescription() {
+        return String.Format("Enemies spawn \c[green]Incendiary Explosion\c- on kill", effectChance);
+    }
+}
+
+// Spawns a completely random item on the killed target
+class DecoratorTrait : WeaponTrait {
+
+    string chosenActor;
+    string tagName;
+    override void BeginPlay() {
+        super.beginPlay();
+
+        array<String> approvedObjects;       
+
+        for(int x = 0; x < AllClasses.Size(); x++) 
+        {
+            // FIND ALL ENEMIES
+            if(AllClasses[x] is 'PickupableDecoration') 
+            {
+                // Get Class Info
+                let def = PickupableDecoration(GetDefaultByType((class<PickupableDecoration>)(AllClasses[x])));
+                if(!def.bEssential) {
+                    approvedObjects.push(def.getClassName());
+                    tagName = def.getTag();
+                }
+            }
+        }
+
+        // Select a random number within the list 
+        int randomNum = random(0,approvedObjects.size()-1);
+
+        // Get some info
+        class<Actor> cls = approvedObjects[randomNum];
+        tagName = PickupableDecoration(GetDefaultByType(cls)).getTag();
+
+        // Prepare for spawning
+        chosenActor = approvedObjects[randomNum];
+    }
+
+    default {
+        WeaponTrait.EffectChance    7, 25;
+        WeaponTrait.EffectIcon      6;
+        +WeaponTrait.TriggerOnKill;
+        +WeaponTrait.DumbTrait
+        WeaponUpgrade.UpgradeName   "Shaper", "Shaper";
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source && !rollTrigger()) 
+            return;
+        
+        // Pick an approved item and spawn it
+        victim.A_SPAWNITEMEX(chosenActor, 0,0,32);
+    }
+
+    override string getDescription() {
+        return String.Format("Spawns \c[green]%s (Object) \c-on kill", tagName);
+    }
+}
+
+// Shocks the target hit
+class ShockTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    2, 15;
+        WeaponTrait.EffectAmount    5, 15;
+        WeaponTrait.EffectIcon      11;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Shock Impact", "Shock Impact";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source) 
+            return;
+
+        if(SelacoEnemy(victim)) {
+            SelacoEnemy e = SelacoEnemy(victim);
+            e.applyShockDamage(EffectAmount);
+        }
+
+    }
+
+    override string getDescription() {
+        return String.Format("Applies \c[green]%d Shock\c- Duration\c- on hit", effectAmount);
+    }
+}
+
+// Applies lighting damage to nearby enemies on hit
+class ChainLightningTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    4, 13;
+        WeaponTrait.EffectAmount    5, 15;
+         WeaponTrait.EffectIcon     44;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Chain Lightning", "Chain Lighting";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!source) 
+            return;
+
+        if(victim && SelacoEnemy(victim)) {
+            SelacoEnemy e = SelacoEnemy(victim);
+            e.shockNearbyTargets(550, 10, effectAmount);
+        }
+
+    }
+
+    override string getDescription() {
+        return String.Format("Applies \c[green]%d Shock\c- Duration to nearby enemies on hit", effectAmount);
+    }
+}
+
+// Decreases Slide Cooldown on Slide hits
+class SlideRunnerTrait : WeaponTrait {
+    int triggerTimer;
+    override void tick() {
+        super.tick();
+        if(triggerTimer) {
+            if(triggerTimer == 1) {
+                players[consolePlayer].mo.A_TakeInventory("CooldownSliding", effectAmount);
+            }
+            triggerTimer--;
+        }
+    }
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    45, 100;
+        WeaponTrait.EffectIcon      94;
+        +WeaponTrait.TriggerOnMeleeHit;
+        WeaponUpgrade.UpgradeName   "Slide Rusher", "Slide Rusher";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn")) 
+            return;
+
+        Dawn d = Dawn(source);
+        if(d.countinv("SlideScriptActive")) {
+            triggerTimer = 3;
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Hitting enemies by \c[Green]Sliding\c- reduces its Cooldown by \c[green]%d\c-", effectAmount);
+    }
+} 
+
+// Fires Dinner Plates, why not
+class PlateCannonTrait : WeaponTrait {
+    const PROJECTILE_ANGLE = 15;
+    default {
+        WeaponTrait.EffectChance    9, 25;
+        WeaponTrait.EffectIcon      53;
+        +WeaponTrait.TriggerOnFire;
+        +WeaponTrait.DumbTrait
+        WeaponUpgrade.UpgradeName   "Plate Cannon", "Plate Cannon";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn")) 
+            return;
+            
+        for(int x=-1*PROJECTILE_ANGLE;x<=PROJECTILE_ANGLE;x+=PROJECTILE_ANGLE) {
+            actor plate;
+            bool succ;
+            [succ, plate] = source.A_SPAWNITEMEX("Foodplate_Future", 40, 0, source.height-16, xvel:cos(source.pitch)*25,yvel:0,zvel:-sin(source.pitch)*25, angle:x);
+            if(plate) {
+                bNoGravity = true;
+                SelacoActor(plate).ConvertToProjectile();
+                plate.bShootable = false;
+                plate.setStateLabel("Frisbee");
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Weapon fires an additional \c[green]3 Dinner Plates\c-", effectChance);
+    }
+}
+
+ 
+// Fire damage on Melee
+class FuryFistTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    10,125;
+        WeaponTrait.EffectIcon      69; // nice
+        +WeaponTrait.TriggerOnMeleeHit;
+        WeaponUpgrade.UpgradeName   "Fury Punch", "Fury Punch";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!victim && !(victim is "SelacoEnemy")) 
+            return;
+
+        victim.damageMobj(self, self, effectAmount, "Fire");
+    }
+
+    override string getDescription() {
+        return String.Format("\c[green]Melee Attacks\c- apply \c[green]%d\c- Fire Damage", effectAmount);
+    }   
+}
+
+// Life on Kill
+class LifeSiphon : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    1,6;
+        WeaponTrait.EffectIcon      71;
+        +WeaponTrait.TriggerOnKill;
+        WeaponUpgrade.UpgradeName   "Life Siphon", "Life Siphon";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn"))
+            return;
+        Dawn d = Dawn(source);
+
+        if(d.health < d.getMaxHealth()) {
+            d.A_PLAYSOUND("item/healpickuplarge", CHAN_BODY, 0.7, pitch:0.75);
+            d.healPlayer(effectAmount);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Killing \c[green]Enemy Soldiers\c- grants \c[green]%d health\c-", effectAmount);
+    }   
+}
+
+// Armor on Kill
+class IronWill : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    1,6;
+        +WeaponTrait.TriggerOnKill;
+        WeaponTrait.EffectIcon      50;
+        WeaponUpgrade.UpgradeName   "Iron Will", "Iron Will";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn"))
+            return;
+
+        Dawn d = Dawn(source);
+        d.A_PLAYSOUND("ARMOR/PICKUP", CHAN_BODY, 0.7, pitch:1.25);
+        d.A_GiveInventory("SelacoArmor", effectAmount);
+    }
+
+    override string getDescription() {
+        return String.Format("Killing \c[green]Enemy Soldiers\c- grants \c[green]%d Armor\c-", effectAmount);
+    }   
+}
+
+class RobotDamageTrait : WeaponTrait {
+    
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    6, 35;
+        WeaponTrait.EffectIcon      1;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Anti-Robot", "Anti-Robot";
+    } 
+
+    override int onDamageVictim(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff, int damage, Name damageType, int flags) {
+        let res = super.onDamageVictim(sourceWeapon, source, victim, projectileOrPuff, damage, damageType, flags);
+
+        // Check if the victim is a robot
+        if(victim is "SelacoEnemyRobot") {
+            // Increase damage based on EffectAmount percentage
+            let extraDamage = (damage * (effectAmount / 100.0));
+            damage += extraDamage;
+        }
+        return damage;
+    }
+
+    override string getDescription() {
+        return String.Format("Increases damage against \c[green]Robots\c- by \c[green]%d%%\c-", effectAmount);
+    }
+}
+
+ class InfantrySpecialistTrait : WeaponTrait {
+    
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    6, 35;
+        WeaponTrait.EffectIcon      35;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Infantry Specialist", "Infantry Specialist";
+    } 
+
+    override int onDamageVictim(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff, int damage, Name damageType, int flags) {
+        let res = super.onDamageVictim(sourceWeapon, source, victim, projectileOrPuff, damage, damageType, flags);
+
+        // Check if the victim is a Soldier
+        if(victim is "EnemySoldier") {
+            // Increase damage based on EffectAmount percentage
+            let extraDamage = (damage * (effectAmount / 100.0));
+            damage += extraDamage;
+        }
+        return damage;
+    }
+
+    override string getDescription() {
+        return String.Format("Increases damage against \c[green]Soldiers\c- by \c[green]%d%%\c-", effectAmount);
+    }
+}
+
+class ZombieDamageTrait : WeaponTrait {
+    
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    6, 35;
+        WeaponTrait.EffectIcon      77;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Disinfector", "Disinfector";
+    } 
+
+    override int onDamageVictim(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff, int damage, Name damageType, int flags) {
+        let res = super.onDamageVictim(sourceWeapon, source, victim, projectileOrPuff, damage, damageType, flags);
+
+        // Check if the victim is an Infected
+        if(victim is "Zombie_Grunt") {
+            // Increase damage based on EffectAmount percentage
+            let extraDamage = (damage * (effectAmount / 100.0));
+            damage += extraDamage;
+        }
+        return damage;
+    }
+
+    override string getDescription() {
+        return String.Format("Increases damage against \c[green]Infected\c- by \c[green]%d%%\c-", effectAmount);
+    }
+}
+
+
+ class DoubleDamageTrait : WeaponTrait {
+    int damageMulti;
+    property DamageMulti : damageMulti;
+
+    default {
+        DoubleDamageTrait.DamageMulti 2;
+        WeaponTrait.EffectChance    5, 35;
+        WeaponTrait.EffectIcon      66;
+        WeaponUpgrade.UpgradeName   "Stopping Power", "Stopping Power";
+    } 
+
+    override int onDamageVictim(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff, int damage, Name damageType, int flags) {
+        let res = super.onDamageVictim(sourceWeapon, source, victim, projectileOrPuff, damage, damageType, flags);
+        if(rollTrigger()) {
+            console.printf("OLD DAMAGE: %d", damage);
+            damage*=damageMulti;
+            console.printf("NEW DAMAGE: %d", damage);
+        }
+        return damage;
+    }
+
+    override string getDescription() {
+        return String.Format("Attacks deal \c[green]Double Damage\c- to enemies", effectChance);
+    }
+}
+
+class TripleDamageTrait : DoubleDamageTrait {
+    default {
+        DoubleDamageTrait.DamageMulti 3;
+        WeaponUpgrade.UpgradeName   "Stopping Power Pro", "Stopping Power Pro";
+        WeaponTrait.EffectIcon      65;
+        WeaponTrait.EffectChance    5, 30;
+    }
+    override string getDescription() {
+        return String.Format("Attacks deal \c[green]Triple Damage\c- to enemies", effectChance);
+    }
+}
+
+
+// Fire trash
+class EndlessTrashTrait : WeaponTrait {
+    const TRASH_AMOUNT = 4;
+	static const String junkItems[] =
+		{
+			"junk1",
+			"junk2",
+			"junk3",
+			"junk4",
+			"junk5",
+            "junk6",
+            "junk7",
+            "junk8",
+            "junk9",
+            "junk10"
+            "junk11",
+            "junk12",
+            "junk13"
+		};
+        
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectIcon      82;
+        +WeaponTrait.TriggerOnFire;
+        +WeaponTrait.DumbTrait
+        WeaponUpgrade.UpgradeName   "Endless Trash!!!", "Endless Trash!!!";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn")) 
+            return;
+
+        // Shoot trash
+        for(int x=0;x<TRASH_AMOUNT;x++) {
+            actor trash;
+            bool poop;
+            [poop, trash] = source.A_SPAWNITEMEX(junkItems[random(0,junkItems.size()-1)], 10, frandom(-15,15), source.height-frandom(4,16), xvel:cos(source.pitch)*frandom(3,25),yvel:0,zvel:-sin(source.pitch)*frandom(-3,3), angle:frandom(-25,25));
+            if(trash && MasterJunk(trash)) {
+                MasterJunk(trash).bNoPermanentJunk = true;
+                MasterJunk(trash).sleepDuration = 200;
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Your weapon spawns \c[green]trash\c- with every shot.", effectChance);
+    }
+}
+
+// Fires bricks
+class BrickLauncher : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    3, 25;
+        WeaponTrait.EffectIcon      45;
+        +WeaponTrait.TriggerOnFire;
+        +WeaponTrait.DumbTrait
+        WeaponUpgrade.UpgradeName   "Brick Launcher", "Brick Launcher";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn")) 
+            return;
+
+        actor brick;
+        bool succ;
+        [succ, brick] = source.A_SPAWNITEMEX("brick_full", 40, 0, source.height-16, xvel:cos(source.pitch)*80,yvel:0,zvel:-sin(source.pitch)*80);
+        if(brick) {
+            brick.bSolid = true;
+            PickupableDecoration(brick).convertToProjectile();
+        } 
+    }
+
+    override string getDescription() {
+        return String.Format("Launch a \c[green]brick\c- when firing", effectChance);
+    }
+} 
+
+// Shocks enemies similarly to an SMG taser
+ class TaserTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectIcon      7;
+        +WeaponTrait.TriggerOnMeleeHit;
+        WeaponUpgrade.UpgradeName   "Taser", "Taser";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn")) 
+            return;
+
+        if(victim && victim is "SelacoEnemy" &&  sourceWeapon.TaserIsAvailable()) {
+            SelacoEnemy se = SelacoEnemy(victim);
+            se.damageMobj(source, source, 20, "MeleeImpactTaser");
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("\c[green]Melee Attacks\c- behave like an \c[green]SMG Taser\c-");
+    }
+} 
+// Shocks enemies similarly to an SMG taser
+class PestControlTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectIcon      46;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Pest Control", "Pest Control";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn")) 
+            return;
+
+        if(victim && victim is "CrawlerMine") {
+            SelacoEnemy se = SelacoEnemy(victim);
+            se.die(self, self);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("All \c[green]Crawler Mines\c- die in a \c[green]single hit\c-");
+    }
+} 
+class HeavyBlowTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    2, 7;
+        WeaponTrait.EffectIcon      58;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Heavy Blow", "Heavy Blow";
+    } 
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(source is "Dawn")) 
+            return;
+            
+        if(victim && victim is "EnemySoldier") {
+            EnemySoldier(victim).knockEnemyOver();
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Knocks \c[green]\c-soldiers over when shot");
+    }
+}
+
+class ExtraGoreTrait : WeaponTrait {
+    default{
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectIcon      58;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Extra Gore", "Extra Gore";    
+    }
+
+    override string getDescription() {
+        return String.Format("More \c[green]splatters\c- when hitting enemies!");
+    }
+}
+
+
+class explodingEnemyTrait : Actor {
+    override void postBeginPlay() {
+        A_SPAWNITEMEX("PrettyExplosionParticleRainPerformance");
+        A_EXPLODE(150, 450, damageType: "ExplosiveImpact");
+        destroy();
+    }
+}
+
+
+// Gives brief Bunny Hopper effect on kill
+class BattleFrenzyTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    10, 30;
+        WeaponTrait.EffectAmount    4, 7;
+        +WeaponTrait.TriggerOnKill;
+        +WeaponTrait.DumbTrait
+        WeaponUpgrade.UpgradeName   "Battle Frenzy", "Battle Frenzy";
+        WeaponTrait.EffectIcon    27;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        Dawn d = Dawn(source);
+        if(d) {
+            d.A_Playsound("DRINK/BUNNYHOP", CHAN_AUTO, pitch: 0.8);
+            d.giveInventory('BunnyHopDuration', TICRATE * effectAmount);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Chance to apply \c[RED]Frenzy\c- for %ds on Kill", effectAmount);
+    }
+}
+
+class SlugGeneratorTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    5, 15;
+        WeaponTrait.EffectAmount    1, 1;
+        +WeaponTrait.TriggerOnKill;
+        WeaponUpgrade.UpgradeName   "Slug Generator", "Slug Generator";
+        WeaponTrait.EffectIcon    21;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        Dawn d = Dawn(source);
+        if(d) {
+            LevelEventHandler.addItemPickup("AmmoRailgunBase", amount);
+            d.giveInventory('RailgunAmmo', 1);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Chance to gain a \c[green]Railgun Slug\c- on Kill");
+    }
+}
+
+class IceshotTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    2, 15;
+        WeaponTrait.EffectAmount    25, 35;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Ice Shot", "Ice Shot";
+        WeaponTrait.EffectIcon    91;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        Dawn d = Dawn(source);
+        
+        // Ugh, I improved how this works in Chapter 2 so I have to use a hacky solution for now :(
+        if(victim && SelacoEnemy(victim) && random(0,100) <= effectChance) {
+            SelacoEnemy(victim).applyFrost(effectAmount);
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Chance to apply \c[green]%d \c[cyan]Ice Damage\c- on hit", effectAmount, effectChance);
+    }
+}
+
+class BottomLessTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    25, 35;
+        +WeaponTrait.TriggerOnHit;
+        WeaponUpgrade.UpgradeName   "Bottomless Mag", "Bottomless Mag";
+        WeaponTrait.EffectIcon    80;
+    }
+
+    override string getDescription() {
+        return String.Format("Weapon does not require \c[green]Reloading");
+    }
+}
+
+// Will need a HUD tweak
+class Fragmentational : WeaponTrait {
+    default {
+        +WeaponTrait.triggerOnKill;
+        WeaponTrait.EffectChance    4, 20;
+        WeaponTrait.EffectAmount    25, 35;
+        WeaponUpgrade.UpgradeName   "Fragmentational", "Fragmentational";
+        WeaponTrait.EffectIcon    55;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        A_PlaySound("nailgun/fire",CHAN_AUTO, 1.4, 0, 1.0, false, frandom(0.66, 0.70));
+        for(int i = 0; i <= 25; i++) {
+            actor nailTracer;
+            nailTracer = victim.A_SpawnProjectile ("NailBombTracer", 25, 15, i*8, 2, pitch + frandom(-17,0));
+            if(nailTracer && NailbombTracer(nailTracer)) {
+                nailtracer.A_ScaleVelocity(0.75);
+                NailbombTracer(nailTracer).ignorePlayer = true;
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Chance for enemies to spawn a friendly \c[green]Nailbomb Explosion\c- on kill");
+    }
+}
+
+class RecoillessTrait : WeaponTrait {
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    25, 35;
+        WeaponUpgrade.UpgradeName   "Recoilless", "Recoilless";
+        WeaponTrait.EffectIcon    75;
+    }
+
+    override string getDescription() {
+        return String.Format("Removes \c[green]Recoil Buildup\c- while firing.");
+    }
+}
+
+class Hafmans  : WeaponTrait {
+    static const int offsets[] = {0,7,14};
+    default {
+        +WeaponTrait.DumbTrait
+        +WeaponTrait.triggerOnKill;
+        WeaponTrait.EffectChance    2, 10;
+        WeaponTrait.EffectAmount    25, 35;
+        WeaponUpgrade.UpgradeName   "Hafmans", "Hafmans";
+        WeaponTrait.EffectIcon    48;
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(victim) {
+            for (int i = 0; i < 3; i++) {
+                victim.A_SPAWNITEMEX("SodaCan", -5, offsets[i]);
+                victim.A_SPAWNITEMEX("SodaCan", 5, offsets[i]);
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Chance to drop \c[green]ArachnoCola Party Pack\c- on kill.");
+    }
+}
+
+class DimeTrait : WeaponTrait {
+    default {
+        +WeaponTrait.triggerOnKill
+        WeaponUpgrade.UpgradeName   "Penny & Dime", "Penny & Dime";
+        WeaponTrait.EffectChance    2, 16;
+        WeaponTrait.EffectIcon 61;
+    }
+
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(victim is "EnemySoldier") && !rollTrigger()) 
+            return;
+
+        EnemySoldier enemy = EnemySoldier(victim);
+        if(enemy) {
+            int creditsAmount = random(8,25);
+            for(int x=0;x<creditsAmount;x++) {
+                enemy.A_SpawnItemEx("CreditsFlat", frandom(-5,5), frandom(-5,5), frandom(0,45), frandom(1,5), 0, frandom(4,13), angle:random(0,360));
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Chance for Enemy Soldiers to drop \c[green]a bunch of credit coins\c- on kill.");
+    }
+}
+
+// Credits for first time melee's
+class PickpocketTrait : WeaponTrait {
+
+    default {
+        WeaponTrait.EffectChance    100, 100;
+        WeaponTrait.EffectAmount    1, 10;
+        WeaponTrait.EffectIcon      61;
+        +WeaponTrait.TriggerOnMeleeHit;
+        WeaponUpgrade.UpgradeName   "Pickpocket", "Pickpocket";
+    }
+
+    override void triggerEffect(SelacoWeapon sourceWeapon, Actor source, Actor victim, Actor projectileOrPuff) {
+        if(!(victim is "EnemySoldier") && !rollTrigger()) 
+            return;
+
+        EnemySoldier enemy = EnemySoldier(victim);
+        Dawn d = Dawn(source);
+        if(enemy && !enemy.wasHitByMelee) {
+            enemy.wasHitByMelee = true;
+            int creditsAmount = random(3,14);
+            for(int x=0;x<creditsAmount;x++) {
+                enemy.A_SpawnItemEx("CreditsFlat", frandom(-10,-12), frandom(-5,5), frandom(0,45), frandom(-1,-5), frandom(-2,2), frandom(2,7));
+            }
+        }
+    }
+
+    override string getDescription() {
+        return String.Format("Soldiers hit by \c[green]melee\c- for the first time spawn \c[green]a bunch of Credit Coins\c-.", effectAmount);
+    }
+}

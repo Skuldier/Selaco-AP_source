@@ -1,0 +1,156 @@
+texture SLIDTU1
+	pic SLIDTU1 tics 3
+	pic SLIDTU2 tics 3
+	pic SLIDTU3 tics 3
+	pic SLIDTU4 tics 3
+	pic SLIDTU5 tics 3
+	pic SLIDTU6 tics 3
+	pic SLIDTU7 tics 3
+	pic SLIDTU8 tics 3
+	pic SLIDTU9 tics 3
+	pic SLIDTU10 tics 3
+	pic SLIDTU11 tics 3
+	pic SLIDTU12 tics 3
+	pic SLIDTU13 tics 3
+	pic SLIDTU14 tics 3
+	pic SLIDTU15 tics 3
+	pic SLIDTU16 tics 3
+	pic SLIDTU17 tics 3
+
+texture TUTDASH1
+    pic TUTDASH1	tics 30
+    pic TUTDASH2	tics 30
+    
+texture TUTBUNN1
+    pic TUTBUNN1	tics 30
+    pic TUTBUNN2	tics 30
+    
+texture TUTTRAN1
+    pic TUTTRAN1	tics 30
+    pic TUTTRAN2	tics 30
+
+texture TUTSHOT1
+    pic TUTSHOT1	tics 30
+    pic TUTSHOT2	tics 30
+
+texture TUTPART1
+    pic TUTPART1	tics 30
+    pic TUTPART2	tics 30
+
+texture TUTBIPO1
+    pic TUTBIPO1	tics 30
+    pic TUTBIPO2	tics 30
+
+texture TUTFIRE1
+    pic TUTFIRE1	tics 30
+    pic TUTFIRE2	tics 30
+
+texture DASH1
+    pic DASH1	tics 30
+    pic DASH2	tics 30
+
+texture CHEST1
+    pic CHEST1	tics 30
+    pic CHEST2	tics 30
+
+texture HACKING1
+    pic HACKING1	tics 30
+    pic HACKING2	tics 30
+
+texture DASH1
+    pic DASH1	tics 30
+    pic DASH2	tics 30
+
+texture OP_LISH1
+    pic OP_LISH1	tics 30
+    pic OP_LISH0	tics 30
+
+texture ARMOR1
+    pic ARMOR1	tics 30
+    pic ARMOR2	tics 30
+
+texture GRENADE1
+    pic GRENADE1	tics 30
+    pic GRENADE2	tics 30
+
+texture CLEAR1
+    pic CLEAR1	tics 30
+    pic CLEAR2	tics 30
+
+texture CLIMB1
+    pic CLIMB1	tics 30
+    pic CLIMB2	tics 30
+
+texture MEDKIT1
+    pic MEDKIT1	tics 30
+    pic MEDKIT2	tics 30
+
+texture FLASH1
+    pic FLASH1	tics 30
+    pic FLASH2	tics 30
+
+
+texture SWIM1
+    pic SWIM1	tics 30
+    pic SWIM2	tics 30
+
+texture CHLNGS1
+    pic CHLNGS1	tics 30
+    pic CHLNGS2	tics 30
+
+texture CODEX1
+    pic CODEX1	tics 30
+    pic CODEX2	tics 30
+
+texture DASH1
+    pic DASH1	tics 30
+    pic DASH2	tics 30
+
+texture CRATE1
+    pic CRATE1	tics 30
+    pic CRATE2	tics 30
+
+texture EVADE1
+    pic EVADE1	tics 30
+    pic EVADE2	tics 30
+
+texture FREEZE1
+    pic FREEZE1	tics 30
+    pic FREEZE2	tics 30
+
+texture HUGGER1
+    pic HUGGER1	tics 30
+    pic HUGGER2	tics 30
+
+texture JUMPS1
+    pic JUMPS1	tics 30
+    pic JUMPS2	tics 30
+
+texture MASK1
+    pic MASK1	tics 30
+    pic MASK2	tics 30
+
+texture POWER1
+    pic POWER1	tics 30
+    pic POWER2	tics 30
+
+texture SHOP1
+    pic SHOP1	tics 30
+    pic SHOP2	tics 30
+
+texture MELEE1
+    pic MELEE1	tics 30
+    pic MELEE2	tics 30
+
+texture SHOTGUN1
+    pic SHOTGUN1	tics 30
+    pic SHOTGUN2	tics 30
+
+texture TIERS1
+    pic TIERS1	tics 30
+    pic TIERS2	tics 30
+
+texture SBPLACEH
+    pic SBPLACEH    tics 3
+    pic SBPLACE2    tics 3
+    pic SBPLACE3    tics 3

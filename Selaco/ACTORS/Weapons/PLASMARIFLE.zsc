@@ -1,0 +1,819 @@
+#include "ACTORS/Weapons/PLASMARIFLE_GRAV.zsc"
+
+
+class AltFirePlasmaRifleGravityManipulatorTraditional : WeaponAltFire {
+	override void onEnabled() {
+		getWeapon("plasmarifle").isZooming = false;
+		Super.onEnabled();
+	}
+	default {
+		WeaponAltFire.WorkshopOrder			-1;		// Zoom should always be first
+		WeaponUpgrade.Weapon 'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR", "$ALTFIRE_GRENADE_GRAVITYMANIPULATOR";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_DESC";
+	}
+}
+
+class AltFirePlasmaRifleGravityManipulatorRange : WeaponAltFire {
+	override void onEnabled() {
+		getWeapon("plasmarifle").isZooming = false;
+		Super.onEnabled();
+	}
+	default {
+		WeaponUpgrade.Weapon 'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_RANGE", "$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_RANGE";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_RANGE_DESC";
+	}
+}
+
+class AltFirePlasmaRifleGravityManipulatorForce : WeaponAltFire {
+	override void onEnabled() {
+		getWeapon("plasmarifle").isZooming = false;
+		Super.onEnabled();
+	}
+	default {
+		WeaponUpgrade.Weapon 'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_FORCE", "$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_FORCE";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_FORCE_DESC";
+	}
+}
+
+class AltFirePlasmaRifleGravityManipulatorExplode : WeaponAltFire {
+	override void onEnabled() {
+		getWeapon("plasmarifle").isZooming = false;
+		Super.onEnabled();
+	}
+	default {
+		WeaponAltFire.WorkshopOrder			999; // Secret is always last.	
+		WeaponUpgrade.Weapon 'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_EXPLODE", "$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_EXPLODE";
+		WeaponUpgrade.UpgradeDescription 	"$ALTFIRE_GRENADE_GRAVITYMANIPULATOR_EXPLODE_DESC";
+	}
+}
+
+
+Class UpgradePlasmaRifleOvercharge : WeaponUpgrade { 	
+	default {
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeImage 			'UPGRD22';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon 				'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PLASMARIFLE_OVERCHARGE", "$UPGRADE_PLASMARIFLE_OVERCHARGE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PLASMARIFLE_OVERCHARGE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	375, 75;
+		WeaponUpgrade.UpgradePosition			475, -85;
+	} 
+}
+
+Class UpgradePlasmaRifleOverheat : WeaponUpgrade { 	
+	default {
+		WeaponUpgrade.TechModuleRequirement 	3;
+		WeaponUpgrade.UpgradeImage 			'UPGRD3';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon 				'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PLASMARIFLE_OVERHEAT", "$UPGRADE_PLASMARIFLE_OVERHEAT_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PLASMARIFLE_OVERHEAT_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	305, 75;
+		WeaponUpgrade.UpgradePosition			205, -85;
+	} 
+}
+
+Class UpgradePlasmaRifleOverclock : WeaponUpgrade { 	
+	default {
+		WeaponUpgrade.projectileSpeedMod 45;
+		WeaponUpgrade.TechModuleRequirement 3;
+		WeaponUpgrade.UpgradeImage 			'UPGRD23';
+		Inventory.Amount 					1;
+		WeaponUpgrade.Weapon 				'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PLASMARIFLE_OVERCLOCK", "$UPGRADE_PLASMARIFLE_OVERCLOCK_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PLASMARIFLE_OVERCLOCK_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	115, 120;
+		WeaponUpgrade.UpgradePosition			5, 0;
+	} 
+}
+Class UpgradePlasmaRifleOverBlown : WeaponUpgrade { 	
+	default {
+		WeaponUpgrade.TechModuleRequirement 	4;
+		Inventory.Amount 1;
+		WeaponUpgrade.UpgradeImage 			'UPGRD14';
+		WeaponUpgrade.Weapon 				'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PLASMARIFLE_OVERBLOWN", "$UPGRADE_PLASMARIFLE_OVERBLOWN";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PLASMARIFLE_OVERBLOWN_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	150, 245;
+		WeaponUpgrade.UpgradePosition			70, 360;
+	} 
+}
+
+Class UpgradePlasmaRifleOvervoltage : WeaponUpgrade { 	
+	default {
+		WeaponUpgrade.TechModuleRequirement 	4;
+		Inventory.Amount 1;
+		WeaponUpgrade.damageMod 3;
+		WeaponUpgrade.UpgradeImage 			'UPGRD18';
+		WeaponUpgrade.Weapon 				'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PLASMARIFLE_OVERVOLTAGE", "$UPGRADE_PLASMARIFLE_OVERVOLTAGE_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PLASMARIFLE_OVERVOLTAGE_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	675, 85;
+		WeaponUpgrade.UpgradePosition			765, -55;
+	} 
+}
+Class UpgradePlasmaRifleOvercapacity : WeaponUpgrade { 	
+	default {
+		WeaponUpgrade.magazineSizeMod 10;
+		WeaponUpgrade.TechModuleRequirement 	5;
+		WeaponUpgrade.UpgradeImage 			'UPGRD4';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon 				'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PLASMARIFLE_OVERCAPACITY", "$UPGRADE_PLASMARIFLE_OVERCAPACITY_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PLASMARIFLE_OVERCAPACITY_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	530, 350;
+		WeaponUpgrade.UpgradePosition			670, 480;
+	} 
+}
+Class UpgradePlasmaRifleOverkill : WeaponUpgrade { 	
+	default {
+		WeaponUpgrade.TechModuleRequirement 	5;
+		WeaponUpgrade.UpgradeImage 			'UPGRD13';
+		Inventory.Amount 1;
+		WeaponUpgrade.Weapon 				'plasmarifle';
+		WeaponUpgrade.UpgradeName 			"$UPGRADE_PLASMARIFLE_OVERKILL", "$UPGRADE_PLASMARIFLE_OVEROVERKILL_LONG";
+		WeaponUpgrade.UpgradeDescription 	"$UPGRADE_PLASMARIFLE_OVEROVERKILL_DESC";
+		WeaponUpgrade.UpgradePointerPosition 	360, 295;
+		WeaponUpgrade.UpgradePosition			275, 440;
+	} 
+}
+
+class PLASMARIFLE : SelacoWeapon
+{
+
+	int flashFrame;
+	static const string plasmaFlashes[] = 
+	{
+		"PLM1","PLM2", "PLM3"
+	};
+
+	override void PostBeginPlay() {
+		Super.PostBeginPlay();
+		setCrosshair('PlasmaCrosshair');
+	}
+
+	/*action void checkMagazineUpgrade()
+	{
+		let loadedAmmo = FindInventory(invoker.ammoType2);
+		if (upgradeCheck("UpgradePlasmaRifleOvercapacity") == 1) {
+			loadedAmmo.maxamount = invoker.magazineSize+10;
+		} else {
+			loadedAmmo.maxamount = invoker.magazineSize;
+		}
+	}*/
+
+	actor firedProjectile1;
+	int recoilX, recoilY;
+	const zoomRange = 1.700;
+	const telekAmmoRequirement = 5;
+
+	action void doAttackChecks() {
+
+	}
+
+	const PLASMA_KILL_AOE_RANGE = 110;
+	const PLASMA_KILL_AOE_DAMAGE = 125;
+
+	bool ejectTheMagazine;
+	float fireZoomFactor;
+	float fireZoomFactorStep; // How much do we adjust the zoom per fire tick?
+	int flashID;
+	int loaded;
+	float screenSpread;
+	int shotsPerBurst;
+	int shotsFired;
+	bool magRemoved;
+
+	// ALT FIRES:
+	// 0 == MAIN
+	// 1 == BURST FIRE
+	default {
+	//$Category Weapons/custom
+		WeaponBase.AmmoGive1 30;
+		WeaponBase.AmmoGive2 1;
+		WeaponBase.AmmoType1 "PlasmaReserve";
+		WeaponBase.AmmoType2 "PlasmaRifleAmmo";
+		WeaponBase.SelectionOrder 120;
+		WeaponBase.SlotNumber 7;
+		SelacoWeapon.WeaponDamage  50;
+		SelacoWeapon.weaponFireRate	3;
+		SelacoWeapon.WeaponOffsetIncrement  1.9;
+		SelacoWeapon.meleeSprite "PLRM";
+		SelacoWeapon.LowAmmoPitchSound "PLASMARIFLE/PITCHER";
+		SelacoWeapon.WeaponSound "WEAPONS/plasmafire";
+		SelacoWeapon.ReadySound "WEAPONS/PLASMA/select";
+		SelacoWeapon.VoxelDecorationModel "PlasmaRifleModel";
+		SelacoWeapon.DryFireSound "PLASMAFIRE/DRYFIRE";
+		SelacoWeapon.interactionSprite "PLRC";
+		SelacoWeapon.WeaponRecoil 0.03;
+		SelacoWeapon.WeaponProjectileSize 5;
+		SelacoWeapon.MagazineSize 25;
+		SelacoWeapon.weaponProjectileSpeed 50;
+		SelacoWeapon.lowAmmoThreshold 10;
+		SelacoWeapon.SlidingSprite "PLRS";
+		SelacoWeapon.ImagePrefix "plasma";
+		SelacoWeapon.weaponStatistic	STAT_PLASMARIFLE;
+		SelacoWeapon.AltFireLabel "$ALT_FIRES_G";
+		SelacoWeapon.AmmoColor "38 BC FB";
+		Inventory.Icon "WPNPLAS";
+		+FLOORCLIP;
+		+FLOAT;
+		+NOGRAVITY;
+		+RollSprite;
+		+DONTGIB;
+		AttackSound "None";
+		Scale 0.25;
+		Tag "$WEAPON_PLASMARIFLE";
+	}
+	States {
+	Precache:
+		PLRI A 0;
+		PLM1 ABC 0;
+		PLM2 ABC 0;
+		PLM3 ABC 0;
+		PLRS A 0;
+		PLRC A 0;
+		PLRM A 0;
+		PLRF A 0;
+		PLRA A 0;
+		PLRC ABCDEF 0; // Interaction
+		stop;
+	Flashlight:
+		OFLA A 1 BRIGHT;
+		stop;
+
+	Equip:
+		TNT1 A 0;
+		TNT1 A 0 A_SETTICS(invoker.WEAPON_SWAP_SPEED);
+		TNT1 A 0 
+		{
+			invoker.checkLowAmmo();
+		}
+		PLGE ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		PLGT ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		PLGR ABCDEFGHIJKLMNOPQRSTUVWXYZ 0;
+		TNT1 A 0
+		{
+			A_EquipNewWeapon();
+		}
+		PLRR ABCDEFGHIJK 1 {
+			//S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+        //TNT1 A 0 A_SetCrosshair(0);
+	Ready3:
+		PLRR M 1;
+	ReallyReady:
+		TNT1 A 0; 
+		TNT1 A 0 A_TakeInventory("CancelAnimation", 1);
+		TNT1 A 0 A_JumpIfInventory("ShowHands",1,"HandRemoved");
+		TNT1 A 0 A_JumpIfInventory("PushButtonNow", 1, "PushButton");
+		TNT1 A 0 { 	
+			doAttackChecks();
+			
+			A_TakeInventory("CancelAnimation", 1);
+		}
+
+		TNT1 A 0 {
+			if(invoker.heavyShakeDelay > 0)
+			{
+				invoker.heavyShakeDelay--;
+			}
+			if(invoker.isUnderWater && waterLevel < 3)
+			{
+				setWeaponState("exitUnderwater");
+			}
+			if(checkIfZooming()) {
+				SetWeaponState("Ready_ZOOM");
+			}
+			if(waterlevel == 3)
+			{
+				setWeaponState("enterUnderWater");
+			}
+		}
+
+		TNT1 A 1 {
+				breathWobble("PLRI", 20);
+				A_EnableWeaponShift();
+				A_SetCrosshair(30);
+				A_ZOOMFACTOR(1.0);
+				if (CheckInventory("FlashLightMode", 1)) {
+					A_Overlay(-217, "Flashlight");
+				}
+				CheckPlayerStates();
+				invoker.screenSpread = 0.38;
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			}
+		Loop;
+
+		enterUnderwater:
+			TNT1 A 0
+			{
+				if(invoker.isUnderWater)
+				{
+					setWeaponState("underWaterReady");
+				}
+			}
+			PLRR KJIHGFE 2;
+			TNT1 A 0
+			{
+				invoker.isUnderWater = true;
+			}
+
+		underWaterReady:
+			PLRR D 1
+			{
+				A_EnableWeaponShift();
+				A_SetCrosshair(30);
+				A_ZOOMFACTOR(1.0);
+				if (CheckInventory("FlashLightMode", 1)) {
+					A_Overlay(-217, "Flashlight");
+				}
+				CheckPlayerStates();
+				invoker.screenSpread = 0.38;
+				S_WeaponReady(WRF_ALLOWRELOAD | WRF_NOSECONDARY);
+				S_WeaponOffset();
+				if(waterLevel < 3)
+				{
+					setWeaponState("ExitUnderwater");
+				}				
+			}
+			goto reallyready;
+
+		exitUnderwater:
+			TNT1 A 0
+			{
+				invoker.isUnderWater = false;
+			}
+			PLRR EFGHIJKLM 2;
+			goto reallyReady;
+
+
+    Ready_ZOOM:
+	ReadyOldSkool:
+		PLRZ D 1
+			{
+				if (CheckInventory("FlashLightMode", 1)) {
+					A_Overlay(-217, "Flashlight");
+				}
+				A_SetCrosshair(31);
+				A_ZOOMFACTOR(zoomRange);
+				CheckPlayerStates(1);
+				CheckUnZoom();
+				A_EnableWeaponShift(true, multiplier: 0.025);
+				S_WeaponOffset();
+				S_WeaponReady();
+			}
+		goto ReallyReady;
+
+	ShatterWindow:
+		TNT1 A 0 A_QuakeEx( 5, 4, 4, 10, 0, 20, 0, 0, 10, 10, 10, 6, 2, 2);
+		PLR9 ABCD 2  {
+				A_SetPitch(pitch + 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+			
+		}
+		PLR9 E 6  {
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		PLR9 DCBA 2  {
+				A_SetPitch(pitch - 1);
+				S_WeaponReady(WRF_ALLOWRELOAD);
+				S_WeaponOffset();
+		}
+		goto Ready3;
+
+	AutoCrosshair:
+		TNT1 A 0 A_SetCrosshair(30);
+		goto Ready3;
+
+
+	BurstCrosshair:
+		TNT1 A 0 A_SetCrosshair(0);
+		goto Ready3;
+
+
+	ReadyADS:
+	Unequip:
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+        TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_SetSpeed(0.3);
+	    TNT1 A 0 A_PlaySound("WEAPONS/PLASMA/deselect", CHAN_AUTO, 0.5, pitch:1.35);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		TNT1 A 0 {
+			A_UNEQUIPWEAPON();
+			invoker.dropTelek();
+            invoker.stopTelekEffect();
+			A_STOPSOUND(CHAN_WEAPON );
+			setZoomStatus(false);
+			invoker.isFiring = 0;
+		}
+		TNT1 A 0 ACS_NamedExecute("AddHand", 0);
+		TNT1 A 0 A_PlaySound("dawn/deselect", CHAN_AUTO);
+		PLRR KJIHGFEDCBA 1 {
+			//S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		TNT1 A 0;
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Lower();
+		TNT1 A 0;
+		Wait;
+
+	Select:
+		TNT1 A 0;
+		TNT1 A 0 A_SetSpeed(1);
+		TNT1 A 0 A_Takeinventory("HasUnloaded",1);
+		TNT1 A 0 A_Takeinventory("Unloading",1);
+		TNT1 AAAAAAAAAAAAAAAAAA 0 A_Raise();
+		TNT1 AAAAAAAA 1 A_Raise();
+	    TNT1 A 0 A_PlaySound("WEAPONS/PLASMA/select", 1);
+		PLRR ABCDEFGHIJKLM 1 {
+			//S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset();
+		}
+		goto ReallyReady;
+
+    Fire:
+		TNT1 A 0 { if(invoker.telekTarget) SetWeaponState("ThrowTelekinesis"); }
+		TNT1 A 0 {
+			invoker.TakeWeaponAmmo();
+		}
+		TNT1 A 0
+		{
+			if(waterLevel == 3)
+			{
+				setWeaponState("UnderwaterAttack");
+			}
+		}
+		TNT1 A 0 {
+			// First shot? Intense shake!
+			if(invoker.heavyShakeDelay <= 0)
+			{
+				invoker.heavyShakeDelay = 5;
+				switch(getCvar("g_screenshake")) {
+					case 1:
+						A_QuakeEx(1, 1, 1, 2, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 1, 0, 1);
+						break;
+					case 2:
+						A_QuakeEx(1, 2, 1, 7, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 1, 0, 2);
+						break;
+				}
+			}
+			invoker.flashFrame = random(0,invoker.plasmaFlashes.size()-1);
+			invoker.flashNumber = 0;
+			doAttackChecks();
+			A_PLAYSOUND(invoker.WeaponSound, CHAN_AUTO , getWeaponVolume(0.02)-0.1, 0, pitch:frandom(1.35,1.4));
+			A_PLAYSOUND("WEAPONS/PLASMA/LAYER", CHAN_AUTO, getWeaponVolume(-0.075)-0.62, pitch:frandom(0.9,1.1));
+			invoker.isFiring = 1;
+			A_SELACORECOIL(-1*invoker.adjustedRecoil + 0.14, 0, frandom(-1*invoker.adjustedRecoil, invoker.adjustedRecoil));
+			invoker.adjustedRecoil += 0.24;
+			if(checkIfZooming()) {
+				// Is zooming
+				invoker.fireZoomFactor = zoomrange;
+				invoker.fireZoomFactorStep = 0.04;
+				invoker.weaponSprite = "PLRA";
+			} else {
+				// is not zooming
+				invoker.fireZoomFactor = 0.997;
+				invoker.fireZoomFactorStep = 0.01;
+				invoker.adjustedWeaponOffset = frandom(-1*invoker.weaponOffsetIncrement, invoker.weaponOffsetIncrement);
+				invoker.weaponSprite = "PLRF";
+			}
+		}
+		TNT1 A 0 A_JumpIfInventory("Zoomed",1,"Fire2");
+		TNT1 A 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			S_SelacoMuzzleFlash(invoker.plasmaFlashes[invoker.flashFrame], 0, 0.08);
+			X_SetOverlaySprite(1, invoker.weaponSprite, 0);
+			invoker.isFiring = 1;
+			invoker.xPos = frandom(-2.9, 2.9);
+			invoker.yPos = frandom(-2.4, 2.4);
+			A_FireProjectile("PlasmaSmokeSpawn",5,0,17,7, 0, 18);
+			invoker.playerIsFiring();
+			S_WeaponReady(WRF_NOFIRE);
+			A_FireProjectile("muzzleFlashSpawnerPlasma",0,0,random(invoker.xPos, invoker.yPos),0);
+
+			ACS_NamedExecuteAlways("SpawnHudShake", 0, 4, 4, 3);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil, 0, frandom(-1*invoker.adjustedRecoil, invoker.adjustedRecoil));
+			invoker.adjustedRecoil -= 0.14;
+			S_WeaponOffset(2, invoker.adjustedWeaponOffset);
+
+			// Projectile
+			actor plasmaProjectile;
+        	plasmaProjectile = FireProjectile("PlasmaProjectilePlayer", 0, 0, 5);
+			if(plasmaProjectile)
+			{
+				plasmaProjectile.SetDamage(invoker.weaponDamage + random(2,10));
+				let plasmaProjectileActor = PlasmaProjectilePlayer(plasmaProjectile);
+				if(invoker.hasUpgradeClass("UpgradePlasmaRifleOvervoltage"))
+				{
+					plasmaProjectileActor.A_SetSize(plasmaProjectileActor.radius*1.25);
+					plasmaProjectileActor.A_SetScale(plasmaProjectileActor.scale.x*1.25);
+					plasmaProjectileActor.SetDamage(plasmaProjectileActor.damage*1.05);
+				}
+				if(invoker.hasUpgradeClass("UpgradePlasmaRifleOverheat"))
+				{
+					// Because of the extra splash damage that will be applied, we decrease the impact damage.
+					plasmaProjectileActor.explosionDamage = plasmaProjectileActor.damage;
+					plasmaProjectileActor.SetDamage(0);
+					plasmaProjectileActor.hasOverload = true;
+				}    
+				if(invoker.hasUpgradeClass("UpgradePlasmaRifleOverkill"))
+				{
+					plasmaProjectileActor.hasOverKill = true;
+				}
+				if(invoker.hasUpgradeClass("UpgradePlasmaRifleOverclock"))
+				{
+					// Because of the extra splash damage that will be applied, we decrease the impact damage slightly.
+					plasmaProjectileActor.A_ScaleVelocity(1.65);
+				}    
+
+			}
+			S_ZOOMFACTOR(invoker.fireZoomFactor);
+			A_AlertMonsters();
+			//CheckPlayerStates();
+		}
+	Fire_Continue:
+		TNT1 B 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			S_SelacoMuzzleFlash(invoker.plasmaFlashes[invoker.flashFrame], 1, 0.08);
+			X_SetOverlaySprite(1, invoker.weaponSprite, 1);
+			S_WeaponReady(WRF_NOFIRE);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil, 0, frandom(-1*invoker.adjustedRecoil, invoker.adjustedRecoil));
+			S_WeaponOffset(3, invoker.adjustedWeaponOffset);
+			invoker.fireZoomFactor -= invoker.fireZoomFactorStep;
+			S_ZOOMFACTOR(invoker.fireZoomFactor);
+			//CheckPlayerStates(); TODO: ZOOMING WAS AWKWARD WITH THIS ON
+	}
+		TNT1 C 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			switch(getCvar("g_screenshake")) {
+				case 1:
+					A_QuakeEx(1, 1, 0, 4, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 1, 0, 01);
+					break;
+				case 2:
+					A_QuakeEx(1, 1, 1, 5, 0, 20, 0, QF_SCALEDOWN | QF_FULLINTENSITY, 0, 4, 3, 1, 0, 1);
+					break;
+			}
+			S_SelacoMuzzleFlash(invoker.plasmaFlashes[invoker.flashFrame], 3, 0.08);
+			X_SetOverlaySprite(1, invoker.weaponSprite, 2);
+			S_WeaponReady(WRF_NOFIRE);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil, 0, frandom(-1*invoker.adjustedRecoil, invoker.adjustedRecoil));
+			S_WeaponOffset(2, invoker.adjustedWeaponOffset);
+			invoker.fireZoomFactor -= invoker.fireZoomFactorStep;
+			S_ZOOMFACTOR(invoker.fireZoomFactor);
+			//CheckPlayerStates(); TODO: ZOOMING WAS AWKWARD WITH THIS ON
+		}
+		TNT1 D 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			S_SelacoMuzzleFlash(invoker.plasmaFlashes[invoker.flashFrame], 1, 0.08);
+			X_SetOverlaySprite(1, invoker.weaponSprite, 3);
+			//CheckPlayerStates(); TODO: ZOOMING WAS AWKWARD WITH THIS ON
+			invoker.adjustedRecoil = invoker.weaponRecoil*0.75;
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset(1, invoker.adjustedWeaponOffset);
+			invoker.fireZoomFactor += invoker.fireZoomFactorStep;
+			S_ZOOMFACTOR(invoker.fireZoomFactor);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil, 0, frandom(-1*invoker.adjustedRecoil, invoker.adjustedRecoil));
+		}
+		TNT1 E 1 {
+			A_WeaponReady(WRF_NOPRIMARY);
+			if(countinv("PlasmaRifleAmmo") == 0)
+			{
+				A_PLAYSOUND("WEAPONS/PLASMA/DEPLETED", CHAN_AUTO, pitch:frandom(0.9,1.1));
+			}
+			A_REFIRE();
+			X_SetOverlaySprite(1, invoker.weaponSprite, 4);
+			//CheckPlayerStates(); TODO: ZOOMING WAS AWKWARD WITH THIS ON
+			invoker.adjustedRecoil = invoker.weaponRecoil*0.5;
+			S_WeaponReady(WRF_NOFIRE);
+			S_WeaponOffset(0.5);
+			invoker.fireZoomFactor += invoker.fireZoomFactorStep;
+			S_ZOOMFACTOR(invoker.fireZoomFactor);
+			A_SELACORECOIL(-1*invoker.adjustedRecoil, 0, frandom(-1*invoker.adjustedRecoil, invoker.adjustedRecoil));
+		}
+		PLRI A 0 {
+			CheckPlayerStates();
+			S_WeaponReady();
+			A_Refire();
+			S_WeaponOffset(1);
+			if (CheckInventory("FlashLightMode", 1)) {
+					A_Overlay(-217, "Flashlight");
+				}
+		}
+		TNT1 A 0 S_WeaponOffset(1);
+		TNT1 A 0 A_Refire();
+		Goto ReallyReady;
+
+	// Can't do that nerd!
+	UnderwaterAttack:	
+		PLRR D 15
+		{
+			A_PLAYSOUND("WEAPONS/PLASMA/UNDERWATERWARNING", CHAN_AUTO, 0.7);
+			S_WeaponOffset(2);
+		}
+		goto reallyReady;
+
+	DoFlashLight:
+		TNT1 A 0 A_TakeInventory("HasFlashLight", 1);
+		Goto ReallyReady;
+
+	NoMods:
+		TNT1 A 0 A_PRINT("\c[WHITE]No \c[RED]Weapon Behaviour Modifier \c[WHITE]slot installed. Insert one at the workshop!");
+		goto ReallyReady;
+
+    AltFire:
+		TNT1 A 0 {
+			if(altFireCheck("AltFirePlasmaRifleGravityManipulatorTraditional")) 
+			{
+				if(invoker.telekTarget) {
+					SetWeaponState("DropTelekinesis");
+				} else {
+					SetWeaponState("StartTelekinesis");
+				}
+			} else
+			{
+				SetWeaponState("SwapZoom");
+			}
+		}
+
+	GoBurst:
+		TNT1 A 0 A_Playsound("DMR/burst", CHAN_AUTO, 0.7);
+		Goto ReallyReady;
+	
+
+	SwapZoom:
+		TNT1 A 0 {
+			toggleZoomStatus();
+			if(checkIfZooming()) {
+				SetWeaponState("SwapZoom_ZOOM");
+			} else {
+				SetWeaponState("SwapZoom_UNZOOM");
+			}
+		}
+		goto ReallyReady;
+
+	SwapZoom_ZOOM:
+		TNT1 A 0 {
+			A_ZOOMFACTOR(zoomRange);
+			A_Playsound("PLASMARIFLE/ZOOMIN", CHAN_AUTO, 0.7);
+		}
+		PLRZ ABC 1;
+		PLRZ C 1
+		{
+			if(!isAttackInput())
+			{
+				S_WeaponReady();
+			}
+		}
+		goto ReallyReady;
+	ZoomADS_Animation:
+		PLRZ CB 1;
+		PLRZ A 1
+		{
+			if(!isAttackInput())
+			{
+				S_WeaponReady();
+			}
+		}
+		goto ReallyReady;
+	SwapZoom_UNZOOM:
+		TNT1 A 0 {
+			A_Playsound("PLASMARIFLE/ZOOMOUT", CHAN_AUTO, 0.7);
+			A_ZOOMFACTOR(1.0);
+		}
+		PLRZ CBA 1;
+		goto ReallyReady;
+
+	NoAmmo:
+		RIFG A 0 A_PlaySound("weapons/empty");
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+		TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		Goto ReallyReady;
+	
+	FireEmptyMag:
+		TNT1 A 0 dryFire();
+		RIFG A 1 S_WeaponReady();
+		goto reallyready;
+
+
+    ReloadWeapon:
+		TNT1 A 0 {
+			// No longer needed because magazine size modification is done in the upgrade calculations
+			//checkMagazineUpgrade();
+			doWeaponReload();
+		}
+		TNT1 A 0 S_WeaponOffset();
+		TNT1 A 0 S_ZOOMFACTOR(1.0);
+		TNT1 A 0 A_Takeinventory("ADSmode",1);
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+        TNT1 AAA 0;
+		TNT1 A 0 A_Takeinventory("Zoomed",1);
+		TNT1 A 0 A_SetPitch(+0.47 + pitch);
+		TNT1 A 0 A_SetAngle(+0.32 + angle);
+		TNT1 A 0 A_JumpIfInventory("MeleeButton", 1, "MeleeAttack");
+		PLR1 AABBCCDDEE 1 {
+			A_ZOOMFACTOR(1.0);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 {
+			if(invoker.magRemoved) {
+				SetWeaponState("ReloadMagRemoved");
+			}
+		}
+		PLR1 FFGGHHII 1 {
+			A_ZOOMFACTOR(1.0);
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		PLR1 J 1 {
+			CheckReloadCancelling();
+			if (countinv("PlasmaRifleAmmo") == 0) {
+				//A_FireProjectile("EmptyClipSpawn",0,0,30,-4);
+			}
+			A_PlaySound("WEAPONS/PLASMARIFLE/RELOADOUT", CHAN_AUTO, 0.87);
+			removeCurrentAmmo();
+			invoker.magRemoved = true;
+			if (CountInv("PlasmaRifleAmmo") == 0) {
+				S_WeaponReady(WRF_NOFIRE);
+			} else {
+				S_WeaponReady();
+			}
+			CheckReloadCancelling();
+			S_WeaponOffset();
+			A_FireProjectile("EmptyMagazinePlasmaRifle",angle:-45,useammo:0,spawnofs_xy:-5,spawnheight:-10, flags:0, pitch:10);
+		}
+		PLR1 JKKLLMMNNOOPPQQRRSS 1 {
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 A_JumpIfInventory("MeleeButton", 1, "MeleeAttack");
+	ReloadMagRemoved:	
+		PLR1 TTUUVVWWXXYY  1 {
+			CheckReloadCancelling();
+			S_WeaponOffset();
+		}
+		TNT1 A 0 A_JumpIfInventory("MeleeButton", 1, "MeleeAttack");
+		PLR1 Z 1 {
+			A_PlaySound("WEAPONS/PLASMARIFLE/RELOADIN", CHAN_AUTO, 0.87);
+			insertNewAmmo();
+			invoker.magRemoved = false;
+			CheckReloadCancelling(true);
+			S_WeaponOffset();
+		}
+		PLR1 Z 1 {
+			CheckReloadCancelling(true);
+			S_WeaponOffset();
+		}
+		PLR2 AABBCCDD 1 {
+			CheckReloadCancelling(true);
+			S_WeaponOffset();
+		}
+		PLR2 EEFFGGHHIIJJKK 1 {
+				CheckReloadCancelling(true);
+				S_WeaponOffset();
+			}
+		PLR2 L 2 {
+			CheckReloadCancelling(true);
+			S_WeaponOffset();
+			loadChamber();
+		}
+			TNT1 A 0 A_GiveInventory("RifleWasEmpty", 1);
+			goto reallyready;
+
+	Spawn:
+	 	TNT1 A 0;
+		TNT1 A 0 A_SPAWNITEMEX("PLASMARIFLE_PICKUP");
+		Stop;
+
+	}
+}
+
+
+class muzzleFlashSpawnerPlasma : PlayerMuzzleFlash {
+	default
+	{
+		PlayerMuzzleFlash.lightSize 120, 160;
+	}
+	
+	override void SpawnLightEffect() {
+		spawnLight(rColor:int(165*1.5), gColor:int(296*1.5), bColor:int(567*1.5), getLightSize(), 0, shadowRequirement:2, overbright: 1, divisionSpeed:1.75, alwaysShow:1,weaponFlash:1);
+	}
+	states {
+		Spawn:
+			TNT1 A 1;
+			stop;
+	}
+}

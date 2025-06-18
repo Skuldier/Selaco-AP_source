@@ -1,0 +1,257 @@
+class HumanMuzzleflash1 : actor {
+    default {
+        scale 0.2;
+        +NOGRAVITY;
+    }
+    states {
+        spawn:
+            FMU1 A -1 BRIGHT;
+            stop;
+    }
+}
+
+class AlienMuzzle : actor
+{
+
+    mixin lightEmitter;
+
+    int spawnAngle;
+    int allowShadows;
+    float lightRadiusMult;
+    bool spawnMuzzleLight;
+    property SpawnMuzzleLight : spawnMuzzleLight;
+
+    
+    override void beginPlay() {
+        super.beginPlay();
+        spawnAngle = angle; // Otherwise things get weird when the shooter rotates during shooting.
+        allowShadows = -1;
+        lightRadiusMult = 1.0;
+        if(getCvar("r_muzzleflashShadows") >= 1)
+        {
+            allowShadows = 1;
+        }
+        if(getCvar("g_dimMuzzleFlashes")) {
+            lightRadiusMult = 0.35;
+            alpha = 0.5;
+        }
+    }
+
+    Vector3 effectOffset;
+    override void tick() {
+        super.tick();
+        // Have muzzleflash follow the shooter.
+        if(master) {
+            A_Warp(AAPTR_MASTER, effectOffset.x, effectOffset.y, effectOffset.z, spawnAngle, WARPF_INTERPOLATE | WARPF_COPYPITCH | WARPF_NOCHECKPOSITION );
+        }
+    }
+
+    int frameID;
+    const incrementSize = 0.056;
+    default {
+        AlienMuzzle.SpawnMuzzleLight true;
+        Speed 0;
+        PROJECTILE;
+        Renderstyle "add";
+        +NOCLIP;
+        +NOGRAVITY;
+        +ROLLSPRITE;
+        Speed 5;
+        SCALE 0.11;
+    }
+	States  {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_Stop;
+            TNT1 A 0 A_SpawnItemEx("RedFlareLargeNoLight", 5);
+            TNT1 A 0 {
+                if(spawnMuzzleLight)
+                {
+			        Spawnlight(rColor:455, gColor:200, bcolor:100, lightRadius:random(100,120)*lightRadiusMult, 0, allowShadows, divisionSpeed:2.0);
+                }
+                frameID = random(0,3);
+                //A_SetRoll(roll + frandom(-15,15));
+            }
+        Muzzle: 
+            EMU1 ABCD 0 BRIGHT;
+            EMU1 AAAA 1 BRIGHT {
+                 A_SetScale(scale.X + incrementSize, scale.Y + incrementSize);
+                 frame = frameID;
+            }
+            Stop;
+	}
+}
+
+class AlienMuzzleTiny : AlienMuzzle
+{
+    const incrementSize = 0.001;  
+    default
+    {
+        SCALE 0.001;
+    }
+}
+
+class AirDroneMuzzle : AlienMuzzle
+{
+    const incrementSize = 0.005;
+}
+
+class AirDroneMuzzleNoLight : AirDroneMuzzle
+{
+    const incrementSize = 0.0010;
+    default
+    {
+        AlienMuzzle.SpawnMuzzleLight false;
+    }
+}
+
+class AlienMuzzleLarger : AlienMuzzle
+{
+	States
+	{
+	Spawn:
+	    TNT1 A 0;
+		TNT1 A 0 A_Stop;
+		TNT1 A 0 {
+			Spawnlight(rColor:355, gColor:145, bcolor:55, lightRadius:random(150,180)*lightRadiusMult, 0, allowShadows, divisionSpeed:1.95);
+		}
+		TNT1 A 0 A_JUMP(256, "muzzle1", "muzzle2", "muzzle3", "muzzle4");
+		Muzzle1:
+			ALMZ A 1 BRIGHT A_SetScale(1.85, 1.35);
+			ALMZ A 1 BRIGHT A_SetScale(1.6, 1.5);
+			ALMZ A 2 BRIGHT A_SetScale(1.85, 1.65);
+			Stop;
+		Muzzle2:
+			ALMZ B 1 BRIGHT A_SetScale(1.85, 1.65);
+			ALMZ B 1 BRIGHT A_SetScale(1.6, 1.5);
+			ALMZ B 2 BRIGHT A_SetScale(1.85, 1.65);
+			Stop;
+		Muzzle3:
+			ALMZ B 1 BRIGHT A_SetScale(1.85, 1.65);
+			ALMZ B 1 BRIGHT A_SetScale(1.6, 1.5);
+			ALMZ B 2 BRIGHT A_SetScale(1.85, 1.65);
+			Stop;
+		Muzzle3:
+			ALMZ A 1 BRIGHT A_SetScale(1.85, 1.65);
+			ALMZ A 1 BRIGHT A_SetScale(1.6, 1.5);
+			ALMZ A 2 BRIGHT A_SetScale(1.85, 1.65);
+			Stop;
+	}
+}
+
+class DawnMuzzleFlash : EnforcerMuzzle
+{
+    const incrementSize = 0.0006;
+    default
+    {
+         SCALE 0.08;
+        +ONLYVISIBLEINMIRRORS;
+    }
+	States  {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_Stop;
+            TNT1 A 0 {
+                //A_SetRoll(roll + frandom(-15,15));
+            }
+        Muzzle: 
+            EMU2 AAA 1 BRIGHT {
+                 A_SetScale(scale.X + incrementSize, scale.Y + incrementSize);
+                 frame = frameID;
+            }
+            Stop;
+	}
+}
+
+class EnforcerMuzzle : AlienMuzzle
+{
+    
+    default {
+        SCALE 0.1;
+    }
+	States  {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_Stop;
+            TNT1 A 0 Spawnlight(rColor:325, gColor:228, bcolor:55, lightRadius:random(100,120)*lightRadiusMult, 0, allowShadows, divisionSpeed:1.25);
+            TNT1 A 0 {
+                //A_SetRoll(roll + frandom(-15,15));
+            }
+        Muzzle: 
+            EMU2 AAAA 1 BRIGHT {
+                 A_SetScale(scale.X + incrementSize, scale.Y + incrementSize);
+                 frame = frameID;
+            }
+            Stop;
+	}
+}
+
+class plasmaMuzzle : AlienMuzzle
+{
+    const incrementSize = 0.036;
+    default {
+        alpha 0.8;
+        SCALE 0.02;
+    }
+	States  {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_Stop;
+            TNT1 A 0 Spawnlight(rColor:196, gColor:228, bcolor:325, lightRadius:random(100,120)*lightRadiusMult, 0, allowShadows, divisionSpeed:1.25);
+            TNT1 A 0 {
+                //A_SetRoll(roll + frandom(-15,15));
+            }
+        Muzzle: 
+            PLE1 ABCC 1 BRIGHT {           
+                 A_SetScale(scale.X + incrementSize, scale.Y + incrementSize);
+            }
+            Stop;
+	}
+}
+
+class AlienMuzzleMinigun : EnforcerMuzzle {
+    default {
+        Speed 0;
+        PROJECTILE;
+        +NOCLIP;
+        +NOGRAVITY;
+        +ROLLSPRITE;
+        Speed 5;
+        SCALE 0.10;
+    }
+	States  {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_Stop;
+            TNT1 A 0 {
+                Spawnlight(rColor:255, gColor:178, bcolor:55, lightRadius:random(70,90)*lightRadiusMult, 0, allowShadows, divisionSpeed:1.45);
+                setStateLabel("muzzle");
+            }
+	}
+}
+
+class AlienNailgunMuzzle : AlienMuzzle
+{
+    default {
+        SCALE 0.4;
+    }
+	States  {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_Stop;
+            TNT1 A 0 A_SpawnItemEx("RedFlareLarge");
+            TNT1 A 0 {
+                frameID = 0;
+                A_SetRoll(roll + frandom(-15,15));
+                SetStateLabel("Muzzle");
+            }
+        Muzzle: 
+            MUZD ABC 0 BRIGHT;
+            MUZD ABC 2 BRIGHT {
+                 A_SetScale(scale.X + incrementSize, scale.Y + incrementSize);
+                 frameid++;
+                 frame = frameID;
+            }
+            Stop;
+	}
+}

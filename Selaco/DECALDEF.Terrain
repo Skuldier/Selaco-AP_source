@@ -1,0 +1,420 @@
+fader LiquidFader
+{
+	DecayStart 25
+	DecayTime 35
+}
+
+
+fader LiquidFaderFast
+{
+   DecayStart 25
+   DecayTime 35
+}
+
+slider Drops
+{
+   DistY -320
+   SlideStart 0.01
+   SlideTime 15
+}
+
+Combiner WaterDropEffect
+{
+   LiquidFaderFast
+   Drops
+   
+}
+
+decal WaterDrops1
+{
+	pic WSPL1A
+	add 0.3
+	x-scale 0.4
+	y-scale 0.4
+	randomflipx
+	animator Drops
+	animator WaterDropEffect
+}
+
+decal WaterDrops2
+{
+	pic WSPL1B
+	add 0.3
+	x-scale 0.5
+	y-scale 0.6
+	randomflipx
+	animator Drops
+	animator WaterDropEffect
+}
+
+decal WaterDrops3
+{
+	pic WSPL1C
+	add 0.3
+	x-scale 0.4
+	y-scale 0.5
+	randomflipx
+	animator Drops
+	animator WaterDropEffect
+}
+
+decalgroup waterdrops
+{
+	waterdrops1	1
+	waterdrops2	1
+	waterdrops3	1
+}
+
+
+decal WaterSmear1
+{
+	pic BSPLAT1
+	x-scale 1.0
+	y-scale 1.0
+	translucent 0.2
+	shade "0 0 0"
+	randomflipx
+	animator LiquidFader
+	lowerdecal WaterDrops
+}
+
+decal WaterSmear2
+{
+	pic BSPLAT2
+	x-scale 1.0
+	y-scale 1.0
+	translucent 0.2
+	shade "0 0 0"
+	randomflipx
+	animator LiquidFader
+	lowerdecal WaterDrops
+}
+
+decal WaterSmear3
+{
+	pic BSPLAT3
+	x-scale 1.0
+	y-scale 1.0
+	translucent 0.2
+	shade "0 0 0"
+	randomflipx
+	animator LiquidFader
+	lowerdecal WaterDrops
+}
+
+decal WaterSmear4
+{
+	pic BSPLAT4
+	x-scale 1.0
+	y-scale 1.0
+	translucent 0.2
+	shade "0 0 0"
+	randomflipx
+	animator LiquidFader
+	lowerdecal WaterDrops
+}
+
+decalgroup watersplash
+{
+	WaterSmear1	1
+	WaterSmear2	1
+	WaterSmear3	1
+	WaterSmear4	1
+}
+
+
+
+
+
+
+
+
+
+
+
+
+decal SawDecalNew1
+{
+	pic BULDA0
+	x-scale 0.8
+	y-scale 0.8
+	translucent 0.9
+	shade "0 0 0"
+	randomflipx
+	randomflipy
+}
+
+
+decal Bulleth1
+{
+	pic BULDA0
+	x-scale 0.34
+	y-scale 0.34
+	randomflipx
+	randomflipy
+}
+
+decal Bulleth2
+{
+	pic BULDB0
+	x-scale 0.34
+	y-scale 0.34
+	randomflipx
+	randomflipy
+}
+
+decal Bulleth3
+{
+	pic BULDC0
+	x-scale 0.34
+	y-scale 0.34
+	randomflipx
+	randomflipy
+}
+
+decal Bulleth1X
+{
+	pic BULDA0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+}
+
+decal Bulleth2X
+{
+	pic BULDB0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+}
+
+decal Bulleth3X
+{
+	pic BULDC0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+}
+
+
+decal metalh1
+{
+	pic METAA0
+	x-scale 0.39
+	y-scale 0.39
+	randomflipx
+	randomflipy
+}
+
+decal metalh2
+{
+	pic METAB0
+	x-scale 0.39
+	y-scale 0.39
+	randomflipx
+	randomflipy
+}
+
+decal metalh3
+{
+	pic METAC0
+	x-scale 0.39
+	y-scale 0.39
+	randomflipx
+	randomflipy
+}
+
+decal woodh1
+{
+	pic BWODA0
+	x-scale 0.7
+	y-scale 0.7
+	randomflipx
+	randomflipy
+}
+
+decal woodh2
+{
+	pic BWODB0
+	x-scale 0.7
+	y-scale 0.7
+	randomflipx
+	randomflipy
+}
+
+decal woodh3
+{
+	pic BWODC0
+	x-scale 0.7
+	y-scale 0.7
+	randomflipx
+	randomflipy
+}
+decal woodh4
+{
+	pic BWODD0
+	x-scale 0.7
+	y-scale 0.7
+	randomflipx
+	randomflipy
+}decal woodh5
+{
+	pic BWODE0
+	x-scale 0.7
+	y-scale 0.7
+	randomflipx
+	randomflipy
+}decal woodh6
+{
+	pic BWODF0
+	x-scale 0.7
+	y-scale 0.7
+	randomflipx
+	randomflipy
+}decal woodh7
+{
+	pic BWODG0
+	x-scale 0.7
+	y-scale 0.7
+	randomflipx
+	randomflipy
+}
+decal GLASSIMPACT1
+{
+	pic GLZZA0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal GLASSIMPACT2
+{
+	pic GLZZB0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal GLASSIMPACT3
+{
+	pic GLZZC0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+decal GLASSIMPACT4
+{
+	pic GLZZD0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+decal GLASSIMPACT5
+{
+	pic GLZZE0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal SMASHIMPACT1
+{
+	pic WLLPA0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal SMASHIMPACT2
+{
+	pic WLLPB0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal SMASHIMPACT3
+{
+	pic WLLPC0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+decal SMASHIMPACT4
+{
+	pic WLLPD0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+decal SMASHIMPACT5
+{
+	pic WLLPE0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+   decalgroup GLASSHITS
+   {
+       GLASSIMPACT1			1
+	   GLASSIMPACT2			1
+	   GLASSIMPACT3			1
+	   GLASSIMPACT4			1
+	   GLASSIMPACT5			1
+   }
+
+
+   decalgroup SMASHHITS
+   {
+       SMASHIMPACT1			1
+	   SMASHIMPACT2			1
+	   SMASHIMPACT3			1
+	   SMASHIMPACT4			1
+	   SMASHIMPACT5			1
+   }
+
+   decalgroup BulletDecalNew1
+   {
+       Bulleth3			1
+       Bulleth2			1
+	   Bulleth1			1
+   }
+
+   decalgroup BulletDecalNewExtreme
+   {
+       Bulleth3X		1
+       Bulleth2X		1
+	   Bulleth1X		1
+   }  
+
+   decalgroup MetalDecalNew1
+   {
+       metalh1			1
+       metalh2			1
+	   metalh3			1
+   }
+
+   decalgroup WoodImpacts
+   {
+       woodh1			1
+	   woodh2			1
+	   woodh3			1
+	   woodh4			1
+	   woodh5			1
+	   woodh6			1
+	   woodh7			1
+   }

@@ -1,0 +1,122 @@
+// We might want to expand upon this at some point.
+class CockroachSpawner : SelacoActor 
+{
+    bool roachActive;
+    array<actor> roachList;
+    const ROACH_COUNT = 10;
+
+    override void PostBeginPlay()
+    {
+        super.PostBeginPlay();
+    }
+
+    void spawnRoaches()
+    {
+        for(int x=0;x<=ROACH_COUNT;x++)
+        {
+            actor roach;
+            bool success;  
+            [success, roach] = A_SPAWNITEMEX("Cockroach", frandom(-200,200), frandom(-200,200));     
+            if(roach)
+            {
+                roachList.push(roach);
+            }     
+        }
+    }
+
+    override void tick()
+    {
+        // Spawn new roaches when player gets close.
+        if(players[0].mo)
+        {
+            if(!roachActive && level.time % 10 == 0 && Distance2DSquared(players[0].mo) < 2000*2000)
+            {
+                roachActive = true;
+                spawnRoaches();
+            }
+        }
+    }
+
+
+    default
+    {
+        SelacoActor.sleepDistance 150;
+        +NOINTERACTION
+    }
+    states
+    {
+        Spawn:
+            TNT1 A -1;
+            loop;
+    }
+
+}
+
+// Worse than Cockatrice
+class Cockroach : SelacoActor
+{
+
+    default
+    {
+        radius 3;
+        height 3;
+        +shootable
+        +NOBLOODDECALS
+        +solid
+        +SelacoActor.DecorativeActor;
+        +SelacoActor.thruplayers;
+        health 5;
+        speed 1;
+        BloodType "RoachBlood", "RoachBlood", "RoachBlood";
+        SelacoActor.SleepDistance 2048;
+        +SelacoActor.Crushable;
+    }
+    states
+    {
+        Spawn:
+            BUGS AABBCC 1 A_WANDER();
+            loop;
+        Death:
+            TNT1 A 0
+            {
+                bNoInteraction = true;
+                A_ChangeLinkFlags(1);
+                health = 0;
+                stats.AddStat(STAT_ROACHES_KILLED, 1, 0);
+                A_PLAYSOUND("COACKROACH/KILL", CHAN_AUTO, 0.2, pitch:1.1);
+            }
+            BUGS D -1 {
+                SleepIndefinite();
+            }
+            stop;
+    }
+}
+
+class RoachBlood : SelacoActor	{
+
+	override void PostBeginPlay() {
+		super.PostBeginPlay();
+		roll = random(0,360);
+        A_CHANGEVELOCITY(0,0,0, CVF_REPLACE);
+		scale = (scale.x + frandom(0.0, 0.1), scale.x + frandom(0.0, 0.1));
+	}
+
+	default {
+        +InterpolateAngles
+		+NOBLOCKMAP
+		+NOGRAVITY
+		+DONTSPLASH
+		+RollSprite
+        +NOBLOODDECALS
+		scale 0.3;
+		height 4;
+		radius 4;
+		mass 200;
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			RBLD ABCDEFJ 1;
+			stop;
+	}
+}

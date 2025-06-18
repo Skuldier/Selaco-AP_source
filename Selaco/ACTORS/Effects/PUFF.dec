@@ -1,0 +1,136 @@
+ACTOR MeleePuff: BulletPuff
+{
+  renderstyle Translucent
+  alpha 0.5
+  Scale 8.5
+  DamageType Melee
+  +NOBLOCKMAP
+  +NOGRAVITY
+  +NOEXTREMEDEATH
+  +PUFFONACTORS
+  +BLOODLESSIMPACT 
+  +FORCEXYBILLBOARD
+  +DONTSPLASH
+  states
+  {
+  Spawn:
+  Death:
+  Melee:
+  XDeath:
+    EXPL AAAAAA 0 A_SpawnProjectile ("MeleeSmoke", 0, 0, random (0, 360), 2, random (0, 360))
+	TNT1 A 10
+    stop
+ 
+  }
+}
+
+ACTOR SpawnBulletDecal {
+    Radius 8
+    Height 8
+    Speed 10
+    Gravity 0.7
+    Mass 4
+    +DOOMBOUNCE
+    PROJECTILE
+    +MISSILE
+    +MOVEWITHSECTOR
+    +CLIENTSIDEONLY
+    +NOBLOCKMAP
+	  Decal "BulletDecalNew1"
+    +NOTELEPORT
+
+    States {
+        Spawn:
+          TNT1 A 0
+          TNT1 A 0 A_SETANGLE(angle - 180)
+          TNT1 A 1
+          goto death
+        Death:
+          TNT1 A 1 A_SprayDecal("BulletDecalNew1", 172)
+          stop
+    }
+}
+
+ACTOR SpawnBulletDecalExtreme : SpawnBulletDecal {
+	Decal "BulletDecalNew1"
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SETANGLE(angle - 180)
+			TNT1 A 1
+			goto death
+		Death:
+			TNT1 A 1 A_SprayDecal("BulletDecalNewExtreme", 172)
+			stop
+	}
+}
+
+
+ACTOR SpawnMetalDecal : SpawnBulletDecal{
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SETANGLE(angle - 180)
+			TNT1 A 1
+			goto death
+		Death:
+			TNT1 A 1 A_SprayDecal("MetalDecalNew1", 172)
+			stop
+	}
+}
+
+ACTOR SpawnWoodDecal : SpawnBulletDecal{
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SETANGLE(angle - 180)
+			TNT1 A 1
+			goto death
+		Death:
+			TNT1 A 1 A_SprayDecal("WoodImpacts", 172)
+			stop
+	}
+}
+
+ACTOR SpawnGlassDecal : SpawnBulletDecal{
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SETANGLE(angle - 180)
+			TNT1 A 1
+			goto death
+		Death:
+			TNT1 A 1 A_SprayDecal("GLASSHITS", 172)
+			stop
+	}
+}
+
+ACTOR wallSmashDecal : SpawnBulletDecal{
+	States {
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 A_SETANGLE(angle - 180)
+			TNT1 A 1
+			goto death
+		Death:
+			TNT1 A 1 A_SprayDecal("SMASHHITS", 172)
+			stop
+	}
+}
+
+ACTOR SparksSmall: Sparks
+{
+  Scale 0.25
+}
+
+ACTOR SparksSmaller: Sparks
+{
+  Scale 0.2
+}
+
+
+
+
+
+
+

@@ -1,0 +1,1670 @@
+class HockeyBumper : PickupableDecoration {
+    TextureID tableFloorPic;
+    int respawnTimer;
+
+    // AI fields
+    bool isAI;
+    Vector2 tableDir;
+    double tableLength;
+    double centerRandom;
+    int enemyTimeout;
+    HockeyPuck curPuck;
+    HockeyGoal aiGoal, enemyGoal;
+    HockeyBumper enemyPaddle;
+    Array<HockeyGoal> aGoals, bGoals;
+
+    const AI_MOVE_SPEED = 2.85;
+
+    default {
+        -FALLDAMAGE;
+        +BUDDHA;
+        +INVULNERABLE;
+        health 9999999;
+        +SLIDESONWALLS;
+        MaxStepHeight 0;
+        Friction 1.99;
+        Tag "Paddle";
+        Mass 10;
+        Radius 6;
+        Height 8;
+
+        PickupableDecoration.HoldDistance 82;
+        -PickupableDecoration.TranslucentPickup;
+    }
+
+    states {
+        Spawn:
+            VOXE L -1;
+            loop;
+        Ai:
+            VOXE L 1 {
+                bPreventSleep = true;
+
+                if(!enemyPaddle || !enemyPaddle.isPickedUp()) enemyTimeout++;
+                else enemyTimeout = 0;
+
+                if(isPickedUp() || enemyTimeout > TICRATE * 4) {
+                    isAI = false;
+                    vel.xy = (0,0);
+                    setStateLabel("Spawn");
+
+                    if(!isPickedUp()) bPreventSleep = false;
+                }
+
+                if(!curPuck && level.mapTime % 10 == 0) {
+                    findPuck();
+                }
+
+                bool mustGuard = curPuck && curPuck.distance2d(enemyGoal) > distance2D(enemyGoal);
+
+                // Very, VERY basic AI here, but it's enough to play with
+                if( curPuck &&
+                    (curPuck.vel.xy dot tableDir < 0 || (curPuck.vel.xy.length() < 1 && curPuck.spawnTimer > 68 )) && 
+                    curPuck.distance2D(enemyGoal) > tableLength * 0.48 && 
+                    distance2d(aiGoal) < tableLength * 0.48
+                ) {
+                    if(!mustGuard) {
+                        aiChase();
+                        if(developer) A_PrintBold("Moving to puck...");
+                        
+                        // Pick a new random center point
+                        centerRandom = frandom(-12, 12);
+                    } else {
+                        aiGuard();
+                        if(developer) A_PrintBold("Guarding Net...");
+                    }
+                } else {
+                    if(mustGuard) {
+                        aiGuard();
+                        if(developer) A_PrintBold("Guarding Net...");
+                    } else {
+                        aiCenter();
+                        if(developer) A_PrintBold("Moving to center pos...");
+                    }
+                }
+            }
+            loop;
+    }
+
+    void aiChase() {
+        if(!curPuck) return;
+        let moveSpeed = AI_MOVE_SPEED * (skill == SKILL_SMF ? 2.5 : 1);
+
+        // Expectedpos is purposely wrong, if it was more accurate the bumper would be super annoying
+        let expectedPos = curPuck.pos.xy + (curPuck.vel.xy * (curPuck.distance2D(self) / moveSpeed) );
+        let dir = (curPuck.pos.xy + curPuck.vel.xy - pos.xy);
+        if(dir.length() != 0) {
+            vel.xy = dir.unit() * min(dir.length(), moveSpeed);
+        } else vel.xy = (0,0);
+    }
+
+    void aiGuard() {
+        let moveSpeed = AI_MOVE_SPEED * (skill == SKILL_SMF ? 2 : 1) * 0.7;
+
+        let goalPos = aiGoal.pos.xy + (tableDir * (radius + aiGoal.radius + 4)) + ((centerRandom, centerRandom) * 0.5);
+        let dir = (goalPos - pos.xy);
+        if(dir.length() != 0) {
+            vel.xy = dir.unit() * min(dir.length(), moveSpeed);
+        } else vel.xy = (0,0);
+    }
+
+    void aiCenter() {
+        let moveSpeed = AI_MOVE_SPEED * (skill == SKILL_SMF ? 2 : 1) * 0.7;
+        
+        let goalPos = aiGoal.pos.xy + (tableDir * (tableLength * 0.25)) + (centerRandom, centerRandom);
+        let dir = (goalPos - pos.xy);
+        if(dir.length() != 0) {
+            vel.xy = dir.unit() * min(dir.length(), moveSpeed);
+        } else vel.xy = (0,0);
+    }
+
+    // Note: Don't put hockey tables too close together or they will not correctly find goals
+    void startAI() {
+        // Find the goals around us
+        Array<HockeyGoal> goals;
+        BlockThingsIterator it = BlockThingsIterator.Create(self, 256);
+		while (it.Next()) {
+            if(it.thing is 'HockeyGoal' && it.thing.distance2D(self) <= 256) {
+                goals.push(HockeyGoal(it.thing));
+            }
+        }
+
+        if(goals.size() > 1) {
+            aGoals.clear();
+            bGoals.clear();
+            Vector2 aDir, bDir;
+            
+            // Find the closest goal and start team A from there
+            {
+                int firstGoal = -1;
+                double firstGoalDist = 99999;
+
+                for(int x = 0; x < goals.size(); x++) {
+                    let dist = goals[x].distance2D(self);
+
+                    if(firstGoal < 0 || dist < firstGoalDist) {
+                        firstGoal = x;
+                        firstGoalDist = dist;
+                    }
+                }
+
+                aGoals.push(goals[firstGoal]);
+                goals.delete(firstGoal);
+            }
+
+            // Sort goals into teams by distance from the first
+            while(goals.size() > 0) {
+                let g = goals[goals.size() - 1];
+                goals.pop();
+
+                if(g.distance2D(aGoals[0]) > 48) {
+                    bGoals.push(g);
+                    continue;
+                }
+                aGoals.push(g);
+            }
+
+            // Make sure we have some goals on each side
+            if(bGoals.size() == 0) {
+                if(developer > 0) A_PrintBold("AI Could not start, couldn't find B goals!");
+                return;
+            }
+        } else {
+            if(developer > 0) {
+                A_PrintBold("AI Could not start, couldn't find enough goals!");
+            }
+            return;
+        }
+
+        // Pick our center goal and opposite goal
+        // The physically closest two goals on either side will be the center
+        int aGoal = 0, bGoal = 0;
+        double gDist = aGoals[0].distance2D(bGoals[0]);
+
+        // Average position of a goals
+        Vector2 avg = (0,0);
+        double dist = 99999;
+        for(int x = 0; x < aGoals.size(); x++) avg += aGoals[x].pos.xy;
+        avg /= double(aGoals.size());
+
+        // Closest to average is the center
+        for(int x = 0; x < aGoals.size(); x++) {
+            let d = (aGoals[x].pos.xy - avg).length();
+            if(d < dist) {
+                dist = d;
+                aGoal = x;
+            }
+        }
+
+        // Average B Goals
+        avg = (0,0);
+        dist = 99999;
+        for(int x = 0; x < bGoals.size(); x++) avg += bGoals[x].pos.xy;
+        avg /= double(bGoals.size());
+
+        // Closest to average is the center
+        for(int x = 0; x < bGoals.size(); x++) {
+            let d = (bGoals[x].pos.xy - avg).length();
+            if(d < dist) {
+                dist = d;
+                bGoal = x;
+            }
+        }
+
+        aiGoal = aGoals[aGoal];
+        enemyGoal = bGoals[bGoal];
+        
+        // Determine shape of the table
+        tableLength = (enemyGoal.pos.xy - aiGoal.pos.xy).length();
+        tableDir = (enemyGoal.pos.xy - aiGoal.pos.xy).unit();
+
+        // Spawn debug line showing table dir
+        if(developer > 0) {
+            for(int x = 0; x < 100; x++) {
+                let pp = aiGoal.pos.xy + (tableDir * (tableLength / 100.0) * x) - pos.xy;
+                A_SpawnParticle("green", SPF_FULLBRIGHT, 600, 3, 0, pp.x, pp.y, pos.z + 8, 0, 0, 0);
+            }
+
+            let pp = aiGoal.pos.xy - pos.xy;
+            A_SpawnParticle("red", SPF_FULLBRIGHT, 600, 6, 0, pp.x, pp.y, pos.z + 10, 0, 0, 0);
+            pp = enemyGoal.pos.xy - pos.xy;
+            A_SpawnParticle("red", SPF_FULLBRIGHT, 600, 6, 0, pp.x, pp.y, pos.z + 10, 0, 0, 0);
+        }
+
+        findPuck();
+        
+        enemyPaddle = findBumper(self, true);
+
+        // Start AI
+        isAI = true;
+        setStateLabel("AI");
+
+        // TODO: Spawn a marker so the player knows this paddle is being controlled
+    }
+
+
+    // Find closest puck
+    void findPuck() {
+        BlockThingsIterator it = BlockThingsIterator.Create(self, 256);
+        double puckDist = 99999999;
+
+		while (it.Next()) {
+            if(it.thing is 'HockeyPuck' && it.thing.distance2D(self) <= 256) {
+                let dist = it.thing.distance2D(self);
+
+                if(!curPuck || dist < puckDist) {
+                    curPuck = HockeyPuck(it.thing);
+                    puckDist = dist;
+                }
+            }
+        }
+    }
+
+
+    override int SpecialMissileHit (Actor victim) {
+        return 1;
+    }
+
+    // Find closest bumper
+    static HockeyBumper findBumper(Actor source, bool pickedUp = false, bool mustBeAI = false) {
+        BlockThingsIterator it = BlockThingsIterator.Create(source, 256);
+        HockeyBumper bumper;
+        double bumperDist = 99999999;
+
+		while (it.Next()) {
+            if(it.thing is 'HockeyBumper' && it.thing != source && it.thing.distance2D(source) <= 256 && (!pickedUp || HockeyBumper(it.thing).isPickedUp())) {
+                if(mustBeAI && !HockeyBumper(it.thing).isAI) continue;
+
+                let dist = it.thing.distance2D(source);
+
+                if(!bumper || dist < bumperDist) {
+                    bumper = HockeyBumper(it.thing);
+                    bumperDist = dist;
+                }
+            }
+        }
+
+        return bumper;
+    }
+
+
+    override void Pickup(Actor source) {
+        wake();
+        isAI = false;
+        Super.Pickup(source);
+
+        if(source is 'Dawn' && isPickedUp()) {
+            HockeyBumper b = findBumper(self);
+            if(b) {
+                b.wake();
+                if(!b.isAI) b.startAI();
+            }
+            else if(developer) A_PrintBold("Couldn't start AI, no second bumper found!");
+        }
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+
+        spawnPoint.z = floorz;
+        tableFloorPic = floorpic;
+    }
+
+    override void tick() {
+        Super.tick();
+
+        // Force Z back to spawn
+        vel.z = 0;
+        if(pos.z != spawnPoint.z) SetOrigin((pos.xy, max(floorz, spawnPoint.z)), true);
+
+        
+        if(floorpic != tableFloorPic) {
+            respawnTimer++;
+        } else {
+            respawnTimer = 0;
+        }
+
+        if(respawnTimer > 60) {
+            respawn();
+        }
+    }
+
+    override void moveToHoldPos(Vector3 viewPos, Vector3 newPos, double ang, bool copyInterp) {
+        double velBefore = vel.xy.length();
+
+        Super.moveToHoldPos(viewPos, newPos, angle, copyInterp);
+        double velAfter = vel.xy.length();
+        // Limit
+        if(velAfter > 10) vel.xy *= 10.0 / velAfter;
+
+        if(vel.xy.length() - velBefore > 3) {
+            S_StartSound("AIRHOCKEY/SLIDE", CHAN_VOICE, CHANF_NOSTOP, volume: 0.3 * (vel.xy.length() / 10.0), pitch: frandom(0.95, 1.05));
+        }
+    }
+
+    override void spawnLandingEffects() {
+        // Nothing
+    }
+
+    override void convertToProjectile(bool thrown) {
+        if(!thrown) Super.convertToProjectile();
+        // Do nothing when thrown
+    }
+
+    void respawn() {
+        SetOrigin(spawnpoint, false);
+    }
+
+    void goalScored() {
+        if(isAI) {
+            // Is it our goal?
+            if(curPuck && curPuck.distance2D(aiGoal) < curPuck.distance2D(enemyGoal)) {
+                // Find a reactionary
+                BlockThingsIterator it = BlockThingsIterator.Create(aiGoal, 32);
+                while (it.Next()) {
+                    if(it.thing is 'TeddyBear' && it.thing.distance2D(aiGoal) <= 48) {
+                        it.thing.A_PlaySound("script/squak", CHAN_6, 1.0, 0, 1.0, false, frandom(0.86, 1.0));
+                        it.thing.wake();
+                        it.thing.vel.z += 5;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+class HockeyPuck : PickupableDecoration {
+    int paddleTimeout, respawnTimer, goalTimer;
+    int spawnTimer, goalCount;
+    Vector2 contactNorm, contactVel, preContactVel, velBeforeTick;
+    bool isPlayingSlide;
+    TextureID tableFloorPic;
+
+    default {
+        //BounceType "Doom";
+        +INVULNERABLE;
+        health 9999999;
+        +NOFRICTION;
+        -NOBLOCKMAP;
+        -SLIDESONWALLS;
+        +BOUNCEONWALLS;
+        +BOUNCEONFLOORS;
+        +NOEXPLODEFLOOR;
+        +NOTELESTOMP;
+        -BOUNCEAUTOOFF;
+        -BOUNCEAUTOOFFFLOORONLY;
+        -PUSHABLE;
+        +SOLID;
+        Friction 0.75;
+        PushFactor 1.1;
+        BounceFactor 0.9;
+        WallBounceFactor 0.9;
+        MaxStepHeight 0;
+        Tag "Puck";
+        Radius 4.5;
+        Height 2;
+        BounceCount 0;
+        Mass 10;
+        Gravity 1.5;
+        +USEBOUNCESTATE;
+        +PICKUP;    // Required to touch goal
+        -NOFRICTIONBOUNCE;
+        +SelacoActor.ThruPlayers;
+        +SelacoActor.ThruEnemies;
+        +SelacoActor.WakeOnTouch;
+        +SelacoActor.WakeNearPlayer;
+        SelacoActor.SleepDistance 512;
+        -SelacoActor.SleepWhenIdle;
+        -PickupableDecoration.TranslucentPickup;
+    }
+
+    states {
+        // TODO: Add bounce effect
+        Spawn:
+            VOXE L -1;
+            loop;
+        Bounce:
+            VOXE L 1 {
+                if(!invoker.isPickedUp()) {
+                    if(vel.xy.length() > invoker.velBeforeTick.length()) {
+                        // GZDoom does not like slow bounces, slow the velocity back down to what it was before bounce
+                        vel.xy *= invoker.velBeforeTick.length() / vel.xy.length();
+                    }
+                    A_StartSound("impact/pool", CHAN_BODY, CHANF_NOSTOP, volume: 0.65 + (vel.length() / 10.0 * 0.35),  pitch: frandom(0.9, 1.1));
+                    vel.z = 0;
+
+                    if(BlockingLine && goalTimer > 0) {
+                        vel.xy *= 0.1;
+                    }
+                }
+            }
+            goto Spawn;
+        Death:
+            VOXE L 1 { 
+                invoker.respawn(); 
+            }
+            stop;
+    }
+
+    void respawn() {
+        goalCount = 0;
+        let puck = Spawn("HockeyPuck", spawnpoint, ALLOW_REPLACE);
+
+        // Find a comfy place for good old hockeypuck to exist
+        if(!puck.CheckMove(puck.pos.xy)) {
+            for(int x = 0; x < 10; x++) {
+                let dir = angleToVector(x * 36, radius * 2.5);
+                if(TryMove(puck.pos.xy + dir, 2, false, null)) {
+                    break;
+                }
+            }
+
+            // If we never found a spot, fly into the air
+            if(!puck.CheckMove(puck.pos.xy)) {
+                puck.setOrigin((puck.pos.xy, spawnPoint.z + 15), false);
+            }
+        }
+
+        puck.spawnPoint = spawnPoint;
+    }
+
+    override void spawnLandingEffects() {
+        // Nothing
+    }
+
+    override int SpecialMissileHit (Actor victim) {
+        if(victim is "HockeyGoal") {
+            goalCount += 2;
+            if(goalCount > 4) goal();
+            return 1;
+        }
+		return super.SpecialMissileHit(victim);
+	}
+
+    void goal() {
+        goalCount = 0;
+
+        if(goalTimer == 0) {
+            // Play goal sound
+            A_StartSound("hockey/goal", CHAN_AUTO);
+            goalTimer = 60;
+
+            // Notify an AI paddle
+            let aiBumper = HockeyBumper.findBumper(self, false, true);
+            if(aiBumper) {
+                aiBumper.goalScored();
+            }
+        }
+    }
+
+    override bool CanCollideWith(Actor other, bool passive) {
+        bool canCollide = Super.CanCollideWith(other, passive);
+
+        if(other is 'PickupableDecoration' && canCollide) {
+            contactNorm = (other.pos.xy - pos.xy).unit();
+            contactVel = other.vel.xy;
+            preContactVel = vel.xy;
+            paddleTimeout = 1;
+            return true;
+        }
+
+        return canCollide;
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+        tableFloorPic = floorpic;
+        spawnpoint.z = floorZ;
+    }
+    
+
+    override void tick() {
+        bSLIDESONWALLS = isPickedUp();
+        bMISSILE = !isPickedUp();
+        velBeforeTick = vel.xy;
+        spawnTimer++;
+
+        // Add extra gravity to help puck "dunk" in the goal without bouncing out
+        gravity = pos.z < floorz + 10 ? 5 : 1.2;
+
+        Super.tick();
+
+        goalCount = max(0, goalCount - 1);
+        angle = 0;
+        //bMBFBouncer = true;
+        vel *= 0.99;
+
+        
+        if(paddleTimeout > 0) {
+            if(contactNorm ~== (0,0)) contactNorm = (frandom(-1, 1), frandom(-1,1)).unit();
+            if(contactVel ~== (0,0)) contactVel = (frandom(-1, 1), frandom(-1,1));
+
+            paddleTimeout = 0;
+
+            // Resolve a collision that happened this frame
+            if(preContactVel.length() > 0) {
+                let velDot = preContactVel dot contactNorm;
+
+                if(velDot > 0) {
+                    // Reflect velocity off surface normal
+                    vel.xy = (preContactVel - (2.0 * velDot * contactNorm)) * 0.78;
+                }
+
+                if(developer > 0) {
+                    for(int x = 0; x < 50; x++) {
+                        let cn = (contactNorm.y, -contactNorm.x);
+                        let pp = (cn * (x - 25));
+                        A_SpawnParticle("green", SPF_FULLBRIGHT, 290, 2, 0, pp.x, pp.y, pos.z + 16, 0, 0, 0);
+
+                        pp = (vel.xy.unit() * x);
+                        A_SpawnParticle("red", SPF_FULLBRIGHT, 290, 2, 0, pp.x, pp.y, pos.z + 16, 0, 0, 0);
+
+                        pp = preContactVel.unit() * -x;
+                        A_SpawnParticle("blue", SPF_FULLBRIGHT, 290, 2, 0, pp.x, pp.y, pos.z + 16, 0, 0, 0);
+                    }
+                }
+            }            
+
+            // Add velocity from other object
+            if(contactVel dot (-contactNorm) > 0) {
+                vel.xy += contactVel * 0.65;
+            }
+
+            // Limit velocity
+            let totalVel = vel.xy.length();
+            if(totalVel > 10) {
+                vel.xy *= 10.0 / totalVel;
+            }
+        }
+
+        if(goalTimer == 0 && ((pos.xy - spawnpoint.xy).length() > 256 || floorpic != tableFloorPic)) {
+            respawnTimer++;
+            if(respawnTimer % 35 == 0) {
+                A_StartSound("ui/dangerwarning", CHAN_AUTO, volume: 0.45);
+            }
+            A_SetTranslucent(1.0 - (respawnTimer / (35.0 * 5.0)), 0);
+        } else {
+            respawnTimer = 0;
+            if(alpha < 1) {
+                A_SetTranslucent(1, 0);
+            }
+        }
+
+        if(respawnTimer > 35 * 5) {
+            respawn();
+            destroy();
+            return;
+        }
+
+        if(goalTimer > 0) {
+            goalTimer--;
+
+            if(goalTimer == 0) {
+                respawn();
+                destroy();
+
+                // Play respawn sound
+                return;
+            }
+        }
+
+        // Check for stuck
+        FCheckPosition check;
+        if(!(spawnPoint.xy ~== pos.xy) && !CheckMove(pos.xy, PCM_NOACTORS, check)) {
+            // Try moving towards the spawn position to get out of the wall
+            let dir = (spawnPoint.xy - pos.xy).unit();
+            for(int x = 0; x < 5; x++) {
+                if(TryMove(pos.xy + (dir * double(x)), 2, false, null)) {
+                    break;
+                }
+            }
+        }
+
+        bNoFriction = floorpic == tableFloorPic && goalTimer == 0;
+    }
+
+    override void convertToProjectile(bool thrown) {
+        if(!thrown) Super.convertToProjectile();
+        // Do nothing when thrown
+    }
+}
+
+
+class HockeyGoal : Actor {
+    default {
+        +INVULNERABLE;
+        radius 8;
+        height 4;
+        -SOLID;
+        +SHOOTABLE;
+        +NOGRAVITY;
+        +SPECIAL;
+		-THRUACTORS;
+		-THRUGHOST;
+        +NODAMAGE;
+        +NOBLOODDECALS;
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+        SleepIndefinite();
+    }
+}
+
+
+
+// Ball Game
+class FunBall : PickupableDecoration {
+    FunballNet lastNet;
+    int netCounter;
+    double rollAmount;
+
+    property RollAmount : rollAmount;
+
+    default {
+        +INVULNERABLE;
+        health 9999999;
+        -NOBLOCKMAP;
+        +SLIDESONWALLS;
+        +BOUNCEONWALLS;
+        +BOUNCEONFLOORS;
+        +NOEXPLODEFLOOR;
+        +BOUNCEONCEILINGS;
+        -BOUNCEAUTOOFF;
+        -BOUNCEAUTOOFFFLOORONLY;
+        +ALLOWBOUNCEONACTORS;
+        +BOUNCEONACTORS;
+        -CANNOTPUSH;
+        +PUSHABLE;
+        +SOLID;
+        Friction 0.9999;
+        PushFactor 1.1;
+        BounceFactor 1;
+        WallBounceFactor 1;
+        MaxStepHeight 8;
+        Tag "Ball";
+        Radius 6.7;
+        Height 9;
+        BounceCount -1;
+        +MISSILE;
+        Mass 10;
+        +USEBOUNCESTATE;
+        -NOFRICTIONBOUNCE;
+        //+SelacoActor.ThruPlayers;
+        +SelacoActor.WakeOnTouch;
+        +SelacoActor.SleepWhenIdle;
+        +SelacoActor.SpecialPushable;
+        -PickupableDecoration.TranslucentPickup;
+        -SelacoActor.SlopeAlignment;
+        FunBall.RollAmount 6.0;
+    }
+
+    states {
+        // TODO: Add bounce effect
+        Spawn:
+            VOXE L -1;
+            loop;
+        Bounce:
+            VOXE L 1 {
+                if(!invoker.isPickedUp()) {
+                    A_StartSound("impact/funball", CHAN_BODY, CHANF_NOSTOP, volume: 0.5 + (vel.length() / 10.0 * 0.5),  pitch: frandom(0.89, 1.1));
+                }
+                
+                if(abs(vel.z) < 2) {
+                    vel.z = 0;
+                } else if(abs(vel.z) < 5) {
+                    vel.z *= 0.55;
+                } else {
+                    vel.z *= 0.75;
+                }
+            }
+            goto Spawn;
+        Bounce.Wall:
+            VOXE L 1 {
+                if(!invoker.isPickedUp()) {
+                    A_StartSound("impact/funball", CHAN_BODY, CHANF_NOSTOP, volume: 0.5 + (vel.length() / 10.0 * 0.5),  pitch: frandom(0.89, 1.1));
+                }
+                vel.xy = vel.xy *= 0.75;
+            }
+            goto Spawn;
+        Bounce.Actor:
+            TNT1 A 0 {
+                vel.z *= 0.75;
+                if(BlockingMobj && BlockingMobj is 'Funball') {
+                    BlockingMobj.wake();
+                    BlockingMobj.vel -= vel * 0.5;
+                }
+            }
+            goto Bounce.Wall;
+        Death:
+            VOXE L 1 { invoker.respawn(); }
+            stop;
+    }
+
+    virtual void respawn() {
+        Spawn(getClass(), spawnpoint);
+    }
+
+    override void convertToProjectile(bool thrown) {
+        if(!thrown) Super.convertToProjectile();
+        // Do nothing when thrown
+    }
+
+    override void tick() {
+        Super.tick();
+
+        WorldOffset = (0,0, (height * 1.2) / 2.0);
+
+        // Roll!
+        if(pos.z <= floorz && !isPickedUp() && prev != pos) {
+            // Rotate
+            let dir = prev.xy - pos.xy;
+            let norm = (-dir.y, dir.x);
+            norm = norm.unit();
+
+            //let len = dir.length();
+            //dir = dir.unit();
+            //let circ = ((2.0 * radius) * 3.14159265358979323846);
+            //pitch += -sin(roll) * (dir.x * circ);
+            //roll += cos(opitch) * (dir.y * circ);
+
+            let dy = (dir.y * rollAmount);
+            let dx = (dir.x * rollAmount);
+
+            let opitch = pitch;
+            let oroll = roll;
+            let oangle = angle;
+            //pitch += (-sin(roll) * (dir.x * circ)) + (cos(angle) * (dir.x * circ));
+            //angle += (cos(opitch) * (dir.x * circ)) + (sin(roll) * (dir.x * circ));
+            //roll += (cos(opitch) * (dir.y * circ)) - (sin(angle) * (dir.x * circ));
+            pitch -= ((cos(oangle)) * dx) + 
+                     ((sin(oangle)) * dy);
+            
+            roll +=  ((cos(opitch) * cos(oangle)) * dy) - 
+                     ((sin(oangle) * cos(opitch)) * dx);
+        }
+
+        if(lastNet) {
+            if(netCounter++ > 2) {
+                lastNet = null;
+                netCounter = 0;
+            } else {
+                if(netCounter == 2) {
+                    // Slow when hitting net
+                    vel.z *= 0.5;
+                }
+                
+                vel.xy *= 0.5;
+
+                // Center in net
+                setOrigin((lastNet.pos.xy, pos.z), true);
+            }
+        }
+
+        let xyl = vel.xy.length();
+        bMissile = xyl > 2 || abs(vel.z) > 2;
+        if(abs(pos.z - floorz) < 1.5) vel.xy *= 0.97;
+    }
+
+    override bool CanCollideWith(Actor other, bool passive) {
+        bool canCollide = Super.CanCollideWith(other, passive);
+
+        if(canCollide && !passive && other is 'Funball' && canSlideOnBalls()) {
+            let v = max(1.5, abs(vel.z));
+            if(vel.xy.length() < 1.5 && pos.z > other.pos.z + 2) {
+                vel.xy = (pos.xy - other.pos.xy).unit() * frandom(1, 1.2) * v;
+            }
+        }
+        
+        return canCollide;
+    }
+
+    virtual bool canSlideOnBalls() {
+        return true;
+    }
+}
+
+
+class SkeeBall : FunBall {
+    default {
+        Radius 4;
+        Height 6;
+        Scale 0.35;
+    }
+
+    States {
+        Bounce:
+            VOXE L 1 {
+                if(!invoker.isPickedUp()) {
+                    A_StartSound("impact/funball", CHAN_BODY, CHANF_NOSTOP, volume: 0.5 + (vel.length() / 10.0 * 0.5),  pitch: frandom(0.89, 1.1));
+                }
+                
+                if(abs(vel.z) < 2) {
+                    vel.z = 0;
+                } else if(abs(vel.z) < 5) {
+                    vel.z *= 0.35;
+                } else {
+                    vel.z *= 0.45;
+                }
+            }
+            goto Spawn;
+        Bounce.Wall:
+            VOXE L 1 {
+                if(!invoker.isPickedUp()) {
+                    A_StartSound("impact/funball", CHAN_BODY, CHANF_NOSTOP, volume: 0.5 + (vel.length() / 10.0 * 0.5),  pitch: frandom(0.89, 1.1));
+                }
+                vel.xy = vel.xy *= 0.45;
+            }
+            goto Spawn;
+        Bounce.Actor:
+            TNT1 A 0 {
+                vel.z *= 0.45;
+                if(BlockingMobj && BlockingMobj is 'Funball') {
+                    BlockingMobj.wake();
+                    BlockingMobj.vel -= vel * 0.45;
+                }
+            }
+            goto Bounce.Wall;
+    }
+}
+
+
+class FunballNet : Actor {
+    int celebrateTime;
+
+    default {
+        +BUDDHA;
+        +SHOOTABLE;
+        +INVULNERABLE;
+        +NOGRAVITY;
+        +SOLID;
+        Tag "Net";
+        Radius 16;
+        Height 6;
+        Mass 99999;
+    }
+
+    states {
+        // TODO: Add bounce effect
+        Spawn:
+            VOXE L -1 { SleepIndefinite(); }
+            loop;
+    }
+
+    static const string cols[] = {
+        "#ff1111",
+        "#ffffff",
+        "#1111ff"
+    };
+    
+    override bool CanCollideWith(Actor other, bool passive) {
+        
+
+        bool canCollide = Super.CanCollideWith(other, passive);
+
+        if(other is 'Funball' && canCollide) {
+            let dist = Distance2D(other);
+            if(dist <= 9) {
+                if(other.prev.z > pos.z && other.pos.z <= pos.z && other.vel.z < 0 && level.time - celebrateTime > 15) {
+                    celebrateTime = level.time;
+                    // Play celebration sound, maybe some confetti
+                    for(int x = 0; x < 50; x++) {
+                        A_SpawnParticle(cols[random(0,300) % 3], SPF_FULLBRIGHT, 45, frandom(2,9), frandom(0,360), frandom(-25,25), frandom(-25,25), frandom(0,25), frandom(-2,2), frandom(-2,2), frandom(-2,2));
+                    }
+                    A_StartSound("hockey/goal", CHAN_AUTO, volume: 1.5);
+                    FunBall(other).lastNet = self;
+                }
+                return false;
+            }
+            if(other.vel.xy.length() < 1) {
+                if(dist <= 15) {
+                    other.vel.xy = (pos.xy - other.pos.xy).unit() * frandom(1, 1.2);
+                } else {
+                    other.vel.xy = (other.pos.xy - pos.xy).unit() * frandom(1, 1.2);
+                }
+                
+            }
+            return true;
+        }
+
+        return canCollide;
+    }
+}
+
+
+// Tracks amount of balls and respawns them when the table is cleared
+class Poolgame : Actor {
+    PoolBall qball;
+    Array<PoolBall> balls;
+    Array<PoolNet> nets;
+
+    int resetCounter, resetQCounter;
+
+    default
+    {
+        RenderStyle "None";
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+    }
+
+    override void tick() {
+        if(level.time % 15 == 0) {
+            bool shouldReset = true;
+            for(int x = 0; x < balls.size(); x++) {
+                if(!balls[x]) {
+                    balls.delete(x);
+                    x--;
+                }
+                
+                if(!balls[x].sunk && balls[x].isOnTable()) {
+                    shouldReset = false;
+                    break;
+                }
+            }
+
+            if(shouldReset) {
+                resetBalls();
+            }
+        }
+        
+        if(resetCounter > 0) {
+            resetCounter--;
+            if(resetCounter == 0) resetBalls();
+        }
+
+        if(resetQCounter > 0) {
+            resetQCounter--;
+        }
+
+        if(qball && (resetQCounter == 0 || qball.sunk) && !qball.isPickedUp()) resetQ();
+
+        
+    }
+
+    // Assumes balls are not yet sunk
+    void addBall(PoolBall b) {
+        if(b is 'CueBall') {
+            qball = b;
+        } else {
+            balls.push(b);
+        }
+    }
+
+    void ballDied(PoolBall b) {
+        int bindex = balls.find(b);
+        
+        if(bindex < balls.size()) {
+            balls.delete(bindex);
+        }
+    }
+
+    void addNet(PoolNet net) {
+        nets.push(net);
+    }
+
+    /*static const string cols[] = {
+        "#ff1111",
+        "#ffffff",
+        "#1111ff"
+    };*/
+
+    void sinkBall(Poolball b, PoolNet net) {
+        b.A_SetrenderStyle(1.0, STYLE_NORMAL);  // In case it already started fading from leaving the table
+
+        if(b is 'CueBall') {
+            resetQCounter = 1;
+
+            // Play fail sound
+            A_StartSound("ui/fail", CHAN_BODY, CHANF_NOSTOP);
+            return;
+        }
+
+        b.sunk = true;
+
+        // Play celebration sound, maybe some confetti
+        for(int x = 0; x < 50; x++) {
+            net.A_SpawnParticle(
+                "#ff1111", 
+                SPF_FULLBRIGHT, 
+                lifetime: 30, 
+                size: frandom(0.25,1.5), 
+                angle: frandom(0,360),
+                xoff: frandom(-5,5),
+                yoff: frandom(-5,5), 
+                zoff: frandom(0,5), 
+                velx: frandom(-1,1), 
+                vely: frandom(-1,1), 
+                velz: frandom(0,2)
+            );
+        }
+        net.A_StartSound("hockey/goal", CHAN_AUTO, volume: 1.5);
+
+        for(int x = 0; x < balls.size(); x++) {
+            if(!balls[x].sunk) return;
+        }
+
+        resetCounter = 1;
+    }
+
+    void resetBalls() {
+        resetCounter = -1;
+        for(int x = 0; x < balls.size(); x++) {
+            if(balls[x].isPickedUp() && Dawn(balls[x].pickedUpOwner)) {
+                Dawn(balls[x].pickedUpOwner).dropObject();
+            }
+            balls[x].sunk = false;
+            balls[x].vel = (0,0,0);
+            balls[x].respawnPool(true, balls[x].spawnPoint);
+        }
+
+        resetQ();
+    }
+
+    void resetQ() {
+        if(qball) {
+            //qball.setOrigin(qball.spawnPoint, false);
+            if(qball.respawnPool(false)) {
+                resetQCounter = -1;
+                qball.sunk = false;
+            }
+        }
+    }
+    
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+
+
+class PoolBall : FunBall {
+    bool sunk, checkedRest;
+    int offTableTimer, sunkTimer, spriteFrame;
+    PoolGame game;
+    Vector3 lastTablePos;
+    TextureID tableFloorPic;
+
+	static const String PlankList[] =
+		{
+			"plank1",
+			"plank2",
+			"plank3",
+			"plank4"
+	};	
+
+
+    default {
+        Radius 1.8;
+        Height 2.52;
+        Scale 0.29;
+        Friction 1.08;
+        MaxStepHeight 0;
+        -BUDDHA;
+        -INVULNERABLE;
+        +SHOOTABLE;
+        -NOBLOOD
+        Health 1;
+        SelfLighting "353535";
+        +SelacoActor.ThruPlayers;
+        PickupableDecoration.ThrowVel 3;
+        PickupableDecoration.MaxThrowVel 20;
+        PickupableDecoration.HoldDistance 32;
+        +PickupableDecoration.AutoHoldDistance;
+        -PickupableDecoration.LandingEffect;
+        SelacoActor.SpecialPushFactor 0.65;
+        FunBall.RollAmount 15.304;
+        BloodType "BulletImpactEffectPlasticStationarySmall";
+        PushFactor 0.65;
+        Tag "Pool Ball";
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+
+        spriteFrame = args[1] == 0 ? random(0, 14) : (args[1] - 1) % 15;
+        roll = frandom(0, 360);
+        pitch = frandom(0, 360);
+        angle = frandom(0, 360);
+
+        tableFloorPic = floorpic;
+        SpawnPoint.z = pos.z;
+        lastTablePos = SpawnPoint;
+
+        // Find nearest pool game and assign ourselves to it
+        if(!game) {
+            ThinkerIterator it = ThinkerIterator.Create("PoolGame");
+            double lastDist = double.max;
+            PoolGame game, ourGame;
+
+            while ((game = PoolGame(it.Next()))) {
+                if(Distance2DSquared(game) < lastDist) {
+                    ourGame = game;
+                    lastDist = Distance2DSquared(game);
+                }
+            }
+
+            if(ourGame) {
+                ourGame.addBall(self);
+                self.game = ourGame;
+            }
+        }
+    }
+
+    /*override bool doHoldActionEnd() {
+        if(pos.z >= spawnPoint.z) {
+            sunk = false;
+        }
+        
+        return Super.doHoldActionEnd();
+    }*/
+
+    /*override void drop() {
+        Super.drop();
+
+        if(pos.z >= spawnPoint.z) {
+            sunk = false;
+        }
+    }*/
+
+    bool isOnTable() {
+        return floorpic == tableFloorPic && pos.z >= floorz;
+    }
+
+    override bool canSlideOnBalls() {
+        return false;//floorpic == tableFloorPic;  // Don't slide once in the pocket
+    }
+
+
+    override void respawn() {
+        // Tell game we were deleted
+        if(game) game.ballDied(self);
+
+        Vector3 spot = SpawnPoint;
+
+        if(!(lastTablePos ~== (0,0,0))) {
+            spot = lastTablePos;
+        }
+
+        PoolBall pb = PoolBall(Spawn(getClass(), spot));
+        pb.tableFloorPic = tableFloorPic;
+        pb.frame = frame;
+        pb.spriteFrame = spriteFrame;
+        pb.game = game;
+        pb.args[1] = args[1];
+        pb.SpawnPoint = SpawnPoint;
+
+        if(game) game.addBall(pb);
+    }
+
+
+    bool respawnPool(bool force = false, Vector3 pt = (0,0,0)) {
+        if(Dawn(pickedUpOwner)) Dawn(pickedUpOwner).dropObject();
+        
+        A_ChangeLinkFlags(0, 0);
+        A_SetrenderStyle(1.0, STYLE_NORMAL);
+        sunkTimer = 0;
+        sunk = false;
+
+        if(force) {
+            SetOrigin(pt != (0,0,0) ? pt : spawnPoint, false);
+            if(pt == (0,0,0)) {
+                // On the off chance that the table changes textures between saves, probably impossible but who knows
+                tableFloorPic = floorpic;  
+            }
+            vel = (0,0,0);
+            return true;
+        } else {
+            // Make sure we fit before moving back to spawnpoint
+            FCheckPosition check;
+            let startLocation = pt != (0,0,0) ? pt : spawnPoint;
+            let location = startLocation;
+            let oldz = pos.z;
+            
+            for(int x = 0; x < 10; x++) {
+                SetXYZ((pos.xy, location.z));
+                if(!CheckPosition(location.xy, true, check) && (x == 0 || check.floorpic == tableFloorPic)) {
+                    location = (startLocation.xy + angleToVector(x * 10, radius * 2), startLocation.z);
+                } else {
+                    SetOrigin(location, false);
+                    vel = (0,0,0);
+                    return true;
+                }
+            }
+            SetXYZ((pos.xy, oldz));
+        }
+
+        return false;
+    }
+
+
+    void returnToTable() {
+        respawnPool(false, lastTablePos);
+    }
+
+    override bool isConsideredIdle() {
+        return Super.isConsideredIdle() && !isPickedUp() && floorpic == tableFloorPic && !sunk;
+    }
+
+    static clearscope Vector2 rot(Vector2 p, double angle) {
+        let cosa = cos(angle);
+        let sina = sin(angle);
+
+        return ( p.x * cosa - p.y * sina, 
+                 p.x * sina + p.y * cosa );
+    }
+
+
+    override void tick() {
+        Super.tick();
+
+        frame = spriteFrame;
+        
+        if(sunk) {
+            sunkTimer++;
+
+            if(!(self is 'CueBall')) {
+                if(sunkTimer > 10 && sunkTimer <= 35) A_SetTranslucent(min(1.0, 1.0 - ((sunkTimer - 10) / (25.0))), 0);
+                if(sunkTimer == 35) {
+                    // Make sure we aren't held
+                    if(Dawn(pickedUpOwner)) Dawn(pickedUpOwner).dropObject();
+
+                    // Go to the ether realm until we reset or respawn
+                    A_SetrenderStyle(1.0, STYLE_NORMAL);
+                    SetXYZ((-99999, -99999, 99999));
+                    A_ChangeLinkFlags(1, 0);
+                    return;
+                }
+            }
+        } else {
+            if(floorpic == tableFloorPic) {
+                if(pos.z ~== floorz) lastTablePos = (pos.xy, floorZ);
+                offTableTimer = 0;
+                bPreventSleep = false;
+                if(alpha < 1) A_SetrenderStyle(1.0, STYLE_NORMAL);
+
+                // Spawn fun particles
+                let vlen = vel.length();
+                if(pos.z ~== floorz && vel.length() > 1 && TexMan.GetName(floorpic) ~== "POOLTBLA") {
+                    if(frandom(0,4) < vlen) {
+                        let vv = clamp(vlen / 4.0, 0.15, 1);
+                        let v = vel.xy.unit() * -1 * frandom(1, 2) * vv;
+                        A_SpawnParticle(
+                            "#05ff05", 
+                            SPF_FULLBRIGHT, 
+                            lifetime: 8, 
+                            size: frandom(1,2), 
+                            angle: angle - 180,
+                            xoff: frandom(-1.5,1.5),
+                            yoff: frandom(-1.5,1.5),
+                            zoff: frandom(0,0.4), 
+                            velx: v.x, 
+                            vely: v.y, 
+                            velz: frandom(0.1,0.6) * vv
+                        );
+                    }
+                }
+
+                // Check at rest to see if we are stuck in the wall and move away from it if possible
+                FCheckPosition check;
+                if(!CheckMove(pos.xy, PCM_NOACTORS, check)) {
+                    // Try moving towards the spawn position to get out of the wall
+                    let dir = (!game || game.pos.xy == pos.xy ? (frandom(0.5, 1), frandom(0.5, 1)) : game.pos.xy - pos.xy).unit();
+                    for(int x = 0; x < 5; x++) {
+                        if(TryMove(pos.xy + (dir * double(x)), 2, false, null)) {
+                            break;
+                        }
+                    }
+                }
+            } else if(!isPickedUp()) {
+                bPreventSleep = true;
+                offTableTimer++;
+                if(offTableTimer > 30) A_SetTranslucent(min(1.0, 1.0 - ((offTableTimer - 35) / (35.0))), 0);
+            }
+
+            if(offTableTimer > 70) {
+                offTableTimer = 0;
+                returnToTable();
+                return;
+            }
+        }
+    }
+
+
+    States {
+        Spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            loop;
+        Bounce:
+            VOXE L 1 {
+                frame = spriteFrame;
+
+                if(abs(vel.z) < 2) {
+                    vel.z = 0;
+                } else if(abs(vel.z) < 5) {
+                    vel.z *= 0.35;
+                } else {
+                    vel.z *= 0.45;
+                }
+            }
+            goto Spawn;
+        Bounce.Wall:
+            VOXE L 1 {
+                if(!invoker.isPickedUp()) {
+                    // Replace with thud
+                    A_StartSound("impact/funball", CHAN_BODY, CHANF_NOSTOP, volume: 0.5 + (vel.length() / 10.0 * 0.5),  pitch: frandom(0.89, 1.1));
+                }
+                vel.xy = vel.xy *= 0.45;
+            }
+            goto Spawn;
+        Bounce.Actor:
+            TNT1 A 0 {
+                vel.z *= 0.45;
+                if(BlockingMobj && BlockingMobj is 'Funball') {
+                    BlockingMobj.wake();
+                    BlockingMobj.vel.xy -= vel.xy * 0.45;
+
+                    if(BlockingMobj is 'PoolBall') {
+                        A_StartSound("impact/pool", CHAN_BODY, CHANF_NOSTOP, volume: 0.5 + (vel.length() / 10.0 * 0.5),  pitch: frandom(0.89, 1.1));
+
+                        if(vel.length() > 3 && pos.z ~== floorz) {
+                            Vector3 offset = ((BlockingMobj.pos - pos) * 0.5);
+
+                            for(int x = 0; x < 10; x++) {
+                                A_SpawnParticle(
+                                    "#ffffff", 
+                                    SPF_FULLBRIGHT, 
+                                    lifetime: 10, 
+                                    size: frandom(0.35,0.55), 
+                                    angle: frandom(0,360),
+                                    xoff: offset.x + frandom(-2,2),
+                                    yoff: offset.y + frandom(-2,2), 
+                                    zoff: offset.z + frandom(-1,3), 
+                                    velx: frandom(-1,1), 
+                                    vely: frandom(-1,1), 
+                                    velz: frandom(0.2,1)
+                                );
+                            }
+                        }
+                        
+                    }
+                }
+                vel.xy *= 0.45;
+            }
+            goto Spawn;
+        Death:
+            TNT1 A 0 {
+                if(game) game.ballDied(self);
+
+                string particleType = "Porcelain";
+                Array<SelacoParticle> particles;
+                emit(particleType, chance:0.75, numTries:12 , speed:-3,returnAr: particles);
+                
+                if(!(self is 'CueBall')) {
+                    switch(spriteFrame + 1) {
+                        case 1:
+                        case 9:
+                        case 3:
+                        case 5:
+                        case 13:
+                            particleType = "Porcelain_Yellow";
+                            break;
+                        case 3:
+                        case 7:
+                        case 11:
+                        case 15:
+                            particleType = "Porcelain_Red";
+                            break;
+                        case 12:
+                        case 4:
+                            particleType = "Porcelain_Purple";
+                            break;
+                        case 2:
+                        case 10:
+                            particleType = "Porcelain_Blue";
+                            break;
+                        case 8:
+                            particleType = "Porcelain_Black";
+                            break;
+                        case 6:
+                        case 14:
+                            particleType = "Porcelain_Green";
+                            break;
+                        default:
+                            particleType = "Porcelain";
+                            break;
+                    }
+                }
+
+				emit(particleType, chance:0.75, numTries:20, speed:-1, returnAr: particles);
+
+                for(int x = 0; x < particles.size(); x++) {
+                    let sc = frandom(0.16, 0.32);
+                    particles[x].A_SetScale(sc, sc);
+                    particles[x].gravity-=0.3;
+                }
+
+                // Small wood planks
+                for(int x = 5; x > 0; x--)
+                {
+                    actor plankActor;
+                    bool succ;
+                    [succ, plankActor] = A_SPAWNITEMEX(PlankList[random(0,PlankList.size()-1)], frandom(-3,3), frandom(-3,3), frandom(0,4), frandom(1,3), 0, frandom(1,3), angle:random(0,360));
+                    if(plankActor)
+                    {
+                        plankActor.A_SETSCALE(frandom(0.34,0.45));
+                    }
+                }
+			}
+			TNT1 A 0 A_playSound("impact/lightwood", CHAN_5, 0.55, pitch:frandom(1.3,1.6));
+            stop;
+    }
+}
+
+
+class PoolMarker : Actor {
+    default {
+        -WALLSPRITE;
+        +FLATSPRITE;
+        +NoBlockmap;
+        +NoInteraction;
+        +INVISIBLEINMIRRORS;
+        +ROLLSPRITE;
+        -SOLID;
+        scale 0.2;
+    }
+
+    states {
+        // TODO: Add bounce effect
+        Spawn:
+            PMRK A -1 { SleepIndefinite(); }
+            loop;
+    }
+}
+
+
+class CueBall : PoolBall {
+    PoolMarker marker;
+
+    default {
+        radius 2;
+        Tag "Cue Ball";
+        SelacoActor.UseTag "$ACT_SHOOT";
+        PickupableDecoration.throwSound "impact/poolstick";
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+
+        spriteFrame = 0;
+    }
+
+    override void Activate (Actor activator) {
+        if(players[consolePlayer].mo && players[consolePlayer].mo.countInv('PoolCueItem') <= 0) {
+            activationtype |= THINGSPEC_Activate;
+            return;
+        }
+
+        Super.Activate(activator);
+    }
+
+    override string GetUsePrompt(string highCol) {
+		if(players[consolePlayer].mo && players[consolePlayer].mo.countInv('PoolCueItem') <= 0) {
+            return String.Format("\c[DARKGRAY]%s", StringTable.Localize("$ACT_NOPOOLCUE"));
+        }
+
+		return Super.GetUsePrompt(highCol);
+    }
+
+    override string getActionString() {
+        return String.Format("\c[HI]%s", StringTable.Localize("$ACT_SHOOT"));
+    }
+
+    override void tick() {
+        Super.tick();
+
+        if(marker) {
+            marker.SetOrigin(pos, true);
+            
+            if(pickedUpOwner) {
+                marker.angle = pickedUpOwner.angle;
+                //marker.pitch = pickedUpOwner.angle;
+                //marker.roll = pickedUpOwner.angle;
+            } else {
+                marker.destroy();
+            }
+        }
+    }
+
+    override void moveToHoldPos(Vector3 viewPos, Vector3 newPos, double ang, bool copyInterp ) {
+        /*if(newPos.z > pos.z + 1 || newPos.z > spawnPoint.z || floorpic != tableFloorPic) {
+            Super.moveToHoldPos(newPos, ang, copyInterp);
+        }*/
+        holdVel = (0,0,0);
+    }
+
+    override void pickUp(Actor source) {
+        if(!marker) {
+            marker = PoolMarker(Actor.Spawn("PoolMarker", pos));
+        }
+
+        Super.pickUp(source);
+    }
+
+    override void drop() {
+        if(marker) marker.destroy();
+
+        Super.drop();
+    }
+
+    override void throw(double force) {
+        if(marker) marker.destroy();
+
+        Super.throw(force);
+    }
+}
+
+
+class Poolnet : Actor {
+    int celebrateTime;
+    PoolGame game;
+
+    default {
+        +BUDDHA;
+        -SHOOTABLE;
+        +INVULNERABLE;
+        +NOGRAVITY;
+        +NOCLIP;
+        +SOLID;
+        Tag "";
+        Radius 8;
+        Height 12;
+        Mass 99999;
+    }
+
+    states {
+        // TODO: Add bounce effect
+        Spawn:
+            TNT1 A -1 { SleepIndefinite(); }
+            loop;
+    }
+
+    override void PostBeginPlay() {
+        Super.PostBeginPlay();
+        
+        // Find nearest pool game and assign ourselves to it
+        ThinkerIterator it = ThinkerIterator.Create("PoolGame");
+        double lastDist = double.max;
+        PoolGame game, ourGame;
+
+		while ((game = PoolGame(it.Next()))) {
+            if(Distance2DSquared(game) < lastDist) {
+                ourGame = game;
+                lastDist = Distance2DSquared(game);
+            }
+        }
+
+        if(ourGame) {
+            ourGame.addNet(self);
+            self.game = ourGame;
+        }
+    }
+
+    override bool CanCollideWith(Actor other, bool passive) {
+        bool canCollide = Super.CanCollideWith(other, passive);
+
+        if(other is 'Poolball' && canCollide) {
+            let p = Poolball(other);
+            if(p.sunk) return false;
+            if(p.isPickedUp()) return false;
+
+            if(p.pos.z < p.spawnPoint.z - 1) {
+                celebrateTime = level.time;
+                if(game) game.sinkBall(p, self);
+            } else if(Distance2DSquared(other) < (3.95 * 3.95)) {
+                // The ball is in range so give it a little nudge towards the center
+                p.vel.xy += (pos.xy - p.pos.xy).unit() * 0.1;
+            }
+
+            return false;
+        }
+
+        return canCollide;
+    }
+}
+
+
+class PoolCueItem : Inventory {
+    default { Inventory.MaxAmount 1; }
+}
+
+class Poolcue : SelacoItem
+{
+    default
+    {
+        tag "$OBJECT_POOLCUE";
+        +SelacoItem.Essential;
+        +Inventory.AlwaysPickup
+        radius 15;
+    }
+    states
+    {  
+        Spawn:
+            VOXE L -1;
+            stop;
+        PickupSuccess:
+            TNT1 A 0
+            {
+                A_playSound("PICKUP/POOLCUE", chan_auto, 1.0);
+                A_PRINTBOLD(string.format("\c[omniblue]%s", stringTable.Localize("$POOLCUE_PICKUP")));
+                GiveInventory('PoolCueItem', 1);
+            }
+            stop;
+    }
+}

@@ -1,0 +1,38 @@
+class SafetyHandler : StaticEventHandler 
+{
+
+    static clearscope SafetyHandler instance() {
+        return SafetyHandler(EventHandler.Find("SafetyHandler"));
+    }
+
+
+    // Handles resetting
+    static bool checkIfSafe(int distanceToCheck = 2500, bool showPrompt = true)
+    {
+        let checkingPlayer = players[consolePlayer].mo;
+
+        // Player is in a safe room, so is absolutely safe.
+        if(checkingPlayer.countInv("isSaferoom"))
+        {
+            return true;
+        }
+
+		BlockThingsIterator it = BlockThingsIterator.Create(checkingPlayer, distanceToCheck);
+		Actor currentMo;
+		while (it.Next()) 
+        {
+			currentMo = it.thing;
+			if (!currentMo || !currentMo.bIsMonster || checkingPlayer.Distance2DSquared(currentMo) > distanceToCheck*distanceToCheck && currentmo == checkingPlayer)
+				continue;
+			if((currentMo.lastheard && currentMo is "SelacoEnemy" && Dawn(checkingPlayer).seenByEnemySaveValidation > 0))
+            {
+                if(showPrompt)
+                {
+                    checkingPlayer.A_PRINTBOLD(String.Format("$ERROR_AREANOTSAFE"), 3.0);
+                }
+                return false; // No safe!
+			}
+		}
+        return true; // Safe!
+    }
+}

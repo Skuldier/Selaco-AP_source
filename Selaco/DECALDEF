@@ -1,0 +1,1747 @@
+stretcher SELACO_BloodSmearer
+{
+   GoalX 0.4
+   GoalY 1.1
+   StretchStart 1
+   StretchTime 24
+}
+
+fader fadeDecal5
+{
+   DecayStart 1
+   DecayTime 5
+}
+
+
+
+decal SELACO_BloodSmear1
+{
+
+}
+
+decal SELACO_BloodSmear2
+{
+
+}
+
+decalgroup SELACO_BloodSmear
+{
+	SELACO_BloodSmear1	1
+	SELACO_BloodSmear2	1
+}
+
+/// Blood Base
+decal SporeDecal1 43
+{
+	pic SLDCA0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SporeDecal2 43
+{
+	pic SLDCB0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SporeDecal3 43
+{
+	pic SLDCC0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SporeDecal4 43
+{
+	pic SLDCD0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SporeDecal5 43
+{
+	pic SLDCE0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SporeDecal6 43
+{
+	pic SLDCf0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+
+/// Blood Base
+decal BloodSplat001 43
+{
+	pic SPLTA0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat002
+{
+	pic SPLTB0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat003
+{
+	pic SPLTC0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+decal BloodSplat004
+{
+	pic SPLTD0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat005
+{
+	pic SPLTE0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat006
+{
+	pic SPLTF0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+decal BloodSplat007
+{
+	pic SPLTG0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat008
+{
+	pic SPLTH0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat009
+{
+	pic SPLTI0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+decal BloodSplat010
+{
+	pic SPLTJ0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat001s
+{
+	pic SPLTA0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat002s
+{
+	pic SPLTB0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat003s
+{
+	pic SPLTC0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+decal BloodSplat004s
+{
+	pic SPLTD0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat005s
+{
+	pic SPLTE0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat006s
+{
+	pic SPLTF0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+decal BloodSplat007s
+{
+	pic SPLTG0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat008s
+{
+	pic SPLTH0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+decal BloodSplat009s
+{
+	pic SPLTI0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+decal BloodSplat010s
+{
+	pic SPLTJ0
+	x-scale 0.25
+	y-scale 0.25
+	randomflipx
+	randomflipy
+}
+
+
+decalgroup SporeSplats
+{
+	SporeDecal1 6
+	SporeDecal2 6
+	SporeDecal3 6
+	SporeDecal4 6
+	SporeDecal5 6
+	SporeDecal6 6
+}
+
+decal WALLCRACK01
+{
+	pic CRAKB0
+	x-scale 0.6
+	y-scale 0.6
+	translucent  0.9
+	randomflipx
+	randomflipy
+}
+decal WALLCRACK02
+{
+	translucent  0.9
+	pic CRAKC0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	randomflipy
+}
+decal WALLCRACK03
+{
+	pic CRAKD0
+	x-scale 0.6
+	y-scale 0.6
+	randomflipx
+	translucent  0.9
+	randomflipy
+}
+
+decalgroup WALLCRACKS
+{
+	WALLCRACK01 6
+	WALLCRACK02 6
+	WALLCRACK03 6
+}
+
+decal SELACO_BloodSplat01
+{
+pic BSPLNEW
+x-scale 0.22
+y-scale 0.22
+randomflipx
+randomflipy
+
+}
+
+decal SELACO_BloodSplat02
+{
+pic BSPLNEW2
+x-scale 0.22
+y-scale 0.22
+randomflipx
+randomflipy
+
+}
+
+decalgroup SELACO_BloodSplat
+	{
+	SELACO_BloodSplat01 6
+	SELACO_BloodSplat02 6
+	BloodSplat004 6
+	BloodSplat005 6
+}
+
+decal SelacoBloodSpray01
+{
+pic BSPLBIG1
+x-scale 0.35
+y-scale 0.35
+randomflipx
+randomflipy
+lowerdecal SELACO_BloodSmear
+}
+
+decal SelacoBloodSpray02
+{
+pic BSPLBIG2
+x-scale 0.35
+y-scale 0.35
+randomflipx
+lowerdecal SELACO_BloodSmear
+}
+
+decalgroup SelacoBloodSpray
+{
+SelacoBloodSpray01 6
+SelacoBloodSpray02 6
+BloodSplat004 6
+BloodSplat005 6
+}
+
+decal OminousPurpleSplat01 65
+{
+	pic PPDLA0
+	colors "00 00 00" "10 02 02"
+	add 0.8
+	fullbright
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	solid
+}
+
+decal OminousPurpleSplat02 66
+{
+	colors "00 00 00" "10 02 02"
+	pic PPDLB0
+	add 0.8
+	fullbright
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+
+decal OminousPurpleSplat03 67
+{
+	colors "00 00 00" "10 02 02"
+	pic PPDLC0
+	fullbright
+	add 0.8
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+
+decal OminousPurpleSplat04 68
+{
+	colors "00 00 00" "10 02 02"
+	pic PPDLD0
+	fullbright
+	add 0.8
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+
+decal OminousPurpleSplat05 69
+{
+	colors "00 00 00" "10 02 02"
+	pic PPDLE0
+	add 0.8
+	fullbright
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+
+decal OminousPurpleSplat06 70
+{
+	colors "00 00 00" "10 02 02"
+	pic PPDLF0
+	fullbright
+	add 0.8
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+
+decal OminousPurpleSplat07 71
+{
+	colors "00 00 00" "10 02 02"
+	pic PPDLG0
+	fullbright
+	add 0.8
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+decal OminousPurpleSplat08 72
+{
+	pic PPGLA0
+	fullbright
+	add 0.8
+	x-scale 0.2
+	y-scale 0.2
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+decal OminousPurpleSplat09 73
+{
+	pic PPGLB0
+	fullbright
+	add 0.8
+	x-scale 0.2
+	y-scale 0.2
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+decal OminousPurpleSplat10 74
+{
+	pic PPGLC0
+	fullbright
+	add 0.8
+	x-scale 0.2
+	y-scale 0.2
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+decal OminousPurpleSplat10 75
+{
+	pic PPGLD0
+	fullbright
+	add 0.8
+	x-scale 0.2
+	y-scale 0.2
+	randomflipx
+	randomflipy
+	fullbright
+	solid
+}
+
+decal OminousPurpleOrgan1 76
+{
+	pic PLERA0
+	fullbright
+	add 0.4
+	x-scale 0.8
+	y-scale 0.8
+	randomflipx
+	solid
+	randomflipy
+}
+decal OminousPurpleOrgan2 76
+{
+	pic PLERB0
+	add 0.4
+	fullbright
+	x-scale 0.8
+	y-scale 0.8
+	randomflipx
+	randomflipy
+	solid
+}
+decal OminousPurpleOrgan3 76
+{
+	pic PLERC0
+	x-scale 0.45
+	y-scale 0.45
+	randomflipx
+	randomflipy
+	solid
+}
+decal OminousPurpleOrgan4 76 {
+	pic PHI3N0
+	x-scale 0.45
+	y-scale 0.45
+	randomflipx
+	randomflipy
+	solid
+}
+
+decal OminousPurpleSuper01
+{
+	pic PSPLBIG1
+	add 0.8
+	x-scale 0.55
+	y-scale 0.55
+	randomflipx
+	randomflipy
+	fullbright
+}
+
+decal OminousPurpleSuper02
+{
+	pic PSPLBIG2
+	add 0.8
+	fullbright
+	x-scale 0.55
+	y-scale 0.55
+	randomflipx
+	fullbright
+	solid
+}
+decal EMPTY
+{
+
+}
+
+decalgroup BloodSplatSmall
+{
+	BloodSplat001s 6
+	BloodSplat002s 6
+	BloodSplat003s 6
+	BloodSplat004s 6
+	BloodSplat005s 6
+	BloodSplat006s 6
+	BloodSplat007s 6
+	BloodSplat008s 6
+	BloodSplat009s 6
+	BloodSplat010s 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+	EMPTY 6
+}
+
+decalgroup BloodSplat
+{
+	BloodSplat001 6
+	BloodSplat002 6
+	BloodSplat003 6
+	BloodSplat004 6
+	BloodSplat005 6
+	BloodSplat006 6
+	BloodSplat007 6
+	BloodSplat008 6
+	BloodSplat009 6
+	BloodSplat010 6
+}
+
+decalgroup OminousPurpleSplat
+{
+	
+	OminousPurpleSplat01 6
+	OminousPurpleSplat02 6
+	OminousPurpleSplat03 6
+	OminousPurpleSplat04 6
+	OminousPurpleSplat05 6
+	OminousPurpleSplat06 6
+	OminousPurpleSplat07 6
+	OminousPurpleSplat01 6
+	OminousPurpleSplat02 6
+	OminousPurpleSplat03 6
+	OminousPurpleSplat04 6
+	OminousPurpleSplat05 6
+	OminousPurpleSplat06 6
+	OminousPurpleSplat07 6
+	OminousPurpleSplat01 6
+	OminousPurpleSplat02 6
+	OminousPurpleSplat03 6
+	OminousPurpleSplat04 6
+	OminousPurpleSplat05 6
+	OminousPurpleSplat06 6
+	OminousPurpleSplat07 6
+	OminousPurpleSplat08 6
+	OminousPurpleSplat09 6
+	OminousPurpleSplat10 6
+	OminousPurpleSplat08 6
+	OminousPurpleSplat09 6
+	OminousPurpleSplat10 6
+}
+
+decalgroup PurpleOrgans 
+{
+	OminousPurpleOrgan4 6
+	OminousPurpleOrgan1 6
+	OminousPurpleOrgan2 6
+	OminousPurpleOrgan3 6
+}
+
+decalgroup OminousPurpleSuper
+{
+OminousPurpleSplat01 6
+OminousPurpleSplat02 6
+OminousPurpleSplat03 6
+OminousPurpleSplat04 6
+OminousPurpleSplat05 6
+OminousPurpleSplat06 6
+OminousPurpleSuper01 6
+OminousPurpleSuper02 6
+EMPTY 6
+EMPTY 6
+EMPTY 6
+EMPTY 6
+EMPTY 6
+EMPTY 6
+EMPTY 6
+EMPTY 6
+}
+
+// ACID SPLASH //
+decal ACIDSPLAT1
+{
+	animator fadeDecal5
+	pic ACDFA0
+	fullbright
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+}
+decal ACIDSPLAT2
+{
+	animator fadeDecal5
+	pic ACDFB0
+	fullbright
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+}
+decal ACIDSPLAT3
+{
+	animator fadeDecal5
+	pic ACDFC0
+	fullbright
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+}
+decal ACIDSPLAT4
+{
+	animator fadeDecal5
+	pic ACDFD0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+}
+decal ACIDSPLAT5
+{
+	animator fadeDecal5
+	pic ACDFE0
+	fullbright
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+}
+decal ACIDSPLAT6
+{
+	animator fadeDecal5
+	pic ACDFF0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+}
+decal ACIDSPLAT7
+{
+	animator fadeDecal5
+	pic ACDFG0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+}
+decal ACIDSPLAT8
+{
+	animator fadeDecal5
+	pic ACDFH0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+	fullbright
+}
+
+
+decalgroup ACIDSPLATTER
+{
+	ACIDSPLAT1 6
+	ACIDSPLAT2 6
+	ACIDSPLAT3 6
+	ACIDSPLAT4 6
+	ACIDSPLAT5 6
+	ACIDSPLAT6 6
+	ACIDSPLAT7 6
+	ACIDSPLAT8 6
+}
+
+
+
+decal SelacoBloodSpray01
+{
+pic BSPLBIG1
+x-scale 0.35
+y-scale 0.35
+randomflipx
+randomflipy
+lowerdecal SELACO_BloodSmear
+}
+
+decal SelacoBloodSpray02
+{
+pic BSPLBIG2
+x-scale 0.35
+y-scale 0.35
+randomflipx
+lowerdecal SELACO_BloodSmear
+}
+
+decalgroup SelacoBloodSpray
+{
+SelacoBloodSpray01 6
+SelacoBloodSpray02 6
+BloodSplat004 6
+BloodSplat005 6
+}
+
+decal Crack1
+{
+	pic BFGLITE1
+	shade "00 00 00"
+	randomflipy
+	randomflipx
+}
+
+decal Crack2
+{
+	pic BFGLITE2
+	shade "00 00 00"
+	randomflipy
+	randomflipx
+}
+
+decalgroup Crack
+{
+	Crack1	1
+	Crack2	1
+}
+
+decal SnowSplat01
+{
+pic SNOWA0
+x-scale 0.22
+y-scale 0.22
+randomflipx
+randomflipy
+}
+
+decal SnowSplat02
+{
+pic SNOWB0
+x-scale 0.22
+y-scale 0.22
+randomflipx
+randomflipy
+}
+
+
+decal SELACO_BloodSplat02
+{
+pic BSPLNEW2
+x-scale 0.22
+y-scale 0.22
+randomflipx
+randomflipy
+}
+
+decal SCORCHMARK1
+{
+	pic SCORA0
+	x-scale 0.8
+	y-scale 0.8
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK2
+{
+	pic SCORB0
+	x-scale 0.8
+	y-scale 0.8
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK3
+{
+	pic SCORC0
+	x-scale 0.8
+	y-scale 0.8
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK4
+{
+	pic SCORD0
+	x-scale 0.8
+	y-scale 0.8
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK5
+{
+	pic SCORE0
+	x-scale 0.8
+	y-scale 0.8
+	randomflipx
+	randomflipy
+}
+
+decal PUNCH1
+{
+	translucent 0.5
+	pic WLLPA0
+	x-scale 0.2
+	y-scale 0.08
+	randomflipx
+	randomflipy
+}
+decal PUNCH2
+{
+	translucent 0.5
+	pic WLLPB0
+	x-scale 0.2
+	y-scale 0.08
+	randomflipx
+	randomflipy
+}
+decal PUNCH3
+{
+	translucent 0.5
+	pic WLLPC0
+	x-scale 0.2
+	y-scale 0.08
+	randomflipx
+	randomflipy
+}
+decal PUNCH4
+{
+	translucent 0.5
+	pic WLLPD0
+	x-scale 0.2
+	y-scale 0.08
+	randomflipx
+	randomflipy
+}
+decal PUNCH5
+{
+	translucent 0.5
+	pic WLLPE0
+	x-scale 0.2
+	y-scale 0.08
+	randomflipx
+	randomflipy
+}
+
+decalgroup ScorchMark
+{
+	SCORCHMARK5	1
+	SCORCHMARK4	1
+	SCORCHMARK3 1
+	SCORCHMARK2 1
+	SCORCHMARK1 1
+}
+decalgroup MeleeMark
+{
+	PUNCH1	1
+	PUNCH2	1
+	PUNCH3 1
+	PUNCH4 1
+	PUNCH5 1
+}
+decal SCORCHMARK1S
+{
+	pic SCORA0
+	x-scale 0.3
+	y-scale 0.3
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK2S
+{
+	pic SCORB0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK3S
+{
+	pic SCORC0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK4S
+{
+	pic SCORD0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK5S
+{
+	pic SCORE0
+	x-scale 0.32
+	y-scale 0.32
+	randomflipx
+	randomflipy
+}
+
+decal SCORCHMARK1SS
+{
+	pic SCORA0
+	x-scale 0.15
+	y-scale 0.15
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK2SS
+{
+	pic SCORB0
+	x-scale 0.15
+	y-scale 0.15
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK3SS
+{
+	pic SCORC0
+	x-scale 0.15
+	y-scale 0.15
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK4SS
+{
+	pic SCORD0
+	x-scale 0.15
+	y-scale 0.15
+	randomflipx
+	randomflipy
+}
+decal SCORCHMARK5SS
+{
+	pic SCORE0
+	x-scale 0.15
+	y-scale 0.15
+	randomflipx
+	randomflipy
+}
+
+decalgroup ScorchMarkSmall
+{
+	SCORCHMARK5S	1
+	SCORCHMARK4S	1
+	SCORCHMARK3S 1
+	SCORCHMARK2S 1
+	SCORCHMARK1S 1
+}
+
+decalgroup ScorchMarkSmallER
+{
+	SCORCHMARK5SS	1
+	SCORCHMARK4SS	1
+	SCORCHMARK3SS 	1
+	SCORCHMARK2SS 	1
+	SCORCHMARK1SS 	1
+}
+decal PaintBlue1
+{
+pic PADBA0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintBlue2
+{
+pic PADBA0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintBlue3
+{
+pic PADBC0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintBlue4
+{
+pic PADBD0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintBlue5
+{
+pic PADBE0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintBlue6
+{
+pic PADBF0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+
+decal PaintRed1
+{
+pic PADRA0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintRed2
+{
+pic PADRB0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintRed3
+{
+pic PADRC0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintRed4
+{
+pic PADRD0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintRed5
+{
+pic PADRE0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintRed6
+{
+pic PADRF0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+
+decal PaintGreen1
+{
+pic PADGA0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintGreen2
+{
+pic PADGB0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintGreen3
+{
+pic PADGC0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintGreen4
+{
+pic PADGD0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintGreen5
+{
+pic PADGE0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintGreen6
+{
+pic PADGF0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+
+decal PaintPurple1
+{
+pic PADPA0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintPurple2
+{
+pic PADPB0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintPurple3
+{
+pic PADPC0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintPurple4
+{
+pic PADPD0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintPurple5
+{
+pic PADPE0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintPurple6
+{
+pic PADPF0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+
+decal PaintWhite1
+{
+pic PADWA0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintWhite2
+{
+pic PADWB0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintWhite3
+{
+pic PADWC0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintWhite4
+{
+pic PADWD0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintWhite5
+{
+pic PADWE0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintWhite6
+{
+pic PADWF0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+
+decal PaintYellow1
+{
+pic PADYA0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintYellow2
+{
+pic PADYB0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintYellow3
+{
+pic PADYC0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintYellow4
+{
+pic PADYD0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintYellow5
+{
+pic PADYE0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+decal PaintYellow6
+{
+pic PADYF0
+x-scale 0.3 // Paint Scale
+y-scale 0.3 // Paint Scale
+randomflipx
+randomflipy
+}
+
+decalgroup BluePaintGroup
+{
+	PaintBlue1	1
+	PaintBlue2	1
+	PaintBlue3 	1
+	PaintBlue4 	1
+	PaintBlue5	1
+	PaintBlue6 1
+}
+decalgroup RedPaintGroup
+{
+	PaintRed1	1
+	PaintRed2	1
+	PaintRed3 	1
+	PaintRed4 	1
+	PaintRed5	1
+	PaintRed6 1
+}
+decalgroup PurplePaintGroup
+{
+	PaintPurple1	1
+	PaintPurple2	1
+	PaintPurple3 	1
+	PaintPurple4 	1
+	PaintPurple5	1
+	PaintPurple6 1
+}
+decalgroup WhitePaintGroup
+{
+	PaintWhite1	1
+	PaintWhite2	1
+	PaintWhite3 	1
+	PaintWhite4 	1
+	PaintWhite5	1
+	PaintWhite6 1
+}
+decalgroup YellowPaintGroup
+{
+	PaintYellow1	1
+	PaintYellow2	1
+	PaintYellow3 	1
+	PaintYellow4 	1
+	PaintYellow5	1
+	PaintYellow6 1
+}
+decalgroup GreenPaintGroup
+{
+	PaintGreen1		1
+	PaintGreen2		1
+	PaintGreen3 	1
+	PaintGreen4 	1
+	PaintGreen5		1
+	PaintGreen6 	1
+}
+
+// THIS IS USED FOR OUR DUMB PAINT BRUSH GAG
+decal BrushPaintBlue1
+{
+pic PADBA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintBlue2
+{
+pic PADBA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintBlue3
+{
+pic PADBA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintBlue4
+{
+pic PADBA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintBlue5
+{
+pic PADBA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintBlue6
+{
+pic PADBA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+
+decal BrushPaintRed1
+{
+pic PADRA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintRed2
+{
+pic PADRA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintRed3
+{
+pic PADRA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintRed4
+{
+pic PADRA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintRed5
+{
+pic PADRA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintRed6
+{
+pic PADRA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+
+decal BrushPaintGreen1
+{
+pic PADGA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintGreen2
+{
+pic PADGA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintGreen3
+{
+pic PADGA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintGreen4
+{
+pic PADGA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintGreen5
+{
+pic PADGA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintGreen6
+{
+pic PADGA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+
+decal BrushPaintPurple1
+{
+pic PADPA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintPurple2
+{
+pic PADPA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintPurple3
+{
+pic PADPA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintPurple4
+{
+pic PADPA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintPurple5
+{
+pic PADPA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintPurple6
+{
+pic PADPA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+
+decal BrushPaintWhite1
+{
+pic PADWA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintWhite2
+{
+pic PADWA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintWhite3
+{
+pic PADWA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintWhite4
+{
+pic PADWA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintWhite5
+{
+pic PADWA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintWhite6
+{
+pic PADWA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+
+decal BrushPaintYellow1
+{
+pic PADYA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintYellow2
+{
+pic PADYA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintYellow3
+{
+pic PADYA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintYellow4
+{
+pic PADYA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintYellow5
+{
+pic PADYA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+decal BrushPaintYellow6
+{
+pic PADYA0
+x-scale 0.06 // Brush Scale
+y-scale 0.06 // Brush Scale
+randomflipx
+randomflipy
+}
+
+decalgroup BrushBluePaintGroup
+{
+	BrushPaintBlue1	1
+	BrushPaintBlue2	1
+	BrushPaintBlue3 	1
+	BrushPaintBlue4 	1
+	BrushPaintBlue5	1
+	BrushPaintBlue6 1
+}
+decalgroup BrushRedPaintGroup
+{
+	BrushPaintRed1	1
+	BrushPaintRed2	1
+	BrushPaintRed3 	1
+	BrushPaintRed4 	1
+	BrushPaintRed5	1
+	BrushPaintRed6 1
+}
+decalgroup BrushPurplePaintGroup
+{
+	BrushPaintPurple1	1
+	BrushPaintPurple2	1
+	BrushPaintPurple3 	1
+	BrushPaintPurple4 	1
+	BrushPaintPurple5	1
+	BrushPaintPurple6 	1
+}
+decalgroup BrushWhitePaintGroup
+{
+	BrushPaintWhite1	1
+	BrushPaintWhite2	1
+	BrushPaintWhite3 	1
+	BrushPaintWhite4 	1
+	BrushPaintWhite5	1
+	BrushPaintWhite6 	1
+}
+decalgroup BrushYellowPaintGroup
+{
+	BrushPaintYellow1	1
+	BrushPaintYellow2	2
+	BrushPaintYellow3 	3
+	BrushPaintYellow4 	4
+	BrushPaintYellow5	5
+	BrushPaintYellow6 	6
+}
+decalgroup BrushGreenPaintGroup
+{
+	BrushPaintGreen1		1
+	BrushPaintGreen2		1
+	BrushPaintGreen3 		1
+	BrushPaintGreen4 		1
+	BrushPaintGreen5		1
+	BrushPaintGreen6 		1
+}

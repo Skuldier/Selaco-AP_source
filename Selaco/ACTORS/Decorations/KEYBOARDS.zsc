@@ -1,0 +1,100 @@
+// Illuminated blue keyboard
+class Keyboard : DecorationObject {
+    default {
+        // FLAGS
+		-SELACOACTOR.WakeNearPlayer;
+		-SelacoActor.WakeOnTouch;
+		-SelacoActor.SleepWhenFar;
+		+SelacoActor.DecorativeActor;
+		+SelacoActor.AllowRandomizerReplacement;
+		-SelacoActor.PlayerCanBump;
+		ThruBits THRUBITS_DESK_STATICS;		// Will not collide with any other static desk objects
+		+ALLOWTHRUBITS;
+		+SelacoActor.ThruPlayers;
+		-NOGRAVITY;
+		+BLOODSPLATTER;
+		+UseSpecial;
+		+SHOOTABLE;
+		-PUSHABLE;
+
+		SelacoActor.collisionSound "PUSH/KEYBOARD";
+
+        //PROPERTIES
+		Activation THINGSPEC_Switch;
+		health 1;
+		mass 350;
+		height 6;
+		scale 0.8;
+		BloodType "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary", "BulletImpactEffectPlasticStationary";
+		tag "$OBJECT_KEYBOARD";
+    }
+
+	states {
+		Precache:
+			KEYB A 0;
+			stop;
+		spawn:
+			TNT1 A 0;
+			//KEYB A 1 A_SPAWNITEMEX("KeyboardLED", 0, 0, -1, 0, 0, 0, 0, SXF_SETMASTER);
+            goto idle;
+		Active:
+		Inactive:
+			TNT1 A 0 {
+				A_PLAYSOUND("SCRIPT/KEYBUTT", CHAN_AUTO, 1.0, 0, 0.5);
+				wake();
+			}
+			KEYB A 25 {
+				bUseSpecial = false;
+				activationtype = THINGSPEC_Default; 
+			}
+			// Find nearby monitors and adjust the screen
+			TNT1 A 0
+			{
+				Array<ComputerMonitor> babyMonitors;
+				ThinkerIterator it = ThinkerIterator.Create("ComputerMonitor");
+				ComputerMonitor monitor = ComputerMonitor(it.Next());
+				for (; monitor; monitor = ComputerMonitor(it.Next())) 
+				{
+					if(!monitor.poweredOn || Distance2DSquared(monitor) >= 30*30 || monitor.args[1] == 23)
+						continue;
+
+					// Collect a list of the monitors, since changing states can spawn new ones causing an infinite loop
+					babyMonitors.push(monitor);
+				}
+				
+				for(int x = 0; x < babyMonitors.size(); x++) {
+					let monitor = babyMonitors[x];
+
+					// Active Monitor found.
+					if (monitor.screenframe % 2 == 0) {
+						monitor.screenframe--;
+					} else {
+						monitor.screenframe++;
+					}
+					monitor.SetStateLabel("Spawn");
+					monitor.A_PLAYSOUND("COMPUTER/SWITCH", CHAN_AUTO);
+				}
+			}
+			TNT1 A 0 {
+				bUseSpecial = true;
+				activationtype = THINGSPEC_Switch; 
+				sleepIndefinite();
+			}
+		Idle:
+			KEYB A 5 { if(level.mapTime > 5) sleepIndefinite(); }
+			loop;
+		death.shotgun:
+		death.explosiveimpact:
+			TNT1 AAAAAAAAAAA 0 A_SPAWNITEMEX("KeyboardPiece", frandom(-5, 5), frandom(-5, 5), 0, frandom(1,2), frandom(1,2), frandom(1,2));
+			TNT1 AA 0 A_SPAWNITEMEX("KeyboardPiece2", frandom(-5, 5), frandom(-5, 5), 0, frandom(1,2), frandom(1,2), frandom(1,2));
+		death:
+			TNT1 A 0 
+			{
+				A_PLAYSOUND("KEYBOARD/SHOT", CHAN_AUTO, 0.6, pitch:frandom(0.9,1.25));
+			}
+			TNT1 A 0 A_SpawnDefinedParticle("BulletImpactEffectPlasticStationaryDefinition");
+			TNT1 AAAAAAAAAAAAAAAAAA 0 A_SPAWNITEMEX("KeyboardPiece", frandom(-5, 5), frandom(-10, 10), 1);
+			TNT1 AA 0 A_SPAWNITEMEX("KeyboardPiece2", frandom(-5, 5), frandom(-5, 5), 0);
+			stop;
+	}
+}

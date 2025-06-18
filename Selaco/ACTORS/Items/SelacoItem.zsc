@@ -1,0 +1,580 @@
+// Very similar to SELACOACTOR but specific to item usage
+class SelacoItem : CustomInventory {
+    protected bool pickupIsTouchBased;          // Flag set right before picking up with touch or manual, do not use
+    meta int itemTimeout;
+
+    int sleepDist, sleepTimeout;
+    int touchTime;
+    bool user_riflestart;
+    bool user_nouseprompt;
+    private int sItemFlags;
+    int pickupCount, startingCount;
+	int statNumber;
+
+	string pickupIcon, pickupTag;
+    TextureID useIcon;
+
+    Actor pickupTarget;
+    
+    RandomizerHandler randomizer;
+    int rarityID;
+    bool scarcityWipe;
+    bool wasDormant;
+    class<Inventory> pickupType;
+
+    const SCARCITY_MODIFIER_MIN = 0.35;
+    CONST SCARCITY_MODIFIER_MAX = 0.55;
+
+    float randomizerSpawnChance;
+
+    const EXTRAAMMO_MULTIPLIER = 1.5;
+
+    flagdef PreventSleep                     : sItemFlags, 0;    // Do not sleep automatically, can be used on and off to prevent sleep during animations
+    flagdef SleepWhenFar                     : sItemFlags, 1;    // Sleep when in excess of SleepDistance from player
+    flagdef WakeNearPlayer                   : sItemFlags, 3;    // Wake when in SleepDistance range of player
+    flagdef WakeOnTouch                      : sItemFlags, 5;    // Wake when touched by the player or monster, not always even necessary if it's a straight pickup
+    flagdef UsePrompt                        : sItemFlags, 6;    // Do not show a prompt if you can pick this item up with USE
+    flagdef Essential                        : sItemFlags, 7;    // These items are essential for progression and should not be altered by a Randomizer
+    flagdef AlwaysAllowTouchMode             : sItemFlags, 7;    // Do not prevent touch based pickups when in manual pickup mode
+	flagdef ApplyScarcityMode                : sItemFlags, 9;
+    flagdef AlwaysGrantSecret                : sItemFlags, 10;   // If this is a secret item, give the secret if an attempt to pick up was made
+    flagdef FlyAnimation                     : sItemFlags, 11;   // Don't fly towards player when picking up
+    flagdef UpgradeItem                      : sItemFlags, 12;
+    flagdef DisplayAmountInTag               : sItemFlags, 13;
+    flagdef GrenadePickup                    : sItemFlags, 14;
+    flagdef InternalResetReserve             : sItemFlags, 16;   // This flag is set if KeepReserve is true and we've once picked up the item already
+    
+    flagdef KeepReserve                      : sItemFlags, 17;   // If the player is full, reduce quantity of the item instead of removing it
+    flagdef ReserveDimming                   : sItemFlags, 18;   // Tint the pickup once it has been interacted with once, to help indicate that it is not full
+    flagdef AllowRandomizerSwapping          : sItemFlags, 19;   // Allows swapping locations with other items in the pool during randomizer
+    flagdef InsideCabinet                    : sItemFlags, 20;   // Randomizer only: Tagged as being inside a cabinet sector
+    flagdef RandomizerQuantity               : sItemFlags, 21;   // Randomizer Only: Item quantity will be randomized
+
+    LookExParams SearchParamsItem;  // Used to ensure SelacoItems are only picked up when there's visual on the taker
+    
+    property SleepDistance  : sleepDist;            // Sleep distance controls how near the player to wake at
+	property RandomizerSpawnChance : randomizerSpawnChance; // Chance for the randomizer to add this item to the table
+    Property ItemTimeout    : itemTimeout;          // If inventory fails to pickup from touch, the amount of tics until touch will try again
+	Property pickupCount	: pickupCount;
+	Property PickupIcon     : pickupIcon;			// Image icon shown on the pickup screen
+	Property PickupTag      : pickupTag;            // String shown on the pickup screen
+    Property pickupType     : pickupType;           // The item we give on pickup
+	Property StatNumber	    : statNumber;           // Stat number to add onto
+    Property UseIcon        : useIcon;
+	
+    // Functions to add the item count to the tag.
+	void assignProperTag()
+	{
+        if(pickupCount > 0 && bDisplayAmountInTag)
+        {
+            string oldTag = getTag();
+            string newTag;
+            
+            if(bKeepReserve && pickupCount < startingCount) {
+                newTag = string.format("%s (+%d)\n\c[brick]%s", oldTag, pickupCount, StringTable.Localize("$AMMO_REMAINING"));
+            } else {
+                newTag = string.format("%s \c[white](+%d)", oldTag, pickupCount);
+            }
+
+            setTag(newTag);
+        }
+	}
+
+    override string PickupMessage() { 
+        return "";
+    }
+    
+
+    default {
+        +INVENTORY.RESTRICTABSOLUTELY;
+        +SELACOITEM.ApplyScarcityMode;
+        Tag "$PICKUP_ITEM";
+        +INTERPOLATEANGLES;
+        SelacoItem.SleepDistance 256;
+        +SelacoItem.DisplayAmountInTag
+        +SelacoItem.AllowRandomizerSwapping
+        -SelacoItem.PreventSleep;
+        +SelacoItem.SleepWhenFar;
+        +SelacoItem.WakeNearPlayer;
+        +SelacoItem.WakeOnTouch;
+        +SelacoItem.UsePrompt;
+        +SelacoItem.FlyAnimation;
+        +SelacoItem.AlwaysGrantSecret;
+        -SelacoItem.KeepReserve;
+        +SelacoItem.ReserveDimming;
+        -SelacoItem.InsideCabinet;
+        +SelacoItem.RandomizerQuantity;
+        SelacoItem.ItemTimeout 35;
+        -SOLID;
+        -SHOOTABLE;
+        +NONSHOOTABLE;
+
+        height 24;
+
+        // Necessary to be able to be picked up with LOOKAT
+        // To disable picking up via LOOKAT, just turn this off in the subclass
+        Activation THINGSPEC_Activate;
+    }
+
+    virtual string getItemName() {
+        return GetCharacterName();
+    }
+
+    bool isNearDawn(double maxDistance) {
+        maxDistance *= maxDistance; // Square distance
+        return players[consolePlayer].mo && Distance2DSquared(players[consolePlayer].mo) < maxdistance;
+    }
+
+    void assignScarcityMode()
+    {
+        // Do not alter important items!
+        if(bEssential || bUpgradeItem)
+        {
+            return;
+        }
+
+        // Randomize the quantity of this item pickup
+        if(g_scarcityMode == 1 && bApplyScarcityMode && pickupCount > 2)
+        {
+            pickupCount*=frandom(SCARCITY_MODIFIER_MIN, SCARCITY_MODIFIER_MAX);
+        }
+
+        // Destroy it entirely if the roll gets unlucky.
+        if(bspecial == 0 && g_scarcityMode == 1 && pickupCount <= 2 && !bCountSecret && random(0,100) <= 60 && level.time < 5 && randomizer.randomizerMode == 0)
+        {
+            scarcityWipe = true;
+            destroy();
+        }
+    }
+
+    void assignExtraAmmo()
+    {
+        // We only multiply ammo when they have a bit of quantity to them. This way we automatically exclude Railgun Slugs, Acid Ammo, Hand Grenades and more.
+        if(self is "AmmoPickup" && pickupCount >= 4 && g_ExtraAmmo && !g_scarcityMode)
+        {
+            pickupCount*=EXTRAAMMO_MULTIPLIER;
+        }
+    }
+
+    void makeRifleStartExclusive()
+    {
+        if(g_randomizer)
+        {
+            return;
+        }
+        if(user_riflestart && g_riflestart == 0 && !bCountSecret)
+        {
+            destroy();
+        }
+    }
+
+    void assignHandleUpgrade()
+    {
+        if(bUpgradeItem && !SafeRoomExtension.BackInSafeRoomExtension())
+        {
+            Stats.AddStat(STAT_UPGRADES_FOUND, 0, 1);
+        }
+    }
+
+    override void BeginPlay()
+    {
+        super.BeginPlay();
+        randomizer = Randomizer.Instance();
+
+		if(!!(SpawnFlags & MTF_DORMANT))
+		{
+			wasDormant = true;
+		}
+    }
+
+    override void postBeginPlay() {
+        makeRifleStartExclusive();
+        adjustRandomizerPickupAmount();
+        if(user_nouseprompt)
+        {
+            activationType = THINGSPEC_DEFAULT;
+            bUseSpecial = false;
+        }
+        assignExtraAmmo();
+        assignScarcityMode();
+        assignProperTag();
+        assignHandleUpgrade();
+
+        // Setup parameters for the pickup radius
+        SearchParamsItem.fov = 360;
+    	SearchParamsItem.minDist = 0;
+    	SearchParamsItem.maxDist = radius+30; // Not sure if this produces accurate results of how it used to be. It feels good for now.
+    	SearchParamsItem.maxHearDist = 0;
+
+        pickupIsTouchBased = true;
+
+        startingCount = pickupCount;
+        Super.PostBeginPlay();
+    }
+
+    void adjustRandomizerPickupAmount()
+    {
+        if(pickupCount > 2 && randomizer && randomizer.randomizerMode && randomizer.randomizeAmmoValues && bRandomizerQuantity)
+        {
+            pickupCount = random(pickupCount*0.75, pickupCount*1.35);
+        }
+    }
+
+    void shrinkHitbox()
+    {
+        // Shrink hitbox so it stays on the Storage Cabinet properly
+		if(!!(SpawnFlags & MTF_DORMANT))
+		{
+			A_SETSIZE(2,2);
+		}
+    }
+
+    void restoreHitbox()
+    {
+        Wake();
+        let si = Default;
+        A_SETSIZE(si.radius, si.height);  
+    }
+
+    virtual void playerLooked(int playerIndex, Vector3 hitPos) {
+        // Nothing by default
+    }
+
+    // This also runs when bDormant is true
+    override void deactivate(actor deactivator)
+    {
+        activationType = THINGSPEC_Default;
+        shrinkHitbox();
+    }
+
+    override void activate(actor activator)
+    {
+        bDormant = false;
+        activationType = THINGSPEC_Activate;
+        restoreHitbox();
+    }
+
+    virtual void onRandomizerSwapped(SelacoItem other) {
+        
+    }
+
+    override void tick() {
+        Super.tick();
+
+        if(bPreventSleep || !bSleepWhenFar || Level.time < 5) return;
+
+        if(sleepTimeout > 0) {
+            sleepTimeout--;
+            return;
+        }
+
+        if(bSleepWhenFar && sleepDist > 0 && vel ~== (0,0,0) && !isNearDawn(sleepDist)) {
+            sleep(Level.time < 5 ? random(15, 25) : random(15, 18));
+            return;
+        }
+
+        // Only check for sleep every 15 ticks
+        sleepTimeout = 15;
+    }
+
+    override void Touch(Actor toucher) {
+        if(bWakeOnTouch) {
+            wake();
+        }
+
+        if(pickupIsTouchBased && touchTime > 0 && touchTime + itemTimeout > level.totalTime) {
+            pickupIsTouchBased = true;
+            return;    // Ignore touch if there is a timeout set
+        }
+
+        Super.Touch(toucher);
+        pickupIsTouchBased = true;
+        pickupTarget = null;
+    }
+
+    // Experimental Tweak to see if we can avoid items from being picked up through the wall
+    bool checkLineOfSight() {
+        if(LookForPlayers(false, SearchParamsItem)) {
+            return true;
+        }
+        return false;
+    }
+
+    override bool CanPickup(Actor toucher) {
+        bool isRandomizerMode = randomizer && randomizer.hasRandomizer && randomizer.allowTieredWeapons;
+        return toucher is 'PlayerPawn' && (!pickupIsTouchBased || bAlwaysAllowTouchMode || (!user_nouseprompt && getCvar("g_pickupmode")) == 0 && (pickupIsTouchBased && checkLineOfSight()) && !(self is "WeaponPickup" && isRandomizerMode) && Super.CanPickup(toucher));     // I don't think anything else can pickup items
+    }
+
+    override bool shouldWake() {
+        return !(vel ~== (0,0,0)) || (bWakeNearPlayer && isNearDawn(sleepDist));
+    }
+
+    override void wake() {
+        sleepTimeout = 15;
+        if(developer < 0) RestoreRenderStyle();
+        Super.wake();
+    }
+
+    override void Sleep(int tics) {
+        if(developer < 0) {
+            SetShade("CC3368");
+            A_SetRenderStyle(1, STYLE_Stencil);
+        }
+        Super.Sleep(tics);
+    }
+
+    override void SleepIndefinite() {
+        if(developer < 0) {
+            SetShade("33CC97");
+            A_SetRenderStyle(1, STYLE_Stencil);
+        }
+        Super.SleepIndefinite();
+    }
+
+    override bool Used(Actor user) {
+        if(activationType == THINGSPEC_Activate) {
+            // By default just assume we touched it
+            // We could run custom code here if necessary
+            pickupIsTouchBased = false;
+            pickupTarget = user;
+            Touch(user);
+            pickupTarget = user;    // Gets reset by Touch()
+
+            return true;
+        }
+        
+		return false;
+	}
+
+    override void DoPickupSpecial(Actor toucher) {
+        Super.DoPickupSpecial(toucher);
+
+        wake();
+
+        int amountPickedUp = 0;
+
+        // Give the desired item if set
+        if(pickupType && pickupCount) {
+            int curAmount = toucher.countInv(pickupType);
+            toucher.giveInventory(pickupType, pickupCount);
+            amountPickedUp = max(0, toucher.countInv(pickupType) - curAmount);
+
+            if(bKeepReserve && !g_legacypickups) {
+                // Special case for old savegames, if there was no StartingCount, set it to the first PickupCount now
+                if(startingCount == 0) {
+                    startingCount = pickupCount;
+                }
+
+                pickupCount = max(0, pickupCount - amountPickedUp);
+                if(pickupCount > 0 && amountPickedUp > 0) {
+                    // Rebuild the tag so the ammo count shows correctly
+                    setTag(Default.getTag());
+                    assignProperTag();
+                    
+                    // Remove self lighting
+                    if(bReserveDimming && !bInternalResetReserve) {
+                        selflighting = "000000";
+                    }
+                }
+            }
+        }
+
+        // If it's a grenade and the player's currently selected grenade has no ammo, cycle through.
+        if(bGrenadePickup && toucher is "Dawn" && dawn(toucher).equippedThrowable.amount == 0)
+        {
+            PlayerPawn pawn = players[consolePlayer].mo;
+			let d = Dawn(pawn);
+            if((pawn) && pawn.player.ReadyWeapon && selacoWeapon(pawn.player.ReadyWeapon)) {
+				selacoWeapon(pawn.player.ReadyWeapon).cycleThrowables();
+            }
+        }
+
+        // Notify the player that an item is picked up
+        if(toucher is 'Dawn') {
+            if(!(self is "AmmoPickupShard"))
+            {
+                toucher.A_PLAYSOUND("misc/i_pkup", CHAN_BODY, 0.8);
+            }
+            Dawn(toucher).onItemPickedUp(self, amountPickedUp);
+        }
+        
+        // Don't increase stat if we've already picked up some of this item
+        if(!bInternalResetReserve) {
+            Stats.AddStat(STAT_ITEMS_PICKEDUP, 1, 0);
+        }
+        
+        if(statNumber > 0)
+        {
+            stats.addstat(statNumber, pickupCount, 0);
+        }
+
+        if(bUpgradeItem && !bInternalResetReserve)
+        {
+            Stats.AddStat(STAT_UPGRADES_FOUND, 1, 0); 
+        }
+
+        // Animate the object flying towards the player
+        if(pickupTarget && bFlyAnimation && (!bKeepReserve || pickupCount == 0 || g_legacypickups)) {
+            SetStateLabel("PickupFly");
+        }
+
+        if(bKeepReserve && amountPickedUp > 0 && !g_legacypickups) {
+            bInternalResetReserve = true;
+        }
+
+        // This will call ShouldStay() so we may not actually be deleted here
+        GoAwayAndDie(); // Item may not have been deleted yet from previous GoAwayAndDie() calls
+    }
+
+    // Check amount of the object to be picked up
+    // Returns false if we can pick up no more of this item
+    // Returns true if we can pick up at least one more of this item
+    // If pickupType is not set, returns true
+    virtual bool CheckPickupLimit(Actor toucher) {
+        if(!pickupType || bALWAYSPICKUP) return true;
+
+        let item = toucher.FindInventory(pickupType);
+        return !item || item.amount < item.maxAmount;
+    }
+
+    override bool TryPickup (in out Actor toucher) {
+        if(toucher is 'Dawn' && bCountSecret && bAlwaysGrantSecret) {
+            Actor ac = toucher.player != NULL? Actor(toucher.player.mo) : toucher;
+			ac.GiveSecret(true, true);
+            bCountSecret = false;
+        }
+
+        if(pickupTarget && bFlyAnimation) bDropped = false;  // Don't let us get deleted
+
+        bool isNotFull = CheckPickupLimit(toucher);
+        bool didPickup = isNotFull ? Super.TryPickup(toucher) : false;   // Don't call Pickup state unless we have room
+
+        // Engage timeout
+        if(!didPickup && pickupIsTouchBased) {
+            touchTime = level.totalTime;
+        }
+    
+        // Display item full if desired
+        if(!didPickup && !isNotFull) {
+            if(toucher is 'Dawn') {
+                Dawn(toucher).onItemFull(self);
+            }
+        }
+        
+        return didPickup;
+    }
+
+    override bool ShouldStay() {
+        return  (bKeepReserve && pickupCount > 0 && !g_legacypickups) ||    // Is this a reserve item that has not been emptied?
+                (!!pickupTarget && bFlyAnimation);                          // Is the item flying?
+    }
+
+
+    float flyRotSpeed;
+    states
+    {
+        Precache:
+            VOXE LABCDEFGHIJKMNOPQRSTUVWXYZ 0;
+            stop;
+        PickupSuccess:
+            TNT1 A 0
+            {
+                // Whatever function we want to run when an item is picked up.
+            }
+            stop;
+
+        PickupFly:  // Animate towards the player
+            VOXE L 0 {
+                bInvisibleInMirrors = true;
+                A_ChangeLinkFlags(1); 
+                //bNoInteraction = true;
+                bTHRUACTORS = true;
+                bSolid = false;
+                bSlidesOnWalls = true;
+                A_SETSCALE(scale.x*0.7);
+
+                // Change collision to a reasonable size
+                if(!A_SetSize(min(8, radius), min(15, height), true))
+                    if(!A_SetSize(min(8, radius), min(8, height), true))
+                        bNoInteraction = true;
+
+                invoker.flyRotSpeed = frandom(2, 7) * (random(0,1) ? 1 : -1);
+            }
+            VOXE LLLLLLLL 1 {
+                //A_SETSCALE(scale.x * 0.9, scale.y * 0.9);
+                A_SetTranslucent(alpha - 0.05, 0);
+                A_SetAngle(angle + invoker.flyRotSpeed, SPF_INTERPOLATE);
+
+                let target = invoker.pickupTarget;
+                if(target) {
+                    let targetPos = target.pos;
+
+                    if(target.player) targetPos.z = target.player.viewz - 10;
+                    else targetPos.z += target.height * 0.8;
+
+                    targetPos.z -= height * 0.8 * scale.y;
+
+                    vel = (targetPos - pos) / 3.5;
+                }
+            }
+            stop;
+
+        // If Pickup is called, we either have ALWAYSPICKUP on or there is room to add at least one
+        Pickup: // Default pickup just returns true
+            TNT1 A 0 A_JumpIf(1,"PickupSuccess");
+            stop;
+    }
+}
+
+class DoubleDamagePowerup : SelacoItem
+{
+
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        vel = (0,0,0);
+    }
+
+	default
+	{
+		tag "$OBJECT_DOUBLEDAMAGE";
+		-COUNTITEM;
+		+DONTGIB;
+		+Floatbob;
+		+NOGRAVITY;
+		Inventory.PickupSound "item/powerup";
+        SelacoItem.RandomizerSpawnChance 2;
+	}
+	States
+	{
+	Spawn:
+		DDMG A 2 Bright A_SpawnItem("PurpleFlareMedium",0,30);
+		loop;
+
+	Pickup:
+		TNT1 A 0 A_GiveInventory("DoubleDamagePowerupActual");
+		TNT1 A 0 ACS_NamedExecuteWithResult("PowerupPickup");
+        TNT1 A 0 
+		{
+			for(int x=0;x<400;x++)
+			{
+				A_SpawnItemEx ("BaseEmberPurpleFast", frandom(30, 170), frandom(-95, 95), frandom(-40, 80), frandom(2,3), frandom(2,3), angle:frandom(-0,360));
+			}
+		}
+		Stop;
+	}
+}
+
+class KnifeSpawner : SelacoItem 
+{
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        A_SPAWNITEMEX("KNIFEMEDIUM");
+        destroy();
+    }
+    default
+    {
+        SelacoItem.randomizerSpawnChance 5;
+    }
+}

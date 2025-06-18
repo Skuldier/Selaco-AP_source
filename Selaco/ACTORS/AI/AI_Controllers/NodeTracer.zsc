@@ -1,0 +1,26 @@
+class NodeTracer : LineTracer {
+    Actor firstUnuseableActor;
+    Actor ignoredActor;
+
+    bool alwaysGetWall;
+
+    static const class<SelacoActor> BLOCKER_TYPES[] = {
+        'VehicleHitbox'
+    };
+
+    // We are only looking for objects that should block node connections!
+    override ETraceStatus TraceCallback() {
+        // We only care about actors here, since walls would have already been detected during the connect phase
+        if(Results.HitType == TRACE_HitActor) {
+            if(Results.HitActor == null) {
+                return TRACE_Skip;  // Avoid a null pointer crash, this scenario is not ideal
+            }
+
+            for(int x = BLOCKER_TYPES.size() - 1; x >= 0; x--) {
+                if(Results.HitActor is BLOCKER_TYPES[x]) return TRACE_Stop;
+            }
+        }
+
+        return TRACE_Skip;
+	}
+}

@@ -1,0 +1,825 @@
+Class SparkParticle : Selacoparticle
+{
+	default {
+        speed   4;
+        radius 4;
+		height  4;
+        gravity 0.45;
+        -FLATSPRITE;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Add";
+        XScale 0.015;
+        Yscale 0.015;
+
+        +SelacoParticle.KillStop;
+        +SelacoParticle.DirFromMomentum;
+        +SelacoParticle.VelocityFade;
+        +SelacoParticle.LifeFade;
+        SelacoParticle.LifespanMutliplier   0.3 , 0.8, 1.5, 1.7, 2.2;
+        SelacoParticle.FadeVelRange     0.2 , 3; 
+        SelacoParticle.FadeLifeRange    0   , 30;
+        SelacoParticle.RandomLife       25  , 45;
+
+        SelacoParticle.StopSpeed 2;
+        SelacoParticle.RandomScaleY 0.215, 0.767;
+        SelacoParticle.RandomScaleX 0.215, 0.767;
+
+        // Fire args for emitter
+        SelacoParticle.RandomAngle  -35 , 35;
+        SelacoParticle.RandomPitch  -30 , 30;
+        SelacoParticle.RandomSpeed  0   , 5;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0 {
+                A_SetScale(frandom(0.025, 0.040));
+            }
+		    SPRK A -1 BRIGHT;
+            stop;
+    }
+}
+Class SparkParticleWild : SparkParticle
+{
+	default {
+        // Fire args for emitter
+        SelacoParticle.RandomAngle  -65 , 65;
+        SelacoParticle.RandomSpeed  0   , 6;
+        SelacoParticle.RandomScaleY 0.215, 1.167;
+        SelacoParticle.RandomScaleX 0.215, 1.167;
+    }
+}
+Class SparkParticleShorter : SparkParticle
+{
+	default {
+        SelacoParticle.LifespanMutliplier   0.5, 0.7, 1.0, 1.0, 1.0;
+        SelacoParticle.FadeVelRange     0.2 , 3;
+        SelacoParticle.FadeLifeRange    0   , 30;
+        SelacoParticle.RandomLife       15  , 25;
+        SelacoParticle.RandomScaleY 0.415, 1.767;
+        SelacoParticle.RandomScaleX 0.415, 1.767;
+    }
+
+    states {
+        Spawn:
+		    SPRK A -1 BRIGHT;
+            stop;
+    }
+}
+
+Class SparkParticle360 : SparkParticleShorter
+{
+	default {
+        SelacoParticle.RandomAngle  0 , 360;
+        SelacoParticle.RandomPitch  90 , -90;
+    }
+
+    states {
+        Spawn:
+		    SPRK A -1 BRIGHT;
+            stop;
+    }
+}
+
+class SparkParticleSlower : sparkParticle {
+    default {
+        SelacoParticle.RandomSpeed  1  , 2;
+        SelacoParticle.RandomScaleY 0.1, 0.3;
+        SelacoParticle.RandomScaleX 0.1, 0.3;
+    }
+}
+
+class SparkParticleSlowerShorter : sparkParticle {
+    default {
+        SelacoParticle.LifespanMutliplier   0.5, 0.9, 1.0, 1.0, 1.8;
+        SelacoParticle.RandomLife       20  , 40;
+        SelacoParticle.RandomSpeed  1  , 2;
+        SelacoParticle.RandomScaleY 0.415, 1.467;
+        SelacoParticle.RandomScaleX 0.415, 1.467;
+    }
+}
+
+class weldingParticle : sparkParticle
+{
+    default
+    {
+        SelacoParticle.RandomScaleY 0.415, 0.767;
+        SelacoParticle.RandomScaleX 0.415, 0.767;
+        SelacoParticle.RandomSpeed  1   , 7;
+        SelacoParticle.QualityChances       0.25, 0.5, 0.75, 1.0, 2.5;
+        SelacoParticle.RandomPitch  -50 , -60;
+    }    
+}
+
+class WeldingParticleWild : WeldingParticle
+{
+    default
+    {
+        SelacoParticle.RandomAngle  -60 , 60;
+    }
+}
+
+class DroppedSpark : SelacoParticle {
+
+	default {
+        speed   4;
+        radius  5;
+		height  5;
+        gravity 0.5;
+        +FLATSPRITE;
+        +INTERPOLATEANGLES;
+        +ROLLSPRITE;
+
+        RenderStyle "Add";
+        XScale 0.027;
+        Yscale 0.067;
+
+        +SelacoParticle.KillStop;
+        +SelacoParticle.DirFromMomentum;
+        +SelacoParticle.VelocityFade;
+        -SelacoParticle.LifeFade;
+        +SelacoParticle.LifeScale 
+        SelacoParticle.ScaleLifeRange 0, 1;
+        SelacoParticle.ScaleRangeX    1, 0.4; 
+        SelacoParticle.ScaleRangeY    1, 0.4; 
+        SelacoParticle.BounceFudge 0.5;
+        SelacoParticle.LifespanMutliplier   0.5 , 1.0, 2.5, 1.7, 2.2;
+        SelacoParticle.FadeVelRange     0.2 , 3;
+        SelacoParticle.FadeLifeRange    5   , 15;
+        SelacoParticle.RandomLife       14  , 65; 
+        SelacoParticle.RandomScaleX 0.615, 4.267;
+        SelacoParticle.RandomScaleY 0.65, 1.667;
+        SelacoParticle.StopSpeed 2;
+        // Fire args for emitter
+        SelacoParticle.RandomAngle  -35 , 35;
+        SelacoParticle.RandomPitch  -45 , 25;
+        SelacoParticle.RandomSpeed  1   , 4;
+    }
+
+    states {
+        Spawn:
+            TNT1 A 0;
+		    SPKS A -1 BRIGHT
+            {
+                frame = random(0,4);
+            }
+            stop;
+    }
+}
+
+// A more randomized version of DroppedSpark
+class DroppedSparkWild : DroppedSpark {
+    default {
+        SelacoParticle.RandomAngle  -85 , 85;
+        SelacoParticle.RandomPitch  -65 , 15;
+        SelacoParticle.RandomSpeed  2 , 8;
+    }
+}
+
+class DroppedSparkActor : DroppedSpark {
+    default {
+        SelacoParticle.RandomAngle  -35 , 35;
+        SelacoParticle.RandomPitch  -25 , 25;
+        SelacoParticle.RandomSpeed  1 , 5;
+    }
+}
+
+
+// A more randomized version of DroppedSpark
+class DroppedSparkWilder : DroppedSpark {
+    default {
+/*         +SelacoParticle.LifeScale */
+/*         SelacoParticle.ScaleRangeX    0.15, 0.85; */
+/*         SelacoParticle.ScaleRangeY    0.15, 0.85; */
+        SelacoParticle.LifespanMutliplier   0.6 , 0.9, 1.1, 1.3, 2.5;
+        SelacoParticle.RandomLife       30  , 45;
+        SelacoParticle.RandomAngle  -60 , 60;
+        SelacoParticle.RandomPitch  -65 , 15;
+        SelacoParticle.RandomSpeed  2 , 8;
+    }
+}
+// Bigger version of Wilder
+class DroppedSparkWilderLarge : DroppedSparkWilder {
+    default
+    {
+        XScale 0.016;
+        Yscale 0.051;
+        SelacoParticle.RandomPitch  -65 , 15;
+    }
+}
+
+// Fire fast, fade out rapidly.
+class ShortSpark : DroppedSparkWilder
+{
+    default
+    {
+        gravity 0.3;
+        XScale 0.029;
+        Yscale 0.054;
+        -SelacoParticle.LifeFade;
+        +SelacoParticle.LifeScale 
+        SelacoParticle.ScaleLifeRange 0.4, 1;
+        SelacoParticle.ScaleRangeX    1, 0.05; 
+        SelacoParticle.ScaleRangeY    1, 0.05; 
+        SelacoParticle.QualityChances       0, 0.5, 0.75, 1.0, 2.5;
+        SelacoParticle.FadeLifeRange    5   , 15;
+        SelacoParticle.LifespanMutliplier   0.5, 1, 1.1, 1.2, 1.2;
+        SelacoParticle.RandomLife   15  , 25;
+        SelacoParticle.RandomAngle  -90 , 90;
+        SelacoParticle.RandomPitch  -45 , 45;
+        SelacoParticle.RandomSpeed  2 , 11;
+        SelacoParticle.RandomScaleX 3.615, 7.267;
+        SelacoParticle.RandomScaleY 3.65, 3.267;
+    }
+}
+
+class ShortSparkNarrow : ShortSpark  {
+    default {
+        +THRUACTORS;
+        SelacoParticle.RandomAngle  -35 , 35;
+        SelacoParticle.RandomPitch  -35 , 35;   
+        SelacoParticle.RandomSpeed  2 , 8; 
+    }
+}
+
+class ShortSparkShrink : ShortSpark
+{
+    default
+    {
+        XScale 0.024;
+        Yscale 0.046;
+        +SelacoParticle.LifeScale 
+        SelacoParticle.ScaleLifeRange 0, 1;
+        SelacoParticle.LifespanMutliplier   0.5,1,1,1,1;
+        SelacoParticle.ScaleRange 1.0, 0, 1.0, 0; 
+        SelacoParticle.RandomSpeed  2 , 8;
+        SelacoParticle.FadeLifeRange    2   , 8;
+        SelacoParticle.RandomPitch  -15 , -45;
+        SelacoParticle.RandomLife   11  , 14;
+        SelacoParticle.RandomScaleX 1.615, 3.267;
+        SelacoParticle.RandomScaleY 1.65, 3.267;
+    }
+}
+
+class RobotImpactSpark : ShortSparkShrink {
+    default
+    {
+        gravity 0.5;
+        SelacoParticle.FadeLifeRange    4  , 10;
+        SelacoParticle.RandomAngle  -120 , 120;
+        SelacoParticle.RandomPitch  -15 , -75;
+        SelacoParticle.RandomSpeed  1 , 11;
+        SelacoParticle.RandomScaleX 2.615, 6.267;
+        SelacoParticle.RandomScaleY 2.65, 6.267;
+    }    
+}
+
+class Sparks: BulletPuff
+{
+    default
+    {
+        renderstyle "add";
+        alpha 0.8;
+        +NOBLOCKMAP;
+        +NOGRAVITY;
+        +CLIENTSIDEONLY;
+        Scale 0.5;
+    }
+  states
+  {
+    Spawn:
+        TNT1 A 0;
+		TNT1 A 0 A_SpawnItem ("YellowFlareSmall", 0);
+		FX58 ABCDEFGHIJ 2 bright;
+        Stop;
+  }
+}
+
+
+class SparksNoFlare: Sparks
+{
+    default
+    {
+        +NOINTERACTION;
+        +ROLLSPRITE;
+        scale 0.25;   
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                A_SpawnDefinedParticle("BulletImpactEffectMetalBabyDefinition");
+                A_SpawnDefinedParticle("YellowFlareSmallDefinition");
+                A_SETROLL(roll+random(-90,90));
+                A_SETSCALE(scale.x+frandom(-0.05, 0.1));
+                if(random(0,1) == 1) 
+                {
+                    bxflip = true;
+                }
+            }
+            FX58 ABCDEFGHIJ 1 bright
+            {
+                A_FADEOUT(0.07);
+            }
+            stop;
+    }
+}
+
+
+class ShortSpark360 : ShortSpark
+{
+    default
+    {
+        SelacoParticle.RandomAngle  0 , 360;
+    }
+}
+
+class ShortSpark360Small : ShortSpark360
+{
+    default
+    {
+        XScale 0.008;
+        Yscale 0.022;
+        SelacoParticle.RandomAngle  0 , 360;
+    }
+}
+
+class ShortSparkStraight : ShortSpark
+{
+    default
+    {
+        SelacoParticle.RandomLife   12  , 19;
+        SelacoParticle.RandomAngle  0 , 360;
+        SelacoParticle.RandomPitch  -45 , -145;
+    }
+}
+
+class ShortSparkTiny : ShortSpark
+{
+  default
+  {
+        XScale 0.011;
+        Yscale 0.035;
+  }  
+}
+class ShortSparkTinyBlue : ShortSpark
+{
+  default
+  {
+        SelacoParticle.RandomLife   10  , 16;
+        SelacoParticle.RandomPitch  -70 , -110;
+        XScale 0.011;
+        Yscale 0.035;
+  }  
+    states {
+        Spawn:
+            TNT1 A 0;
+		    SPBL A -1 BRIGHT
+            {
+                frame = random(0,4);
+            }
+            stop;
+    }
+}
+class LongerSpark : ShortSpark
+{
+    default
+    {
+        SelacoParticle.RandomLife   19  , 25;
+        SelacoParticle.RandomSpeed  2 , 6;
+    }
+}
+class LongerSparkWild : ShortSpark
+{
+    default
+    {
+        SelacoParticle.RandomPitch  -30 , -150;
+        SelacoParticle.RandomLife   19  , 25;
+        SelacoParticle.RandomSpeed  2 , 6;
+    }
+}
+class MuchLongerSpark : ShortSpark
+{
+    default
+    {
+        SelacoParticle.RandomLife   35  , 45;
+        SelacoParticle.RandomSpeed  2 , 6;
+    }
+}
+
+// Short version of Wilder
+class DroppedSparkWilderShort : DroppedSparkWilder {
+    default
+    {
+        SelacoParticle.RandomLife       10  , 15;
+    }
+}
+class DroppedSparkWilderLarge360 : DroppedSparkWilder {
+    default
+    {
+        SelacoParticle.RandomPitch  -40 , -130;
+    }
+}
+
+class BlueSparkShardTracer : DroppedSpark {
+    default 
+    {
+        SelacoParticle.FadeLifeRange    5   , 15;
+        SelacoParticle.LifespanMutliplier   0.6 , 0.9, 1.1, 1.3, 2.5;
+        SelacoParticle.RandomLife       8  , 12;
+        SelacoParticle.RandomAngle  0 , 360;
+        SelacoParticle.RandomPitch  -10 , -170;
+        SelacoParticle.RandomSpeed  12 , 27;
+        SelacoParticle.RandomScaleX 3.122, 10.195;
+        SelacoParticle.RandomScaleY 3.145, 10.161;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+		    SPBL A -1 BRIGHT
+            {
+                frame = random(0,4);
+            }
+            stop;
+    }
+}
+
+
+class BlueSpark : BlueSparkShardTracer
+{
+    default 
+    {
+        SelacoParticle.RandomScaleX 1.1, 3.1;
+        SelacoParticle.RandomScaleY 1.1, 3.1;
+        SelacoParticle.LifespanMutliplier   0.6 , 0.9, 1.1, 1.3, 2.5;
+        SelacoParticle.RandomLife       30  , 50;
+        SelacoParticle.RandomAngle  -45 , 45;
+        SelacoParticle.RandomPitch  -65 , -135;
+        SelacoParticle.RandomSpeed  3 , 7;
+    }    
+}
+
+
+/* /* class BlueSparkFast : BlueSpark
+{
+    default 
+    {
+        SelacoParticle.RandomScaleX 2.1, 3.1;
+        SelacoParticle.RandomScaleY 2.1, 3.1;
+        SelacoParticle.LifespanMutliplier   0.6 , 0.9, 1.1, 1.3, 2.5;
+        SelacoParticle.RandomLife       13  , 17;
+        SelacoParticle.RandomAngle  -45 , 45;
+        SelacoParticle.RandomPitch  -65 , -135;
+        SelacoParticle.RandomSpeed  7 , 10;
+    }    
+} */
+  
+class HeadshotBlueSpark : BlueSpark
+{
+    default
+    {
+        +SelacoParticle.LifeScale 
+        SelacoParticle.RandomLife       14  , 20;
+        SelacoParticle.ScaleLifeRange 0, 1;
+        SelacoParticle.LifespanMutliplier   0.5,1,1,1,1;
+        SelacoParticle.ScaleRange 1.0, 0, 1.0, 0; 
+        SelacoParticle.RandomScaleX 1.1, 5.1;
+        SelacoParticle.RandomScaleY 1.1, 5.1;
+        SelacoParticle.RandomSpeed  1 , 7;
+    }
+}
+
+class HeadshotBlueSparkFast : HeadshotBlueSpark
+{
+    default 
+    {
+        SelacoParticle.RandomScaleX 2.1, 5.1;
+        SelacoParticle.RandomScaleY 2.1, 5.1;
+        SelacoParticle.LifespanMutliplier   0.6 , 0.9, 1.1, 1.3, 2.5;
+        SelacoParticle.RandomLife       13  , 17;
+        SelacoParticle.RandomAngle  -45 , 45;
+        SelacoParticle.RandomPitch  -65 , -135;
+        SelacoParticle.RandomSpeed  3 , 10;
+    }    
+}
+
+
+// Smaller version of Sparks
+class DroppedSparkSmaller : DroppedSpark{
+    default {
+        XScale 0.03;
+        Yscale 0.008;
+        SelacoParticle.RandomSpeed  1 , 3;
+        SelacoParticle.RandomLife   25  , 35;
+    }
+}
+class DroppedSparkSawDrone : DroppedSpark{
+    default {
+        XScale 0.01;
+        Yscale 0.002;
+        SelacoParticle.RandomSpeed  1 , 3;
+        SelacoParticle.RandomLife   10  , 15;
+    }
+}
+class DroppedSparkSmallerShort : DroppedSparkSmaller{
+    default {
+        XScale 0.02;
+        Yscale 0.006;
+        SelacoParticle.LifespanMutliplier   0.6, 0.7, 0.75, 0.8, 0.85;
+        SelacoParticle.RandomSpeed  1 , 3;
+        SelacoParticle.RandomLife   15  , 22;
+    }
+}
+
+class DroppedSparkSliding : DroppedSpark{
+    default {
+        XScale 0.03;
+        Yscale 0.003;
+        SelacoParticle.LifespanMutliplier   1.0, 1.0, 1.0, 1.0, 1.0;
+        SelacoParticle.RandomPitch  0,-20;
+        SelacoParticle.RandomSpeed  1 , 3;
+        SelacoParticle.RandomLife   15  , 25;
+    }
+}
+
+class woodParticleSliding : DroppedSparkSliding
+{
+    default
+    {
+        SelacoParticle.RandomSpeed  1 , 4;
+        SelacoParticle.RandomAngle  -80 , 80;
+        renderstyle "Normal";
+        XScale 0.69;
+        Yscale 0.65;
+        SelacoParticle.BounceSound "bounce/wood";
+        SelacoParticle.RandomLife   105  , 125;
+        SelacoParticle.RandomScaleX 0.915, 1.267;
+        SelacoParticle.RandomScaleY 0.95, 1.267;
+    }
+    states
+    {
+        Spawn:
+        WOOD A 0;       // Precache frames (Probably unecessary)
+        WOOD A -1 
+        {
+            Frame = random(0,3);                // Pick random graphic
+            if(random(0,1) == 1) {bxflip = true;}
+        }
+        stop;
+    }
+}
+
+class DroppedSparkSlidingWild : DroppedSparkSliding{
+    default {
+        SelacoParticle.RandomAngle  -55 , 55;
+    }
+}
+// Smaller version of Sparks
+class DroppedSparkTiny : DroppedSpark{
+    default {
+        XScale 0.007;
+        Yscale 0.004;
+        SelacoParticle.RandomAngle 0, 360;
+        SelacoParticle.RandomSpeed  1 , 6;
+        SelacoParticle.RandomLife   25  , 50;
+    }
+}
+class DroppedSparkTinyShort : DroppedSparkTiny{
+    default {
+        SelacoParticle.RandomLife   17  , 20;
+    }
+}
+
+class SparksCloth : Stacked_Sparks_Lite {
+    override void postBeginPlay() {
+        super.postBeginPlay();
+        for(int x=0;x<4;x++) {
+            actor paperPuff;
+            bool succ;
+            [succ, paperPuff] = A_SPAWNITEMEX("PaperDustEffectShort", 5, frandom(-10,10), frandom(-10,10), frandom(-0.1,-0.2), frandom(-0.1,0.2), frandom(-0.1,-0.1));
+            if(paperPuff) {
+                paperPuff.scale*=0.1;
+            }
+        }
+        EmitDefinition('ClothPuffWallDefinition', 0.75, 80, angle:-180);
+    }
+}
+
+class Stacked_Sparks_Lite : actor {
+    mixin ParticleEmitter;
+    mixin ParticleDefinitionEmitter;
+    default {
+        height 0;
+        radius 0;
+        mass 0;
+        Scale 0.2;
+        Speed 0;
+        RenderStyle "add";
+        +NOBLOCKMAP +NOCLIP +NOGRAVITY;
+        +CLIENTSIDEONLY;
+    }
+States {
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 {
+            if(random(0,100) <= 25) {
+                for(int x=0;x<=2;x++){
+                    A_SpawnDefinedParticle(
+                        "BulletImpactPuffSmokeDefinition", 
+                        xoff: 15, frandom(-15, 15), frandom(0.1, 1.0),
+                        xvel: frandom(-2, 2), frandom(-2, 2)
+                    );
+                }
+            }
+			A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition",-3);
+            EmitDefinition('MetalShrapnelParticleShortWallDefinition', chance: 0.75, numTries: 90, angle:-180,pitch:0, speed:0, scaleboost:frandom(1.1,1.2));
+            EmitDefinition('ShortSparkParticleNarrowDefinition', chance: 1.0, numTries: 15, angle:-180, pitch:-10, speed:2);
+            EmitDefinition('SparkParticleActorDefinition', chance: 1.0, numTries: 15, angle:-180, pitch:frandom(-10,10), speed:frandom(0.4,3.5), offset:(frandom(-1, 1), frandom(-2,2),frandom(-1,1)), velocity:(frandom(-2,2), frandom(2,2), 4), scaleBoost: 0.6);
+            EmitDefinition('MetalShrapnelParticleDefinition', chance: 1.0, numTries: 7, angle:-180, pitch:frandom(-10, 10), speed:frandom(1,2), velocity:(0,0,frandom(0,2)));
+        }
+		TNT1 A 0 A_Jump(256, "Spawn1", "Spawn2", "Spawn3");
+		stop;
+	Spawn1:
+        IPF2 ABC 1 bright A_SpawnItem ("YellowFlareSmall", 0);
+        TNT1 A 1;
+        Stop;
+
+	Spawn2:
+        IPF2 BCA 1 bright;
+        TNT1 A 1;
+        Stop;
+
+	Spawn3:
+        IPF2 ACB 1 bright;
+        TNT1 A 1;
+        Stop;
+	}
+}
+
+
+class DroppingSparks : SELACOACTOR {
+
+    override void postbeginPlay() {
+        super.postBeginPlay();
+        if(pos.z > ceilingZ) {
+            SetOrigin((pos.x, pos.y, ceilingz), false);
+        }
+    }
+
+    int minDelay;
+    int maxDelay;
+    int sparkCount;
+    bool allowMissile;
+    int spawnOffset;
+    // Often update in case of a change provided through ACS.
+    override void tick()
+    {
+        super.tick();
+        if (level.Time % 35 == 0)
+        {
+            minDelay = args[0] != 0 ? args[0] : 150;
+            maxDelay = args[1] != 0 ? args[1] : 250;
+            sparkCount = args[2] != 0 ? args[2] : 5;
+            allowMissile = args[3] != 0 ? args[2] : 1;
+        }
+    }
+
+    virtual void emitParticles()
+    {
+		EmitDefinition('SparkOrbDefiniton', chance: 0.75, numTries: sparkCount, offset:(0,0,spawnOffset));
+		EmitDefinition('SparkOrbWildDefinition', chance: 0.25, numTries: sparkCount, offset:(0,0,spawnOffset));   
+        EmitDefinition('SparkBriefDefintion', chance: 0.65, numTries: sparkCount*0.5, pitch:90, offset:(0,0,spawnOffset));             
+    }
+
+	default {
+        tag "Dropping Sparks";
+        +NOGRAVITY;
+        +NOINTERACTION;
+        +SpawnCeiling;
+        height 7;
+        ALPHA 0;
+        RenderStyle "None";
+        SelacoActor.SleepDistance 912;   // Lower than normal, no reason to fire sparks when we are far away
+    }
+	
+	states {
+		Spawn:
+			TNT1 A 0;
+            goto prepEffect;
+        PrepEffect:
+            TNT1 A 0; // used for actors who inherrit this
+            goto spawnEffect;
+		SpawnEffect:
+			TNT1 A 0
+            {
+                A_SetTics(random(minDelay, maxDelay));
+            }
+            TNT1 A 0
+            {
+                A_PlaySound("dest/dsparks", CHAN_AUTO, 0.3, pitch:frandom(0.9,1.25));
+                A_Spawnitemex("YellowFlareSmallSparksFlicker");
+                EmitDefinition('ShortSparkParticleDefinition', chance: 0.75, numTries: 15,  angle:-180, pitch:180);	
+                A_SPAWNDEFINEDPARTICLE("BulletImpactEffectMetalSmallDefinition",-3);
+            }
+			TNT1 AAAAAAAAAA 1 {
+                emitParticles();
+			}
+            TNT1 A 0
+            {
+                if(allowMissile && random(0,100) <= 30)
+                {
+                    A_SPAWNITEMEX("SparkMissile");
+                }
+            }
+			goto Spawn;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+// Has more vertical offset per spark emitter
+class SparkLauncher07C : SparkLauncher
+{
+    states
+    {
+        Spawn:
+        PrepEffect:
+            TNT1 A 0;
+            TNT1 A 0
+            {
+                spawnOffset = random(-40,40);
+            }
+            goto spawnEffect;
+    }
+}
+
+class SparkLauncher : DroppingSparks {
+	default {
+        -SpawnCeiling;
+    }
+}
+
+
+
+
+class DroppingSparksFast : SELACOACTOR {
+
+	default {
+        tag "Dropping Sparks";
+        +NOGRAVITY;
+        +NOINTERACTION;
+        +SpawnCeiling;
+        height 7;
+
+        ALPHA 0;
+        RenderStyle "None";
+        SelacoActor.SleepDistance 712;   // Lower than normal, no reason to fire sparks when we are far away
+    }
+	
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A random(40, 160);
+			//TNT1 A 0 A_CheckProximity("SpawnEffect", "Dawn", 1400, 1, CPXF_SetTarget);
+			//loop;
+            TNT1 A random(10,170);
+		SpawnEffect:
+            TNT1 A 0 A_PlaySound("dest/dsparks", CHAN_AUTO, 0.3, pitch:frandom(0.9,1.25));
+			TNT1 A 0 A_Spawnitemex("YellowFlareSmallSparksFlicker");
+			TNT1 AAAAAA 1 {
+				EmitDefinition('SparkParticleDefinition', chance: 0.75, numTries: 7);
+				EmitDefinition('SparkParticleWildDefinition', chance: 0.45, numTries: 5);
+			}
+			TNT1 A random(15,25);
+			goto Spawn;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class Sparks_Shadowcaster: SelacoActor
+{
+    default
+    {
+        scale 0.25;
+        +NOINTERACTION
+        +SELACOACTOR.preventsleep
+        renderstyle "Add";
+        SelacoActor.SleepDistance 512;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0 A_SpawnItem ("YellowFlareSmallShadowCaster", 0);
+            FX58 ABCDEFGHIJ 2 bright;
+            Stop;
+    }
+}

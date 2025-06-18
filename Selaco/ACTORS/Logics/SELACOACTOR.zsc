@@ -1,0 +1,1838 @@
+#include "ACTORS/Logics/SELACOACTORHAT.zsc"
+#include "ACTORS/Logics/SELACOACTORTRAVEL.zsc"
+#include "ACTORS/Logics/INTERACTABLE.zsc"
+
+enum SelacoActorFlags {
+    MTF_NoPrompts = 0x800000
+}
+
+enum SelacoDifficulties
+{
+    SKILL_ENSIGN = 0,
+    SKILL_LIEUTENANT = 1,
+    SKILL_COMMANDER = 2,
+    SKILL_CAPTAIN = 3,
+    SKILL_ADMIRAL = 4,
+    SKILL_SMF = 5,
+    SKILL_STORYONLY = 6,
+}
+
+
+enum SelacoSpecialLevels
+{
+    MAP_SAFEROOMEXTENSION = 100
+}
+
+mixin class SleepDebugger {
+    override void Sleep(int tics) {
+        if(developer < 0) {
+            SetShade("FF1136");
+            A_SetRenderStyle(1, STYLE_Stencil);
+        }
+        Super.Sleep(tics);
+    }
+
+    override void SleepIndefinite() {
+        if(developer < 0) {
+            SetShade("33CC97");
+            A_SetRenderStyle(1, STYLE_Stencil);
+        }
+        Super.SleepIndefinite();
+    }
+
+    override void wake() {
+        if(developer < 0) RestoreRenderStyle();
+        Super.wake();
+    }
+}
+
+
+class SELACOACTOR : Actor {
+    mixin particleEmitter;
+    mixin ParticleDefinitionEmitter;
+    mixin lightEmitter;
+
+    // Assigns the pitch and roll based on the 510P3 beneath the actor. Probably best to only apply this when the actor is moving to save up on resources.
+    // Math by: ZZYZX
+    static void AlignToPlane(Actor alignedActor, double pitchAdjust = 0, bool checkZ = true) {
+        if (!alignedActor) return; // Prevent crashy crashy
+
+        Vector3 fnormal;
+        fnormal = alignedActor.CurSector.FloorPlane.Normal; // Get Floor Plane
+
+        if(checkZ && !(alignedActor.pos.z ~== alignedActor.CurSector.FloorPlane.ZatPoint(alignedActor.pos.xy))) {
+            alignedActor.pitch = 0;
+            alignedActor.roll = 0;
+            return;
+        }
+
+        // Math stuff :dawn_nerd:
+        Vector2 fnormalp1 = (fnormal.x != 0 || fnormal.y != 0) ? (fnormal.x, fnormal.y).Unit() : (0, 0);
+        Vector2 fnormalp2 = ((fnormal.x, fnormal.y).Length(), fnormal.z);
+        double dang = alignedActor.Angle;
+        double fang = atan2(fnormalp1.y, fnormalp1.x);
+        double fpitch = atan2(fnormalp2.x, fnormalp2.y);
+        double ddiff1 = sin(fang - (dang - pitchAdjust));
+        double ddiff2 = cos(fang - dang);
+
+        if(fnormal dot (0,0,1) < 0.6) return;  // limit angle change
+
+        // Apply wizardry to the model
+        alignedActor.Pitch = (fpitch * ddiff2 - pitchAdjust);
+        alignedActor.Roll = -fpitch * ddiff1;
+        alignedActor.Angle = dang;
+
+        // Spacebro is a good game, wishlist it on your nearest SPACE BRO station.
+   }
+
+    // This is literally just A_SPAWNPROJECTILE but has a Speedmulti prop so we can shoot things faster if desired.
+    virtual void S_SpawnProjectile(class<Actor> missileType, double speedMulti = 1, int spawnHeight = 32, int spawnofs_xy = 0, double angle = 0, int flags = 0, double pitch = 0, int ptr = AAPTR_TARGET)
+    {
+        actor launchProjectile;
+        launchProjectile = A_SPAWNPROJECTILE(missileType, spawnHeight, spawnofs_xy, angle, flags, pitch, ptr);
+        if(launchProjectile)
+        {
+            launchProjectile.A_ScaleVelocity(speedmulti);
+        }
+    }
+
+    virtual void S_SpawnDefinedProjectile(class<ParticleDefinition> missileType, double speedMulti = 1, int spawnHeight = 32, int spawnofs_xy = 0, double angle = 0, int flags = 0, double pitch = 0, int ptr = AAPTR_TARGET)
+    {
+        A_SpawnDefinedParticleProjectile(missileType, spawnHeight, spawnofs_xy, angle, flags, pitch, ptr);
+    }
+
+    int sign(float value) {
+        if (value > 0) return 1;
+        if (value < 0) return -1;
+        return 0;
+    }
+
+   static clearscope Vector3 vecFromAngle(double yaw, double pitch, double length = 1.0) {
+        Vector3 r;
+
+        double hcosb = cos(pitch);
+        r.x = cos(yaw) * hcosb;
+        r.y = sin(yaw) * hcosb;
+        r.z = -sin(pitch);
+
+        return r * length;
+    }
+
+	float pow(float base, float exponent) {
+		float result = 1.0;
+		for (int i=0;i<exponent;++i) {
+			result*=base;
+		}
+		return result;
+	}
+
+    void makeActivatable() {
+        bUseSpecial = true;
+        activationtype = THINGSPEC_SWITCH;
+    }
+
+    void makeUnactivatable() {
+        bUseSpecial = false;
+        activationtype = THINGSPEC_DEFAULT;      
+    }
+
+    virtual int S_Explode(int damage = -1, double distance = -1, int flags = XF_HURTSOURCE, bool alert = false, int fulldamagedistance = 0, int nails = 0, int naildamage = 10, class<Actor> pufftype = "BulletPuff", name damagetype = 'none') {
+        if (damage < 0) // get parameters from metadata
+        {
+            damage = ExplosionDamage;
+            distance = ExplosionRadius;
+            flags = !DontHurtShooter;
+            alert = false;
+        }
+        if (distance <= 0) distance = damage;
+
+        if (nails)
+        {
+            double ang;
+            for (int i = 0; i < nails; i++)
+            {
+                ang = i * 360. / nails;
+                LineAttack(ang, MISSILERANGE, 0.,
+                    naildamage, 'Hitscan', pufftype, bMissile ? LAF_TARGETISSOURCE : 0);
+            }
+        }
+
+        if (!(flags & XF_EXPLICITDAMAGETYPE) && damagetype == 'None')
+        {
+            damagetype = self.DamageType;
+        }
+
+        int pflags = RADF_CIRCULAR; // Always set RADF_CIRCULAR
+        if (flags & XF_HURTSOURCE) pflags |= RADF_HURTSOURCE;
+        if (flags & XF_NOTMISSILE) pflags |= RADF_SOURCEISSPOT;
+        if (flags & XF_THRUSTZ) pflags |= RADF_THRUSTZ;
+        if (flags & XF_THRUSTLESS) pflags |= RADF_THRUSTLESS;
+        if (flags & XF_NOALLIES) pflags |= RADF_NOALLIES;
+
+        int count = RadiusAttack(target, damage, distance, damagetype, pflags, fulldamagedistance);
+        if (!(flags & XF_NOSPLASH)) CheckSplash(distance);
+        if (alert && target != NULL && target.player != NULL)
+        {
+            SoundAlert(target);
+        }
+        
+        return count;
+    }
+
+    // Actor is spawned by the randomizer and needs some special behavior
+    virtual void isRandomizedSpawn() {
+
+    }
+
+    Actor telekOwner;
+    Actor burnLight;
+    meta bool noDebugSleep; // Don't render funny when debug sleep is on
+
+    bool user_riflestart; // Only spawn when Riflestart is active.
+
+    int sleepDist;
+    int burnTimer; // Used to decide how long an actor should show burn effects
+    int burnTimerMax;
+
+    int rarityID;
+    bool randomized;
+
+    int lastWaterLevel;
+    int dripSteps;
+    int wasSubmerged;
+    int collisionsfxCD;
+    RandomizerHandler randomizerHandler;
+
+    actor ridingVACBOT;
+    
+    string typeCommon, typeUncommon, typeRare, typeLegendary;
+    string collisionSound;
+    float shoveFactor;
+    int lastSplash;     // Last time actor splashed
+    bool isBurning;
+    bool user_static;
+    bool decorationActor; // Used to detect decoration actors. These have different rules.
+    private int selacoActorFlags, selacoActorFlags2;
+    protected int sleepTimeout;                 // Sleep timeout is restarted after wake() and when the frame index changes (for animated objects)
+    protected int idleTimeout;                  // Track how long an object has been idle
+
+    float specialPushFactor;
+
+    flagdef PreventSleep                : selacoActorFlags, 0;      // Do not sleep automatically, can be used on and off to prevent sleep during animations
+    flagdef SleepWhenFar                : selacoActorFlags, 1;      // Sleep when in excess of SleepDistance from player
+    flagdef SleepWhenIdle               : selacoActorFlags, 2;      // Chance to sleep when not moving
+    flagdef AllowSleepInMotion          : selacoActorFlags, 27;     // Allow distance sleep when still in motion
+    flagdef WakeNearPlayer              : selacoActorFlags, 3;      // Wake when in SleepDistance range of player
+    flagdef WakeOnPain                  : selacoActorFlags, 4;      // Wake when shot or hurt
+    flagdef WakeOnTouch                 : selacoActorFlags, 5;      // Wake when touched by the player or monsters. Currently disabled as it's of limited use and demanding.
+    flagdef WakeOnMotion                : selacoActorFlags, 28;     // Wake if velocity is applied to the actor
+    flagdef SlopeAlignment              : selacoActorFlags, 6;      // Actor slope will not be adjusted 
+    flagdef DecorativeActor             : selacoActorFlags, 14;     // Actor is a decoration and will pass through actors and players.
+    flagdef ThruDecorations             : selacoActorFlags, 7;      // AI can phase through these decorations
+    flagdef Thruplayers                 : selacoActorFlags, 8;      // Player collission is ignored with this object
+    flagdef IsTrash                     : selacoActorFlags, 9;      // Actor is considered 'Trash'. Vac-bots will target this and clean it up.
+    flagdef AllowGravityManipulation    : selacoActorFlags, 10;     // Bypasses the usual checks for Gravity Manipulation. This object can be picked up with the Plasma Rifle.
+    flagdef DisallowGravityManipulation : selacoActorFlags, 21;     // Bypasses standard checks and explictly prevents gravity manipulation. This only works if set as the default, changing it at runtime has no effect.
+    flagdef DangerousActor              : selacoActorFlags, 11;     // Nearby danagerous actors deny quicksaves
+    flagdef AimAssist                   : selacoActorFlags, 12;     // This actor will get picked up by accident
+    flagdef IsHazard                    : selacoActorFlags, 13;     // IsHazard are dangerous actors about to explode.
+    flagdef DebugMode                   : selacoActorFlags, 29;     // Give console information when this is active
+    flagdef IgnoreDecorations           : selacoActorFlags, 15;
+    flagdef AllowSlideCollision         : selacoActorFlags, 16;
+    flagdef AllowWaterSplashing         : selacoActorFlags, 17;
+    flagdef EnemyProjectilePassThru     : selacoActorFlags, 18;
+    flagdef AllProjectilePassThru       : selacoActorFlags, 19;
+    flagdef IgnoreEnemyProjectiles      : selacoACtorFlags, 20;
+    flagdef ThruEnemies                 : selacoActorFlags, 22;
+    flagdef IgnoreArmor                 : selacoActorFlags, 23;     // Actor completely ignores armor
+    flagdef AllowPunting                : selacoActorFlags, 24;
+    flagdef SmallWaterSplash            : selacoActorFlags, 30;     // Makes a smaller splash when resurfacing / going underwater
+    flagdef IsOnWheels                  : selacoActorFlags, 31;     // Plays a wheel sound when pushed
+    // Selaco Hats take up flags 25 and 26
+    
+    flagdef Essential                   : selacoActorFlags2, 1;     // Will not be deleted by certain actions, such as crushing
+    flagdef Crushable                   : selacoActorFlags2, 2;     // Closing doors and sector squeezes will kill this object
+    flagdef CrushIgnored                : selacoActorFlags2, 3;     // Ceiling/floors will pass through this actor instead of crushing, not compatible with Crushable
+    flagdef SpecialPushable             : selacoActorFlags2, 4;     // Special push mode, will make every attempt to not inconvenience the player when colliding
+    flagdef SpecialPushable2            : selacoActorFlags2, 5;     // UNUSED now that the engine supports this internally
+    flagdef SpecialPushDirectionFix     : selacoActorFlags2, 6;     // When using SpecialPush or SpecialPushable2 this object will more closely follow the direction the player is pushing
+    flagdef IsTelekProjectile           : selacoActorFlags2, 7;     // Has been fired by Gravity Manipulator, is expected to die and explode
+    flagdef HighPriorityGravTarget      : selacoActorFlags2, 8;     // When finding targets, Gravity Manipulator will prefer this one when possible
+    flagdef BreakOnMelee                : selacoActorFlags2, 9;     // This actor can be seen by the melee arc and will enter ``Death.MeleeImpact`` forcefully
+    flagdef TravelAllowed               : selacoActorFlags2, 10;    // Actor can travel between maps, either by being picked up or through transition zones
+    flagdef IgnoredByMelee              : selacoActorFlags2, 11;    // Actor can travel between maps, either by being picked up or through transition zones
+    flagdef ForceFlushable              : selacoActorFlags2, 12;     // Overrides requirements and makes it flushable regardless of size.
+    flagdef ShowHealthOnPrompt          : selacoActorFlags2, 13;
+    flagdef PlayerCanBump               : selacoActorFlags2, 14;
+    flagdef AllowBurning                : SelacoActorFlags2, 15; 
+    flagdef AllowRandomizerReplacement  : SelacoActorFlags2, 16;
+    flagdef Splashable                  : SelacoActorFlags2, 17;    // Actor will receive callbacks when splashed with various water particles
+    
+    // @Cockatrice - These flags do not save with the actor, on purpose. Do not change these values at runtime.
+    // We cannot use a META variable for flags because of a flaw where variables created from flags are linked incorrectly when the backing integer is META
+    transient readonly int selacoActorFlags3;
+    flagdef EffectActor                 : selacoActorFlags3, 20;    // NEVER sleep, and will destroy itself if created too far away from the player (see EffectRange)
+    flagdef Trap                         : SelacoActorFlags3, 21;
+    flagdef ForceCollisionSound          : SelacoActorFlags3, 22; 
+    flagdef IsHeavy                     : SelacoActorFlags3, 23; 
+    meta int effectRange;
+    property EffectRange                : effectRange;              // EffectActors farther than this range should not spawn, and will destroy themselves if spawned
+    property SleepDistance              : sleepDist;                // Sleep distance controls how near the player to wake at
+    property BurnTimerMax               : burnTimerMax;
+    property NoDebugSleep               : noDebugSleep;
+    property SpecialPushFactor          : specialPushFactor;        // Factor when being special-pushed. Different from being normal pushed. Both can happen on the same object. MUST BE 0-1
+    property ShoveFactor                : shoveFactor;              // An actor with this property will get shoved when hit by melee. It will not take damage.
+    property CollisionSound             : collisionSound;
+
+    const SHOVE_FACTOR_BASE = 100; // Higher values result in a much stronger shove.
+
+
+    virtual void onParticleSplash(ParticleData particle) {
+        // Do nothing, this should only be called if Splashable is set
+    }
+
+    override bool canCollideWith(Actor other, bool passive) {
+		let canCollide = Super.CanCollideWith(other, passive);
+		let sa = SelacoActor(other);
+        if(sa && ((bThruDecorations && sa.bDecorativeActor) || (bIsMonster && sa.bThruEnemies))) 
+        {
+            return false;
+        }
+        
+        let pd = DecorationObject(self);
+        if(sa && (telekOwner || (pd && pd.pickedUpOwner)) && canCollide && !bCannotPush && (sa.bPushable || sa.bSpecialPushable)) {
+            
+            // If we are currently picked up and we are colliding with a pushable, limit our active velocity to reduce the crazy amount of pushing
+            let pvel = 6.0 / sa.pushfactor;
+            if(telekOwner) pvel *= 1.5; // Push harder if using gravity manipulator
+            if(vel.length() > pvel) {
+                vel = vel.unit() * pvel;
+            }
+        }
+
+        // Wake if we need to be pushed
+        if(passive && bPushable && !other.bCannotPush && (other.pos.z < pos.z + height && other.pos.z + other.height > pos.z) && !(other.vel.xy ~== (0,0))) {
+            wake();
+        }
+
+		return canCollide;
+	}
+
+    override bool Grind(bool items) {
+        if(bIsTrash || bCrushIgnored || bNOBLOCKMAP || bNoInteraction) return false;
+        if(bBuddha) return true;    // Stop on this object
+
+        bool isCrushed = (pos.z <= floorz || bOnMobj) && pos.z + height >= ceilingz - 0.5;
+
+        // Don't crush enemies or essential items
+        if(!isCrushed || !bCrushable || bEssential) {
+            return !isCrushed ? false : Super.Grind(items);
+        }
+        
+        DieByCrushing();
+        
+        return false;
+    }
+
+    virtual void DieByCrushing() {
+        health = 0;
+        die(self, self, DMG_NO_PAIN | DMG_FORCED | DMG_NO_ARMOR, 'Crushed');
+    }
+
+    override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath) {
+		Super.Die(source, inflictor, dmgflags, bIsTelekProjectile ? 'GravityThud' : MeansOfDeath);
+
+        // Attempt to trigger weapon callbacks
+        if(inflictor && inflictor != self) {
+            SelacoWeapon sourceWeapon = SelacoWeapon(inflictor.master);
+            
+            if(!sourceWeapon && source && source.player) {
+                sourceWeapon = SelacoWeapon(source.player.readyWeapon);
+            }
+
+            if(sourceWeapon) {
+                sourceWeapon.onKill(self, inflictor);
+            }
+        }
+	}
+
+    // Player is bumping into the object with force
+    virtual void collidingWithPlayer(actor toucher)
+    {
+        // Do nothing if player is too high, so dont play a bump noise
+        if(abs(toucher.pos.z - pos.z) >= height*0.75)
+        {
+            return;
+        }
+		toucher.A_PLAYSOUND("PLAYER/COLLISION", CHAN_AUTO, pitch:1.25);
+        if(collisionSound && toucher.vel.length() > 5)
+        {
+            A_PLAYSOUND(collisionSound, CHAN_AUTO, 0.45, pitch:frandom(1.0,1.25));
+        }
+        if(bPlayerCanBump && radius <= 12)
+        {
+            int playerVelocity = toucher.vel.length();
+            int kickAngle = (random(0,1) == 0) ? frandom(-35,-45) : frandom(35,45);
+            A_SETANGLE(angle+frandom(5,15), SPF_INTERPOLATE);
+            VelFromAngle(playerVelocity, toucher.angle + kickAngle);
+        }
+		collisionsfxCD = 8;
+    }
+
+	clearscope double PitchTo(Actor target, double zOfs = 0, double targZOfs = 0, bool absolute = false) const
+	{
+		Vector3 origin = (pos.xy, pos.z - floorClip + zOfs);
+		Vector3 dest = (target.pos.xy, target.pos.z - target.floorClip + targZOfs);
+		Vector3 diff;
+		if (!absolute)
+			diff = level.Vec3Diff(origin, dest);
+		else
+			diff = dest - origin;
+		return -atan2(diff.z, diff.xy.Length());
+	}
+
+    // We sometimes spawn multiple different types of sounds, so ``painSound``` wont quite suffice. This function runs whenever the actor's BloodType is called.
+    virtual void playBloodSounds(Actor inflictor = null)
+    {
+        
+    }
+
+    // Used when bBreakOnMelee is true
+    // Override if you want different behavior.
+    virtual void breakByMelee(Actor source) 
+    { 
+        die(source, source, 0, "meleeimpact");
+		bBreakOnMelee = false;
+    }
+
+    default {
+        SELACOACTOR.BurnTimerMax 90;
+        SELACOACTOR.SleepDistance 256;
+        SELACOACTOR.SpecialPushFactor 1.0;
+        SELACOACTOR.EffectRange 2048;
+
+        MaxSlopeSteepness 0.4; 
+        +SELACOACTOR.PlayerCanBump
+        +SELACOACTOR.allowWaterSplashing;
+        -SELACOACTOR.DecorativeActor;
+        -SELACOACTOR.BreakOnMelee;
+        -SELACOACTOR.PreventSleep;
+        +SELACOACTOR.SleepWhenFar;
+        +SELACOACTOR.SlopeAlignment;
+        -SELACOACTOR.SleepWhenIdle;
+        -SELACOACTOR.AllowSleepInMotion;
+        +SELACOACTOR.WakeNearPlayer;
+        +SELACOACTOR.WakeOnPain;
+        +SELACOACTOR.AllowPunting
+        +SELACOACTOR.WakeOnTouch;
+        +SELACOACTOR.allowSlideCollision;
+        +SELACOACTOR.WakeOnMotion;
+        -SELACOACTOR.thruplayers;
+        -SELACOACTOR.Essential;
+        -SELACOACTOR.Crushable;
+        +SELACOACTOR.TravelAllowed;
+        +SelacoActor.AllowBurning
+        -SELACOACTOR.EffectActor;
+    }
+
+    states {
+        // Generic precache for all voxel based frames
+        // This prevents us from having to add a precache state for every prop
+        Precache:
+            VOXE LABCDEFGHIJKMNOPQRSTUVWXYZ 0;
+            stop;
+    }
+
+    override void BeginPlay() {
+        Super.BeginPlay();
+
+        spawnLevelNum = level.levelnum;
+        sleepTimeout = 15;
+        idleTimeout = 15;
+    }
+
+    override void PostBeginPlay() {
+        super.postbeginPlay();
+
+        if(bEffectActor && effectRange > 0) {
+            double minDist = double.max;
+            for(int x = 0; x < MAXPLAYERS; x++) {
+                let mo = players[x].mo;
+                if(mo) minDist = min(minDist, Distance2DSquared(mo));
+            }
+
+            if(minDist > effectRange * effectRange) {
+                if(!bDestroyed) {
+                    destroy();
+                }
+                return;
+            }
+        }
+
+        if(user_riflestart && getCvar("g_riflestart") == 0)
+        {
+            destroy();
+            return;
+        }
+        
+        lastWaterLevel = waterLevel; // Necessary so that things that spawn in water don't splash   
+
+        if(bSlopeAlignment) {
+            AlignToPlane(self);
+        }
+
+        if(bIsMonster)
+        {
+            MaxSlopeSteepness = 0.75; // 45 Degrees felt too narrow,
+        }
+
+        //storedSelfLighting = selfLighting;
+
+        // If an object is small, exclude it from reflections to save up on juice
+        if(radius <= 7) {
+            bINVISIBLEINMIRRORS = true;
+        }
+        if(user_static)
+        {
+            bUseSpecial = false;
+            activationtype = THINGSPEC_DEFAULT;
+            bNoInteraction = true;
+            Sleepindefinite();
+        }
+    }
+
+    override void Sleep(int tics) {
+        if(developer < 0 && !noDebugSleep) {
+            SetShade("FF1136");
+            A_SetRenderStyle(1, STYLE_Stencil);
+        }
+
+        if(bCanBeHat && tics > 5 && bSolid && !bNOGRAVITY) checkForHead();
+
+        Super.Sleep(tics);
+    }
+
+    override void SleepIndefinite() {
+        if(developer < 0 && !noDebugSleep) {
+            SetShade("33CC97");
+            A_SetRenderStyle(1, STYLE_Stencil);
+        }
+
+        if(bCanBeHat && !bNOGRAVITY) checkForHead();
+
+        Super.SleepIndefinite();
+    }
+
+    override void wake() {
+        sleepTimeout = TICRATE * 2;
+        idleTimeout = TICRATE;
+
+        if(developer < 0 && !noDebugSleep) RestoreRenderStyle();
+
+        wakeHats();
+        removeFromHead();
+
+        Super.wake();
+    }
+
+    override bool shouldWake() {
+        return bPreventSleep || isBurning || bEffectActor  || (bWakeOnMotion && !(vel ~== (0,0,0)))   // Wake if motion detected
+                || ((bWakeNearPlayer || (bSleepWhenIdle && !isConsideredIdle())) && isNearDawn(sleepDist)); // Wake when near player, and/or no longer idle
+    }
+
+    virtual bool isConsideredIdle() {
+        return (bNoGravity || (pos.z ~== floorZ)) && !bOnMobj && (vel ~== (0,0,0) || bAllowSleepInMotion) && !isBurning && burnTimer == 0;
+    }
+
+    // Being grabbed by Gravity effect, prepare actor
+    virtual Actor prepareForTelek(Actor owner) {
+        bCanPass = true;
+        telekOwner = owner;
+        return self;
+    }
+
+    double distanceFromPlayer(int plr = -1) {
+        if(plr == -1) plr = consoleplayer;
+        let a = players[plr].mo;
+
+        if(a) {
+            return (a.pos - pos).Length();
+        }
+
+        return -999999;
+    }
+
+    virtual double getWaterFloorHeight()
+    {
+        double floorHeight = double.max;
+        double lastHeight = double.max - 1;
+        Sector Sec = CurSector;
+        Sector floorSec;
+        F3DFloor fl;
+
+        // Search for a 3D floor up to 512 units above our position
+        // Presumably if we exploded in deep water, the effect shouldn't spawn anyways
+        double zCheck = Pos.Z + 512;
+        while (true)
+        {
+            // Technically we are actually finding the top plane of a 3D floor, but the top plane is considered the floor even though
+            // in UDB it is the ceiling. This is not confusing in any way, I'm sure.
+            [floorHeight, floorSec, fl] = Sec.NextLowestFloorAt(Pos.X, Pos.Y, zCheck, FFCF_ALLOWWATER | FFCF_ONLY3DFLOORS);
+
+            // If we ran out of 3D floors, or we found a swimmable one
+            if (fl == null || (fl.flags & F3DFloor.FF_SWIMMABLE))
+                break;
+            if (floorHeight == lastHeight)
+                floorHeight -= 0.1; // Potentially prevent infinite loop when hitting 0 height floors
+            lastHeight = floorHeight;
+            zCheck = floorHeight; //fl.bottom.ZatPoint(pos.xy);
+        }
+
+        if (fl == null || !(fl.flags & F3DFloor.FF_SWIMMABLE))
+        {
+            floorHeight = -9999; // Return -9999 if no swimmable surface is found
+        }
+
+        return floorHeight;
+    }
+
+
+    static double getWaterFloorHeightForMobj(Actor mobj)
+    {
+        double floorHeight = double.max;
+        double lastHeight = double.max - 1;
+        Sector Sec = mobj.CurSector;
+        Sector floorSec;
+        F3DFloor fl;
+
+        // Search for a 3D floor up to 512 units above our position
+        // Presumably if we exploded in deep water, the effect shouldn't spawn anyways
+        double zCheck = mobj.Pos.Z + 512;
+        while (true)
+        {
+            // Technically we are actually finding the top plane of a 3D floor, but the top plane is considered the floor even though
+            // in UDB it is the ceiling. This is not confusing in any way, I'm sure.
+            [floorHeight, floorSec, fl] = Sec.NextLowestFloorAt(mobj.Pos.X, mobj.Pos.Y, zCheck, FFCF_ALLOWWATER | FFCF_ONLY3DFLOORS);
+
+            // If we ran out of 3D floors, or we found a swimmable one
+            if (fl == null || (fl.flags & F3DFloor.FF_SWIMMABLE))
+                break;
+            if (floorHeight == lastHeight)
+                floorHeight -= 0.1; // Potentially prevent infinite loop when hitting 0 height floors
+            lastHeight = floorHeight;
+            zCheck = floorHeight; //fl.bottom.ZatPoint(pos.xy);
+        }
+
+        if (fl == null || !(fl.flags & F3DFloor.FF_SWIMMABLE))
+        {
+            floorHeight = -9999; // Return -9999 if no swimmable surface is found
+        }
+
+        return floorHeight;
+    }
+
+
+	virtual bool checkInvasionTier(int invasionTierRequired) 
+	{
+		InvasionTierSystem handler = InvasionTierSystem.instance();
+		if(handler.validateInvasionTier(invasionTierRequired))
+		{
+			return true;
+		}
+		return false;
+	}
+
+/* 	bool checkInvasionTier(int invasionTierRequired) {
+		let invasionTier = players[consoleplayer].mo.CountInv("InvasionTier");
+		if (invasionTier >= invasionTierRequired) {
+			return true;
+		}
+		return false;
+	}
+ */
+    // returns true if successful, false if water surface could not be found
+    virtual bool moveToWaterSurface(bool waterIsMandatory = false)
+    {
+        double waterSurface = getWaterFloorHeight();
+
+        // Returns -9999 when no swimmable surface is found
+        if(waterSurface == -9999)
+        {
+            if(waterIsMandatory)
+            {
+                destroy();
+            }
+            return false;
+        }
+
+        if(waterSurface != double.max) {
+            setOrigin((pos.x, pos.y, waterSurface), false);
+            return true;
+        }
+
+        return false;
+    }
+
+    virtual bool isMoving() {
+        if(abs(pos.z - floorz) <= 4 && (vel.x != 0.0 || vel.y != 0.0)) {
+            if(bSlopeAlignment) 
+                AlignToPlane(self);
+            return true;
+        }
+        return false;
+    }
+
+    virtual void rollingWheels()
+    {
+
+    }
+
+    // Faster version of distanceFromPlayer.
+    // Since we know the distance we want, we don't need SQRT
+    bool isNearDawn(double maxDistance) {
+        maxDistance *= maxDistance; // Square distance
+        return players[consolePlayer].mo && Distance2DSquared(players[consolePlayer].mo) < maxdistance;
+    }
+
+    bool SetStateLabelIfExists(statelabel st, bool nofunction = false) {
+        let sta = FindState(st);
+        if(!sta) return false;
+        return SetState(sta, nofunction);
+    }
+
+    override void tick() {
+        Super.tick();
+        isMoving();
+        handleCleaning();
+        handleSleep();
+        handleSickBurns();
+        handleWater();
+        if(collisionSFXCD && vel.length() == 0)
+        {
+            collisionSFXCD--;
+        }
+    }
+
+    const BIG_OBJECT_THRESHOLD = 10;
+    virtual void handleWater()
+    {
+        int splashCount = 5;
+        // If actor was under water, but is now on land, drip for a bit!
+        // Commented out, didn't like it.
+/*         if(dripSteps > 0 && waterLevel == 0)
+        {
+            dripSteps--;
+            A_SPAWNITEMEX("WaterParticleXSmall", frandom(-1*radius, radius), frandom(-1*radius, radius), frandom(-2,0), 0, 0, 0, angle:random(0,360));
+        } */
+
+        if(lastWaterLevel != waterlevel && bAllowWaterSplashing)
+        {
+            double waterSurface = getWaterFloorHeight();    // Only need to do this once
+
+            // BIG OBJECT
+            if(radius > BIG_OBJECT_THRESHOLD && !bSmallWaterSplash)
+            {
+                // Leave water
+                if(waterLevel == 0)
+                {
+                    wasSubmerged = false;
+                }
+
+                // Touching water surface
+                if(waterLevel == 1 && !wasSubmerged)
+                {
+                    A_PLAYSOUND("impact/object/water", CHAN_AUTO, 0.6);
+                    
+                    // make sure the water surface could be found
+                    if(waterSurface != double.max) {
+                        for(int x=0;x<10;x++)
+                        {
+                            actor waterParticleActor;
+                            bool waterParticleSuccess;
+                            [waterParticleSuccess, waterParticleActor] = A_SPAWNITEMEX("WaterParticleX", frandom(-1*radius, radius), frandom(-1*radius, radius), frandom(0,3), frandom(0.6,1.5), 0, frandom(1,2), angle:random(0,360));
+                            if(waterParticleActor)
+                            {
+                                //selacoActor(waterParticleActor).moveToWaterSurface();
+                                waterParticleActor.setOrigin((waterParticleActor.pos.xy, waterSurface), false);
+                            }
+                        }
+                        for(int x=0;x<1;x++)
+                        {
+                            string foamEffect = "WaterFoamSlow";
+                            if(bSmallWaterSplash)
+                            {;
+                                foamEffect = "WaterFoamSlowSmall";
+                            }
+                            spawn(foamEffect, (pos.xy, waterSurface));
+                        }
+                    }
+                }
+
+                // Nearly there!
+                if(waterlevel >= 2)
+                {
+                    wasSubmerged = true;
+                }
+
+                // Fully submerged
+                if(waterLevel == 3)
+                {
+                    dripSteps = 75;
+                    A_PLAYSOUND("impact/object/watersubmerge", CHAN_AUTO, 0.6, pitch:frandom(1.0,1.2));
+
+                    // make sure the water surface could be found
+                    if(waterSurface != double.max) {
+                        for(int x=0;x<25;x++)
+                        {
+                            actor waterParticleActor;
+                            bool waterParticleSuccess;
+                            [waterParticleSuccess, waterParticleActor] = A_SPAWNITEMEX("WaterParticleX", frandom(-1*radius, radius), frandom(-1*radius, radius), frandom(0,3), frandom(1,4.5), 0, frandom(1,5), angle:random(0,360));
+                            if(waterParticleActor)
+                            {
+                                //selacoActor(waterParticleActor).moveToWaterSurface();
+                                waterParticleActor.setOrigin((waterParticleActor.pos.xy, waterSurface), false);
+                            }
+                        }
+                        for(int x=0;x<=3;x++)
+                        {
+                            actor waterFoamActor;
+                            bool waterFoamSuccess;
+                            [waterFoamSuccess, waterfoamActor] = A_SPAWNITEMEX("WaterFoamSlowSmall", frandom(-1*radius, radius), frandom(-1*radius, radius), frandom(8,10), 0.5, 0, 0, angle:random(0,360));
+                            if(waterfoamActor)
+                            {
+                                //selacoActor(waterfoamActor).moveToWaterSurface();
+                                waterfoamActor.setOrigin((waterfoamActor.pos.xy, waterSurface), false);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Tiny object, tiny splash
+            if(waterSurface != double.max) {
+                if ( ((radius <= BIG_OBJECT_THRESHOLD && height >= 3 && !(self is "WaterActor")) || bSmallWaterSplash) && (waterLevel > 0 && level.totalTime - lastSplash > 5) )
+                {
+                    lastSplash = level.totalTime;
+                    bounceFactor = 0.01;
+                    double splashVerticalVelocity = 6;
+                    double splashVolume = 0.25;
+                    string waterParticleActorName = "WaterParticleX";
+                    if(bSmallWaterSplash)
+                    {
+                        splashVolume = 0.1;
+                        splashVerticalVelocity = 2;
+                        waterParticleActorName = "WaterParticleXSmall";
+                    }
+                    A_PLAYSOUND("impact/object/water", CHAN_AUTO, splashVolume, pitch:frandom(1.2,1.3));
+                    for(int x=0;x<4;x++)
+                    {
+                        actor waterParticleActor;
+                        bool waterParticleSuccess;
+                        [waterParticleSuccess, waterParticleActor] = A_SPAWNITEMEX(waterParticleActorName, frandom(-1*radius*0.5, radius*0.5), frandom(-1*radius*0.5, radius*0.5), 0, frandom(0.1,0.9), 0, frandom(0.2,splashVerticalVelocity), angle:random(0,360));
+                        if(waterParticleActor)
+                        {
+                            //selacoActor(waterParticleActor).moveToWaterSurface();
+                            waterParticleActor.setOrigin((waterParticleActor.pos.xy, waterSurface), false);
+                        }
+                    }
+                    for(int x=0;x<1;x++)
+                    {
+                        actor waterFoamActor;
+                        bool waterFoamSuccess;
+                        string waterFoamToSpawn = "WaterFoamSlowSmall";
+                        if(bSmallWaterSplash)
+                        {
+                            waterFoamToSpawn = "WaterFoamSlowSmaller";
+                        }
+                        [waterFoamSuccess, waterfoamActor] = A_SPAWNITEMEX(waterFoamToSpawn);
+                        if(waterfoamActor)
+                        {
+                            //selacoActor(waterfoamActor).moveToWaterSurface();
+                            waterfoamActor.setOrigin((waterfoamActor.pos.xy, waterSurface), false);
+                        }
+                    }                     
+                }
+            }
+            
+            lastWaterLevel = waterlevel;
+        }
+    }
+
+    // Triggered when an actor is grabbed by the Plasma Rifle
+    virtual void grabbedTelek() {
+        wake();
+
+        // Make sure we can't sleep during grab
+        bSleepWhenFar = false;
+        bSleepWhenIdle = false;
+        idleTimeout = 30;
+        sleepTimeout = 10;
+    }
+
+    // Triggered when an actor is released by the Plasma Rifle after being grabbed
+    virtual void releaseTelek() {
+        let c = Default;
+        bSleepWhenFar = c.bSleepWhenFar;
+        bSleepWhenIdle = c.bSleepWhenIdle;
+        // Likely that no longer need gravity after this?
+        bNoGravity = false;
+    }
+
+    // Triggered when an actor is trown by the Plasma Rifle 
+    virtual void throwTelek(bool asProjectile = true) {
+        //let c = Default;
+        //bSleepWhenFar = c.bSleepWhenFar;
+        //bSleepWhenIdle = c.bSleepWhenIdle;
+        bIsTelekProjectile = asProjectile;
+    }
+
+    bool isCleaned;
+    void handleCleaning() {
+        if(isCleaned) {
+            bPreventSleep = true;
+            A_FADEOUT(0.2, FTF_REMOVE);
+        }
+    }
+    
+    virtual void handleSickBurns() {
+        // actor touched fire, burn him for a while.
+        // TODO:
+        // - Gradually fade-out the selfLighting.
+        // - Proper fire effects, I'm not huge on these yet.
+        if(burnTimer > 0) {
+            int actorHeight = height; // Determine offsets for smoke and fire particle
+            int actorRadius = radius;
+            if(!isburning) {
+                a_playsound("fire/ignite", CHAN_5, 0.5, 0, 0.6);
+                SpawnLight(255, 160, 90, (radius+height)*2, followMaster:true, divisionSpeed: 0, flickerLight: true);
+                selfLighting = "#fc8c03";
+                if(lightActor && !burnLight)
+                {
+                    burnLight = lightActor;
+                }
+            }
+            isBurning = true;
+
+            // To save performance, we only want to spawn an effect once every two ticks.
+            if(burnTimer % 2 == 0 && getCvar("r_fireeffects") == 1) {
+                A_SpawnItemEx("FireDamageSmoke", 
+                                    //Position
+                                    xofs:frandom(-1*actorRadius, actorRadius),
+                                    yofs:frandom(-1*actorRadius, actorRadius),
+                                    zofs:frandom(0,height), 
+
+                                    //Velocity
+                                    xvel:frandom(0.2, 1.2), 
+                                    yvel:frandom(0.2, 1.2), 
+                                    zvel:frandom(0,1),
+                                    
+                                    angle:random(0,360));
+                A_SpawnDefinedParticle("FlameParticleDefinition", frandom(-1*actorRadius, actorRadius), frandom(-1*actorRadius, actorRadius),random(0, height), frandom(1,1.1), frandom(1,1.1), frandom(0.3,2), angle:random(0,360));
+            }
+
+            // Apply damage to enemies
+            if(burnTimer % 15 == 0 && self is "SelacoEnemy") {
+                S_EXPLODE(7, 25, XF_HURTSOURCE, false, 0, 0, 0, null, damagetype:"fire");
+            }
+
+            burnTimer--;
+            // Return to normal
+            if(burnTimer == 0) {
+                if(burnLight)
+                {
+                    burnLight.destroy();
+                }
+                isBurning = false;
+                selfLighting = Default.selfLighting;
+                //storedSelfLighting;
+            }
+        }
+    }
+
+	// Destroy nearby flames.
+	virtual void RemoveNearbyFlames(double rad) {
+		ThinkerIterator it = ThinkerIterator.Create("FireActor");
+		FireActor fireActor = FireActor(it.Next());
+		for (; fireActor; fireActor = FireActor(it.Next())) 
+		{
+			if(distance2D(fireActor) <= rad)
+			{
+				fireActor.setStateLabel("Extinguished");
+			}
+		}
+	}
+
+
+    virtual void handleSleep() {
+        bool zeroVel = vel ~== (0,0,0);
+
+        // Notify hats if we are moving
+        if(bCanWearHats && !zeroVel) wakeHats();
+
+        // Assume that since we are running this function, we are not sleeping
+        if(bPreventSleep || isBurning || isCleaned || bEffectActor) return;   // Sleeping is difficult when you are on fire
+
+        if(zeroVel || bAllowSleepInMotion) {
+            if(bSleepWhenFar && sleepDist > 0 && --sleepTimeout <= 0) {
+                if(!isNearDawn(sleepDist)) {
+                    if(bWakeNearPlayer) sleep(Level.time < 5 ? random(15, 25) : random(15, 18));
+                    else sleepIndefinite();
+                    return;
+                } else {
+                    sleepTimeout = 10;
+                }
+            }
+
+            if(bSleepWhenIdle && Level.mapTime > 5 && /*(bNoGravity || (pos.z - floorZ ~== 0 && !bOnMobj))*/isConsideredIdle()) {
+                if(--idleTimeout <= 0) {
+                    idleTimeout = 30;
+                    sleepTimeout = 10;
+
+                    // If we auto-wake, we need a callback every so often
+                    // Otherwise sleep indefinitely until a wake source occurs
+                    if(bWakeNearPlayer) {
+                        sleep(Level.time < 5 ? random(15, 25) : random(15, 18));
+                        return;
+                    } else {
+                        sleepIndefinite();
+                        return;
+                    }
+                }
+            } else {
+                idleTimeout = 30;
+            }
+        } else {
+            idleTimeout = 30;
+            sleepTimeout = 10;
+        }
+    }
+
+    void handleShove(actor shoveActor, float moveAmount, int directionOffset = 0, bool addPlayerMomentum = 0)
+    {
+        int playerAngle = shoveActor.angle; 
+        int playerMomentum = (addPlayerMomentum) ? abs(shoveActor.vel.x + shoveActor.vel.y) : 0;
+        int moveVelocity = (moveAmount * SHOVE_FACTOR_BASE) + (playerMomentum* 3); 
+        Vel3DFromAngle(moveVelocity, playerAngle+directionOffset, 1);
+    }
+
+
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        // Apply damage effects using Tick
+		if(bAllowBurning && damageType == "fire" && inflictor != self)  {
+            int fireDamage = ApplyDamageFactor("Fire", damage);
+            burnTimer = fireDamage;
+        }
+    
+        // Shove objects
+        if(source && (damageType == "MeleeImpact" || (inflictor && inflictor is "WeaponMeleeUppercut")) && shoveFactor > 0.0)
+        {
+            damage = 0; // No damage for these. Dont want barrels to explode from shoves
+            handleShove(source, shoveFactor, 0, addPlayerMomentum:true);
+        }
+
+        // Show punch effect
+        if(inflictor && (damageType == "MeleeImpact" || damageType == "DawnFist") && !(self is "SelacoEnemy") && bShootable)
+        {
+            inflictor.A_SPAWNITEMEX("MeleeImpactEffectLSmall", -1, 0, 0);
+        }
+
+        // If explosive damage, spawn mini explosion
+		PlayerPawn pawn=players[0].mo;
+		let d = Dawn(pawn);
+
+		// If the player has the Splash Upgrade, add a bit of splash!
+		if(SelacoWeapon(pawn.player.readyWeapon) && SelacoWeapon(pawn.player.readyWeapon).upgradeCheck('UpgradeCricketSplashDamage') == 1 && damageType != "BulletSplashDamage") {
+			//A_SPAWNITEMEX("SmallExplosionNoSound", 0);
+			A_SPAWNITEMEX("CricketSplashDamageExplosion", 2, 0, height/2);
+		}
+
+
+        let res = Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+
+        // Make sure to wake when taking damage
+        if(bWakeOnPain) wake();
+
+        return res;
+    }
+
+    // Prevent damage from other projectiles if we are a flying projectile
+    override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
+        if(bMissile && mass > 200) {
+            return -100;
+        }
+
+        // Attempt to trigger weapon callbacks
+        if(inflictor && damage >= 0) {
+            SelacoWeapon sourceWeapon = SelacoWeapon(inflictor.master);
+            //Console.Printf("Damage %s  %s  %s", getClassName(), inflictor ? inflictor.getClassName() : 'none', inflictor.master ? inflictor.master.getClassName() : 'none');
+            if(!sourceWeapon && source && source.player) {
+                sourceWeapon = SelacoWeapon(source.player.readyWeapon);
+            }
+
+            if(sourceWeapon) {
+                damage = sourceWeapon.onDamageVictim(self, inflictor, damage, mod);
+            }
+        }
+
+        return Super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+    }
+    
+    double normA(double value, double start = 0, double end = 360) {
+        double width       = end - start;
+        double offsetValue = value - start;
+
+        return ( offsetValue - ( floor( offsetValue / width ) * width ) ) + start;
+    }
+
+
+    // Hey. Listen.
+	bool A_LISTEN(bool jump = true) {
+		if(target && !jump) return true;
+
+		Actor targ = (Level.compatflags & COMPATF_SOUNDTARGET) ? CurSector.SoundTarget : LastHeard;
+
+		if (targ != NULL && targ.health <= 0) targ = NULL;
+		if (targ && targ.player && ((targ.player.cheats & CF_NOTARGET) || !(targ.bFriendly))) targ = NULL;
+
+		if(targ) {
+			target = targ;
+		}
+
+		if (jump && target) {
+            // Try to resolve a hear state first
+            let newState = ResolveState("Hear");
+            if(newState) {
+                SetState(newState);
+                return true;
+            } else if(SeeState) {
+                SetState (SeeState);
+                return true;
+            }
+        }
+
+        return !!target;
+	}
+    
+
+    // Because GZDoom's ''CheckRange'' is backwards as fuck, I'm adding this to make our lives easier.
+    bool CheckInRange(double distance, bool two_dimension)
+    {
+        return !CheckRange(distance, two_dimension);
+    }
+
+    // Override standard GetSpriteIndex() to try to never return -1, since that will cause big problems down the line
+    // This is our fault for not always verifying the results of GetSpriteIndex
+    int GetSpriteIndex(Name sprt) {
+        int index = Actor.GetSpriteIndex(sprt);
+        return index > -1 ? index : sprite;
+    }
+
+    // Used as a simple check to prevent infinite blood spawning gore
+	// Will check if we stopped moving and Die()
+	// Also limits total lifetime in the air to 10 seconds
+	void limitLifetime(int ticks = 350, bool useZeroVel = true) {
+		int age = GetAge();
+		if(age > ticks || (useZeroVel && vel ~== (0,0,0)) && age > min(15, ticks)) {
+			Die(self, self);
+		}
+	}
+
+    virtual void convertToProjectile(bool thrown = false) {
+        // Convert the object to a missile, make sure it explodes on collision
+        bMissile = true;
+        bBOUNCEONWALLS = false;
+        bBounceOnActors = false;
+        bBounceOnCeilings = false;
+        bBounceOnFloors = false;
+        bEXPLODEONWATER = true;
+        bSKYEXPLODE = true;
+        //bSKULLFLY = true;
+        bTHRUACTORS = false;
+        bDecorativeActor = false;
+        bCanPass = true;
+        bACTIVATEIMPACT = true;
+        bACTIVATEPCROSS = true;
+        BounceCount = 0;
+        if(!thrown) {
+            bShootable = false;
+            A_ChangeLinkFlags(true);
+        }
+        if(!DamageType) DamageType = "GravityThud";
+    }
+
+    override int SpecialMissileHit(Actor victim) {
+        // Handle gravity manipulator shot collision
+        if(DamageType == 'GravityThud') {
+            double veld = vel.length();
+            // Limit damage to 300
+            double dmg = min(300, mass * 0.25 * (radius / 20.0) * (veld / 12.0));
+            
+            if(developer > 1) A_PRINTBOLD(String.Format("%p %d Damage to %s: %f  Vel: %f  Class: %s", self, level.mapTime, victim.getClassName(), dmg, veld, getClassName()));
+
+            victim.DamageMobj(self, players[consolePlayer].mo, dmg, DamageType);
+            health = -999;
+            die(self, self);
+
+            return 1;
+        }
+
+        return Super.SpecialMissileHit(victim);
+    }
+}
+
+// Shortcut class for static objects that aren't intended to tick
+class SELACOACTORSTATIC : SELACOACTOR {
+    int ticks;
+    default {
+        +SELACOACTOR.PreventSleep;          // We don't want the default sleep functions to do anything, we just want to sleep every tick if ticked
+        -SELACOACTOR.SleepWhenFar;
+        -SELACOACTOR.SleepWhenIdle;
+        -SELACOACTOR.WakeNearPlayer;
+        -SELACOACTOR.WakeOnPain;
+        -SELACOACTOR.WakeOnTouch;
+    }
+
+    override void tick() {
+        Super.tick();
+        if(ticks > 1) {
+            SleepIndefinite();
+        }
+        ticks++;
+    }
+}
+
+
+
+class junkItem : SELACOACTOR {
+    
+}
+
+class DecorationObject : Interactable {
+    int fallingHeight; // Used to get fall damage
+    bool objectMoves;
+    bool isFalling;
+    string wheelSound;
+    Actor pickedUpOwner;
+
+	property wheelSound : wheelSound;
+
+    default
+    {
+    	DecorationObject.wheelSound "movers/chairride";
+    }
+
+    override void tick()
+    {
+        super.tick();
+        if(objectMoves && isStationary())
+        {
+            objectMoves = false;
+            A_STOPSOUND(CHAN_6);
+        }
+
+    }
+
+    virtual bool isPickedUp() {
+        return pickedUpOwner != null;
+    }
+
+    override bool isMoving() {
+        bool res = super.isMoving();
+        if(res && bIsOnWheels)
+        {
+            rollingWheels();
+        }
+        return res;
+    }
+
+    override void rollingWheels()
+    {
+		if(!isFalling && !objectMoves && (vel.x != 0 || vel.y != 0))
+		{
+            A_STOPSOUND(CHAN_6);
+            if(!isPickedUp()) {
+				if(!objectMoves) {
+			        objectMoves = true;
+                	A_PLAYSOUND(wheelSound, CHAN_6, 1.0, 1);
+				}
+                setStateLabel("Moving");
+            }
+		}
+        A_SETANGLE(angle+frandom(-1,1));
+    }
+
+    virtual bool isStationary() {
+        if (vel.z == 0.0 && vel.x == 0.0 && vel.y == 0.0) 
+        {
+            return true;
+        }
+        return false;       
+    }
+
+    // Apply bonus damage from Enemy projectiles to objects that aren't friendly (Bags, Honey Comb Cases, Cockatrice etc). 
+    // This allows for more environmental destruction without making Pickupable Friendlies (Combat VAC-BOT, Sentry Guns) completely worthless.
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+		if(source is "SelacoEnemy" && !bFriendly && inflictor.bMissile)
+		{
+            damage*=4;
+        }        
+        return Super.TakeSpecialDamage(inflictor, source, damage, damageType);;
+    }
+	
+	virtual bool checkFallDamage(int requiredFallHeight = 90) {
+		if((fallingHeight - pos.z > requiredFallHeight) && WaterLevel <= 2) {
+			return true;
+		}
+        return false;
+    }
+
+    virtual bool checkWallCollision() { // Quick dirty little function to check if there is a wall behind the object, dont execute the state.
+        String hittex;
+        FLineTraceData RemoteRay;
+        LineTrace(angle - 180, 17, pitch,offsetz: maxStepHeight,data: RemoteRay);
+        if (RemoteRay.HitType == TRACE_HitWall)
+        {
+            return true; // Hits a wall
+        } else {	
+            return false; // Hits no wall
+        }
+    }
+
+    virtual bool isTouchingSurface() {
+        if(vel.z == 0.0 || bOnMObj || floorz == pos.z || ridingVACBOT) {
+            return true;
+        } 
+        return false;
+    }
+
+    virtual bool isOnGround() {
+        return pos.Z <= floorz || pos.Z ~== floorz;
+    }
+
+    default {
+        // FLAGS
+        +Shootable;
+        +FLATSPRITE;
+        +USESPECIAL;
+        +CANPASS
+        +SOLID
+        Activation THINGSPEC_Switch;
+        +PUSHABLE;
+        +DOOMBOUNCE;
+        -BloodSplatter;
+        +CANNOTPUSH;
+        -DONTSPLASH;
+        +NOBLOOD;
+        +NOBLOODDECALS;
+
+        // PROPERTIES
+        mass 3;
+        health 90000;
+        DistanceCheck "r_ThingLOD";
+        radius 14;
+        speed 6;
+        gravity 0.9;
+        MaxStepHeight 6;
+        height 20;
+        pushfactor 0.8;
+        PainChance 255;
+        BounceFactor 0.4;
+        BounceCount 3;
+        damageFactor "PlasmaAOE", 0.25;
+        damagefactor "SniperBullet", 10;
+        DamageFactor "MagnumBullet", 4.0;
+        DamageFactor "MeleeImpactSplash", 5.0;
+        DamageFactor "Water", 0;
+        BloodType "";
+         damageFactor "ice", 0.01;
+        +SelacoActor.Crushable;
+    }
+	states {
+        Moving:
+        Spawn:
+            VOXE L -1;
+            loop;
+		Destroy:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+
+// Use the "Price" property in a purchase actor to decide the price.
+// Upon purchase, approvedPurchase gets executed. Override this one to have it do whatever you want on a successful purchase.
+class Purchasable : Interactable {
+            
+    int price;
+    property Price : price;
+    bool priceSet;
+    default
+    {
+        SelacoActor.usetag "$INTERACT_PURCHASE";
+    }
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        if(price > 0) {
+            useIcon = TexMan.CheckForTexture("XH_BUY");
+            if(!priceSet)
+            {
+                priceSet = true;
+                setPurchasableTag();
+            }
+        }
+    }
+
+    virtual void setPurchasableTag()
+    {
+        if(price == 0) {
+            return;
+        }
+        string currencyLabel = price > 1 ? stringTable.localize("$CREDITS") : stringTable.localize("$CREDIT");
+        setTag(string.format("%s \c[SLV](%d %s)", getTag(), price,  currencyLabel));
+    }
+
+    // Player has money!
+	virtual bool checkPurchase(int requirement, actor activator) {
+		bool approved;
+		int credits = activator.countinv("creditscount");
+		if(credits >= requirement) {
+			approved = true;
+			activator.TakeInventory("creditscount", requirement);
+		}
+		return approved;
+	}
+
+    // Override this.
+    virtual void approvedPurchase(actor purchaser) {
+        // Do purchase things
+    }
+
+    // Player is poor as shit
+    virtual void declinePurchase() {
+        A_PLAYSOUND("ui/buy/error");
+        A_PRINTBOLD("Not enough credits.");
+    }
+
+    override void Deactivate(Actor activator) {
+        activate(activator);
+    }
+
+    override void Activate (Actor activator) {
+        string soundEffect;
+        // Check player moneyz
+        if(activator is "Dawn") {
+		    let d = Dawn(activator);
+            if(checkPurchase(price, activator)) {
+                if(price < 100 && price > 0)                      soundEffect = "ui/buy/small";
+                else if(price > 100 && price <= 500) soundEffect = "ui/buy/medium";
+                else if(price > 500)                 soundEffect = "ui/buy/big";
+                A_PLAYSOUND(soundEffect, CHAN_AUTO, pitch: 1.0);
+                approvedPurchase(activator);
+                return;
+            }
+            declinePurchase();
+        }
+	}
+}
+
+// Used for small props, often with limited interactivity or collision.
+class SMALL_PROP : PickupableDecoration
+{
+    Default 
+    {
+        friction 0.2;
+        +SELACOACTOR.thruplayers;
+        +SELACOACTOR.ThruDecorations;
+        +SelacoACtor.decorativeActor
+        +CANPASS
+        mass 150;
+        tag "$OBJECT_COPPERWIRE";
+        height 4;
+        radius 9;
+    }
+
+    states {
+        Death:
+            TNT1 A 0 {
+                A_PLAYSOUND("crawler/explode", CHAN_AUTO, 0.9, 0, 0.7);
+                EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 20, angle:frandom(0, 360), pitch:frandom(0, 40), speed:frandom(1,3), velocity:(frandom(-0.5, 0.5), frandom(-0.5, 0.5), 0));
+            }
+            stop;
+    }
+    
+    override bool Grind(bool items) {
+        bool isCrushed = (pos.z <= floorz || bOnMobj) && pos.z + height >= ceilingz - 0.5;
+
+        if(!isCrushed) {
+            return !isCrushed ? false : Super.Grind(items);
+        }
+        
+        DieByCrushing();
+        
+        return false;
+    }
+}
+
+// Emits sparks and metal noises when hit. Heavy.
+mixin class MEDIUM_METAL_PROP
+{
+    default
+    {
+        +SHOOTABLE
+        +NOBLOODDECALS
+        -NOBLOOD
+        +SOLID;
+        +CANPASS
+        mass 850;
+        health 150;
+        painchance 255;
+		BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+		PainSound "impact/hardmetal";        
+    }
+
+    states {
+        Spawn:
+            VOXE L -1;
+            stop;
+        Pain:
+            TNT1 A 0 A_PAIN();
+            goto Spawn;
+    }
+
+}
+
+mixin class WOODEN_PROP
+{
+    default
+    {
+        mass 850;
+        PainSound "impact/crate";
+        DeathSound "impact/woodbreak";
+        BloodType "BulletImpactEffectWoodShrapnel", "BulletImpactEffectWoodShrapnel", "BulletImpactEffectWoodShrapnel";
+    }
+}
+ 
+class SelacoActorDecorationMissile : SelacoActor
+{
+
+    // Executes while falling
+    virtual void loopingEffects()
+    {
+
+    }
+
+    // No longer moving
+    virtual void deathEffects()
+    {
+
+    }
+
+    // Hits floor
+    virtual void bounceEffects()
+    {
+        for(int x=0;x<=3;x++) {
+            A_SPAWNITEMEX("BodyImpactSmokeSmall", 0, 0, 0, frandom(-1,1), frandom(-1,1), frandom(0.4,1.7));
+        }
+        EmitDefinition('ShortSparkParticleDefinition', chance: 1.0, numTries: 15, angle:random(0,259), pitch:frandom(-25, -15), speed:frandom(1.4,2.5), offset:(frandom(-3,3), frandom(-3,3),frandom(-3,3)), velocity:(frandom(0.4,1), frandom(0.4,1), frandom(1,4)));
+        A_PlaySound("impact/metalsmall",CHAN_AUTO, 0.4, 0, 0.9, false, frandom(1.0,1.15));
+    }
+
+    override void postbeginPlay()
+    {
+        super.postBeginPlay();
+        gravity+=frandom(-0.05,0.04);
+        bounceFactor+=frandom(-0.05,0.05);
+    }
+
+    default 
+    {
+        +MISSILE
+        -ACTIVATEIMPACT 
+        +ACTIVATEPCROSS 
+        +USEBOUNCESTATE
+        +THRUACTORS
+        +DOOMBOUNCE
+        -SelacoActor.SlopeAlignment
+        BounceFactor 0.6;
+        bounceCount 3;
+        radius 5;
+        height 3;
+        gravity 0.65;
+        speed 10;
+        SelacoActor.SleepDistance 0;
+		DistanceCheck "r_thingLOD";
+        Seesound "impact/hardmetal";
+    }
+    states {
+        Spawn:
+            VOXE L 0;
+        Looper:
+            VOXE LL 1
+            {
+                if(vel.length() == 0)
+                {
+                    setStateLabel("Death");
+                }
+                loopingEffects();
+            }
+            TNT1 A 0
+            {
+                A_SETPITCH(pitch+25);
+            }
+            loop;
+		Bounce:
+			TNT1 A 0
+            {
+                bounceEffects();
+            }
+			goto Looper;
+        Death:
+            VOXE L 30
+            {
+                a_playsound(seeSound);
+                bounceEffects();
+                A_SETPITCH(0);
+                deathEffects();
+            }
+            VOXE L -1
+            {
+                SleepIndefinite();
+            }
+            stop;
+    }
+}
+
+class HeavyMetalContainer : PickupableDecoration
+{
+
+    override void spawnLandingEffects() {
+        A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0);
+        A_SPAWNITEMEX("ScorchMarkFloorSmall");
+       //A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0, frandom(1, 2), frandom(-1.5, -2));
+        //A_SpawnItemEx("BulletImpactEffectMetalWithSparks", 0, 0, 0, frandom(1.5, 2), 0, frandom(1.5, 2));
+    }
+
+    default
+    {
+        scale 1.0;
+        +SELACOACTOR.allowGravityManipulation
+        +SELACOACTOR.SlopeAlignment;
+        -SelacoActor.WakeNearPlayer;
+        SelacoActor.CollisionSound "PUSH/METALOBJECT";
+
+        PickupableDecoration.MaxThrowVel 12;
+        PickupableDecoration.HoldDistance 42;
+        PickupableDecoration.HoldHeight -19;        
+        PickupableDecoration.grabSound "honeycomb/pickup";
+        PickupableDecoration.landingSound "Honeycomb/land";
+        +PickupableDecoration.SlowDownPlayer
+        -PickupableDecoration.TranslucentPickup;
+
+        +solid;
+        +canpass
+        +NOBLOODDECALS;
+        +shootable;
+        -Noblood
+        mass 450;
+        radius 15;
+        height 34;
+        friction 0.5;
+        PainThreshold 3;
+        MaxStepheight 10;
+    	PainChance 255;
+        health 250;
+        DamageFactor "SniperBullet", 10;
+	    DamageFactor "Gridlock", 10000;
+        DamageFactor "ExplosiveImpact", 100000;
+        DamageFactor "shotgun", 5;
+	    DamageFactor "BulletAlien", 20.0;
+	    PainChance "ExplosiveImpact", 255;
+	    BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+	    PainSound "impact/heavycrate";
+    }
+}
+
+class RarityEmblemFloor : Actor {
+
+	int frameID;
+	override void tick()
+	{
+		super.tick();
+        if(!master || master.health <= 0)
+        {
+            destroy();
+            return;
+        }
+        
+		followActor();
+	}
+
+    virtual void followActor()
+    {
+        Warp(master, master.pos.x, master.pos.y, master.floorz, 0, flags:WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE|WARPF_ABSOLUTEPOSITION);
+    }
+
+	default {
+		+FLATSPRITE;
+		+INTERPOLATEANGLES
+		scale 0.18;
+		alpha 0.7;
+		renderstyle "add";
+		+NOINTERACTION
+	}
+	states {
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				if(master)
+				{
+                    if(WeaponPickup(master))
+                    {
+					    frameID = WeaponPickup(master).rarityID;
+                    }
+                    if(SelacoActor(master))
+                    {
+                        frameID = SelacoActor(master).rarityID;
+                    }
+				}
+				SetOrigin((pos.x, pos.y, floorz), true);
+                setStateLabel("Spinner");
+                return;
+			}
+		Spinner:
+			LOGO A 1 BRIGHT {
+				frame = frameID;
+				A_SetAngle(angle+2);
+				for(int i = 0; i <=4;i++) {
+					A_SpawnParticle("#367ea3", SPF_FULLBRIGHT, 13, frandom(2,4), frandom(0,360), frandom(-26,26), frandom(-26,26), frandom(-1,0.3), frandom(-5,5), frandom(-3,3), frandom(-2,2));
+				}
+			}
+			loop;
+		Destroy:
+		Death:
+			TNT1 A 0;
+			stop;
+	}
+}
+
+class RarityEmblemOverhead : RarityEmblemFloor
+{
+
+    override void followActor()
+    {
+        Warp(master, 0, 0, master.height+25, 0, flags:WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE);
+    }
+
+    default
+    {
+        -FLATSPRITE
+    }
+    
+    states
+    {
+		Spinner:
+			LOGO A -1 BRIGHT {
+				frame = frameID;
+			}
+			loop;
+    }
+}
+
+
+// 'Wider' actors who need longer hitboxes
+mixin class hitboxHelper {
+    string hitboxActorClass;
+    int hitboxOffsetX, hitboxAccuracy;
+    vector3 oldPosition;
+    int oldAngle;
+
+    array<HitboxActor> hitboxes; // All hitboxes we want to update
+
+    property HitboxOffsetX : hitboxOffsetX; // The forward/backward offset of the hitboxes
+    property HitboxAccuracy : hitboxAccuracy; // The 'size' of reach hitbox. Higher is more accurate but requires more updates.
+
+
+    // Spawn hitboxes based on the radius of the actor
+    virtual void createHitboxes() {
+        bool succ;
+
+        // Create hitboxes
+        for(int x=-radius;x<radius;x+=hitboxAccuracy) {
+            actor hitbox;
+            [succ, hitbox] = A_SpawnItemEX(hitboxActorClass, 25,90, flags:SXF_SETMASTER);
+            hitbox.A_SETSIZE(hitboxAccuracy, height); // Set height to be equal to the stretcher
+            hitboxes.push(HitboxActor(hitbox));
+        }
+    }
+
+    // Update hitboxes whenever the actor has changed position
+    virtual void updateHitboxes() {
+        int hitboxPosition = -1*GetDefaultByType(self.getClass()).radius; // Get base width of the calling actor
+
+        // Update hitbox positions
+        if(oldPosition != pos || oldAngle != angle) {
+            for(int x=0;x<hitboxes.size();x++) {
+                HitboxActor hitbox = hitboxes[x];
+                if(!hitbox) {
+                    continue;
+                }
+                hitbox.warp(self, hitboxPosition, 10, 0, flags:WARPF_NOCHECKPOSITION);
+                hitboxPosition+=hitboxAccuracy;
+            }   
+        }
+        oldPosition = pos;
+        oldAngle = angle;
+    }
+}
+
+// A companion hitbox for actors with weird shapes where square boxes wont cut it.
+class HitboxActor : SelacoActor {
+
+    // Send damage to master when hit
+    override int takeSpecialDamage (Actor inflictor, Actor source, int damage, Name damagetype) {
+        if(master) {
+            master.A_DamageSelf(damage);
+        }
+        return Super.TakeSpecialDamage(inflictor, source, damage, damageType);
+    }
+
+    override void tick() {
+        super.tick();
+        if(!master) {
+            destroy();
+        }
+    }
+
+    default
+    {
+        scale 2;
+        +BUDDHA;
+        +SHOOTABLE;
+        +DONTTHRUST;
+        +NOGRAVITY;
+        +NOBLOODDECALS
+        -SOLID
+        friction 0;
+        mass 5;
+        DamageFactor "ExplosiveImpact", 0.2;
+        RenderStyle "none";
+        painchance 255;
+        height 45;
+        radius 25;
+        BloodType "Stacked_Sparks_Lite", "Stacked_Sparks_Lite", "Stacked_Sparks_Lite";
+        PainSound "impact/hardmetal";
+    }
+    states {
+        Spawn:
+            VOXE L -1;
+            loop;
+    }
+}
+
+class HitboxActorCloth : HitboxActor {
+    default {
+        BloodType "SparksCloth", "SparksCloth", "SparksCloth";
+    }
+}

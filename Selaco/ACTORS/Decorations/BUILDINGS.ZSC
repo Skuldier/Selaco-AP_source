@@ -1,0 +1,171 @@
+class CITYBACKGROUND : SelacoActorStatic {
+    default {
+        scale 1.0;
+        radius 400;
+    }
+    states {
+        Spawn:
+            VOXE L -1;
+    }
+}
+
+class LIGHTPOLE : SelacoActorStatic
+{
+
+    actor secondaryHitbox;
+    bool succ;
+
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        A_SETSIZE(radius*scale.x, height*scale.y);
+        [succ, secondaryHitbox] = A_SPAWNITEMEX("LIGHTPOLE_HITBOX", 0, 0, 40);
+        if(secondaryHitbox)
+        {
+            secondaryHitbox.scale.x = scale.x;
+            secondaryHitbox.scale.y = scale.y;
+        }
+    }
+    
+    mixin MEDIUM_METAL_PROP;
+    default
+    {
+        +BUDDHA
+        +SHOOTABLE
+        radius 28;
+        height 40;
+        BloodType "RicoChet";
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+    }
+}
+
+class LIGHTPOLE_HITBOX : SelacoActorStatic
+{
+    override void postBeginPlay()
+    {
+        super.postBeginPlay();
+        A_SETSIZE(radius*scale.x, height*scale.y);
+    }
+    
+
+    mixin MEDIUM_METAL_PROP;
+    default
+    {
+        +SelacoActor.DisallowGravityManipulation;
+        -SelacoActor.AllowGravityManipulation;
+        +BUDDHA
+        +SHOOTABLE
+        radius 9;
+        height 360;
+    }
+    states
+    {
+        Spawn:
+            TNT1 A -1;
+            loop;
+    }
+}
+
+class HORIZONTAL_LIGHT_BAR : SelacoActorStatic
+{
+    mixin MEDIUM_METAL_PROP;
+    default
+    {
+        +SelacoActor.DisallowGravityManipulation;
+        -SelacoActor.AllowGravityManipulation;
+        +NOINTERACTION
+		-SELACOACTOR.SlopeAlignment
+    }
+    states
+    {
+        Spawn:
+            TNT1 A 0;
+            VOXE A -1
+            {
+                frame = args[0];
+            }
+            stop;
+    }
+}
+
+class ADVERTISEMENTFRAME : SelacoActorStatic
+{
+    mixin MEDIUM_METAL_PROP;
+    default
+    {
+        +NOINTERACTION
+        +BUDDHA
+        +SHOOTABLE
+        radius 30;
+        height 70;
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+
+class BUILDING_1 : SelacoActorStatic
+{
+
+	override void deactivate(actor deactivator)
+	{
+        A_SetRenderStyle(1.0, STYLE_NONE);
+	}
+
+    override void activate(actor activator)
+    {
+        A_SetRenderStyle(1.0, STYLE_ADD);
+    }
+
+    default
+    {
+        +NOINTERACTION;
+        +NOBLOCKMAP;
+        scale 1;
+        activation THINGSPEC_SWITCH;
+    }
+    states
+    {
+        Spawn:
+            VOXE L -1;
+            stop;
+    }
+}
+
+class BUILDING_2 : BUILDING_1 {}
+class BUILDING_3 : BUILDING_1 {}
+class BUILDING_4 : BUILDING_1 {}
+class BUILDING_5 : BUILDING_1 {}
+class BUILDING_6 : BUILDING_1 {}
+class BUILDING_7 : BUILDING_1 {}
+class BUILDING_8 : BUILDING_1 {}
+class BUILDING_9 : BUILDING_1 {}
+class BUILDING_10 : BUILDING_1 {}
+class BUILDING_11 : BUILDING_1 {}
+class BUILDING_12 : BUILDING_1 {}
+class BUILDING_13 : BUILDING_1 {}
+class BUILDING_14 : BUILDING_1 {}
+class BUILDING_15 : BUILDING_1 {}
+class BUILDING_16 : BUILDING_1 {}
+class BUILDING_17 : BUILDING_1 {}
+class BUILDING_18 : BUILDING_1 {}
+class BUILDING_19 : BUILDING_1 {}
+class BUILDING_20 : BUILDING_1 {}
+class BUILDING_21 : BUILDING_1 {}
+class BUILDING_22 : BUILDING_1 {}
+class BUILDING_23 : BUILDING_1 {}
+class BUILDING_24 : BUILDING_1 {}
+class BUILDING_25 : BUILDING_1 {}
+class BUILDING_26 : BUILDING_1 {}
+class BROKENBUILDING_1 : BUILDING_1 {}

@@ -1,0 +1,832 @@
+class ItemChest : Purchasable {
+
+    mixin IconSpawner;
+
+    const MAX_ITEMS = 10;
+
+    PlayerPawn pawn;
+    actor d;
+    int itemsToAdd;
+    int pointer;
+    Array<string> chestContents;
+    bool chestOpened;
+    bool successfulTransaction;
+    
+    actor itemChestIcon;
+    bool itemChestIconSuccess;
+
+    string lidActor;
+    property LidActor : lidActor;
+
+    bool success;
+    actor openChest;
+
+    actor chestlid;
+    bool successlid;
+
+    float pitchSpeed;
+    int delayer;
+    int timer;
+
+     static const string droppableItems[] = {
+        "AMMOMACHINEGUNTINY", "AMMOMACHINEGUNMEDIUM", "AMMOMACHINEGUNMEDIUM",
+        "AmmoShotgunSmall", "Stimpack", "Stimpack", "Stimpack", "Medkit", "AmmoShotgunSmall", "ProteinShake"
+        "PORTABLEMEDKIT", "CommonArmor", "AmmoCricketTiny", "AmmoCricketMedium", "AMMOMACHINEGUNMEDIUM",
+        "Handgrenade", "AmmoShotgunTiny", "AmmoShotgunTiny", "AmmoNailgunMedium", "AmmoNailgunSmall", "rarearmor",
+        "WeaponPartPickup", "WeaponPartPickup", "WeaponPartPickup", "WeaponPartPickup", "AmmoGrenadeLauncherIce", "AmmoGrenadeLauncherFrag", 
+        "AmmoEnergyMedium", "MineAmmoPickupSmall", "IceGrenade", "AmmoNailgunMedium", "AmmoNailgunMedium", "AmmoShotgunLarge", "UltraHealth", "PIZZA1", "BunnyHopper"
+    };
+
+
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        iconName = "SupplyChestIcon";
+        pawn=players[0].mo;
+        d = Dawn(pawn); 
+        pitchSpeed = -3.1;
+        Stats.AddStat(STAT_SUPPLYCHESTS_OPENED, 0, 1);
+        addChestContents(); // Add contents to chest
+        [successlid, chestlid] = A_SPAWNITEMEX(lidActor, flags:SXF_SETMASTER);
+    }
+
+    virtual void unlockChest() {
+        delayer++;
+        if(delayer == 20) {
+            A_PLAYSOUND("ITEM/CHESTOPEN", CHAN_7, 0.5, pitch:1.0);
+            for(int x=-10;x<10;x++) {
+                EmitDefinition('ShortSpark360ParticleDefinition', chance: 1.0, numTries: 3, pitch:-25, speed:-4, offset:(25, frandom(-35,35), 25));
+                A_SPAWNITEMEX("SupplyChestSmoke", frandom(-5,5), x*3, 20, 0, 0, 0.3);
+            }
+        }
+        // lol math? Nah, just do it like this
+        if(chestlid.pitch > -92 && delayer >= 20) {
+            chestlid.pitch+=pitchSpeed;
+            pitchSpeed+=0.053;
+            if(chestlid.Pitch <= -92) {
+                A_PLAYSOUND("ITEM/CHESTDONE", CHAN_AUTO, 0.5, pitch:1.0);
+                chestOpened = true;
+            }
+        }
+    }
+
+    virtual void chestIsOpen() {
+        timer++;
+        delayer++;
+        if(timer % 7 == 0 && pointer < chestContents.size() && delayer > 125) 
+        {
+            A_PlaySound("ui/ugmbuyammo");
+            A_SPAWNITEMEX(chestContents[pointer], 0, 0, 24, 4, frandom(-3,3), 3);
+            console.printf("ITEM: %s", chestContents[pointer]);
+            pointer++;
+        }
+        if(pointer == chestContents.size()) {
+            SleepIndefinite();
+        }
+    }
+
+    override void tick() {
+        super.tick();
+        ScanForPlayer();
+        // If chest is closed, keep warping on top of the chest
+        if(chestlid && !successfulTransaction) {
+            chestlid.A_WARP(AAPTR_MASTER, -17, 0, 23, 0, WARPF_INTERPOLATE | WARPF_COPYPITCH | WARPF_NOCHECKPOSITION );
+        }
+
+        // Player paid money. Open chest.
+        if(successfulTransaction) {
+            unlockChest();
+        }
+
+        // Spit items
+        if(chestOpened) {
+            chestIsOpen();
+        }
+
+    }
+
+    // Only add items if the player owns the hardware that uses it.
+    bool isValidItem(string itemName) {
+        if(d.countinv("NAILGUN") == 0 && (itemName == "AmmoNailgunMedium" || itemName == "AmmoNailgunSmall")) { 
+            return false;
+        }
+        if(d.countinv("GRENADELAUNCHER") == 0 && (itemName == "AmmoGrenadeLauncherIce" || itemName == "AmmoGrenadeLauncherFrag")) { 
+            return false; 
+        }
+        if((d.countinv("PlasmaRifle") == 0 && d.countinv("Rail_gun") == 0) && (itemName == "AmmoEnergyMedium")) { 
+            return false; 
+        }
+        if(d.countinv("PulseMineTip") == 0 && itemName == "MineAmmoPickupLarge") { 
+            return false; 
+        }
+        if(d.countinv("IceGrenadeTip") == 0 && itemName == "IceGrenade") { 
+            return false; 
+        }
+        return true;
+    }
+
+    override void approvedPurchase(actor purchaser) {
+        successfulTransaction = true;
+        Stats.AddStat(STAT_SUPPLYCHESTS_OPENED, 1, 0);
+        bUseSpecial = false;
+        if(chestlid) {
+            chestlid.frame = 1;
+        }
+        if(icon) {
+            icon.destroy();
+        }
+        A_SPAWNITEMEX("SupplyChestCompleted");
+        ActivationType = THINGSPEC_DEFAULT;
+    }
+
+    void addChestContents() {
+        int i = 0;
+        int failLoops;
+        while(i <= MAX_ITEMS) {
+            int pointer = random(0, droppableItems.size()-1);
+            if(isValidItem(droppableItems[pointer]) && failLoops <= 50) {
+                i++;
+                chestContents.push(droppableItems[pointer]);
+            } 
+            if(failLoops == 50) {
+                failLoops = 0;
+                i++;
+                chestContents.push(droppableItems[0]);
+            }
+            failLoops++;
+        }
+    }
+
+    default {
+        SelacoActor.UseTag "$INTERACT_OPEN";
+        Purchasable.price 350;
+        ItemChest.lidActor 'ChestlidActor';
+        +solid;
+        +Shootable
+        +Buddha
+        +DONTTHRUST
+        +INTERPOLATEANGLES;
+        +usespecial
+        SelacoActor.SleepDistance 0; 
+        mass 2500;
+        radius 25;
+        height 45;
+        Painchance 255;
+        -SelacoActor.allowGravityManipulation;
+        +SelacoActor.DisallowGravityManipulation;
+        activation THINGSPEC_SWITCH;
+        BloodType "Stacked_Sparks_Lite";
+        PainSound "impact/hardmetal";
+        tag "$OBJECT_SUPPLYCHESTS";
+    }
+    states {
+        spawn:
+            TNT1 A 0;
+            VOXE L -1;
+            stop;
+        Pain:
+            TNT1 A 0 A_PAIN();
+            goto spawn;
+    }
+}
+
+class ItemChest_cyan : ItemChest {
+    override void postbeginPlay()
+    {
+        super.postbeginPlay();
+        chestContents.clear();
+        chestContents.push("gravityManipulatorWeaponKit");
+    }
+    
+    default
+    {
+        Purchasable.price 1250;
+        ItemChest.lidActor "ChestLidActor_CYAN";
+    }
+    
+}
+
+class ChestlidActor : SelacoActor {
+    
+    default {
+        mass 2500;
+        SelacoActor.SleepDistance 0;
+        +NOGRAVITY;
+        +NOINTERACTION;
+    }
+    states {
+        Spawn:
+            VOXE A -1;
+            stop;
+    }
+}
+class ChestlidActor_CYAN : ChestlidActor {
+}
+class ChestlidActor_BLUE : ChestlidActor {
+    default {
+        SelfLighting "555555";
+    }
+}
+// HOLOGRAPHIC ICONS
+class UC36Hologram : actor {
+    bool revertAlpha;
+    float AlphaMax;
+    float CurrentSpeed;
+    override void PostBeginPlay() {
+        super.PostBeginPlay();
+        CurrentSpeed = 1.0;
+        AlphaMax = 0.4;
+    }
+
+    override void Tick() {
+        super.tick();
+        if(currentSpeed > 0) {
+            A_ChangeVelocity(0, 0, CurrentSpeed, CVF_REPLACE);
+            CurrentSpeed = currentSpeed - 0.02;
+        }
+        // Increase alpha
+        if(!revertAlpha && alpha <= AlphaMax) {
+            alpha+=0.050;
+        }
+
+        if(alpha >= AlphaMax) {
+            revertAlpha = true;
+        }
+
+        // Decrease alpha
+        if(revertAlpha && alpha > 0) {
+            alpha-=0.01;
+        }
+    }
+
+    default {
+        +NOGRAVITY;
+        +NOINTERACTION
+        scale 0.7;
+        alpha 0;
+        RenderStyle "Translucent";
+    }
+    states {
+        Spawn:
+            VOXE L -1 BRIGHT;
+            stop;
+    }
+}
+
+enum COMBATCHEST_REWARD_TYPES {
+    CCR_WEAPON = 0,
+    CCR_WEAPONPART = 1,
+    CCR_COUNT,
+}
+
+enum COMBATCHEST_CHALLENGE_TYPES {
+    CCC_HEALTH = 0,
+    CCC_GRENADE = 1,
+    CCC_GADGET = 2,
+    CCC_CRAWLERS = 3,
+    CCC_DAMAGE = 4,
+    CCC_COUNT
+}
+
+const CHALLENGE_CHANCE = 50;
+
+class CombatChest : ItemChest {
+
+    const MAX_ENEMIES = 3;
+    const UNLOCK_DELAY = 60;
+
+    const REWARD_PARTS = 200;
+
+    const MAX_NODE_DISTANCE = 2500;
+    const MIN_NODE_DISTANCE = 1024;
+    int killDelay;
+    int spawnDelay;
+    
+    array<string> possibleEnemies;
+    array<string> approvedSpawns;
+    array<PathNode> nodeNetwork;
+    array<SelacoEnemy> spawnedHostiles;
+    array<int> spawnCounts;
+
+    bool enemiesSpawned;
+    bool chestisCleared;
+
+    int rewardType, challengeType;
+    string rewardTag, challengeTag;
+    string weaponGift;
+    
+    override void tick() {
+        super.tick();
+        checkVitals();
+        
+        if(chestisCleared) {
+            doUnlockCountdown();
+        }
+        if(spawnDelay > 0) {
+            doSpawnCountdown();
+        }
+    }
+
+    override void beginPlay() {
+        randomizerHandler = randomizerHandler.instance();
+        if(!randomizerHandler.randomizerMode) {
+            A_PRINTBOLD("No randomizer found.");
+            destroy();
+            return;
+        }
+        
+       // If manually spawned, forcefully take a node.
+       if(!nodeNetwork.size()) {
+        array<PathNode> foundnodes;
+        ThinkerIterator it = ThinkerIterator.Create("PathNode");
+        PathNode node = PathNode(it.Next());
+
+        for (; node; node = PathNode(it.Next())) {
+            if(checkSight(node)) {
+                foundnodes.push(node);
+            }
+        }
+
+        if(foundnodes.size()) {
+            getPathNetwork(foundnodes[0]);
+        } else {
+            destroy();
+        }
+    }
+        super.beginPlay();
+    }
+
+
+    override void postbeginPlay() {
+        super.postbeginPlay();
+
+        iconName = "";
+        rewardType = random(0,CCR_COUNT-1);
+
+        switch (rewardType)  {
+            case CCR_WEAPON:
+                rewardTag = "$CR_WEAPON";
+                weaponGift = randomizerHandler.weaponPool[random(0,randomizerHandler.weaponPool.size()-1)];
+                break;
+            case CCR_WEAPONPART:
+                rewardTag = string.format(stringTable.localize("$CR_WEAPONPART"), REWARD_PARTS);
+                break;
+        }
+
+        challengeTag = "None";
+        if(random(0,100) <= CHALLENGE_CHANCE) {
+            challengeType = random(0,CCC_count-1);
+            switch (challengeType) {
+                case CCC_HEALTH:
+                    challengeTag = "$CC_HEALTH";
+                    break;
+                case CCC_GRENADE:
+                    challengeTag = "$CC_GRENADE";
+                    break;
+                case CCC_GADGET:
+                    challengeTag = "$CC_GADGET";
+                    break;
+                case CCC_CRAWLERS:
+                    challengeTag = "$CC_CRAWLERS";
+                    break;
+                case CCC_DAMAGE:
+                    challengeTag = "$CC_DAMAGE";
+                    break;
+            }
+        }
+
+        getEnemyPool();
+        shufflePool();
+        approveSpawns();
+        addChestTag();
+    }
+
+
+    void doSpawnCountdown() {
+        spawnDelay--;
+        if(spawnDelay % 35 == 0 && spawnDelay > 0) {
+            players[consolePlayer].mo.A_PLAYSOUND("DANGER/COUNTDOWN", CHAN_BODY, 0.7);
+        }
+        if(spawnDelay == 0) {
+            enemiesSpawned = true;
+        }
+    }
+
+    void doUnlockCountdown() {
+        if(killDelay == UNLOCK_DELAY-15) {
+            LevelEventHandler leh = LevelEventHandler.instance();
+            leh.SetAchievement("GAME_STRONGBOX");
+            A_PRINTBOLD(stringTable.localize("$CC_UNLOCKED"));
+            players[consolePlayer].mo.A_PLAYSOUND("COMBATCHEST/COMPLETE", CHAN_AUTO, 1.0, 0, 0.4);
+        }
+        if(killDelay >= UNLOCK_DELAY) {
+            successfulTransaction = true;
+        } else {
+            killDelay++;
+        }
+    }
+
+    virtual void checkVitals() {
+        if(!enemiesSpawned) return;
+
+        for (int x = spawnedHostiles.size() - 1; x >= 0; x--) {
+            if (!spawnedHostiles[x]) {
+                spawnedHostiles.delete(x);
+            }
+        }
+
+        if (spawnedHostiles.size() == 0) {
+            chestisCleared = true;
+        }
+    }
+
+    void getPathNetwork(PathNode node) {
+        // Add the current node to the nodeNetwork
+        nodeNetwork.push(node);
+    
+        // Iterate through each link of the current node
+        for(int x=0; x<node.links.size(); x++) {
+            PathNode neighbor = node.links[x].node;
+            int distance = distance2D(node);
+            if(!node.checkSight(neighbor, SF_SEEPASTBLOCKEVERYTHING | SF_SEEPASTSHOOTABLELINES | SF_IGNOREVISIBILITY) || (distance >= MIN_NODE_DISTANCE && distance <= MAX_NODE_DISTANCE)) {
+                continue;
+            }
+            
+            // Check if the neighbor has already been added to the nodeNetwork
+            bool alreadyVisited = false;
+            for(int i = 0; i < nodeNetwork.size(); i++) {
+                if(nodeNetwork[i] == neighbor) {
+                    alreadyVisited = true;
+                    continue;
+                }
+            }
+    
+            // If the neighbor has not been visited, recursively call getPathNetwork on it
+            if(!alreadyVisited) {
+                getPathNetwork(neighbor);
+            }
+        }
+    }
+
+    virtual void getEnemyPool() {
+        for(int x = 0; x < AllClasses.Size(); x++) {
+            if(AllClasses[x] is 'SelacoEnemy') {
+                let def = SelacoEnemy(GetDefaultByType((class<SelacoEnemy>)(AllClasses[x])));
+                if(def.randomizerSpawnChance > 0) {
+                    possibleEnemies.push(def.getClassName());
+                }
+            }
+        }
+    }
+
+    virtual void shufflePool() {
+        for(int i = possibleEnemies.size() - 1; i > 0; i--) {
+            int j = random(0, i);
+            string temp = possibleEnemies[i];
+            possibleEnemies[i] = possibleEnemies[j];
+            possibleEnemies[j] = temp;
+        }
+    }
+
+    const ENEMY_QUANTITY_MIN = 1;
+    const ENEMY_QUANTITY_MAX = 3;
+    virtual void addChestTag() {
+        string enemyList = stringTable.localize("$CC_ENEMYSPAWNS");
+        array<string> enemyTags;
+        for (int x = 0; x < approvedSpawns.size(); x++) {
+            class<SelacoEnemy> cls = approvedSpawns[x];
+
+            // Prepare a tag to display
+            string tag = string.format("%s ", GetDefaultByType(cls).getTag());
+            if(GetDefaultByType(cls).roleTag) {
+                tag.appendFormat("\c[darkgrey](%s)",stringTable.localize(GetDefaultByType(cls).roleTag));
+            }
+
+            // Add tag to list
+            enemyTags.push(tag);
+            
+            // Get a random quantity
+            spawnCounts.push(random(ENEMY_QUANTITY_MIN, ENEMY_QUANTITY_MAX));
+        }
+
+        // Format the list
+        for (int i = 0; i < spawnCounts.size(); i++) {
+            enemyList.appendFormat("\n\c[darkgrey] %dx\c- %s", spawnCounts[i], enemyTags[i]);
+        }
+
+        SetTag(string.Format("%s\n\c[orange]%s\n\n\c[omniblue]%s: \c-%s\n\c[green]%s: \c-%s", 
+                    getTag(), 
+                    stringTable.localize(enemyList), 
+                    stringTable.localize("$CC_AUGMENTATIONS"), 
+                    stringTable.localize(challengeTag), 
+                    stringTable.localize("$CC_REWARD"),  
+                    stringTable.localize(rewardTag))
+                );
+    }
+
+    virtual void approveSpawns() {
+        for(int x = 0; x < possibleEnemies.size(); x++) {
+            if(approvedSpawns.size() >= MAX_ENEMIES) break;
+
+            float dice = frandom(0, 99);
+            class<Actor> cls = possibleEnemies[x];
+            float spawnChance = SelacoEnemy(GetDefaultByType(cls)).randomizerSpawnChance;
+
+            if(dice <= spawnChance) {
+                approvedSpawns.push(cls.getClassName());
+            }
+        }
+    }
+
+    override void Deactivate(Actor activator) {
+        activate(activator);
+    }
+
+    override void Activate(Actor activator) {
+        A_PLAYSOUND("ui/buy/big", CHAN_AUTO, 1.0, 0, 0.6, pitch:0.7);
+        bUseSpecial = false;
+        A_PRINTBOLD(stringTable.localize("$CC_INCOMING"));
+        activationtype = THINGSPEC_DEFAULT;
+        prepareTrap();
+    }
+
+    void prepareTrap() {
+        if(nodeNetwork.size() > 0) {
+            for(int x = 0; x < approvedSpawns.size(); x++) {
+                for(int y=0;y<spawnCounts[x];y++) {
+                    createSpawnBeacon(approvedSpawns[x]);
+                }
+            }
+        } else {
+            console.printf("Error: No valid nodes to spawn enemies");
+        }
+    }
+
+
+    void createSpawnBeacon(string spawnName) {
+        actor spawnedHostile;
+        actor spawnBeacon;
+        bool succ;
+        
+        int attempts = 0;
+        int index = random(0,nodeNetwork.size()-1);
+    
+        // Spawn the beacon at the chosen node
+        [succ, spawnBeacon] = nodeNetwork[index].A_SPAWNITEMEX("EnemySpawnerBeacon", flags:SXF_NOCHECKPOSITION);
+    
+        if (succ && spawnBeacon is "EnemySpawnerBeacon") {
+            EnemySpawnerBeacon(spawnBeacon).spawningEnemyClass = spawnName;
+            EnemySpawnerBeacon(spawnBeacon).chest = CombatChest(self);
+            EnemySpawnerBeacon(spawnBeacon).challengeType = challengeType;
+            spawnDelay = EnemySpawnerBeacon(spawnBeacon).SPAWN_TIME;
+        }    
+    }
+    
+    bool rewardGiven;
+    override void chestIsOpen() {
+        if(rewardGiven) {
+            return;
+        }
+        rewardGiven = true;
+        switch(rewardType) {
+            case CCR_WEAPON:
+                giftWeapon();
+                break;
+            case CCR_WEAPONPART:
+                giftWeaponParts();
+                break;
+        }
+
+        A_PLAYSOUND("XMAS/GIFTEXPL", CHAN_5);
+        SpawnLight(255, 255, 255, 100, divisionSpeed:1.05);
+        for(int x=0;x<=300;x+=1) {
+            A_SpawnParticle("yellow", SPF_FULLBRIGHT | SPF_RELPOS | SPF_RELATIVE  , lifetime:random(42,45), size:frandom(6,9), angle:frandom(0,360),xoff:frandom(23,25),zoff:frandom(20,45),vely:frandom(-4.5,4.5),velz:frandom(0.21,4.5), accelz:frandom(-0.06,-0.15), fadestepf:0.05);
+        }   
+        
+    }
+    
+    virtual void giftWeapon() {
+       // Spawn an Item
+       actor spawnedItem;
+       bool spawnItemSuccess;
+       [spawnItemSuccess, spawnedItem] = A_SPAWNITEMEX(weaponGift, 0, 0, 20, 0, 0, 0, angle:random(0,360));
+       if(spawnedItem && players[0].mo) 
+       {
+            WeaponPickup spawnedWeapon = WeaponPickup(spawnedItem);
+            randomizerHandler = randomizerHandler.instance();
+            spawnedWeapon.rarityID = RARITY_LEGENDARY;
+            spawnedWeapon.a_face(players[0].mo);
+            spawnedWeapon.noSpinning= true;
+            spawnedWeapon.angle = self.angle;
+            if(spawnedWeapon && randomizerHandler && randomizerHandler.immersiveMode) {
+                spawnedWeapon.pitch = 90;
+                spawnedWeapon.bNoGravity = true;
+                spawnedWeapon.A_CHANGEVELOCITY(6, 0, 3, CVF_RELATIVE);
+            }
+       }       
+    }
+    
+    void giftWeaponParts() {
+        actor parts;
+        bool succ;
+        [succ, parts] = A_SPAWNITEMEX("WeaponPartPickup", 0, 0, 40);
+        if(parts) {
+            SelacoItem(parts).bRandomizerQuantity = false;
+            WeaponPartPickup(parts).pickupCount = REWARD_PARTS;
+            parts.bNoGravity = true;
+        }
+    }
+
+    default {
+        SelacoActor.UseTag "$INTERACT_BEGIN";
+        tag "$OBJECT_ENCOUNTERCHEST";
+        ItemChest.lidActor "ChestLidActor_BLUE";
+        Purchasable.price 0;
+        SelfLighting "555555";
+    }
+}
+
+class EnemySpawnerBeacon : Actor {
+    string spawningEnemyClass;
+    int challengeType;
+    actor spawningEnemy;
+    CombatChest chest;
+
+    mixin LightEmitter;
+    const SPAWN_TIME = 140;
+
+    int timer;
+    actor holo;
+    override void postBeginPlay() {
+        super.postBeginPlay();
+        SetOrigin((pos.x, pos.y,floorz), false);
+        spawnLight(900, 0, 0, 20, divisionSpeed:0,followActor: self);
+        bool succ;
+        [succ, holo] = A_SPAWNITEMEX("spawnHologram");
+    }
+
+    override void tick() {
+        super.tick();
+        timer++;
+        if(timer == SPAWN_TIME) {
+            setStateLabel("FadeOut");
+            HatchEgg();
+            if(holo) {
+                holo.setStateLabel("FadeOut");
+            }
+        }
+        if(timer == 15) {
+            A_PLAYSOUND("TELEPORT/PREP", volume:0.6);
+        }
+        if(level.time % 2 == 0 && timer <= SPAWN_TIME) {
+            for(int x=0;x<=360;x+=20) {
+                A_SpawnParticle("red", SPF_FULLBRIGHT | SPF_RELPOS , lifetime:random(35,37), size:6, angle:x,xoff:frandom(23,25),zoff:frandom(2,3),velz:3.5, accelz:-0.04, fadestepf:frandom(0.04,0.05));
+            }            
+        }
+        if(timer == SPAWN_TIME+35) {
+            destroy();
+        }
+    }
+
+    // Spawn the enemy
+    void HatchEgg() {
+        SpawnSpawnParticles();
+        bool succ;
+        [succ, spawningEnemy] = A_SPAWNITEMEX(spawningEnemyClass, flags:SXF_NOCHECKPOSITION);
+        if(chest && spawningEnemy && players[consolePlayer].mo) {
+            spawningEnemy.target = players[consolePlayer].mo;
+            spawningEnemy.A_FACE(players[consolePlayer].mo);
+            chest.spawnedHostiles.push(SelacoEnemy(spawningEnemy));
+            if(spawningEnemy) {
+                SelacoEnemy(spawningEnemy).bAllowRandomizerTier = false;
+                spawningEnemy.A_SPAWNITEMEX("CombatChestHeadIcon", flags:SXF_NOCHECKPOSITION | SXF_SETMASTER);
+                spawningEnemy.A_SPAWNITEMEX("CombatChestEnemyMarker", flags:SXF_NOCHECKPOSITION | SXF_SETMASTER);
+            }
+            switch(challengeType) {
+                case CCC_HEALTH:
+                    SelacoEnemy(spawningEnemy).health*=1.5;
+                    break;
+                case CCC_GRENADE:
+                    if(spawningEnemy is "EnemySoldier") {
+                        EnemySoldier(spawningEnemy).grenadeChance = 255;
+                    }
+                    break;
+                case CCC_GADGET:
+                    if(spawningEnemy is "EnemySoldier") {
+                        EnemySoldier(spawningEnemy).gadgetChance = 255;
+                    }
+                    break;
+                case CCC_CRAWLERS:
+                    spawningEnemy.A_SPAWNITEMEX("Crawlermine", 0,0,spawningEnemy.height+5, 5);
+                    break;
+                case CCC_DAMAGE:
+                    if(spawningEnemy is "EnemySoldier") {
+                        EnemySoldier(spawningEnemy).weaponDamage*=1.25;
+                    }
+                    break;
+            }
+        }
+        players[consolePlayer].mo.A_PLAYSOUND("TELEPORT", CHAN_BODY);
+    }
+
+    void SpawnSpawnParticles() {
+        SpawnLight(255, 255, 255, 100, divisionSpeed:1.05);
+        for(int x=0;x<=300;x+=1) {
+            A_SpawnParticle("yellow", SPF_FULLBRIGHT | SPF_RELPOS | SPF_RELATIVE  , lifetime:random(42,45), size:frandom(6,9), angle:frandom(0,360),xoff:frandom(23,25),zoff:frandom(2,45),vely:frandom(-4.5,4.5),velz:frandom(0.21,4.5), accelz:frandom(-0.06,-0.15), fadestepf:0.05);
+        }    
+    }
+
+    void challenge_Health(actor spawnedEnemy) {
+
+    }
+
+    default {
+        radius 30;
+        scale 0.5;
+        +NOINTERACTION;
+    }
+
+    states {
+        Spawn:
+            SQDL B 1 bright;
+            loop;
+        FadeOut:
+            SQDL BBBBBBBBBB 1 bright A_FADEOUT(0.1);
+            stop;
+    }
+}
+
+class spawnHologram : actor {
+    default {
+        +NOINTERACTION;
+        RenderStyle "add";
+        alpha 0.4;
+        SCALE 0.3;
+    }
+    states {
+        spawn:
+            HOLO Z -1 BRIGHT;
+            loop;
+        FadeOut:
+            HOLO ZZZZZZZZZZ 1 A_FADEOUT(0.1);
+            stop;
+    }
+}
+
+class CombatChestHeadIcon : Actor {
+    bool fadingOut;
+    override void tick() {
+        super.tick();
+        if(master) {
+            warp(master, 0, 0, master.height+15, flags:WARPF_INTERPOLATE | WARPF_NOCHECKPOSITION);
+        } else {
+            if(!fadingOut) {
+                fadingOut = true;
+                SetStateLabel("FadeOut");            
+            } 
+        }
+    }
+    default {
+        scale 0.25;
+        +NOINTERACTION;
+    }
+    states {
+        Spawn:
+            TNT1 A 0;
+            CBCH A -1 bright;
+            stop;
+        FadeOut:
+            CBCH A 10;
+            TNT1 A 0 {
+                players[consolePlayer].mo.A_PLAYSOUND("COMBATCHEST/KILL", CHAN_AUTO);
+                for(int x=0;x<150;x++) {
+                    A_SpawnParticle("white", SPF_FULLBRIGHT | SPF_RELPOS | SPF_RELATIVE  , lifetime:random(35,37), size:frandom(4,5), angle:frandom(0,360),xoff:frandom(-15,15),zoff:frandom(-15,15),vely:frandom(-3,3),velz:frandom(-2.5,2.5), fadestepf:0.06);
+                }
+            }
+            CBCH AAAAAAAAA 1 {
+                scale*=1.07;
+                A_FADEOUT(0.1);
+            }
+            stop;
+    }
+}
+
+class CombatChestEnemyMarker : MapMarker {
+    override void tick() {
+        super.tick();
+        if(master) {
+            warp(master, flags:SPF_INTERPOLATE);
+        } else {
+            destroy();
+        }
+    }
+
+    default {
+        scale 0.1;
+    }
+
+    states {
+            spawn:
+                1CON H 1;
+                loop;
+        }
+}

@@ -1,0 +1,187 @@
+
+class DebrisChunkParticleDefinition : ParticleDefinition
+{
+    static const String Frames[] = {"DUSTA0", "DUSTB0", "DUSTC0", "DUSTD0", "DUSTE0"};
+
+    override void Init()
+    {
+        super.Init();
+
+        self.Speed = 5;
+        //self.Height = 5;
+        self.SetGravity(0.65);
+        self.DefaultRenderStyle = STYLE_Translucent;
+        self.SetBaseScale(0.11);
+
+        self.SetFlag(PDF_LIFEFADE);
+        self.SetFlag(PDF_ROLLSTOP);
+        self.SetFlag(PDF_SLEEPSTOP);
+
+        self.SetLifespanMultipliers(0.6, 1.0, 2.0, 3.0, 8.0);
+        self.RandomLife(60, 90);
+        self.FadeLifeRange(0, 30);
+        self.StopSpeed = 2;
+        self.RandomRoll(0, 360);
+        self.RandomRollSpeed(-45, 45);
+        self.BounceSound = "chunk/impact";
+        self.BounceFudge = 0.8;
+
+        self.RandomAngle(-35, 35);
+        self.RandomPitch(-25, 55);
+        self.RandomSpeed(1, 11);
+        self.RandomScaleX(1, 6);
+        self.RandomScaleY(1, 6);
+    }
+
+    override void OnCreateParticle(in out ParticleData particle, Actor refActor)
+    {
+        particle.Texture = SelectRandomFrame("DUST", "ABCDE");
+    }
+}
+
+class DebrisChunkParticleDefinitionShortFast : DebrisChunkParticleDefinition
+{
+    override void Init()
+    {
+        super.Init();
+
+        self.SetFlag(PDF_LifeScale);
+
+        self.SetGravity(0.6);
+        self.Drag = 0.04;
+
+        self.SetBaseScale(0.1);
+        self.SetQualityChances(0, 0.5, 0.75, 1.0, 2.5);
+        self.ScaleLifeRange(0, 1);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.RandomScaleY(2, 8);
+        self.RandomScaleX(2, 8);
+        self.RandomLife(16,25);
+        self.FadeLifeRange(2, 5);
+
+        self.SetLifespanMultipliers(0.6, 1, 1, 1, 1);
+        self.RandomAngle(-35, 35);
+        self.RandomPitch(-65, 15);
+        self.RandomSpeed(2, 13);
+    }
+}
+
+
+class DebrisChunkParticleUpwardDefintion : DebrisChunkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.07);
+        self.RandomAngle(0,360);
+        self.RandomPitch(-70,-110);
+        self.RandomSpeed(0.4,10);
+    }
+}
+
+class DebrisChunkParticleUpwardShortDefinition : DebrisChunkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetFlag(PDF_LIFESCALE);
+        self.ScaleLifeRange(0,1);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.RandomScaleX(2,8);
+        self.RandomScaleY(2,8);
+
+        self.SetLifespanMultipliers(0.5, 1, 1, 1, 3);
+
+        Self.RandomLife(13,15);
+        Self.FadeLifeRange(2,5);
+        self.SetBaseScale(0.08);
+
+        self.RandomAngle(0,360);
+        self.RandomPitch(-60,-120);
+        self.RandomSpeed(1,10);
+    }    
+}
+
+
+class DebrisChunkParticleLargeDefinition : DebrisChunkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.12);
+        self.RandomSpeed(1,15);
+        self.RandomScaleX(1.2,2.0);
+        self.RandomScaleY(1.2,2.0);
+    }
+}
+
+class DebrisChunkParticleLarge360Definition : DebrisChunkParticleLargeDefinition {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.12);
+        self.RandomPitch(-70, -110);
+        self.RandomAngle(0,360);
+    }
+}
+
+
+class DebrisChunkParticleShortFastDefintion : DebrisChunkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetGravity(0.6);
+        self.SetBaseScale(0.1);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.ScaleLifeRange(0,1);
+        self.ScaleRange(1.0, 0, 1.0, 0);
+        self.RandomScaleY(2,8);
+        self.RandomScaleX(2,8);
+        self.RandomLife(16,25);
+        self.FadeLifeRange(2,5);
+
+        self.SetLifespanMultipliers(0.6, 1.0, 1.0, 1.0, 1.0);
+        self.RandomAngle(-35,35);
+        self.RandomPitch(-65,15);
+        self.RandomSpeed(1,11);
+    }
+}
+
+class DebrisChunkParticleDefinitionShort : DebrisChunkParticleDefinition {
+    override void init() {
+        super.init();
+        self.SetFlag(PDF_LIFESCALE);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.SetLifespanMultipliers(0.6, 1.0, 1.1, 1.2, 1.3);
+        self.SetBaseScale(0.04);
+        self.RandomSpeed(1,4);
+        self.RandomLife(8,13);
+    }
+}
+
+class DebrisChunkParticleShortFastTinyDefintion : DebrisChunkParticleShortFastDefintion {
+    override void init() {
+        super.init();
+        self.SetBaseScale(0.06);
+        self.RandomSpeed(5,16);
+        self.RandomScaleY(3.7,5);
+        self.RandomScaleX(3.7,5);
+    }
+}
+
+
+class DebrisChunkParticleGentleDropDefinition : DebrisChunkParticleDefinition {
+    override void init() {
+        super.init();
+        self.RandomLife(140,180);
+        self.SetGravity(0.35);
+        self.SetBaseScale(0.06);
+        self.RandomSpeed(0,2);
+    }
+}
+
+class DebrisChunkParticleGentleDropBriefDefinition : DebrisChunkParticleGentleDropDefinition {
+    override void init() {
+        super.init();
+        self.ScaleLifeRange(0, 1);
+        self.SetFlag(PDF_LIFESCALE);
+        self.ClearFlag(PDF_LIFEFADE);
+        self.RandomLife(15,35);
+        self.SetGravity(0.35);
+        self.SetBaseScale(0.04);
+        self.RandomSpeed(0,3);
+    }    
+}
