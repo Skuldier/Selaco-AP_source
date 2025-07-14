@@ -57,13 +57,9 @@ class SelacoPatchWorld(World):
         # Add progression items
         for item_name in progression_items:
             # Skip victory items that don't match the current goal
-            if item_name == "Escape Route Access" and goal != 0:
+            if item_name == "Final Boss Defeated" and goal != 0:
                 continue
-            elif item_name == "Final Boss Defeated" and goal != 1:
-                continue
-            elif item_name == "All Keycards Collected" and goal != 2:
-                continue
-            elif item_name == "All Areas Completed" and goal != 3:
+            elif item_name == "All Keycards Collected" and goal != 1:
                 continue
                 
             if item_name in item_table:
@@ -85,7 +81,7 @@ class SelacoPatchWorld(World):
         total_locations = len(self.location_name_to_id)
         
         # For keycard collection goal, we need to ensure all keycards are included
-        if goal == 2:  # Collect All Keycards
+        if goal == 1:  # Collect All Keycards
             all_keycards = [
                 "Red Keycard", "Blue Keycard", "Yellow Keycard", "Green Keycard",
                 "Hospital Access Card", "Security Access Card", "Engineering Access Card",
@@ -167,9 +163,7 @@ class SelacoPatchWorld(World):
         
         for location_name, location_data in location_table.items():
             # Skip victory locations that don't match the current goal
-            if location_name == "Endgame - Escape Route" and goal != 0:
-                continue
-            elif location_name == "Endgame - Final Boss" and goal != 1:
+            if location_name == "Endgame - Final Boss" and goal != 0:
                 continue
                 
             region_name = location_data.region
@@ -180,16 +174,10 @@ class SelacoPatchWorld(World):
                 regions[region_name].locations.append(location)
                 self.location_name_to_id[location_name] = location_data.code
         
-        # Add special victory event locations for goals 2 and 3
-        if goal == 2:  # Collect All Keycards
+        # Add special victory event locations for keycard collection goal
+        if goal == 1:  # Collect All Keycards
             victory_location = SelacoPatchLocation(
                 self.player, "Victory - All Keycards Collected", None, regions["Selaco Station"]
-            )
-            regions["Selaco Station"].locations.append(victory_location)
-            
-        elif goal == 3:  # Complete All Areas
-            victory_location = SelacoPatchLocation(
-                self.player, "Victory - All Areas Completed", None, regions["Selaco Station"]
             )
             regions["Selaco Station"].locations.append(victory_location)
         

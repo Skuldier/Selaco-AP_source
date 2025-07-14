@@ -141,18 +141,16 @@ consumable_table: Dict[str, ItemData] = {
 
 # Story and Victory Items (based on actual game objective)
 story_table: Dict[str, ItemData] = {
-    # The actual objective is "Escape" based on game files
+    # Story progression items
     "Dawn's Security Badge": ItemData(BASE_ID + 500, ItemClassification.progression),
     "Emergency Evacuation Orders": ItemData(BASE_ID + 501, ItemClassification.progression),
     "Station Access Codes": ItemData(BASE_ID + 502, ItemClassification.progression),
     "Elevator Override Key": ItemData(BASE_ID + 503, ItemClassification.progression),
     "Emergency Communication Device": ItemData(BASE_ID + 504, ItemClassification.progression),
     
-    # Victory items for different goals
-    "Escape Route Access": ItemData(BASE_ID + 510, ItemClassification.progression),  # Escape goal
+    # Victory items for the two remaining goals
     "Final Boss Defeated": ItemData(BASE_ID + 511, ItemClassification.progression),  # Boss goal
     "All Keycards Collected": ItemData(BASE_ID + 512, ItemClassification.progression),  # Keycard goal
-    "All Areas Completed": ItemData(BASE_ID + 513, ItemClassification.progression),  # Complete goal
 }
 
 # Combine all item tables
@@ -188,7 +186,7 @@ progression_table = [
     "Elevator Override Key", "Emergency Communication Device",
     
     # Victory conditions (goal-dependent)
-    "Escape Route Access", "Final Boss Defeated", "All Keycards Collected", "All Areas Completed",
+    "Final Boss Defeated", "All Keycards Collected",
 ]
 
 useful_table = [

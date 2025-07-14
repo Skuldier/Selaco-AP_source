@@ -30,15 +30,10 @@ accessibility:
 
 # What is required to complete the game?
 goal:
-  # escape_station: Reach the evacuation point and escape from Selaco Station
   # defeat_final_boss: Defeat the boss encounter in the Endgame level
   # collect_all_keycards: Obtain all keycard and access card items  
-  # complete_all_areas: Finish all 7 level groups before accessing Endgame
-  escape_station: 50
-  defeat_final_boss: 25
-  collect_all_keycards: 15
-  complete_all_areas: 10
-  random: 0
+  defeat_final_boss: 75
+  collect_all_keycards: 25
 
 # Which weapon does Dawn start with?
 starting_weapon:

@@ -93,29 +93,19 @@ In this randomized version of Selaco:
 
 ## Victory Conditions
 
-The Selaco Archipelago world offers **four different victory conditions** to provide variety and different gameplay experiences:
+The Selaco Archipelago world offers **two different victory conditions** to provide variety and different gameplay experiences:
 
-### 1. Escape Station (Default)
-- **Objective**: Reach the evacuation point and escape from Selaco Station
-- **Requirements**: Complete story progression and reach the "Endgame - Escape Route" location
-- **Style**: Story-focused, matches the original game's narrative
-
-### 2. Defeat Final Boss  
+### 1. Defeat Final Boss (Default)
 - **Objective**: Defeat the boss encounter in the Endgame level (SE_08A)
 - **Requirements**: Advanced weapons, health items, and ability to reach endgame
 - **Style**: Combat-focused, requires strong equipment and skill
 
-### 3. Collect All Keycards
+### 2. Collect All Keycards
 - **Objective**: Obtain all 12 keycard and access card items in the world
 - **Requirements**: Find Red/Blue/Yellow/Green Keycards plus all facility access cards
 - **Style**: Collection-focused, encourages thorough exploration
 
-### 4. Complete All Areas
-- **Objective**: Finish all 7 level groups before accessing Endgame
-- **Requirements**: Clear Pathfinder Hospital through Starlight areas completely  
-- **Style**: Completionist-focused, requires mastering all game content
-
-Each victory condition creates a different progression flow and emphasizes different aspects of the Selaco experience - whether story, combat, exploration, or completion.
+Each victory condition creates a different progression flow and emphasizes different aspects of the Selaco experience - either mastering combat or exploring every corner of the station.
 
 ## Tips for Playing
 

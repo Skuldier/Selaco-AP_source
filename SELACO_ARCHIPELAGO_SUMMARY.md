@@ -58,12 +58,10 @@ I have successfully created a **complete and accurate Archipelago world** for Se
 - **Swimming Mechanics**: Oxygen management in water sections
 
 ### Victory Conditions (Updated)
-- **Escape Station**: Original story-focused goal - reach evacuation point
-- **Defeat Final Boss**: Combat-focused - defeat the boss in Endgame level  
+- **Defeat Final Boss**: Combat-focused - defeat the boss in Endgame level (Default)
 - **Collect All Keycards**: Collection-focused - obtain all 12 keycard items
-- **Complete All Areas**: Completionist-focused - finish all 7 level groups
 
-Each victory condition creates different progression flows and emphasizes different aspects of the Selaco experience.
+Each victory condition creates different progression flows and emphasizes different aspects of the Selaco experience - either mastering combat or exploring every corner of the station.
 
 ## Key Features
 

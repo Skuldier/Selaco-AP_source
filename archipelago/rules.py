@@ -72,11 +72,6 @@ def _can_complete_level_group(state: CollectionState, player: int, group: int) -
     return True
 
 
-def _has_completed_all_areas(state: CollectionState, player: int) -> bool:
-    """Check if player has completed all 7 level groups (for complete all areas goal)"""
-    return all(_can_complete_level_group(state, player, group) for group in range(1, 8))
-
-
 def _can_reach_endgame(state: CollectionState, player: int) -> bool:
     """Check if player can reach the endgame area"""
     # Must have story progression items
@@ -185,28 +180,17 @@ def set_rules(world: "SelacoPatchWorld") -> None:
     # Victory condition rules based on goal
     goal = world.options.goal.value
     
-    # Escape Station goal
-    add_rule(multiworld.get_location("Endgame - Escape Route", player),
-            lambda state: _can_reach_endgame(state, player))
-    
     # Defeat Final Boss goal  
     add_rule(multiworld.get_location("Endgame - Final Boss", player),
             lambda state: _can_defeat_final_boss(state, player))
     
     # Victory item rules
-    if goal == 0:  # Escape Station
-        set_rule(multiworld.get_location("Endgame - Escape Route", player),
-                lambda state: _can_reach_endgame(state, player))
-    elif goal == 1:  # Defeat Final Boss
+    if goal == 0:  # Defeat Final Boss
         set_rule(multiworld.get_location("Endgame - Final Boss", player),
                 lambda state: _can_defeat_final_boss(state, player))
-    elif goal == 2:  # Collect All Keycards
+    elif goal == 1:  # Collect All Keycards
         # For keycard collection, victory happens when all keycards are collected
         # This is handled in the world generation logic
-        pass
-    elif goal == 3:  # Complete All Areas
-        # For area completion, victory happens when all areas can be completed
-        # This is also handled in world generation logic
         pass
     
     # Secret locations (harder requirements)
