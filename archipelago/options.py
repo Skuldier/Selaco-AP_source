@@ -12,11 +12,16 @@ from Options import (
 class Goal(Choice):
     """What is required to complete the game?
     
-    Based on the actual game objective: "Escape"
-    Reach the evacuation point and escape from Selaco Station during the crisis.
+    Escape Station: Reach the evacuation point and escape from Selaco Station
+    Defeat Final Boss: Defeat the boss encounter in the Endgame level (SE_08A)
+    Collect All Keycards: Obtain all keycard and access card items
+    Complete All Areas: Finish all 7 level groups before accessing Endgame
     """
     display_name = "Goal"
     option_escape_station = 0
+    option_defeat_final_boss = 1
+    option_collect_all_keycards = 2
+    option_complete_all_areas = 3
     default = 0
 
 

@@ -57,8 +57,13 @@ I have successfully created a **complete and accurate Archipelago world** for Se
 - **Safe Rooms**: Specific levels marked as safe areas
 - **Swimming Mechanics**: Oxygen management in water sections
 
-### True Victory Condition
-**"Escape"** - The actual objective is to escape from Selaco Station during a crisis, not the victory goals I initially made up (retake station, destroy station, etc.).
+### Victory Conditions (Updated)
+- **Escape Station**: Original story-focused goal - reach evacuation point
+- **Defeat Final Boss**: Combat-focused - defeat the boss in Endgame level  
+- **Collect All Keycards**: Collection-focused - obtain all 12 keycard items
+- **Complete All Areas**: Completionist-focused - finish all 7 level groups
+
+Each victory condition creates different progression flows and emphasizes different aspects of the Selaco experience.
 
 ## Key Features
 

@@ -12,9 +12,9 @@ if TYPE_CHECKING:
 def _has_weapon(state: CollectionState, player: int) -> bool:
     """Check if player has any weapon"""
     weapons = [
-        "G19 Handgun", "UC-11 Exon SMG", "Riot Shotgun", 
-        "S-8 Marksman Rifle", "Roaring Cricket", "Grenade Launcher",
-        "Pulse Cannon", "Railgun", "Plasma Rifle"
+        "Fists", "UC-11 Compact SMG", "ESG-24 Shotgun", 
+        "UC-36 Assault Rifle", "S-8 Marksman Rifle", "Roaring Cricket", 
+        "24mm HW-Penetrator", "MGL-2", "Grav-VI Plasma Rifle", "Prototype Railgun (v0.65)"
     ]
     return any(state.has(weapon, player) for weapon in weapons)
 
@@ -23,297 +23,197 @@ def _has_keycard_access(state: CollectionState, player: int, level: str) -> bool
     """Check if player has appropriate keycard access for a level"""
     if level == "basic":
         return state.has_any(["Red Keycard", "Blue Keycard", "Yellow Keycard", "Green Keycard"], player)
-    elif level == "security":
-        return state.has("Security Access Card", player) or state.has_any(["Red Keycard", "Blue Keycard"], player)
-    elif level == "medical":
-        return state.has("Medical Access Card", player) or state.has("Blue Keycard", player)
-    elif level == "science":
-        return state.has("Science Access Card", player) or state.has("Yellow Keycard", player)
-    elif level == "engineering":
-        return state.has("Engineering Access Card", player) or state.has("Green Keycard", player)
-    elif level == "command":
-        return (state.has("Security Access Card", player) and 
-                state.has("Engineering Access Card", player) and
-                state.has("Red Keycard", player))
-    return False
+    elif level == "facility":
+        return state.has_any([
+            "Hospital Access Card", "Security Access Card", "Engineering Access Card",
+            "Research Access Card", "Administration Access Card"
+        ], player)
+    elif level == "special":
+        return state.has_any(["Starlight Access Card", "Exodus Plaza Key", "Plant Facility Key"], player)
+    return True
 
 
-def _has_basic_equipment(state: CollectionState, player: int) -> bool:
-    """Check if player has basic survival equipment"""
-    return (state.has("Flashlight", player) and 
-            _has_weapon(state, player))
+def _has_all_keycards(state: CollectionState, player: int) -> bool:
+    """Check if player has collected all keycard items (for keycard collection goal)"""
+    all_keycards = [
+        "Red Keycard", "Blue Keycard", "Yellow Keycard", "Green Keycard",
+        "Hospital Access Card", "Security Access Card", "Engineering Access Card",
+        "Research Access Card", "Administration Access Card",
+        "Starlight Access Card", "Exodus Plaza Key", "Plant Facility Key"
+    ]
+    return state.has_all(all_keycards, player)
 
 
-def _has_exploration_gear(state: CollectionState, player: int) -> bool:
-    """Check if player has gear for exploration"""
-    return (state.has("Gravity Manipulator", player) and
-            state.has("Flashlight", player) and
-            state.has_any(["Thermal Goggles", "Motion Sensor", "Detector"], player))
-
-
-def _can_handle_combat(state: CollectionState, player: int, difficulty: str = "normal") -> bool:
-    """Check if player can handle combat encounters"""
-    has_weapon = _has_weapon(state, player)
+def _can_complete_level_group(state: CollectionState, player: int, group: int) -> bool:
+    """Check if player can complete a specific level group"""
+    # Basic requirements for any level group
+    if not _has_weapon(state, player) or not state.has("Flashlight", player):
+        return False
     
-    if difficulty == "easy":
-        return has_weapon
-    elif difficulty == "normal":
-        return (has_weapon and 
-                state.has_any(["Health Kit", "Medical Injector", "First Aid Supplies"], player))
-    elif difficulty == "hard":
-        return (has_weapon and 
-                state.has_any(["Health Kit", "Medical Injector"], player) and
-                state.has_any(["Armor Vest", "Shield Generator"], player) and
-                state.has_any(["Frag Grenade", "Flash Grenade", "Remote Mine"], player))
-    return False
+    # Level-specific requirements
+    if group >= 2:  # Utility Area and beyond
+        if not _has_keycard_access(state, player, "basic"):
+            return False
+    
+    if group >= 4:  # Office Complex and beyond
+        if not _has_keycard_access(state, player, "facility"):
+            return False
+        
+    if group >= 6:  # Plant Facility and beyond
+        if not state.has("Gravity Manipulator", player):
+            return False
+            
+    if group >= 7:  # Starlight Area
+        if not _has_keycard_access(state, player, "special"):
+            return False
+        if not state.has("Environmental Suit", player):
+            return False
+    
+    return True
 
 
-def _has_environmental_protection(state: CollectionState, player: int) -> bool:
-    """Check if player has protection for hazardous environments"""
-    return (state.has("Environmental Suit", player) and
-            state.has_any(["Oxygen Tank", "Radiation Shield"], player))
+def _has_completed_all_areas(state: CollectionState, player: int) -> bool:
+    """Check if player has completed all 7 level groups (for complete all areas goal)"""
+    return all(_can_complete_level_group(state, player, group) for group in range(1, 8))
+
+
+def _can_reach_endgame(state: CollectionState, player: int) -> bool:
+    """Check if player can reach the endgame area"""
+    # Must have story progression items
+    story_items = [
+        "Dawn's Security Badge", "Emergency Evacuation Orders", "Station Access Codes",
+        "Elevator Override Key", "Emergency Communication Device"
+    ]
+    if not state.has_all(story_items, player):
+        return False
+    
+    # Must be able to complete at least level groups 1-6
+    return all(_can_complete_level_group(state, player, group) for group in range(1, 7))
+
+
+def _can_defeat_final_boss(state: CollectionState, player: int) -> bool:
+    """Check if player can defeat the final boss"""
+    if not _can_reach_endgame(state, player):
+        return False
+    
+    # Need advanced weapons for boss fight
+    advanced_weapons = [
+        "S-8 Marksman Rifle", "Roaring Cricket", "24mm HW-Penetrator",
+        "MGL-2", "Grav-VI Plasma Rifle", "Prototype Railgun (v0.65)"
+    ]
+    if not state.has_any(advanced_weapons, player):
+        return False
+    
+    # Need health items for survival
+    if not state.has_any(["Health Injector", "Medical Kit", "Emergency Stimpack"], player):
+        return False
+    
+    return True
 
 
 def set_rules(world: "SelacoPatchWorld") -> None:
-    """Set all the rules for Selaco locations"""
+    """Set up access rules for all locations and victory conditions"""
     player = world.player
     multiworld = world.multiworld
     
-    # Helper function to get location
-    def get_location(name: str):
-        return multiworld.get_location(name, player)
-    
-    # Chapter 1 - Hospital (Starting area, minimal requirements)
-    # Basic progression locations require flashlight and weapon
-    for location in [
-        "Chapter 1 - Emergency Room Keycard",
-        "Chapter 1 - Surgery Ward Clear", 
-        "Chapter 1 - Patient Records Terminal",
-        "Chapter 1 - Morgue Investigation"
+    # Level Group 1 - Pathfinder Hospital (starting area, minimal requirements)
+    for location_name in [
+        "Pathfinder Hospital - Start Weapons Cache", "Pathfinder Hospital - Emergency Room Keycard",
+        "Pathfinder Hospital - Surgery Ward Clear", "Pathfinder Hospital - Patient Records Terminal"
     ]:
-        add_rule(get_location(location), 
-                lambda state: _has_basic_equipment(state, player))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player))
     
-    # Advanced Chapter 1 locations require medical access
-    for location in [
-        "Chapter 1 - Security Office Raid",
-        "Chapter 1 - Hospital Director's Office",
-        "Chapter 1 - Emergency Exit Unlocked"
+    # Level Group 2 - Utility Area (needs basic keycards)
+    for location_name in [
+        "Utility Area - Power Junction", "Utility Area - Maintenance Tunnel",
+        "Water Treatment - Filtration Control", "Water Treatment - Chemical Storage"
     ]:
-        add_rule(get_location(location), 
-                lambda state: (_has_basic_equipment(state, player) and
-                             _has_keycard_access(state, player, "medical")))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player) and _has_keycard_access(state, player, "basic"))
     
-    # Chapter 1 secrets require exploration gear
-    chapter1_secrets = [
-        "Chapter 1 - Hidden Medical Cache",
-        "Chapter 1 - Doctor's Hidden Safe",
-        "Chapter 1 - Janitor's Closet Secret",
-        "Chapter 1 - Roof Ventilation Secret"
-    ]
-    for location in chapter1_secrets:
-        add_rule(get_location(location),
-                lambda state: _has_exploration_gear(state, player))
-    
-    # Chapter 2 - Security (Requires security access and combat capability)
-    add_rule(get_location("Chapter 2 - Security Checkpoint"),
-            lambda state: (_has_basic_equipment(state, player) and
-                          _has_keycard_access(state, player, "security")))
-    
-    # Security area combat locations
-    for location in [
-        "Chapter 2 - Armory Access",
-        "Chapter 2 - Guard Station Override",
-        "Chapter 2 - Security Chief's Office",
-        "Chapter 2 - Control Room Takeover"
+    # Level Group 3 - Selaco Streets (outdoor areas, need environmental protection)
+    for location_name in [
+        "Selaco Streets - Street Patrol Clear", "Selaco Streets - Shop Front Search",
+        "Sal's Bar - Bar Counter", "Sal's Lair - Boss Encounter"
     ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "normal") and
-                             _has_keycard_access(state, player, "security")))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player) and state.has("Environmental Suit", player))
     
-    # High-security locations require advanced access
-    for location in [
-        "Chapter 2 - Evidence Locker Raid",
-        "Chapter 2 - Surveillance Hub",
-        "Chapter 2 - Security Breach Exit"
+    # Level Group 4 - Office Complex (needs facility access)
+    for location_name in [
+        "Office Complex - Reception Desk", "Office Complex - Executive Office",
+        "Administration - Main Terminal", "Administration - Records Vault"
     ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "hard") and
-                             _has_keycard_access(state, player, "security") and
-                             state.has("Security Access Card", player)))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player) and _has_keycard_access(state, player, "facility"))
     
-    # Chapter 3 - Research Labs (Requires science access and environmental protection)
-    add_rule(get_location("Chapter 3 - Lab Entry Point"),
-            lambda state: (_has_basic_equipment(state, player) and
-                          _has_keycard_access(state, player, "science")))
-    
-    # Research locations with hazards
-    for location in [
-        "Chapter 3 - Chemical Storage",
-        "Chapter 3 - Specimen Containment",
-        "Chapter 3 - Clean Room Breach"
+    # Level Group 5 - Exodus Plaza (mall area, needs advanced combat capability)
+    for location_name in [
+        "Exodus Plaza - Main Entrance", "Exodus North - Electronics Store",
+        "Exodus South - Bookstore", "Exodus Front - Main Entrance"
     ]:
-        add_rule(get_location(location),
-                lambda state: (_has_environmental_protection(state, player) and
-                             _has_keycard_access(state, player, "science")))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player) and _has_keycard_access(state, player, "facility") and
+                            state.has_any(["UC-36 Assault Rifle", "S-8 Marksman Rifle", "Roaring Cricket"], player))
     
-    # Advanced research locations
-    for location in [
-        "Chapter 3 - Prototype Weapon Lab",
-        "Chapter 3 - Data Core Recovery",
-        "Chapter 3 - Research Director's Lab"
+    # Level Group 6 - Plant Cloning Facility (needs gravity manipulator)
+    for location_name in [
+        "Plant Facility Offices - Reception", "Plant Research Labs - Main Lab",
+        "Plant Cloning - Growth Chambers", "Plant Cloning - Control Center"
     ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "hard") and
-                             _has_environmental_protection(state, player) and
-                             state.has("Science Access Card", player)))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player) and state.has("Gravity Manipulator", player) and
+                            _has_keycard_access(state, player, "facility"))
     
-    # Chapter 4 - Engineering (Requires engineering access and tools)
-    add_rule(get_location("Chapter 4 - Engineering Entry"),
-            lambda state: (_has_basic_equipment(state, player) and
-                          _has_keycard_access(state, player, "engineering")))
-    
-    # Engineering locations require technical equipment
-    for location in [
-        "Chapter 4 - Power Grid Access",
-        "Chapter 4 - Reactor Room Clear",
-        "Chapter 4 - Chief Engineer's Terminal"
+    # Level Group 7 - Starlight Area (needs special access and advanced equipment)
+    for location_name in [
+        "Starlight Lobby - Reception Desk", "Starlight Green - Main Area",
+        "Starlight Red - Central Chamber", "Starlight Final - Critical Systems"
     ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "normal") and
-                             _has_keycard_access(state, player, "engineering") and
-                             state.has_any(["Tool Kit", "Hacking Device"], player)))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player) and state.has("Environmental Suit", player) and
+                            _has_keycard_access(state, player, "special") and state.has("Gravity Manipulator", player))
     
-    # Critical engineering systems
-    for location in [
-        "Chapter 4 - Generator Core Access",
-        "Chapter 4 - Systems Control Room",
-        "Chapter 4 - Emergency Shutdown"
+    # Endgame locations (need story progression)
+    for location_name in [
+        "Endgame - Final Checkpoint", "Endgame - Critical Decision", "Endgame - Emergency Systems"
     ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "hard") and
-                             state.has("Engineering Access Card", player) and
-                             state.has("Tool Kit", player) and
-                             state.has("Power Cell", player)))
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _can_reach_endgame(state, player))
     
-    # Chapter 5 - Residential (Requires moderate access and social navigation)
-    add_rule(get_location("Chapter 5 - Quarters Entry"),
-            lambda state: (_has_basic_equipment(state, player) and
-                          _has_keycard_access(state, player, "basic")))
+    # Victory condition rules based on goal
+    goal = world.options.goal.value
     
-    # Residential locations are generally accessible but may require keys
-    for location in [
-        "Chapter 5 - Community Center",
-        "Chapter 5 - Recreation Area", 
-        "Chapter 5 - Market District"
+    # Escape Station goal
+    add_rule(multiworld.get_location("Endgame - Escape Route", player),
+            lambda state: _can_reach_endgame(state, player))
+    
+    # Defeat Final Boss goal  
+    add_rule(multiworld.get_location("Endgame - Final Boss", player),
+            lambda state: _can_defeat_final_boss(state, player))
+    
+    # Victory item rules
+    if goal == 0:  # Escape Station
+        set_rule(multiworld.get_location("Endgame - Escape Route", player),
+                lambda state: _can_reach_endgame(state, player))
+    elif goal == 1:  # Defeat Final Boss
+        set_rule(multiworld.get_location("Endgame - Final Boss", player),
+                lambda state: _can_defeat_final_boss(state, player))
+    elif goal == 2:  # Collect All Keycards
+        # For keycard collection, victory happens when all keycards are collected
+        # This is handled in the world generation logic
+        pass
+    elif goal == 3:  # Complete All Areas
+        # For area completion, victory happens when all areas can be completed
+        # This is also handled in world generation logic
+        pass
+    
+    # Secret locations (harder requirements)
+    for location_name in [
+        "Hospital Secret - Hidden Armory", "Streets Secret - Rooftop Cache",
+        "Plaza Secret - VIP Area", "Starlight Secret - Hidden Lab"
     ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "easy") and
-                             _has_keycard_access(state, player, "basic")))
-    
-    # Administrative areas require higher access
-    for location in [
-        "Chapter 5 - Housing Administrator",
-        "Chapter 5 - Social Services"
-    ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "normal") and
-                             state.has_any(["Security Access Card", "Medical Access Card"], player)))
-    
-    # Chapter 6 - Command Center (Requires highest level access)
-    add_rule(get_location("Chapter 6 - Command Entry"),
-            lambda state: (_can_handle_combat(state, player, "hard") and
-                          _has_keycard_access(state, player, "command")))
-    
-    # Command center requires full access and advanced equipment
-    for location in [
-        "Chapter 6 - Communications Hub",
-        "Chapter 6 - Tactical Operations",
-        "Chapter 6 - Strategy Room"
-    ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "hard") and
-                             _has_keycard_access(state, player, "command") and
-                             state.has("Communication Device", player)))
-    
-    # Final areas require story progression items
-    for location in [
-        "Chapter 6 - Computer Core Access",
-        "Chapter 6 - Command Bridge",
-        "Chapter 6 - Admiral's Office"
-    ]:
-        add_rule(get_location(location),
-                lambda state: (_can_handle_combat(state, player, "hard") and
-                             _has_keycard_access(state, player, "command") and
-                             state.has("Dawn's Badge", player) and
-                             state.has("Emergency Override", player)))
-    
-    # Final confrontation requires all story items
-    add_rule(get_location("Chapter 6 - Final Confrontation"),
-            lambda state: (_can_handle_combat(state, player, "hard") and
-                         state.has("Station Core Access", player) and
-                         state.has("Emergency Shutdown Override", player) and
-                         state.has("Evacuation Pod Key", player)))
-    
-    # Special station-wide locations require advanced exploration
-    for location in [
-        "Station-wide - Hidden Armory",
-        "Station-wide - Secret Laboratory",
-        "Station-wide - Central Computer Core"
-    ]:
-        add_rule(get_location(location),
-                lambda state: (_has_exploration_gear(state, player) and
-                             state.has_any(["Security Access Card", "Science Access Card", "Engineering Access Card"], player)))
-    
-    # Victory condition locations
-    add_rule(get_location("Station-wide - Station Core Access"),
-            lambda state: (_can_handle_combat(state, player, "hard") and
-                         state.has("Emergency Override", player) and
-                         state.has_group("keycards", player, 4)))  # Need multiple keycards
-    
-    # Achievement locations have specific requirements
-    add_rule(get_location("Achievement - First Weapon Upgrade"),
-            lambda state: (state.has("Weapon Upgrade Kit", player) and
-                         _has_weapon(state, player)))
-    
-    add_rule(get_location("Achievement - Collect 10 Keycards"),
-            lambda state: state.has_group("keycards", player, 6))  # Need most keycards
-    
-    add_rule(get_location("Achievement - Use All Weapon Types"),
-            lambda state: (state.has("G19 Handgun", player) and
-                         state.has("UC-11 Exon SMG", player) and
-                         state.has("Riot Shotgun", player) and
-                         state.has("S-8 Marksman Rifle", player) and
-                         state.has("Roaring Cricket", player)))
-    
-    # Challenge locations require specific builds/equipment
-    add_rule(get_location("Challenge - Survival Mode Wave 10"),
-            lambda state: (_can_handle_combat(state, player, "hard") and
-                         state.has("Health Kit", player, 3) and
-                         state.has("Armor Repair Kit", player, 2)))
-    
-    add_rule(get_location("Challenge - Shooting Range Gold"),
-            lambda state: (state.has_any(["S-8 Marksman Rifle", "Railgun"], player) and
-                         state.has("Scope Attachment", player)))
-    
-    add_rule(get_location("Challenge - Perfect Accuracy"),
-            lambda state: (state.has("Accuracy Boost", player) and
-                         state.has_any(["Scope Attachment", "Thermal Goggles"], player)))
-    
-    # Set up item groups for easier rule checking
-    multiworld.item_groups[player] = {
-        "keycards": {
-            "Red Keycard", "Blue Keycard", "Yellow Keycard", "Green Keycard",
-            "Security Access Card", "Medical Access Card", "Science Access Card", "Engineering Access Card"
-        },
-        "weapons": {
-            "G19 Handgun", "UC-11 Exon SMG", "Riot Shotgun", "S-8 Marksman Rifle", 
-            "Roaring Cricket", "Grenade Launcher", "Pulse Cannon", "Railgun", "Plasma Rifle"
-        },
-        "health_items": {
-            "Health Kit", "Medical Injector", "First Aid Supplies", "Emergency Stimpack"
-        },
-        "armor_items": {
-            "Armor Vest", "Combat Helmet", "Shield Generator", "Armor Repair Kit"
-        }
-    }
+        add_rule(multiworld.get_location(location_name, player),
+                lambda state: _has_weapon(state, player) and state.has("Gravity Manipulator", player) and
+                            _has_keycard_access(state, player, "facility"))

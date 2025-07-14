@@ -30,14 +30,14 @@ accessibility:
 
 # What is required to complete the game?
 goal:
-  # escape_station: Reach the evacuation pods and escape Selaco Station
-  # retake_station: Eliminate all threats and regain control of the station
-  # destroy_station: Activate the station's self-destruct sequence  
-  # save_everyone: Rescue all survivors and evacuate the station
+  # escape_station: Reach the evacuation point and escape from Selaco Station
+  # defeat_final_boss: Defeat the boss encounter in the Endgame level
+  # collect_all_keycards: Obtain all keycard and access card items  
+  # complete_all_areas: Finish all 7 level groups before accessing Endgame
   escape_station: 50
-  retake_station: 0
-  destroy_station: 0
-  save_everyone: 0
+  defeat_final_boss: 25
+  collect_all_keycards: 15
+  complete_all_areas: 10
   random: 0
 
 # Which weapon does Dawn start with?

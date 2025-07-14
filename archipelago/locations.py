@@ -218,7 +218,8 @@ endgame_locations: Dict[str, LocationData] = {
     "Endgame - Final Checkpoint": LocationData(BASE_ID + 8000, "Endgame"),
     "Endgame - Critical Decision": LocationData(BASE_ID + 8001, "Endgame"),
     "Endgame - Emergency Systems": LocationData(BASE_ID + 8002, "Endgame"),
-    "Endgame - Escape Route": LocationData(BASE_ID + 8003, "Endgame"),  # Victory location
+    "Endgame - Escape Route": LocationData(BASE_ID + 8003, "Endgame"),  # Escape victory location
+    "Endgame - Final Boss": LocationData(BASE_ID + 8004, "Endgame"),  # Boss victory location
 }
 
 # Secret and Special Locations (based on game references)

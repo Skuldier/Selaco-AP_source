@@ -148,8 +148,11 @@ story_table: Dict[str, ItemData] = {
     "Elevator Override Key": ItemData(BASE_ID + 503, ItemClassification.progression),
     "Emergency Communication Device": ItemData(BASE_ID + 504, ItemClassification.progression),
     
-    # Victory item - the escape
-    "Escape Route Access": ItemData(BASE_ID + 510, ItemClassification.progression),
+    # Victory items for different goals
+    "Escape Route Access": ItemData(BASE_ID + 510, ItemClassification.progression),  # Escape goal
+    "Final Boss Defeated": ItemData(BASE_ID + 511, ItemClassification.progression),  # Boss goal
+    "All Keycards Collected": ItemData(BASE_ID + 512, ItemClassification.progression),  # Keycard goal
+    "All Areas Completed": ItemData(BASE_ID + 513, ItemClassification.progression),  # Complete goal
 }
 
 # Combine all item tables
@@ -184,8 +187,8 @@ progression_table = [
     "Dawn's Security Badge", "Emergency Evacuation Orders", "Station Access Codes",
     "Elevator Override Key", "Emergency Communication Device",
     
-    # Victory condition
-    "Escape Route Access",
+    # Victory conditions (goal-dependent)
+    "Escape Route Access", "Final Boss Defeated", "All Keycards Collected", "All Areas Completed",
 ]
 
 useful_table = [
