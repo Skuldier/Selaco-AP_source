@@ -1,0 +1,278 @@
+# Selaco Archipelago World Configuration
+# This is a YAML file. Lines beginning with # are comments.
+# All options have descriptions and defaults.
+
+# Your name in the multiworld
+name: YourName
+
+# Game to play (do not change this)
+game: Selaco
+
+# Common options - These options are shared across most games
+
+# Do you want to be alerted when someone finds an item for you?
+progression_balancing:
+  # off: No adjustments
+  # 20: Slightly prefer progression items
+  # 50: Moderately prefer progression items  
+  # 80: Strongly prefer progression items
+  50: 50  
+  off: 0
+  random: 0
+
+accessibility:
+  # items: Require only items to be accessible
+  # locations: Require items and locations to be accessible
+  items: 50
+  locations: 0
+
+# Unique Selaco Options
+
+# What is required to complete the game?
+goal:
+  # escape_station: Reach the evacuation pods and escape Selaco Station
+  # retake_station: Eliminate all threats and regain control of the station
+  # destroy_station: Activate the station's self-destruct sequence  
+  # save_everyone: Rescue all survivors and evacuate the station
+  escape_station: 50
+  retake_station: 0
+  destroy_station: 0
+  save_everyone: 0
+  random: 0
+
+# Which weapon does Dawn start with?
+starting_weapon:
+  # none: Start with no weapon (hardcore mode)
+  # handgun: Start with G19 Handgun and some ammo
+  # smg: Start with UC-11 Exon SMG and some ammo
+  # random: Start with a random weapon
+  none: 0
+  handgun: 50
+  smg: 30
+  random: 20
+
+# What equipment does Dawn start with?
+starting_equipment:
+  # Options: flashlight, detector, communication_device, medical_injector,
+  #          armor_vest, oxygen_tank, tool_kit, power_cell
+  - flashlight
+
+# Overall difficulty level
+difficulty_level:
+  # casual: Reduced difficulty for a more relaxed experience
+  # normal: Balanced difficulty for most players
+  # hard: Increased enemy health and damage, fewer resources
+  # nightmare: Maximum difficulty with limited resources
+  casual: 10
+  normal: 50
+  hard: 30
+  nightmare: 10
+
+# How should enemies be randomized?
+enemy_randomization:
+  # vanilla: Enemies appear in their original locations
+  # shuffled: Enemy types are shuffled between encounters
+  # random: Completely random enemy spawns
+  # scaled: Enemies scale with location progression
+  vanilla: 0
+  shuffled: 50
+  random: 25
+  scaled: 25
+
+# How are weapons distributed throughout the game?
+weapon_progression:
+  # early: Most weapons available early in the game
+  # balanced: Weapons distributed evenly throughout progression
+  # late: Advanced weapons only available late in the game
+  # random: Completely random weapon distribution
+  early: 20
+  balanced: 50
+  late: 20
+  random: 10
+
+# How are keycards distributed?
+keycard_distribution:
+  # logical: Keycards appear in logical locations for their use
+  # shuffled: Keycards are shuffled throughout all locations
+  # random: Keycards can appear anywhere, including other worlds
+  logical: 60
+  shuffled: 30
+  random: 10
+
+# What type of randomizer experience?
+randomizer_mode:
+  # standard: Normal item and location randomization
+  # chaos: Maximum randomization of all elements
+  # race: Optimized for racing and speedrunning
+  # exploration: Emphasis on exploration and secrets
+  standard: 50
+  chaos: 15
+  race: 20
+  exploration: 15
+
+# Include achievement-based locations?
+include_achievements:
+  # These are optional challenges that provide additional items
+  'true': 75
+  'false': 25
+
+# Include challenge-based locations?
+include_challenges:
+  # These are difficult optional challenges for advanced players
+  'true': 40
+  'false': 60
+
+# Shuffle the order in which chapters must be completed?
+shuffle_chapters:
+  # This can significantly change the flow of the game
+  'true': 25
+  'false': 75
+
+# What percentage of potential item locations should have items?
+item_density:
+  # Can be 10-100, where 100 means all locations have items
+  75: 1
+
+# How frequently should health items appear?
+health_item_frequency:
+  # 1 = Very Rare, 5 = Very Common
+  1: 5    # Very Rare
+  2: 10   # Rare  
+  3: 50   # Normal
+  4: 25   # Common
+  5: 10   # Very Common
+
+# How scarce should ammunition be?
+ammo_scarcity:
+  # 1 = Abundant ammo, 5 = Very scarce ammo
+  1: 10   # Abundant
+  2: 30   # Plentiful
+  3: 40   # Normal
+  4: 15   # Scarce
+  5: 5    # Very Scarce
+
+# What percentage of maximum health should Dawn start with?
+starting_health:
+  # Can be 25-100
+  100: 50  # Full health
+  75: 25   # 75% health
+  50: 20   # Half health
+  25: 5    # Quarter health
+
+# Should keycards be progressive?
+progressive_keycards:
+  # Progressive keycards unlock increasingly secure areas
+  'true': 70
+  'false': 30
+
+# Should weapons be progressive?
+progressive_weapons:
+  # Progressive weapons unlock improved versions of the same weapon type
+  'true': 40
+  'false': 60
+
+# Randomize enemy health, damage, and other stats?
+randomize_enemy_stats:
+  # This adds unpredictability to combat encounters
+  'true': 35
+  'false': 65
+
+# Randomize weapon damage, rate of fire, and other stats?
+randomize_weapon_stats:
+  # This makes each weapon feel unique in every playthrough
+  'true': 30
+  'false': 70
+
+# How dangerous should environmental hazards be?
+environmental_hazards:
+  # none: No environmental damage
+  # normal: Standard hazard damage
+  # extreme: High environmental damage
+  none: 10
+  normal: 70
+  extreme: 20
+
+# How difficult are secret locations to access?
+secret_difficulty:
+  # Higher values require more advanced items and exploration skills
+  # Can be 1-5
+  1: 5    # Very Easy
+  2: 20   # Easy
+  3: 50   # Normal
+  4: 20   # Hard
+  5: 5    # Very Hard
+
+# Quality of Life Options
+
+# Make elevators move faster?
+fast_elevators:
+  'true': 80
+  'false': 20
+
+# Automatically skip cutscenes?
+skip_cutscenes:
+  'true': 70
+  'false': 30
+
+# Shuffle the background music tracks?
+shuffle_music:
+  'true': 25
+  'false': 75
+
+# Death Link
+death_link:
+  # When you die, everyone dies
+  'true': 0
+  'false': 100
+
+# Start Inventory
+start_inventory_pool:
+  # List of items to start with (in addition to starting_equipment)
+  # Example: 
+  # - G19 Handgun
+  # - Health Kit
+  []
+
+# Item Links
+item_links:
+  # Link items together so they're given to the same person
+  # Example:
+  # - name: "Weapon Package"
+  #   item_pool: ["G19 Handgun", "SMG Ammo"]
+  []
+
+# Local Items  
+local_items:
+  # Items that should stay in your world
+  # Example: ["Red Keycard", "Blue Keycard"]
+  []
+
+# Non-Local Items
+non_local_items:
+  # Items that should NOT stay in your world
+  # Example: ["Health Kit", "SMG Ammo"]
+  []
+
+# Priority Locations
+priority_locations:
+  # Locations that should be filled first
+  # Example: ["Chapter 1 - Emergency Room Keycard"]
+  []
+
+# Excluded Locations
+excluded_locations:
+  # Locations that should never have items
+  # Example: ["Challenge - Ultimate Survivor"]
+  []
+
+# Start Location Hints
+start_location_hints:
+  # Locations you want to know from the start
+  # Example: ["Chapter 6 - Final Confrontation"]
+  []
+
+# Start Hints
+start_hints:
+  # Items you want to know the location of from the start
+  # Example: ["Station Core Access"]
+  []
