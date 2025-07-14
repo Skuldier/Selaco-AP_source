@@ -1,5 +1,5 @@
 """
-Selaco locations for Archipelago
+Selaco locations for Archipelago - Based on actual game levels
 """
 from dataclasses import dataclass
 from typing import Dict
@@ -19,244 +19,256 @@ class SelacoPatchLocation(Location):
 # Base ID for Selaco locations
 BASE_ID = 845000
 
-# Chapter 1 - Pathfinder Memorial Hospital
-chapter1_locations: Dict[str, LocationData] = {
-    # Main progression locations
-    "Chapter 1 - Start Medical Bay": LocationData(BASE_ID + 1000),
-    "Chapter 1 - Emergency Room Keycard": LocationData(BASE_ID + 1001),
-    "Chapter 1 - Surgery Ward Clear": LocationData(BASE_ID + 1002),
-    "Chapter 1 - Patient Records Terminal": LocationData(BASE_ID + 1003),
-    "Chapter 1 - Morgue Investigation": LocationData(BASE_ID + 1004),
-    "Chapter 1 - Security Office Raid": LocationData(BASE_ID + 1005),
-    "Chapter 1 - Pharmacy Supplies": LocationData(BASE_ID + 1006),
-    "Chapter 1 - Roof Access Breach": LocationData(BASE_ID + 1007),
-    "Chapter 1 - Hospital Director's Office": LocationData(BASE_ID + 1008),
-    "Chapter 1 - Emergency Exit Unlocked": LocationData(BASE_ID + 1009),
+# Level Group 1 - Pathfinder Hospital (SE_01A, SE_01B, SE_01C)
+hospital_locations: Dict[str, LocationData] = {
+    # SE_01A "Pathfinder Hospital"
+    "Pathfinder Hospital - Start Weapons Cache": LocationData(BASE_ID + 1000, "Pathfinder Hospital"),
+    "Pathfinder Hospital - Emergency Room Keycard": LocationData(BASE_ID + 1001, "Pathfinder Hospital"),
+    "Pathfinder Hospital - Surgery Ward Clear": LocationData(BASE_ID + 1002, "Pathfinder Hospital"),
+    "Pathfinder Hospital - Patient Records Terminal": LocationData(BASE_ID + 1003, "Pathfinder Hospital"),
+    "Pathfinder Hospital - Medical Supply Room": LocationData(BASE_ID + 1004, "Pathfinder Hospital"),
+    "Pathfinder Hospital - Secret Medical Cache": LocationData(BASE_ID + 1005, "Pathfinder Hospital"),
+    "Pathfinder Hospital - Cafeteria Search": LocationData(BASE_ID + 1006, "Pathfinder Hospital"),
+    "Pathfinder Hospital - First Security Checkpoint": LocationData(BASE_ID + 1007, "Pathfinder Hospital"),
     
-    # Secret locations
-    "Chapter 1 - Hidden Medical Cache": LocationData(BASE_ID + 1050),
-    "Chapter 1 - Maintenance Tunnel Stash": LocationData(BASE_ID + 1051),
-    "Chapter 1 - Doctor's Hidden Safe": LocationData(BASE_ID + 1052),
-    "Chapter 1 - Broken Vending Machine": LocationData(BASE_ID + 1053),
-    "Chapter 1 - Ceiling Tile Cache": LocationData(BASE_ID + 1054),
-    "Chapter 1 - Janitor's Closet Secret": LocationData(BASE_ID + 1055),
-    "Chapter 1 - Blood Bank Hideout": LocationData(BASE_ID + 1056),
-    "Chapter 1 - Generator Room Supplies": LocationData(BASE_ID + 1057),
-    "Chapter 1 - Roof Ventilation Secret": LocationData(BASE_ID + 1058),
-    "Chapter 1 - Ambulance Bay Stash": LocationData(BASE_ID + 1059),
+    # SE_01B "Pathfinder Hospital (Blue)" - Safe Room Area
+    "Pathfinder Blue Wing - Safe Room Upgrade": LocationData(BASE_ID + 1020, "Pathfinder Blue Wing"),
+    "Pathfinder Blue Wing - Equipment Cache": LocationData(BASE_ID + 1021, "Pathfinder Blue Wing"),
+    "Pathfinder Blue Wing - First Aid Station": LocationData(BASE_ID + 1022, "Pathfinder Blue Wing"),
+    "Pathfinder Blue Wing - Security Office": LocationData(BASE_ID + 1023, "Pathfinder Blue Wing"),
+    
+    # SE_01C "Pathfinder Labs"
+    "Pathfinder Labs - Research Terminal": LocationData(BASE_ID + 1040, "Pathfinder Labs"),
+    "Pathfinder Labs - Sample Storage": LocationData(BASE_ID + 1041, "Pathfinder Labs"),
+    "Pathfinder Labs - Lab Equipment Upgrade": LocationData(BASE_ID + 1042, "Pathfinder Labs"),
+    "Pathfinder Labs - Chemical Storage": LocationData(BASE_ID + 1043, "Pathfinder Labs"),
+    "Pathfinder Labs - Director's Office": LocationData(BASE_ID + 1044, "Pathfinder Labs"),
 }
 
-# Chapter 2 - Security Sector  
-chapter2_locations: Dict[str, LocationData] = {
-    # Main progression
-    "Chapter 2 - Security Checkpoint": LocationData(BASE_ID + 2000),
-    "Chapter 2 - Armory Access": LocationData(BASE_ID + 2001),
-    "Chapter 2 - Guard Station Override": LocationData(BASE_ID + 2002),
-    "Chapter 2 - Prisoner Processing": LocationData(BASE_ID + 2003),
-    "Chapter 2 - Security Chief's Office": LocationData(BASE_ID + 2004),
-    "Chapter 2 - Cell Block Clearance": LocationData(BASE_ID + 2005),
-    "Chapter 2 - Evidence Locker Raid": LocationData(BASE_ID + 2006),
-    "Chapter 2 - Control Room Takeover": LocationData(BASE_ID + 2007),
-    "Chapter 2 - Surveillance Hub": LocationData(BASE_ID + 2008),
-    "Chapter 2 - Security Breach Exit": LocationData(BASE_ID + 2009),
+# Level Group 2 - Utility Area (SE_02A, SE_02Z, SE_02B, SE_02C)
+utility_locations: Dict[str, LocationData] = {
+    # SE_02A "Utility Area"
+    "Utility Area - Power Junction": LocationData(BASE_ID + 2000, "Utility Area"),
+    "Utility Area - Maintenance Tunnel": LocationData(BASE_ID + 2001, "Utility Area"),
+    "Utility Area - Tool Storage": LocationData(BASE_ID + 2002, "Utility Area"),
+    "Utility Area - Generator Room": LocationData(BASE_ID + 2003, "Utility Area"),
     
-    # Secrets
-    "Chapter 2 - Hidden Weapons Cache": LocationData(BASE_ID + 2050),
-    "Chapter 2 - Guard Locker Stash": LocationData(BASE_ID + 2051),
-    "Chapter 2 - Interrogation Room Secret": LocationData(BASE_ID + 2052),
-    "Chapter 2 - Ventilation Shaft Cache": LocationData(BASE_ID + 2053),
-    "Chapter 2 - Contraband Locker": LocationData(BASE_ID + 2054),
-    "Chapter 2 - Warden's Safe": LocationData(BASE_ID + 2055),
-    "Chapter 2 - Storage Room Supplies": LocationData(BASE_ID + 2056),
-    "Chapter 2 - Watch Tower Stash": LocationData(BASE_ID + 2057),
-    "Chapter 2 - Backup Generator Secret": LocationData(BASE_ID + 2058),
-    "Chapter 2 - Exercise Yard Cache": LocationData(BASE_ID + 2059),
+    # SE_02Z "Pathfinder Hospital (Orange)" - Safe Room
+    "Pathfinder Orange Wing - Emergency Cache": LocationData(BASE_ID + 2020, "Pathfinder Orange Wing"),
+    "Pathfinder Orange Wing - Medical Station": LocationData(BASE_ID + 2021, "Pathfinder Orange Wing"),
+    
+    # SE_02B "Utility Area" (Second part)
+    "Utility Area B - Pipe Access": LocationData(BASE_ID + 2040, "Utility Area B"),
+    "Utility Area B - Emergency Supplies": LocationData(BASE_ID + 2041, "Utility Area B"),
+    "Utility Area B - Service Elevator": LocationData(BASE_ID + 2042, "Utility Area B"),
+    
+    # SE_02C "Water Treatment" - Safe Room
+    "Water Treatment - Filtration Control": LocationData(BASE_ID + 2060, "Water Treatment"),
+    "Water Treatment - Chemical Storage": LocationData(BASE_ID + 2061, "Water Treatment"),
+    "Water Treatment - Engineer's Office": LocationData(BASE_ID + 2062, "Water Treatment"),
 }
 
-# Chapter 3 - Research Labs
-chapter3_locations: Dict[str, LocationData] = {
-    # Main progression
-    "Chapter 3 - Lab Entry Point": LocationData(BASE_ID + 3000),
-    "Chapter 3 - Chemical Storage": LocationData(BASE_ID + 3001),
-    "Chapter 3 - Specimen Containment": LocationData(BASE_ID + 3002),
-    "Chapter 3 - Research Terminal Access": LocationData(BASE_ID + 3003),
-    "Chapter 3 - Prototype Weapon Lab": LocationData(BASE_ID + 3004),
-    "Chapter 3 - Clean Room Breach": LocationData(BASE_ID + 3005),
-    "Chapter 3 - Data Core Recovery": LocationData(BASE_ID + 3006),
-    "Chapter 3 - Experiment Control Room": LocationData(BASE_ID + 3007),
-    "Chapter 3 - Research Director's Lab": LocationData(BASE_ID + 3008),
-    "Chapter 3 - Emergency Quarantine": LocationData(BASE_ID + 3009),
+# Level Group 3 - Streets Area (SE_03A, SE_03A1, SE_03B, SE_03B1, SE_03B2, SE_03C)
+streets_locations: Dict[str, LocationData] = {
+    # SE_03A "Parking Garage" - Safe Room
+    "Parking Garage - Vehicle Search": LocationData(BASE_ID + 3000, "Parking Garage"),
+    "Parking Garage - Security Booth": LocationData(BASE_ID + 3001, "Parking Garage"),
+    "Parking Garage - Maintenance Area": LocationData(BASE_ID + 3002, "Parking Garage"),
     
-    # Secrets
-    "Chapter 3 - Hidden Research Notes": LocationData(BASE_ID + 3050),
-    "Chapter 3 - Scientist's Personal Stash": LocationData(BASE_ID + 3051),
-    "Chapter 3 - Chemical Spill Cache": LocationData(BASE_ID + 3052),
-    "Chapter 3 - Prototype Equipment": LocationData(BASE_ID + 3053),
-    "Chapter 3 - Observation Deck Secret": LocationData(BASE_ID + 3054),
-    "Chapter 3 - Cooling System Cache": LocationData(BASE_ID + 3055),
-    "Chapter 3 - Specimen Storage Secret": LocationData(BASE_ID + 3056),
-    "Chapter 3 - Ventilation Lab Stash": LocationData(BASE_ID + 3057),
-    "Chapter 3 - Emergency Shower Cache": LocationData(BASE_ID + 3058),
-    "Chapter 3 - Waste Disposal Secret": LocationData(BASE_ID + 3059),
+    # SE_03A1 "Parking Garage" (Variant)
+    "Parking Garage Alt - Hidden Cache": LocationData(BASE_ID + 3020, "Parking Garage Alt"),
+    "Parking Garage Alt - Upper Level": LocationData(BASE_ID + 3021, "Parking Garage Alt"),
+    
+    # SE_03B "Selaco Streets"
+    "Selaco Streets - Street Patrol Clear": LocationData(BASE_ID + 3040, "Selaco Streets"),
+    "Selaco Streets - Shop Front Search": LocationData(BASE_ID + 3041, "Selaco Streets"),
+    "Selaco Streets - Police Station": LocationData(BASE_ID + 3042, "Selaco Streets"),
+    "Selaco Streets - Apartment Complex": LocationData(BASE_ID + 3043, "Selaco Streets"),
+    "Selaco Streets - Street Barricade": LocationData(BASE_ID + 3044, "Selaco Streets"),
+    
+    # SE_03B1 "Selaco Streets" (Safe Room)
+    "Selaco Streets Safe - Checkpoint": LocationData(BASE_ID + 3060, "Selaco Streets Safe"),
+    "Selaco Streets Safe - Supply Drop": LocationData(BASE_ID + 3061, "Selaco Streets Safe"),
+    
+    # SE_03B2 "Sal's Bar"
+    "Sal's Bar - Bar Counter": LocationData(BASE_ID + 3080, "Sal's Bar"),
+    "Sal's Bar - Back Room": LocationData(BASE_ID + 3081, "Sal's Bar"),
+    "Sal's Bar - Basement Storage": LocationData(BASE_ID + 3082, "Sal's Bar"),
+    "Sal's Bar - Owner's Safe": LocationData(BASE_ID + 3083, "Sal's Bar"),
+    
+    # SE_03C "Sal's Lair"
+    "Sal's Lair - Hidden Weapons": LocationData(BASE_ID + 3100, "Sal's Lair"),
+    "Sal's Lair - Secret Passage": LocationData(BASE_ID + 3101, "Sal's Lair"),
+    "Sal's Lair - Boss Encounter": LocationData(BASE_ID + 3102, "Sal's Lair"),
 }
 
-# Chapter 4 - Engineering Deck
-chapter4_locations: Dict[str, LocationData] = {
-    # Main progression
-    "Chapter 4 - Engineering Entry": LocationData(BASE_ID + 4000),
-    "Chapter 4 - Power Grid Access": LocationData(BASE_ID + 4001),
-    "Chapter 4 - Reactor Room Clear": LocationData(BASE_ID + 4002),
-    "Chapter 4 - Maintenance Override": LocationData(BASE_ID + 4003),
-    "Chapter 4 - Chief Engineer's Terminal": LocationData(BASE_ID + 4004),
-    "Chapter 4 - Coolant System Repair": LocationData(BASE_ID + 4005),
-    "Chapter 4 - Tool Shop Raid": LocationData(BASE_ID + 4006),
-    "Chapter 4 - Generator Core Access": LocationData(BASE_ID + 4007),
-    "Chapter 4 - Systems Control Room": LocationData(BASE_ID + 4008),
-    "Chapter 4 - Emergency Shutdown": LocationData(BASE_ID + 4009),
+# Level Group 4 - Office Complex (SE_04A, SE_04B, SE_04C)
+office_locations: Dict[str, LocationData] = {
+    # SE_04A "Office Complex"
+    "Office Complex - Reception Desk": LocationData(BASE_ID + 4000, "Office Complex"),
+    "Office Complex - Executive Office": LocationData(BASE_ID + 4001, "Office Complex"),
+    "Office Complex - Server Room": LocationData(BASE_ID + 4002, "Office Complex"),
+    "Office Complex - Conference Room": LocationData(BASE_ID + 4003, "Office Complex"),
+    "Office Complex - Security Office": LocationData(BASE_ID + 4004, "Office Complex"),
+    "Office Complex - Supply Closet": LocationData(BASE_ID + 4005, "Office Complex"),
     
-    # Secrets
-    "Chapter 4 - Tool Cabinet Stash": LocationData(BASE_ID + 4050),
-    "Chapter 4 - Engineer's Locker": LocationData(BASE_ID + 4051),
-    "Chapter 4 - Pipe Crawlspace Cache": LocationData(BASE_ID + 4052),
-    "Chapter 4 - Reactor Maintenance Secret": LocationData(BASE_ID + 4053),
-    "Chapter 4 - Workshop Hidden Storage": LocationData(BASE_ID + 4054),
-    "Chapter 4 - Electrical Panel Cache": LocationData(BASE_ID + 4055),
-    "Chapter 4 - Steam Tunnel Stash": LocationData(BASE_ID + 4056),
-    "Chapter 4 - Control Panel Secret": LocationData(BASE_ID + 4057),
-    "Chapter 4 - Utility Shaft Cache": LocationData(BASE_ID + 4058),
-    "Chapter 4 - Generator Room Secret": LocationData(BASE_ID + 4059),
+    # SE_04B "Administration"
+    "Administration - Main Terminal": LocationData(BASE_ID + 4020, "Administration"),
+    "Administration - Records Vault": LocationData(BASE_ID + 4021, "Administration"),
+    "Administration - Manager's Office": LocationData(BASE_ID + 4022, "Administration"),
+    "Administration - Staff Lounge": LocationData(BASE_ID + 4023, "Administration"),
+    
+    # SE_04C "Courtyard" - Safe Room
+    "Courtyard - Garden Cache": LocationData(BASE_ID + 4040, "Courtyard"),
+    "Courtyard - Fountain Secret": LocationData(BASE_ID + 4041, "Courtyard"),
+    "Courtyard - Gazebo Supplies": LocationData(BASE_ID + 4042, "Courtyard"),
 }
 
-# Chapter 5 - Residential Quarters
-chapter5_locations: Dict[str, LocationData] = {
-    # Main progression
-    "Chapter 5 - Quarters Entry": LocationData(BASE_ID + 5000),
-    "Chapter 5 - Apartment Complex A": LocationData(BASE_ID + 5001),
-    "Chapter 5 - Community Center": LocationData(BASE_ID + 5002),
-    "Chapter 5 - Apartment Complex B": LocationData(BASE_ID + 5003),
-    "Chapter 5 - Recreation Area": LocationData(BASE_ID + 5004),
-    "Chapter 5 - Housing Administrator": LocationData(BASE_ID + 5005),
-    "Chapter 5 - Market District": LocationData(BASE_ID + 5006),
-    "Chapter 5 - Apartment Complex C": LocationData(BASE_ID + 5007),
-    "Chapter 5 - Social Services": LocationData(BASE_ID + 5008),
-    "Chapter 5 - Quarters Evacuation": LocationData(BASE_ID + 5009),
+# Level Group 5 - Exodus Plaza (SE_05A, SE_05B, SE_05C, SE_05D)
+plaza_locations: Dict[str, LocationData] = {
+    # SE_05A "Exodus Plaza"
+    "Exodus Plaza - Main Entrance": LocationData(BASE_ID + 5000, "Exodus Plaza"),
+    "Exodus Plaza - Central Kiosk": LocationData(BASE_ID + 5001, "Exodus Plaza"),
+    "Exodus Plaza - Information Desk": LocationData(BASE_ID + 5002, "Exodus Plaza"),
+    "Exodus Plaza - Security Station": LocationData(BASE_ID + 5003, "Exodus Plaza"),
     
-    # Secrets
-    "Chapter 5 - Apartment Hidden Safe": LocationData(BASE_ID + 5050),
-    "Chapter 5 - Resident's Stash": LocationData(BASE_ID + 5051),
-    "Chapter 5 - Recreation Secret": LocationData(BASE_ID + 5052),
-    "Chapter 5 - Kitchen Cache": LocationData(BASE_ID + 5053),
-    "Chapter 5 - Bedroom Hidden Items": LocationData(BASE_ID + 5054),
-    "Chapter 5 - Communal Storage": LocationData(BASE_ID + 5055),
-    "Chapter 5 - Rooftop Garden Secret": LocationData(BASE_ID + 5056),
-    "Chapter 5 - Laundry Room Cache": LocationData(BASE_ID + 5057),
-    "Chapter 5 - Mail Room Stash": LocationData(BASE_ID + 5058),
-    "Chapter 5 - Basement Storage": LocationData(BASE_ID + 5059),
+    # SE_05B "Exodus Plaza - North"
+    "Exodus North - Electronics Store": LocationData(BASE_ID + 5020, "Exodus Plaza North"),
+    "Exodus North - Clothing Store": LocationData(BASE_ID + 5021, "Exodus Plaza North"),
+    "Exodus North - Food Court": LocationData(BASE_ID + 5022, "Exodus Plaza North"),
+    "Exodus North - Arcade": LocationData(BASE_ID + 5023, "Exodus Plaza North"),
+    "Exodus North - Department Store": LocationData(BASE_ID + 5024, "Exodus Plaza North"),
+    
+    # SE_05C "Exodus Plaza - South"
+    "Exodus South - Bookstore": LocationData(BASE_ID + 5040, "Exodus Plaza South"),
+    "Exodus South - Pharmacy": LocationData(BASE_ID + 5041, "Exodus Plaza South"),
+    "Exodus South - Sports Store": LocationData(BASE_ID + 5042, "Exodus Plaza South"),
+    "Exodus South - Music Store": LocationData(BASE_ID + 5043, "Exodus Plaza South"),
+    "Exodus South - Jewelry Store": LocationData(BASE_ID + 5044, "Exodus Plaza South"),
+    
+    # SE_05D "Exodus Plaza - Front Entrance" - Safe Room
+    "Exodus Front - Main Entrance": LocationData(BASE_ID + 5060, "Exodus Plaza Entrance"),
+    "Exodus Front - Concierge Desk": LocationData(BASE_ID + 5061, "Exodus Plaza Entrance"),
+    "Exodus Front - Emergency Station": LocationData(BASE_ID + 5062, "Exodus Plaza Entrance"),
 }
 
-# Chapter 6 - Command Center
-chapter6_locations: Dict[str, LocationData] = {
-    # Main progression
-    "Chapter 6 - Command Entry": LocationData(BASE_ID + 6000),
-    "Chapter 6 - Communications Hub": LocationData(BASE_ID + 6001),
-    "Chapter 6 - Tactical Operations": LocationData(BASE_ID + 6002),
-    "Chapter 6 - Officer's Quarters": LocationData(BASE_ID + 6003),
-    "Chapter 6 - Strategy Room": LocationData(BASE_ID + 6004),
-    "Chapter 6 - Computer Core Access": LocationData(BASE_ID + 6005),
-    "Chapter 6 - Command Bridge": LocationData(BASE_ID + 6006),
-    "Chapter 6 - Admiral's Office": LocationData(BASE_ID + 6007),
-    "Chapter 6 - Defense Grid Control": LocationData(BASE_ID + 6008),
-    "Chapter 6 - Final Confrontation": LocationData(BASE_ID + 6009),
+# Level Group 6 - Plant Cloning Facility (SE_06A, SE_06A1, SE_06B, SE_06C)
+plant_locations: Dict[str, LocationData] = {
+    # SE_06A "Plant Cloning Facility - Offices" - Safe Room
+    "Plant Facility Offices - Reception": LocationData(BASE_ID + 6000, "Plant Facility Offices"),
+    "Plant Facility Offices - Director's Office": LocationData(BASE_ID + 6001, "Plant Facility Offices"),
+    "Plant Facility Offices - Conference Room": LocationData(BASE_ID + 6002, "Plant Facility Offices"),
     
-    # Secrets
-    "Chapter 6 - Commander's Safe": LocationData(BASE_ID + 6050),
-    "Chapter 6 - War Room Secret": LocationData(BASE_ID + 6051),
-    "Chapter 6 - Intelligence Cache": LocationData(BASE_ID + 6052),
-    "Chapter 6 - Officer's Locker": LocationData(BASE_ID + 6053),
-    "Chapter 6 - Strategic Plans Vault": LocationData(BASE_ID + 6054),
-    "Chapter 6 - Bridge Console Secret": LocationData(BASE_ID + 6055),
-    "Chapter 6 - Admiral's Private Stash": LocationData(BASE_ID + 6056),
-    "Chapter 6 - Communications Array": LocationData(BASE_ID + 6057),
-    "Chapter 6 - Emergency Protocols": LocationData(BASE_ID + 6058),
-    "Chapter 6 - Command Bunker Cache": LocationData(BASE_ID + 6059),
+    # SE_06A1 "Plant Cloning Facility - Offices" (Elevator area)
+    "Plant Facility Elevator - Service Access": LocationData(BASE_ID + 6020, "Plant Facility Elevator"),
+    "Plant Facility Elevator - Maintenance Panel": LocationData(BASE_ID + 6021, "Plant Facility Elevator"),
+    
+    # SE_06B "Plant Cloning Facility - Research Labs"
+    "Plant Research Labs - Main Lab": LocationData(BASE_ID + 6040, "Plant Research Labs"),
+    "Plant Research Labs - Specimen Storage": LocationData(BASE_ID + 6041, "Plant Research Labs"),
+    "Plant Research Labs - Data Terminal": LocationData(BASE_ID + 6042, "Plant Research Labs"),
+    "Plant Research Labs - Chemical Lab": LocationData(BASE_ID + 6043, "Plant Research Labs"),
+    
+    # SE_06C "Plant Cloning Facility - Cloning Plant"
+    "Plant Cloning - Growth Chambers": LocationData(BASE_ID + 6060, "Plant Cloning"),
+    "Plant Cloning - Control Center": LocationData(BASE_ID + 6061, "Plant Cloning"),
+    "Plant Cloning - Nutrient Systems": LocationData(BASE_ID + 6062, "Plant Cloning"),
+    "Plant Cloning - Observation Deck": LocationData(BASE_ID + 6063, "Plant Cloning"),
 }
 
-# Special/Bonus Locations
-special_locations: Dict[str, LocationData] = {
-    # Cross-chapter secrets
-    "Station-wide - Maintenance Master Key": LocationData(BASE_ID + 7000),
-    "Station-wide - Security Override": LocationData(BASE_ID + 7001),
-    "Station-wide - Emergency Protocols": LocationData(BASE_ID + 7002),
-    "Station-wide - Hidden Armory": LocationData(BASE_ID + 7003),
-    "Station-wide - Secret Laboratory": LocationData(BASE_ID + 7004),
-    "Station-wide - Central Computer Core": LocationData(BASE_ID + 7005),
-    "Station-wide - Evacuation Pod Bay": LocationData(BASE_ID + 7006),
-    "Station-wide - Captain's Personal Vault": LocationData(BASE_ID + 7007),
-    "Station-wide - Emergency Supply Cache": LocationData(BASE_ID + 7008),
-    "Station-wide - Station Core Access": LocationData(BASE_ID + 7009),
+# Level Group 7 - Starlight Area (SE_07A1, SE_07A, SE_07B, SE_07C, SE_07D, SE_07E, SE_07Z)
+starlight_locations: Dict[str, LocationData] = {
+    # SE_07A1 "Starlight Exterior" - Safe Room
+    "Starlight Exterior - Entrance Plaza": LocationData(BASE_ID + 7000, "Starlight Exterior"),
+    "Starlight Exterior - Guard Post": LocationData(BASE_ID + 7001, "Starlight Exterior"),
+    
+    # SE_07A "Starlight Lobby" - Safe Room
+    "Starlight Lobby - Reception Desk": LocationData(BASE_ID + 7020, "Starlight Lobby"),
+    "Starlight Lobby - Information Kiosk": LocationData(BASE_ID + 7021, "Starlight Lobby"),
+    "Starlight Lobby - Security Office": LocationData(BASE_ID + 7022, "Starlight Lobby"),
+    
+    # SE_07B "Starlight Green"
+    "Starlight Green - Main Area": LocationData(BASE_ID + 7040, "Starlight Green"),
+    "Starlight Green - Side Rooms": LocationData(BASE_ID + 7041, "Starlight Green"),
+    "Starlight Green - Control Panel": LocationData(BASE_ID + 7042, "Starlight Green"),
+    
+    # SE_07C "Starlight Red"
+    "Starlight Red - Central Chamber": LocationData(BASE_ID + 7060, "Starlight Red"),
+    "Starlight Red - Side Access": LocationData(BASE_ID + 7061, "Starlight Red"),
+    "Starlight Red - Emergency Exit": LocationData(BASE_ID + 7062, "Starlight Red"),
+    
+    # SE_07D "Starlight Blue"
+    "Starlight Blue - Primary Area": LocationData(BASE_ID + 7080, "Starlight Blue"),
+    "Starlight Blue - Support Systems": LocationData(BASE_ID + 7081, "Starlight Blue"),
+    "Starlight Blue - Access Terminal": LocationData(BASE_ID + 7082, "Starlight Blue"),
+    
+    # SE_07E "Starlight Purple"
+    "Starlight Purple - Main Section": LocationData(BASE_ID + 7100, "Starlight Purple"),
+    "Starlight Purple - Control Room": LocationData(BASE_ID + 7101, "Starlight Purple"),
+    "Starlight Purple - Power Junction": LocationData(BASE_ID + 7102, "Starlight Purple"),
+    
+    # SE_07Z "Starlight Purple" (Final area)
+    "Starlight Final - Critical Systems": LocationData(BASE_ID + 7120, "Starlight Final"),
+    "Starlight Final - Master Terminal": LocationData(BASE_ID + 7121, "Starlight Final"),
+    "Starlight Final - Emergency Cache": LocationData(BASE_ID + 7122, "Starlight Final"),
+}
+
+# Level Group 8 - Endgame (SE_08A)
+endgame_locations: Dict[str, LocationData] = {
+    "Endgame - Final Checkpoint": LocationData(BASE_ID + 8000, "Endgame"),
+    "Endgame - Critical Decision": LocationData(BASE_ID + 8001, "Endgame"),
+    "Endgame - Emergency Systems": LocationData(BASE_ID + 8002, "Endgame"),
+    "Endgame - Escape Route": LocationData(BASE_ID + 8003, "Endgame"),  # Victory location
+}
+
+# Secret and Special Locations (based on game references)
+secret_locations: Dict[str, LocationData] = {
+    # Secrets scattered throughout levels
+    "Hospital Secret - Hidden Armory": LocationData(BASE_ID + 9000, "Pathfinder Hospital"),
+    "Hospital Secret - Basement Cache": LocationData(BASE_ID + 9001, "Pathfinder Hospital"),
+    "Utility Secret - Forgotten Stash": LocationData(BASE_ID + 9002, "Utility Area"),
+    "Streets Secret - Rooftop Cache": LocationData(BASE_ID + 9003, "Selaco Streets"),
+    "Streets Secret - Sewer Access": LocationData(BASE_ID + 9004, "Selaco Streets"),
+    "Office Secret - Executive Safe": LocationData(BASE_ID + 9005, "Office Complex"),
+    "Plaza Secret - Maintenance Tunnel": LocationData(BASE_ID + 9006, "Exodus Plaza"),
+    "Plaza Secret - VIP Area": LocationData(BASE_ID + 9007, "Exodus Plaza"),
+    "Plant Secret - Research Vault": LocationData(BASE_ID + 9008, "Plant Facility"),
+    "Starlight Secret - Hidden Lab": LocationData(BASE_ID + 9009, "Starlight"),
     
     # Achievement-based locations
-    "Achievement - First Weapon Upgrade": LocationData(BASE_ID + 8000),
-    "Achievement - Collect 10 Keycards": LocationData(BASE_ID + 8001),
-    "Achievement - Defeat 100 Enemies": LocationData(BASE_ID + 8002),
-    "Achievement - Find 25 Secrets": LocationData(BASE_ID + 8003),
-    "Achievement - Use All Weapon Types": LocationData(BASE_ID + 8004),
-    "Achievement - Perfect Stealth Section": LocationData(BASE_ID + 8005),
-    "Achievement - Speedrun Chapter": LocationData(BASE_ID + 8006),
-    "Achievement - No Damage Boss Fight": LocationData(BASE_ID + 8007),
-    "Achievement - Collect All PDA Logs": LocationData(BASE_ID + 8008),
-    "Achievement - Master of Arms": LocationData(BASE_ID + 8009),
+    "Achievement - First Blood": LocationData(BASE_ID + 9100, "Pathfinder Hospital"),
+    "Achievement - Weapon Master": LocationData(BASE_ID + 9101, "Selaco Station"),
+    "Achievement - Secret Hunter": LocationData(BASE_ID + 9102, "Selaco Station"),
+    "Achievement - Survivor": LocationData(BASE_ID + 9103, "Selaco Station"),
+    "Achievement - Completionist": LocationData(BASE_ID + 9104, "Selaco Station"),
+}
+
+# Weapon Station and Upgrade Locations (based on Gwyn stations)
+upgrade_locations: Dict[str, LocationData] = {
+    "Gwyn Station - Hospital": LocationData(BASE_ID + 9200, "Pathfinder Hospital"),
+    "Gwyn Station - Utility": LocationData(BASE_ID + 9201, "Utility Area"),
+    "Gwyn Station - Streets": LocationData(BASE_ID + 9202, "Selaco Streets"),
+    "Gwyn Station - Office": LocationData(BASE_ID + 9203, "Office Complex"),
+    "Gwyn Station - Plaza": LocationData(BASE_ID + 9204, "Exodus Plaza"),
+    "Gwyn Station - Plant Facility": LocationData(BASE_ID + 9205, "Plant Facility"),
+    "Gwyn Station - Starlight": LocationData(BASE_ID + 9206, "Starlight"),
     
-    # Challenge locations
-    "Challenge - Survival Mode Wave 10": LocationData(BASE_ID + 9000),
-    "Challenge - Shooting Range Gold": LocationData(BASE_ID + 9001),
-    "Challenge - Time Trial Complete": LocationData(BASE_ID + 9002),
-    "Challenge - Pacifist Run": LocationData(BASE_ID + 9003),
-    "Challenge - Explosives Only": LocationData(BASE_ID + 9004),
-    "Challenge - No Healing Items": LocationData(BASE_ID + 9005),
-    "Challenge - Minimal Equipment": LocationData(BASE_ID + 9006),
-    "Challenge - Perfect Accuracy": LocationData(BASE_ID + 9007),
-    "Challenge - Environmental Kills": LocationData(BASE_ID + 9008),
-    "Challenge - Ultimate Survivor": LocationData(BASE_ID + 9009),
+    "Weapon Station - Blue Wing": LocationData(BASE_ID + 9210, "Pathfinder Blue Wing"),
+    "Weapon Station - Water Treatment": LocationData(BASE_ID + 9211, "Water Treatment"),
+    "Weapon Station - Courtyard": LocationData(BASE_ID + 9212, "Courtyard"),
+    "Weapon Station - Plaza Entrance": LocationData(BASE_ID + 9213, "Exodus Plaza Entrance"),
 }
 
 # Combine all location tables
 location_table: Dict[str, LocationData] = {
-    **chapter1_locations,
-    **chapter2_locations,
-    **chapter3_locations,
-    **chapter4_locations,
-    **chapter5_locations,
-    **chapter6_locations,
-    **special_locations,
+    **hospital_locations,
+    **utility_locations,
+    **streets_locations,
+    **office_locations,
+    **plaza_locations,
+    **plant_locations,
+    **starlight_locations,
+    **endgame_locations,
+    **secret_locations,
+    **upgrade_locations,
 }
-
-# Define location groups for easier reference
-chapter_locations = {
-    1: list(chapter1_locations.keys()),
-    2: list(chapter2_locations.keys()),
-    3: list(chapter3_locations.keys()),
-    4: list(chapter4_locations.keys()),
-    5: list(chapter5_locations.keys()),
-    6: list(chapter6_locations.keys()),
-}
-
-secret_locations = [
-    # All locations with "Secret" or "Hidden" in the name
-    name for name in location_table.keys() 
-    if "Secret" in name or "Hidden" in name or "Cache" in name or "Stash" in name
-]
-
-progression_locations = [
-    # Main progression locations from each chapter
-    name for name in location_table.keys()
-    if any(chapter in name for chapter in ["Entry", "Access", "Clear", "Override", "Terminal", "Control", "Exit"])
-]
-
-achievement_locations = [
-    name for name in location_table.keys() if "Achievement" in name
-]
-
-challenge_locations = [
-    name for name in location_table.keys() if "Challenge" in name
-]

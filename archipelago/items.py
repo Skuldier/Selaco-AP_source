@@ -1,5 +1,5 @@
 """
-Selaco items for Archipelago
+Selaco items for Archipelago - Based on actual game content
 """
 from dataclasses import dataclass
 from typing import Dict, Set, Optional
@@ -20,181 +20,215 @@ class SelacoPatchItem(Item):
 # Base ID for Selaco items - using a unique range
 BASE_ID = 845000
 
-# Weapons - Critical progression items
+# Weapons - Based on actual weapon names from LANGUAGE file
 weapon_table: Dict[str, ItemData] = {
-    # Primary Weapons
-    "UC-11 Exon SMG": ItemData(BASE_ID + 1, ItemClassification.progression),
-    "Riot Shotgun": ItemData(BASE_ID + 2, ItemClassification.progression),
-    "S-8 Marksman Rifle": ItemData(BASE_ID + 3, ItemClassification.progression),
-    "Roaring Cricket": ItemData(BASE_ID + 4, ItemClassification.progression),
-    "G19 Handgun": ItemData(BASE_ID + 5, ItemClassification.progression),
+    # Primary Weapons (actual names from game)
+    "UC-11 Compact SMG": ItemData(BASE_ID + 1, ItemClassification.progression),
+    "ESG-24 Shotgun": ItemData(BASE_ID + 2, ItemClassification.progression),
+    "UC-36 Assault Rifle": ItemData(BASE_ID + 3, ItemClassification.progression),
+    "S-8 Marksman Rifle": ItemData(BASE_ID + 4, ItemClassification.progression),
+    "Roaring Cricket": ItemData(BASE_ID + 5, ItemClassification.progression),
     
-    # Secondary/Special Weapons
-    "Grenade Launcher": ItemData(BASE_ID + 6, ItemClassification.useful),
-    "Pulse Cannon": ItemData(BASE_ID + 7, ItemClassification.useful),
-    "Railgun": ItemData(BASE_ID + 8, ItemClassification.useful),
-    "Plasma Rifle": ItemData(BASE_ID + 9, ItemClassification.useful),
+    # Advanced Weapons
+    "24mm HW-Penetrator": ItemData(BASE_ID + 6, ItemClassification.useful),  # Nail Gun
+    "MGL-2": ItemData(BASE_ID + 7, ItemClassification.useful),  # Grenade Launcher
+    "Grav-VI Plasma Rifle": ItemData(BASE_ID + 8, ItemClassification.useful),
+    "Prototype Railgun (v0.65)": ItemData(BASE_ID + 9, ItemClassification.useful),
     
-    # Equipment
-    "Gravity Manipulator": ItemData(BASE_ID + 10, ItemClassification.progression),
-    "Thermal Goggles": ItemData(BASE_ID + 11, ItemClassification.useful),
-    "Flashlight": ItemData(BASE_ID + 12, ItemClassification.progression),
-    "Detector": ItemData(BASE_ID + 13, ItemClassification.useful),
+    # Melee/Utility
+    "Fists": ItemData(BASE_ID + 10, ItemClassification.progression),
+    "Fire Extinguisher": ItemData(BASE_ID + 11, ItemClassification.useful),
 }
 
-# Key Items - Essential for progression
-key_item_table: Dict[str, ItemData] = {
-    "Red Keycard": ItemData(BASE_ID + 50, ItemClassification.progression),
-    "Blue Keycard": ItemData(BASE_ID + 51, ItemClassification.progression),
-    "Yellow Keycard": ItemData(BASE_ID + 52, ItemClassification.progression),
-    "Green Keycard": ItemData(BASE_ID + 53, ItemClassification.progression),
-    "Security Access Card": ItemData(BASE_ID + 54, ItemClassification.progression),
-    "Medical Access Card": ItemData(BASE_ID + 55, ItemClassification.progression),
-    "Science Access Card": ItemData(BASE_ID + 56, ItemClassification.progression),
-    "Engineering Access Card": ItemData(BASE_ID + 57, ItemClassification.progression),
-    
-    # Story progression items
-    "Dawn's Badge": ItemData(BASE_ID + 60, ItemClassification.progression),
-    "Station Map": ItemData(BASE_ID + 61, ItemClassification.useful),
-    "Communication Device": ItemData(BASE_ID + 62, ItemClassification.progression),
-    "Emergency Override": ItemData(BASE_ID + 63, ItemClassification.progression),
+# Explosives and Grenades (from game files)
+explosive_table: Dict[str, ItemData] = {
+    "Frag Grenade": ItemData(BASE_ID + 20, ItemClassification.useful, max_quantity=10),
+    "Ice Grenade": ItemData(BASE_ID + 21, ItemClassification.useful, max_quantity=5),
+    "Landmine": ItemData(BASE_ID + 22, ItemClassification.useful, max_quantity=5),
 }
 
-# Upgrades and Enhancement Items
+# Equipment and Tools (based on game references)
+equipment_table: Dict[str, ItemData] = {
+    "Flashlight": ItemData(BASE_ID + 50, ItemClassification.progression),
+    "Gravity Manipulator": ItemData(BASE_ID + 51, ItemClassification.progression),
+    "Thermal Goggles": ItemData(BASE_ID + 52, ItemClassification.useful),
+    "Motion Sensor": ItemData(BASE_ID + 53, ItemClassification.useful),
+    "Environmental Suit": ItemData(BASE_ID + 54, ItemClassification.progression),
+    "Oxygen Tank": ItemData(BASE_ID + 55, ItemClassification.useful, max_quantity=3),
+    "Tool Kit": ItemData(BASE_ID + 56, ItemClassification.useful),
+    "Hacking Device": ItemData(BASE_ID + 57, ItemClassification.useful),
+}
+
+# Keycards and Access Items (based on actual game areas)
+keycard_table: Dict[str, ItemData] = {
+    # Basic keycards
+    "Red Keycard": ItemData(BASE_ID + 100, ItemClassification.progression),
+    "Blue Keycard": ItemData(BASE_ID + 101, ItemClassification.progression),
+    "Yellow Keycard": ItemData(BASE_ID + 102, ItemClassification.progression),
+    "Green Keycard": ItemData(BASE_ID + 103, ItemClassification.progression),
+    
+    # Facility access cards
+    "Hospital Access Card": ItemData(BASE_ID + 110, ItemClassification.progression),
+    "Security Access Card": ItemData(BASE_ID + 111, ItemClassification.progression),
+    "Engineering Access Card": ItemData(BASE_ID + 112, ItemClassification.progression),
+    "Research Access Card": ItemData(BASE_ID + 113, ItemClassification.progression),
+    "Administration Access Card": ItemData(BASE_ID + 114, ItemClassification.progression),
+    
+    # Special areas (based on actual levels)
+    "Starlight Access Card": ItemData(BASE_ID + 120, ItemClassification.progression),
+    "Exodus Plaza Key": ItemData(BASE_ID + 121, ItemClassification.progression),
+    "Plant Facility Key": ItemData(BASE_ID + 122, ItemClassification.progression),
+}
+
+# Weapon Upgrades (based on actual upgrade system)
 upgrade_table: Dict[str, ItemData] = {
-    # Weapon Upgrades
-    "Weapon Upgrade Kit": ItemData(BASE_ID + 100, ItemClassification.useful, max_quantity=10),
-    "Extended Magazine": ItemData(BASE_ID + 101, ItemClassification.useful, max_quantity=5),
-    "Scope Attachment": ItemData(BASE_ID + 102, ItemClassification.useful, max_quantity=5),
-    "Barrel Stabilizer": ItemData(BASE_ID + 103, ItemClassification.useful, max_quantity=5),
-    "Suppressor": ItemData(BASE_ID + 104, ItemClassification.useful, max_quantity=5),
+    # SMG Upgrades (from game files)
+    "SMG Damage Upgrade": ItemData(BASE_ID + 200, ItemClassification.useful),
+    "SMG Extended Magazine": ItemData(BASE_ID + 201, ItemClassification.useful),
+    "SMG Dual Wield": ItemData(BASE_ID + 202, ItemClassification.useful),
+    "SMG Controlled Shots": ItemData(BASE_ID + 203, ItemClassification.useful),
+    "SMG Shock Dart": ItemData(BASE_ID + 204, ItemClassification.useful),
     
-    # Armor Upgrades
-    "Armor Vest": ItemData(BASE_ID + 110, ItemClassification.useful),
-    "Combat Helmet": ItemData(BASE_ID + 111, ItemClassification.useful),
-    "Tactical Gloves": ItemData(BASE_ID + 112, ItemClassification.useful),
-    "Reinforced Boots": ItemData(BASE_ID + 113, ItemClassification.useful),
-    "Shield Generator": ItemData(BASE_ID + 114, ItemClassification.useful),
+    # Shotgun Upgrades
+    "Shotgun Damage Upgrade": ItemData(BASE_ID + 210, ItemClassification.useful),
+    "Shotgun Extended Magazine": ItemData(BASE_ID + 211, ItemClassification.useful),
+    "Shotgun Choke": ItemData(BASE_ID + 212, ItemClassification.useful),
     
-    # Stat Upgrades
-    "Health Boost": ItemData(BASE_ID + 120, ItemClassification.useful, max_quantity=10),
-    "Stamina Boost": ItemData(BASE_ID + 121, ItemClassification.useful, max_quantity=10),
-    "Speed Boost": ItemData(BASE_ID + 122, ItemClassification.useful, max_quantity=5),
-    "Damage Boost": ItemData(BASE_ID + 123, ItemClassification.useful, max_quantity=5),
-    "Accuracy Boost": ItemData(BASE_ID + 124, ItemClassification.useful, max_quantity=5),
+    # Rifle Upgrades
+    "Rifle Damage Upgrade": ItemData(BASE_ID + 220, ItemClassification.useful),
+    "Rifle Extended Magazine": ItemData(BASE_ID + 221, ItemClassification.useful),
+    "Rifle Scope": ItemData(BASE_ID + 222, ItemClassification.useful),
+    
+    # General Weapon Upgrades
+    "Weapon Upgrade Kit": ItemData(BASE_ID + 230, ItemClassification.useful, max_quantity=10),
+    "Weapon Parts": ItemData(BASE_ID + 231, ItemClassification.useful, max_quantity=15),
 }
 
-# Ammo and Consumables
+# Ammo Types (based on actual ammo system)
 ammo_table: Dict[str, ItemData] = {
-    # Ammo Types
-    "SMG Ammo": ItemData(BASE_ID + 200, ItemClassification.filler, max_quantity=20),
-    "Shotgun Shells": ItemData(BASE_ID + 201, ItemClassification.filler, max_quantity=20),
-    "Rifle Ammo": ItemData(BASE_ID + 202, ItemClassification.filler, max_quantity=20),
-    "Handgun Ammo": ItemData(BASE_ID + 203, ItemClassification.filler, max_quantity=20),
-    "Grenade Rounds": ItemData(BASE_ID + 204, ItemClassification.useful, max_quantity=10),
-    "Energy Cells": ItemData(BASE_ID + 205, ItemClassification.useful, max_quantity=15),
-    "Plasma Charges": ItemData(BASE_ID + 206, ItemClassification.useful, max_quantity=15),
-    "Rail Slugs": ItemData(BASE_ID + 207, ItemClassification.useful, max_quantity=10),
+    # Primary ammo types
+    "SMG Ammo": ItemData(BASE_ID + 300, ItemClassification.filler, max_quantity=20),
+    "Shotgun Shells": ItemData(BASE_ID + 301, ItemClassification.filler, max_quantity=15),
+    "Rifle Ammo": ItemData(BASE_ID + 302, ItemClassification.filler, max_quantity=20),
+    "Plasma Charges": ItemData(BASE_ID + 303, ItemClassification.useful, max_quantity=10),
+    "Rail Slugs": ItemData(BASE_ID + 304, ItemClassification.useful, max_quantity=8),
+    "Nail Gun Ammo": ItemData(BASE_ID + 305, ItemClassification.useful, max_quantity=15),
+    "Grenade Rounds": ItemData(BASE_ID + 306, ItemClassification.useful, max_quantity=8),
     
-    # Explosives
-    "Frag Grenade": ItemData(BASE_ID + 210, ItemClassification.useful, max_quantity=10),
-    "Flash Grenade": ItemData(BASE_ID + 211, ItemClassification.useful, max_quantity=10),
-    "Smoke Grenade": ItemData(BASE_ID + 212, ItemClassification.useful, max_quantity=10),
-    "EMP Grenade": ItemData(BASE_ID + 213, ItemClassification.useful, max_quantity=5),
-    "Remote Mine": ItemData(BASE_ID + 214, ItemClassification.useful, max_quantity=5),
-    
-    # Health Items
-    "Health Kit": ItemData(BASE_ID + 220, ItemClassification.useful, max_quantity=20),
-    "Medical Injector": ItemData(BASE_ID + 221, ItemClassification.useful, max_quantity=15),
-    "First Aid Supplies": ItemData(BASE_ID + 222, ItemClassification.filler, max_quantity=25),
-    "Emergency Stimpack": ItemData(BASE_ID + 223, ItemClassification.useful, max_quantity=10),
-    "Armor Repair Kit": ItemData(BASE_ID + 224, ItemClassification.useful, max_quantity=15),
+    # Special ammo
+    "Magnetic Rounds": ItemData(BASE_ID + 310, ItemClassification.useful, max_quantity=5),
+    "Armor Piercing Rounds": ItemData(BASE_ID + 311, ItemClassification.useful, max_quantity=5),
 }
 
-# Utility and Misc Items
-utility_table: Dict[str, ItemData] = {
-    "Power Cell": ItemData(BASE_ID + 300, ItemClassification.useful, max_quantity=10),
-    "Backup Generator": ItemData(BASE_ID + 301, ItemClassification.useful),
-    "Security Scanner": ItemData(BASE_ID + 302, ItemClassification.useful),
-    "Hacking Device": ItemData(BASE_ID + 303, ItemClassification.useful),
-    "Motion Sensor": ItemData(BASE_ID + 304, ItemClassification.useful),
-    "Emergency Beacon": ItemData(BASE_ID + 305, ItemClassification.useful),
-    "Environmental Suit": ItemData(BASE_ID + 306, ItemClassification.progression),
-    "Oxygen Tank": ItemData(BASE_ID + 307, ItemClassification.useful, max_quantity=5),
-    "Radiation Shield": ItemData(BASE_ID + 308, ItemClassification.useful),
-    "Tool Kit": ItemData(BASE_ID + 309, ItemClassification.useful),
+# Health and Consumables
+consumable_table: Dict[str, ItemData] = {
+    # Health items
+    "Health Injector": ItemData(BASE_ID + 400, ItemClassification.useful, max_quantity=15),
+    "Medical Kit": ItemData(BASE_ID + 401, ItemClassification.useful, max_quantity=10),
+    "Emergency Stimpack": ItemData(BASE_ID + 402, ItemClassification.useful, max_quantity=8),
+    "Armor Repair Kit": ItemData(BASE_ID + 403, ItemClassification.useful, max_quantity=10),
+    
+    # Food items (watermelons are apparently important!)
+    "Watermelon": ItemData(BASE_ID + 410, ItemClassification.filler, max_quantity=20),
+    "Soda Can": ItemData(BASE_ID + 411, ItemClassification.filler, max_quantity=15),
+    "Energy Bar": ItemData(BASE_ID + 412, ItemClassification.filler, max_quantity=15),
+    
+    # Credits and currency
+    "Credits (100)": ItemData(BASE_ID + 420, ItemClassification.useful, max_quantity=20),
+    "Credits (300)": ItemData(BASE_ID + 421, ItemClassification.useful, max_quantity=10),
+    "Credits (600)": ItemData(BASE_ID + 422, ItemClassification.useful, max_quantity=5),
 }
 
-# Victory/Goal Items
-victory_table: Dict[str, ItemData] = {
-    "Station Core Access": ItemData(BASE_ID + 400, ItemClassification.progression),
-    "Emergency Shutdown Override": ItemData(BASE_ID + 401, ItemClassification.progression),
-    "Evacuation Pod Key": ItemData(BASE_ID + 402, ItemClassification.progression),
+# Story and Victory Items (based on actual game objective)
+story_table: Dict[str, ItemData] = {
+    # The actual objective is "Escape" based on game files
+    "Dawn's Security Badge": ItemData(BASE_ID + 500, ItemClassification.progression),
+    "Emergency Evacuation Orders": ItemData(BASE_ID + 501, ItemClassification.progression),
+    "Station Access Codes": ItemData(BASE_ID + 502, ItemClassification.progression),
+    "Elevator Override Key": ItemData(BASE_ID + 503, ItemClassification.progression),
+    "Emergency Communication Device": ItemData(BASE_ID + 504, ItemClassification.progression),
+    
+    # Victory item - the escape
+    "Escape Route Access": ItemData(BASE_ID + 510, ItemClassification.progression),
 }
 
 # Combine all item tables
 item_table: Dict[str, ItemData] = {
     **weapon_table,
-    **key_item_table,
+    **explosive_table,
+    **equipment_table,
+    **keycard_table,
     **upgrade_table,
     **ammo_table,
-    **utility_table,
-    **victory_table,
+    **consumable_table,
+    **story_table,
 }
 
 # Define item categories for generation
 progression_table = [
-    # Essential weapons
-    "G19 Handgun", "UC-11 Exon SMG", "Riot Shotgun", "S-8 Marksman Rifle",
-    "Gravity Manipulator", "Flashlight", "Environmental Suit",
+    # Essential weapons for combat
+    "Fists", "UC-11 Compact SMG", "ESG-24 Shotgun", "UC-36 Assault Rifle",
     
-    # Key cards and access items
+    # Essential equipment
+    "Flashlight", "Gravity Manipulator", "Environmental Suit",
+    
+    # Key progression items
     "Red Keycard", "Blue Keycard", "Yellow Keycard", "Green Keycard",
-    "Security Access Card", "Medical Access Card", "Science Access Card", "Engineering Access Card",
+    "Hospital Access Card", "Security Access Card", "Engineering Access Card",
+    "Research Access Card", "Administration Access Card",
     
-    # Story items
-    "Dawn's Badge", "Communication Device", "Emergency Override",
+    # Area access
+    "Starlight Access Card", "Exodus Plaza Key", "Plant Facility Key",
     
-    # Victory items
-    "Station Core Access", "Emergency Shutdown Override", "Evacuation Pod Key",
+    # Story progression
+    "Dawn's Security Badge", "Emergency Evacuation Orders", "Station Access Codes",
+    "Elevator Override Key", "Emergency Communication Device",
+    
+    # Victory condition
+    "Escape Route Access",
 ]
 
 useful_table = [
     # Advanced weapons
-    "Roaring Cricket", "Grenade Launcher", "Pulse Cannon", "Railgun", "Plasma Rifle",
+    "S-8 Marksman Rifle", "Roaring Cricket", "24mm HW-Penetrator", 
+    "MGL-2", "Grav-VI Plasma Rifle", "Prototype Railgun (v0.65)",
     
-    # Equipment
-    "Thermal Goggles", "Detector", "Station Map",
+    # Equipment and tools
+    "Thermal Goggles", "Motion Sensor", "Tool Kit", "Hacking Device",
     
-    # Upgrades
-    "Weapon Upgrade Kit", "Armor Vest", "Combat Helmet", "Shield Generator",
-    "Health Boost", "Stamina Boost", "Speed Boost",
+    # Explosives
+    "Frag Grenade", "Ice Grenade", "Landmine",
     
-    # Utility
-    "Power Cell", "Security Scanner", "Hacking Device", "Motion Sensor",
-    "Emergency Beacon", "Radiation Shield", "Tool Kit",
+    # Weapon upgrades
+    "SMG Damage Upgrade", "SMG Dual Wield", "SMG Shock Dart",
+    "Shotgun Damage Upgrade", "Rifle Scope", "Weapon Upgrade Kit",
     
-    # Combat items
-    "Frag Grenade", "Flash Grenade", "EMP Grenade", "Remote Mine",
-    "Health Kit", "Medical Injector", "Emergency Stimpack", "Armor Repair Kit",
+    # Health and survival
+    "Health Injector", "Medical Kit", "Emergency Stimpack", "Armor Repair Kit",
     
     # Special ammo
-    "Grenade Rounds", "Energy Cells", "Plasma Charges", "Rail Slugs",
+    "Plasma Charges", "Rail Slugs", "Grenade Rounds", "Magnetic Rounds",
+    
+    # Currency
+    "Credits (300)", "Credits (600)",
 ]
 
 filler_table = [
     # Basic ammo
-    "SMG Ammo", "Shotgun Shells", "Rifle Ammo", "Handgun Ammo",
+    "SMG Ammo", "Shotgun Shells", "Rifle Ammo", "Nail Gun Ammo",
     
-    # Basic consumables
-    "First Aid Supplies", "Smoke Grenade", "Oxygen Tank",
+    # Consumables
+    "Watermelon", "Soda Can", "Energy Bar", "Oxygen Tank",
     
     # Minor upgrades
-    "Extended Magazine", "Scope Attachment", "Barrel Stabilizer", "Suppressor",
-    "Tactical Gloves", "Reinforced Boots", "Damage Boost", "Accuracy Boost",
+    "SMG Extended Magazine", "Shotgun Extended Magazine", "Rifle Extended Magazine",
+    "Weapon Parts",
+    
+    # Basic currency
+    "Credits (100)",
     
     # Utility
-    "Backup Generator", "Environmental Suit",
+    "Fire Extinguisher",
 ]
 
 # Create sets for easier lookup
